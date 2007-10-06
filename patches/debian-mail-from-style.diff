@@ -1,0 +1,14 @@
+** `mail-from-style' is set to 'system-default by default.
+   Provided by: Romain Francoise <rfrancoise@debian.org>
+
+--- emacs-snapshot-20070902.orig/lisp/mail/sendmail.el
++++ emacs-snapshot-20070902/lisp/mail/sendmail.el
+@@ -59,7 +59,7 @@
+   :type 'file)
+ 
+ ;;;###autoload
+-(defcustom mail-from-style 'angles
++(defcustom mail-from-style 'system-default
+   "Specifies how \"From:\" fields look.
+ 
+ If `nil', they contain just the return address like:

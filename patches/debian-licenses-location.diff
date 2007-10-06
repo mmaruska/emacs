@@ -1,0 +1,19 @@
+** (describe-copying) uses /usr/share/common-licenses/GPL
+   On Debian systems, the full text of the GPL is available from the
+   /usr/share/common-licenses directory.  The COPYING file included
+   in the Emacs distribution is not installed in `data-directory',
+   so `describe-copying' has been modified accordingly.
+
+   Provided by: Romain Francoise <rfrancoise@debian.org>
+
+--- emacs-snapshot-20070902.orig/lisp/help.el
++++ emacs-snapshot-20070902/lisp/help.el
+@@ -287,7 +287,7 @@
+ (defun describe-copying ()
+   "Display info on how you may redistribute copies of GNU Emacs."
+   (interactive)
+-  (view-file (expand-file-name "COPYING" data-directory))
++  (view-file "/usr/share/common-licenses/GPL")
+   (goto-char (point-min)))
+ 
+ (defun describe-project ()

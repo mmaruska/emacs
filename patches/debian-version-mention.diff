@@ -1,0 +1,16 @@
+** (emacs-version) has been modified to indicate Debian modifications.
+   Provided by: Rob Browning <rlb@defaultvalue.org>
+
+--- a/lisp/version.el
++++ b/lisp/version.el
+@@ -58,8 +58,8 @@
+   (interactive "P")
+   (let ((version-string
+          (format (if (not (interactive-p))
+-		     "GNU Emacs %s (%s%s%s)\n of %s on %s"
+-		   "GNU Emacs %s (%s%s%s) of %s on %s")
++		     "GNU Emacs %s (%s%s%s)\n of %s on %s, modified by Debian"
++		   "GNU Emacs %s (%s%s%s) of %s on %s, modified by Debian")
+                  emacs-version
+ 		 system-configuration
+ 		 (cond ((featurep 'motif)

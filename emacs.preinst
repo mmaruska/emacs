@@ -1,0 +1,28 @@
+#!/bin/sh -e
+
+# Starting with 20061105-1, the emacs and editor alternatives are
+# registered only once. We need to clean up any previous registrations
+# by subflavor packages.
+if [ "$1" = "upgrade" ] && \
+    dpkg --compare-versions "$2" 'lt' "1:20061105-1"; then
+    update-alternatives --remove emacs /usr/bin/@BIN_NAME@-@X_SUPPORT@
+fi
+
+# If lsof is installed, look for running Emacsen.  If any are found,
+# warn the user that changing Emacs's files from under it isn't safe...
+# We don't bother trying to find processes if lsof isn't installed;
+# using pgrep or something similar would turn up false positives.
+F=/usr/bin/@BIN_NAME@-@X_SUPPORT@
+if [ -f $F ] && [ -x /usr/bin/lsof ]; then
+    PIDS=`lsof -F p $F 2>/dev/null | wc -l || true`
+    if [ $PIDS -ne 0 ]; then
+	[ $PIDS -ge 2 ] && S="es"
+	printf "%d %s process%s found\n" $PIDS `basename $F` "$S"
+	echo "NOTE: closing all running Emacsen before upgrading" \
+	    "is strongly recommended!"
+    fi
+fi
+
+#DEBHELPER#
+
+exit 0

@@ -1,0 +1,20 @@
+** Info-default-directory-list includes /usr/share/info/emacs-snapshot
+   Info-default-directory-list was modified such that the info files
+   for this specific flavor of Emacs come before the site-wide Info
+   directory.
+
+   Provided by: Michael Olson <mwolson@gnu.org>
+
+--- /dev/null
++++ emacs-snapshot-20070902/lisp/site-init.el
+@@ -0,0 +1,10 @@
++
++;; Place the flavor-specific info directory ahead of the general one.
++(catch 'done
++  (let ((cur Info-default-directory-list))
++    (while cur
++      (when (string= (car cur) "/usr/share/info/")
++        (setcdr cur (cons (car cur) (cdr cur)))
++        (setcar cur "/usr/share/info/emacs-snapshot/")
++        (throw 'done t))
++      (setq cur (cdr cur)))))

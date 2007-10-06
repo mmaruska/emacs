@@ -1,0 +1,61 @@
+** Debian-related items were added to the Help menu.
+   Provided by: Romain Francoise <rfrancoise@debian.org>
+
+--- a/lisp/menu-bar.el
++++ b/lisp/menu-bar.el
+@@ -1281,6 +1281,28 @@
+   (info "elisp")
+   (Info-index topic))
+ 
++(defun debian-emacs-changelog ()
++  "Display the Debian changelog file for this package."
++  (interactive)
++  (view-file "/usr/share/doc/emacs-snapshot-common/changelog.Debian.gz")
++  (goto-address))
++
++(defun debian-emacs-news ()
++  "Display the Debian NEWS file for this package."
++  (interactive)
++  (view-file "/usr/share/doc/emacs-snapshot-common/NEWS.Debian.gz")
++  (goto-address))
++
++(defun debian-emacs-readme ()
++  "Display the Debian README file for this package."
++  (interactive)
++  ;; Force opening of this file in outline mode, even if the other mode
++  ;; is present.
++  (let ((auto-mode-alist (cons '("debian/README.Debian$" . outline-mode)
++			       auto-mode-alist)))
++    (view-file "/usr/share/doc/emacs-snapshot-common/README.Debian")
++    (goto-address)))
++
+ (define-key menu-bar-apropos-menu [apropos-documentation]
+   '(menu-item "Search Documentation Strings..." apropos-documentation
+               :help
+@@ -1362,7 +1384,7 @@
+     (view-file (expand-file-name "MORE.STUFF"
+ 				 data-directory))
+     (goto-address)))
+-(define-key menu-bar-help-menu [sep2]
++(define-key menu-bar-help-menu [sep3]
+   '("--"))
+ (define-key menu-bar-help-menu [more]
+   '(menu-item "External Packages" menu-bar-help-extra-packages
+@@ -1379,6 +1401,17 @@
+   (list 'menu-item "Describe" menu-bar-describe-menu))
+ (define-key menu-bar-help-menu [apropos]
+   (list 'menu-item "Search Documentation" menu-bar-apropos-menu))
++(define-key menu-bar-help-menu [sep2]
++  '("--"))
++(define-key menu-bar-help-menu [debian-emacs-changelog]
++  '(menu-item "Debian ChangeLog" debian-emacs-changelog
++	      :help "Display the Debian changelog"))
++(define-key menu-bar-help-menu [debian-emacs-news]
++  '(menu-item "Debian News" debian-emacs-news
++	      :help "Display the NEWS.Debian file"))
++(define-key menu-bar-help-menu [debian-emacs-readme]
++  '(menu-item "Debian README" debian-emacs-readme
++	      :help "Display the README.Debian file"))
+ (define-key menu-bar-help-menu [sep1]
+   '("--"))
+ (define-key menu-bar-help-menu [eliza]

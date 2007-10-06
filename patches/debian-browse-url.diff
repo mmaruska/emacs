@@ -1,0 +1,40 @@
+** Emacs honors the Debian `x-www-browser' alternative.
+   On Debian systems, default commands can be customized using the
+   Debian alternatives system.  This patch makes Emacs honor the
+   `x-www-browser' alternative when determining the default browser to
+   use.
+
+   Provided by: Romain Francoise <rfrancoise@debian.org>
+
+# Note: this patch voluntarily skips the x-www-browser alternative if
+# the alternative is set to `auto'.  This is because the browser
+# priorities are set by the package maintainers and appear to be quite
+# random; using Emacs's idea of a default browser is better than using
+# whatever browser is pointed to by the automatic alternative.
+
+--- a/lisp/net/browse-url.el
++++ b/lisp/net/browse-url.el
+@@ -551,7 +551,7 @@
+   :type '(repeat (string :tag "Argument"))
+   :group 'browse-url)
+ 
+-(defcustom browse-url-generic-program nil
++(defcustom browse-url-generic-program "x-www-browser"
+   "The name of the browser program used by `browse-url-generic'."
+   :type '(choice string (const :tag "None" nil))
+   :group 'browse-url)
+@@ -884,6 +884,14 @@
+ xterm, MMM, and then W3."
+   (apply
+    (cond
++    ((and browse-url-generic-program
++	  (executable-find browse-url-generic-program)
++	  (executable-find "/usr/sbin/update-alternatives")
++	  (not (string-match
++		"status is auto"
++		(shell-command-to-string
++		 "/usr/sbin/update-alternatives --display x-www-browser"))))
++     'browse-url-generic)
+     ((executable-find browse-url-gnome-moz-program) 'browse-url-gnome-moz)
+     ((executable-find browse-url-mozilla-program) 'browse-url-mozilla)
+     ((executable-find browse-url-firefox-program) 'browse-url-firefox)

@@ -1,0 +1,14 @@
+debian-cssc-vc-backend.diff
+debian-site-init.diff
+debian-startup.diff
+debian-emacs-news.diff
+debian-mail-from-style.diff
+debian-emacs-bug.diff
+debian-menu.diff
+fix-font-lock-tty.diff
+debian-licenses-location.diff
+debian-rpath.diff
+debian-browse-url.diff
+debian-version-mention.diff
+debian-emacs-manpage.diff
+tmp-fixes.diff

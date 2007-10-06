@@ -1,0 +1,26 @@
+** Comment text is font-locked on 8-color ttys.
+   This patch undoes an upstream change and makes emacs-snapshot
+   behave as emacs21 did on 8-color ttys: comment text is
+   font-locked by default.
+
+   Upstream decided to make comment text appear as regular text and
+   only fontify comment delimiters, which would probably trigger
+   numerous bug reports about comments not being font-locked on
+   ttys.
+
+   Provided by: Romain Francoise <rfrancoise@debian.org>
+
+--- emacs-snapshot-20070902.orig/lisp/font-lock.el
++++ emacs-snapshot-20070902/lisp/font-lock.el
+@@ -1822,9 +1822,9 @@
+     (((class color) (min-colors 16) (background dark))
+      (:foreground "red1"))
+     (((class color) (min-colors 8) (background light))
+-     )
++     (:foreground "red"))
+     (((class color) (min-colors 8) (background dark))
+-     )
++     (:foreground "red1"))
+     (t (:weight bold :slant italic)))
+   "Font Lock mode face used to highlight comments."
+   :group 'font-lock-faces)

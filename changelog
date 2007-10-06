@@ -1,0 +1,1503 @@
+emacs-snapshot (1:20070930-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/emacs-common.menu.in: Update for new menu policy.
+  * debian/emacs.menu.in: Ditto.
+
+  * debian/patches/tmp-fixes.diff: Revert commit c62b98ee038, it breaks
+    `file-name-shadow-mode'.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 30 Sep 2007 13:15:08 +0200
+
+emacs-snapshot (1:20070922-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 22 Sep 2007 15:49:58 +0200
+
+emacs-snapshot (1:20070915-2) unstable; urgency=low
+
+  * debian/rules:
+    + Delete check-distribution target.
+    + Fix generation of the list of info files.
+  * debian/control.in: Don't build-depend on lsb-release.
+  * debian/control: Regenerate.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 15 Sep 2007 14:30:36 +0200
+
+emacs-snapshot (1:20070915-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/control.in: Add missing build-depends on libxpm-dev.
+  * debian/control: Regenerate.
+
+  * debian/docs: Adjust for new location of AUTHORS and CONTRIBUTE.
+
+  * debian/patches/tmp-fixes.diff: Dropped.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 15 Sep 2007 12:37:30 +0200
+
+emacs-snapshot (1:20070909-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/patches/feature-dbp-horizontal-split.diff: Dropped, this
+    feature is now present upstream.
+  * debian/patches/tmp-fixes.diff: New patch, reverts bogus upstream
+    changes.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 09 Sep 2007 13:36:37 +0200
+
+emacs-snapshot (1:20070903-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/rules: Create a compatibility symlink emacs-x -> emacs-gtk in
+    emacs.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Mon, 03 Sep 2007 18:55:22 +0200
+
+emacs-snapshot (1:20070902-1) unstable; urgency=low
+
+  * The "Lose me on the way" release.
+
+  * New snapshot, with multi-tty support.
+
+  * debian/control.in:
+    + Don't build-depend on libxaw7-dev and xaw3dg-dev.
+    + Make emacs-gtk a dummy package that depends on emacs.
+    + emacs conflicts with emacs-gtk (<= 1:20070824-1).
+  * debian/control: Regenerate.
+  * debian/rules: Build emacs with GTK+ support.  Don't build and install a
+    separate GTK+ version.
+  * debian/NEWS: Document switch to GTK+ by default.
+  * debian/README.in: Remove Emacs 22 upgrade notes.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 02 Sep 2007 21:00:07 +0200
+
+emacs-snapshot (1:20070824-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 24 Aug 2007 18:41:07 +0200
+
+emacs-snapshot (1:20070822-1) unstable; urgency=low
+
+  * New snapshot from the trunk.  Resync all patches and drop fix-vc-bfn.diff.
+
+  * debian/control.in: Add Build-Depends on librsvg2-dev for SVG support.
+  * debian/control: Regenerate.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Wed, 22 Aug 2007 20:11:48 +0200
+
+emacs-snapshot (1:20070813-2) unstable; urgency=low
+
+  * debian/patches/feature-dbp-horizontal-split.diff: Make it work again
+    after upstream changes, thanks to Toby Allsopp for the report.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Wed, 15 Aug 2007 10:59:49 +0200
+
+emacs-snapshot (1:20070813-1) unstable; urgency=low
+
+  * New snapshot (from the EMACS_22_BASE branch).
+
+  * debian/patches/feature-dbp-horizontal-split.diff: Resync.
+
+  * debian/control.in: Don't use ${Source-Version}.
+  * debian/control: Regenerate.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Mon, 13 Aug 2007 20:10:21 +0200
+
+emacs-snapshot (1:20070805-1) unstable; urgency=low
+
+  * The "Golden egg lipstick and feathers" release.
+
+  [ Romain Francoise ]
+  * New snapshot (from the EMACS_22_BASE branch).
+
+  * Convert to quilt for patch management:
+    + debian/control: Build-Depend on quilt (>= 0.42) instead of dpatch.
+    + debian/rules: Include /usr/share/quilt/quilt.make.
+    + Migrate all patches and rename them to follow Ubuntu's emacs22
+      debian/fix/feature naming scheme.
+
+  [ Michael Olson ]
+  * debian/rules:
+    + Don't ignore errors in clean target.
+    + New function patch_info to extract information from the headers
+      of patches that begin with a certain prefix.
+    + Split patch output in README.Debian into several sections, in
+      order make it easier to categorize by the type of patch.  We use
+      the name of the patch to determine what kind it is.
+    + Lines with '#' in the headers of patches are stripped out.
+    + Multiple consecutive blank lines are trimmed to only one.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 05 Aug 2007 00:06:01 +0200
+
+emacs-snapshot (1:20070701-1) unstable; urgency=low
+
+  * New snapshot (from the EMACS_22_BASE branch).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 01 Jul 2007 18:41:19 +0200
+
+emacs-snapshot (1:20070617-1) unstable; urgency=low
+
+  * New snapshot (from the EMACS_22_BASE branch).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 17 Jun 2007 16:54:30 +0200
+
+emacs-snapshot (1:20070608-1) unstable; urgency=low
+
+  * New snapshot (from the EMACS_22_BASE branch).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 08 Jun 2007 21:27:42 +0200
+
+emacs-snapshot (1:20070529-1) unstable; urgency=low
+
+  * New snapshot (from the EMACS_22_BASE branch).
+
+  * debian/rules: Don't ship /var/games/emacs in emacs-common, as we don't
+    install update-game-score setgid, it has no useful purpose.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Tue, 29 May 2007 19:39:25 +0200
+
+emacs-snapshot (1:20070521-1) unstable; urgency=low
+
+  * New snapshot (from the EMACS_22_BASE branch).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Mon, 21 May 2007 13:05:40 +0200
+
+emacs-snapshot (1:20070508-1) unstable; urgency=low
+
+  * New snapshot (from the EMACS_22_BASE branch).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Tue,  8 May 2007 13:33:22 +0200
+
+emacs-snapshot (1:20070501-1) unstable; urgency=low
+
+  * New snapshot (from the EMACS_22_BASE branch).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Tue,  1 May 2007 12:29:02 +0200
+
+emacs-snapshot (1:20070424-1) unstable; urgency=low
+
+  * New snapshot (from the EMACS_22_BASE branch).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Tue, 24 Apr 2007 21:04:15 +0200
+
+emacs-snapshot (1:20070417-1) unstable; urgency=low
+
+  * The "We meet at the lights" release.
+
+  * New snapshot (22.0.98 pretest).
+
+  * debian/patches/debian-emacs-manpage.dpatch: Resync.
+
+  * debian/copyright.in: Update copyright years (patch by Sven Joachim).
+  * debian/copyright: Regenerate.
+
+  * debian/rules: Preserve timestamps of upstream changelogs (patch by
+    Sven Joachim).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Tue, 17 Apr 2007 19:24:14 +0200
+
+emacs-snapshot (1:20070406-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri,  6 Apr 2007 12:30:44 +0200
+
+emacs-snapshot (1:20070401-1) unstable; urgency=low
+
+  * The "I wanna get what's mine" release.
+
+  * New snapshot, includes ERC 5.2.
+
+  * debian/control.in: Restore maintainer.
+  * debian/control: Regenerate.
+
+  * debian/patches/debian-emacs-bug.dpatch: Don't send reports to p.d.o.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun,  1 Apr 2007 18:50:41 +0200
+
+emacs-snapshot (1:20070302-1) unstable; urgency=low
+
+  * The "Violins and happy endings" release.
+
+  * New snapshot, fixes a memory corruption bug where Qt would suddenly
+    change when using certain byte-compiler options (closes: #411956).
+    Also, the upstream version is now 22.0.95.
+
+  * debian/control.in: Set maintainer to Debian QA Group.
+  * debian/control: Regenerate.
+
+  * debian/README.in: Delete mention to #emacs-snapshot.
+
+  * debian/patches/tmp-fixes.dpatch: Dropped.
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri,  2 Mar 2007 18:07:09 +0100
+
+emacs-snapshot (1:20070223-1) unstable; urgency=low
+
+  * New snapshot, fixes a small documentation bug in PCL-CVS's manual
+    (closes: #411306).
+
+  * debian/patches/tmp-fixes.dpatch: New patch, reverts a change to
+    process.c which breaks IDN, and maybe other things.
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri,  2 Mar 2007 17:51:32 +0100
+
+emacs-snapshot (1:20070217-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 17 Feb 2007 11:09:33 +0100
+
+emacs-snapshot (1:20070208-1) unstable; urgency=low
+
+  * The "Being bad ain't that bad" release.
+
+  * New snapshot, restores HPPA support (closes: #408884).
+
+  * debian/control.in: Build-Depend on lsb-release.
+  * debian/control: Regenerate.
+
+  * debian/rules: Check whether we're being built on Debian, if not
+    disable Debian branding patches.
+
+  * debian/patches/tmp-fixes.dpatch: Dropped.
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu,  8 Feb 2007 19:45:31 +0100
+
+emacs-snapshot (1:20070128-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/rules: Add -Q to check_pure_space command (closes: #408689).
+
+  * debian/patches/tmp-fixes.dpatch: New patch, reverts a change to the
+    byte-compiler which slows down compilation of large files.
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 28 Jan 2007 19:31:23 +0100
+
+emacs-snapshot (1:20070122-1) unstable; urgency=low
+
+  * New snapshot, fixes obsolete addresses in emacs.1 (closes: #407095).
+
+  * debian/patches/debian-emacs-manpage.dpatch: Resync.
+
+  * debian/control.in: Don't use ${shlibs:Depends} in emacs-common depends
+    line.
+  * debian/control: Regenerate.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Mon, 22 Jan 2007 19:59:10 +0100
+
+emacs-snapshot (1:20070114-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 14 Jan 2007 17:29:24 +0100
+
+emacs-snapshot (1:20070106-1) unstable; urgency=low
+
+  * The "With a fistful of faith" release.
+
+  * New snapshot, fixes over-enthusiastic encoding auto-detection in files
+    containing a HTML meta tag (closes: #404236).
+
+  * debian/emacs.postinst: Hide byte-compilation messages, most of the
+    time they're just useless noise.  In case of byte-compilation failure,
+    display a visible error message asking for a bug report.
+  * debian/emacs.prerm: Ditto for removal messages.
+
+  * debian/control.in: Drop build-dependency on autotools-dev and
+    autoconf (closes: #405395).
+  * debian/control: Regenerate.
+
+  * debian/patches/tmp-fixes.dpatch: Dropped.
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat,  6 Jan 2007 13:37:29 +0100
+
+emacs-snapshot (1:20070101-1) unstable; urgency=low
+
+  * The "Wheat Field with Crows" release.
+
+  * New snapshot.
+
+  * debian/emacs-common.prerm: Fix typo in substitution variable which
+    caused the list of Info files to unregister to be empty, thanks to
+    Sven Joachim for noticing (closes: #404958).
+  * debian/emacs-common.postinst: Forcibly unregister emacs-xtra if it's
+    still present in the Info directory (closes: #404694).
+  * debian/emacs.postinst: Fix another failed substitution (in a comment).
+
+  * debian/patches/tmp-fixes.dpatch: New patch, reverts a change in
+    cfengine.el that breaks font-locking (closes: #404244).
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Mon,  1 Jan 2007 18:31:03 +0100
+
+emacs-snapshot (1:20061221-1) unstable; urgency=low
+
+  * New snapshot, fixes an annoying bug in file completion which crept in
+    the previous snapshot (not filed in the BTS).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 21 Dec 2006 19:15:04 +0100
+
+emacs-snapshot (1:20061218-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Mon, 18 Dec 2006 20:04:29 +0100
+
+emacs-snapshot (1:20061209-1) unstable; urgency=low
+
+  * The "Comme on a pas le choix, il nous reste le coeur" release.
+
+  * New snapshot.
+
+  * debian/rules: Cleanup README.Debian generation.
+  * debian/bug.presubj.in: Also suggest using `emacs -Q' to identify
+    problems in add-on Emacs packages.
+  * debian/mangle-info: Suffix name with DEBIAN_INFO_PREFIX to make
+    browsing easier in Info (closes: #402043).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat,  9 Dec 2006 18:00:26 +0100
+
+emacs-snapshot (1:20061201-1) unstable; urgency=low
+
+  * New snapshot, fixes missing BLOCK_INPUT in `set_window_buffer' which
+    causes Emacs to hang in some situations (closes: #400255).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri,  1 Dec 2006 19:27:15 +0100
+
+emacs-snapshot (1:20061123-1) unstable; urgency=low
+
+  * The "Everything I say to you is code for something else" release.
+
+  * New snapshot:
+    + Version number bumped to 22.0.91.
+    + ERC has been updated to version 5.2-pre.
+    + Fixes `mark-memory' build failure on ia64 (closes: #400060).
+
+  * debian/emacsclient.desktop: New file, provides a desktop entry for our
+    emacsclient; this allows users to select emacsclient in GNOME/KDE
+    file associations.  If the server isn't started, a new Emacs is spawned
+    (and in the near future, emacsclient will be able to start Emacs
+    properly itself).
+
+  * debian/rules:
+    + Generate the emacsclient desktop file, and install it in
+      emacs-bin-common.
+    + Get rid of 'dir.old.gz' file in /usr/share/info.
+
+  * Major cleanup of packaging scripts.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 23 Nov 2006 20:21:23 +0100
+
+emacs-snapshot (1:20061117-1) unstable; urgency=low
+
+  * New snapshot, fixes wrong error matcher initialization in cperl-mode
+    (closes: #397824).
+
+  * debian/patches/debian-default-mta-parameters.dpatch: Dropped
+    (closes: #397756).
+  * debian/patches/00list: Update.
+
+  * debian/emacs.preinst: Check if Emacs is running before upgrading and
+    if so, warn the user that this is unsafe.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 17 Nov 2006 22:15:05 +0100
+
+emacs-snapshot (1:20061111-1) unstable; urgency=low
+
+  * The "Is the bond now broken, does nothing remain?" release.
+
+  * New snapshot:
+    + Includes Org-mode version 4.54.
+    + Fixes encoding/decoding issues with X cut buffers (closes: #397447).
+
+  * debian/rules:
+    + Call dh_desktop in binary-arch.
+    + Symlink emacs.xpm in etc/icons.
+    + Create symlink to the icons directory in /usr/share/icons.
+  * debian/emacs.desktop: Use /usr/share/icons for the Emacs icon; using
+    the etc directory could cause problems since it varies depending on
+    the Emacs version and people might wish to create a (permanent)
+    launcher from the menu item.
+  * debian/emacs.prerm: Don't touch the `emacs' and `editor' alternatives
+    on upgrades.
+  * debian/NEWS: Mention new icons directory and new emacs alternative
+    handling.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 11 Nov 2006 14:14:02 +0100
+
+emacs-snapshot (1:20061105-1) unstable; urgency=low
+
+  * The "My Descent into Madness" release.
+
+  * New snapshot, still taken from HEAD.
+
+  * debian/emacs.postinst: Install the `emacs' and `editor' alternatives
+    only once per flavor (closes: #394960).
+  * debian/emacs.prerm: Remove the `emacs' and `editor' alternatives only
+    once per flavor.  Cleanups.
+  * debian/emacs.preinst: Handle alternatives upgrade from previous
+    emacs-snapshot versions.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun,  5 Nov 2006 11:27:33 +0100
+
+emacs-snapshot (1:20061027-1) unstable; urgency=low
+
+  * New snapshot, still taken from HEAD but corresponding to the first
+    Emacs 22 pretest release: Emacs 22.0.90.
+
+  * debian/patches/debian-rpath.dpatch: Resync.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 27 Oct 2006 20:24:33 +0200
+
+emacs-snapshot (1:20061022-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 22 Oct 2006 18:57:28 +0200
+
+emacs-snapshot (1:20061015-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 15 Oct 2006 19:10:18 +0200
+
+emacs-snapshot (1:20061009-1) unstable; urgency=low
+
+  * The "No explosions, no crashes, no fights" release.
+
+  * New snapshot, fixes mouse-3 clicks in org-mode (closes: #389914).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Mon,  9 Oct 2006 20:01:03 +0200
+
+emacs-snapshot (1:20061003-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Tue,  3 Oct 2006 22:01:39 +0200
+
+emacs-snapshot (1:20060923-1) unstable; urgency=low
+
+  * The "Old schemes of shattered dreams" release.
+
+  * New snapshot, includes a change to make movemail actually *use*
+    liblockfile, it was linked in but unused which is dangerous and a
+    violation of Policy (§11.6).
+
+  * debian/rules: Give -Wl,--as-needed a try to see if it breaks some
+    architectures; it kills many useless library dependencies (12 for
+    emacs-gtk and 2 for emacs).
+
+  * debian/emacs.postinst: Register editor.1.gz too (as a slave), thanks
+    to Elias Kunnas via Launchpad (https://launchpad.net/bugs/52699).
+
+  * debian/control.in: Build-Depend on libpng12-dev, not libpng3-dev.
+  * debian/control: Regenerate.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 23 Sep 2006 19:00:41 +0200
+
+emacs-snapshot (1:20060915-1) unstable; urgency=low
+
+  * The "Grip it by the husk" release.
+
+  * New snapshot.
+
+  * debian/rules: Set SITELOAD_PURESIZE_EXTRA to 5000 in CFLAGS.
+  * debian/patches/debian-puresize.dpatch: Dropped.
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri,  8 Sep 2006 21:39:45 +0200
+
+emacs-snapshot (1:20060908-1) unstable; urgency=low
+
+  * The "Fifteen steps, then a sheer drop" release.
+
+  * New snapshot.
+
+  * debian/control.in: Use ${source:Version} for the dependency between
+    emacs-bin-common and emacs-common.
+  * debian/control: Regenerate.
+
+  * debian/rules:
+    + Check for pure space overflow after dump for each subflavor.
+    + Set alternative priority to 23 (closes: #386496).
+
+  * debian/patches/debian-sendmail-program.dpatch: Dropped.
+  * debian/patches/00list: Update.
+
+  * debian/patches/debian-puresize.dpatch: *Really* resync with upstream.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri,  8 Sep 2006 21:10:58 +0200
+
+emacs-snapshot (1:20060901-1) unstable; urgency=low
+
+  * The "Campershell dreams" release.
+
+  * New snapshot.
+
+  * debian/control.in: Don't Build-Depend on libasound2-dev on kfreebsd-*,
+    thanks to Petr Salinger <Petr.Salinger@seznam.cz> (closes: #384492).
+  * debian/control: Regenerate.
+
+  * debian/patches/debian-sendmail-program.dpatch: New patch, hardcode
+    location of sendmail in paths.el instead of trying to do the right
+    thing from the build environment (closes: #385542).
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri,  1 Sep 2006 22:43:37 +0200
+
+emacs-snapshot (1:20060824-1) unstable; urgency=low
+
+  * The "Sweetness follows" release.
+
+  * New snapshot.
+
+  * debian/control.in: Drop Build-Depends on mailx (closes: #383814).
+  * debian/control: Regenerate.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Wed, 23 Aug 2006 22:02:14 +0200
+
+emacs-snapshot (1:20060817-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/patches/debian-emacs-bug.dpatch: Also make `report-emacs-bug'
+    send a courtesy copy of the report to emacs-snapshot@packages.d.o.
+
+  * debian/README.in: Mention #emacs-snapshot@irc.freenode.net.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 17 Aug 2006 19:42:49 +0200
+
+emacs-snapshot (1:20060811-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/patches/debian-puresize.dpatch: Resync with upstream.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 11 Aug 2006 18:44:58 +0200
+
+emacs-snapshot (1:20060806-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun,  6 Aug 2006 11:06:32 +0200
+
+emacs-snapshot (1:20060730-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/patches/debian-puresize.dpatch: Resync with upstream.
+  * debian/README.in: Cosmetic change.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 30 Jul 2006 13:10:08 +0200
+
+emacs-snapshot (1:20060712-2) unstable; urgency=low
+
+  * debian/control.in: Delete extra newline.
+  * debian/control: Regenerate.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 13 Jul 2006 08:03:45 +0200
+
+emacs-snapshot (1:20060712-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/patches/debian-puresize.dpatch: Resync with upstream.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Wed, 12 Jul 2006 19:31:50 +0200
+
+emacs-snapshot (1:20060707-1) unstable; urgency=low
+
+  * The "Cities underneath cities" release.
+
+  * New snapshot.
+  * debian/patches/debian-puresize.dpatch: Resync with upstream.
+
+  * debian/docs: Add CONTRIBUTE and AUTHORS.
+
+  * debian/patches/debian-emacs-bug.dpatch: New patch, make M-x
+    report-emacs-bug include the Debian version in the generated
+    mail buffer.
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri,  7 Jul 2006 19:18:06 +0200
+
+emacs-snapshot (1:20060629-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 29 Jun 2006 21:03:37 +0200
+
+emacs-snapshot (1:20060623-1) unstable; urgency=low
+
+  * The "Dearest Jane, I should've known better" release.
+
+  * New snapshot, includes fix for exponents in TeX-mode (closes: #365026).
+
+  * debian/control.in: Don't Build-Depend on libasound2-dev on hurd-i386,
+    thanks to Michael Banck <mbanck@debian.org> (closes: #374436).
+  * debian/control: Regenerate.
+
+  * debian/patches/debian-browse-url.dpatch: New patch, make Emacs honor
+    the x-www-browser alternative if no browser has been customized.
+    Note that the alternative will *not* be used if it's set to auto, due
+    to the apparent lack of good sense applied to this alternative's
+    priorities (closes: #373294).
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 23 Jun 2006 18:58:05 +0200
+
+emacs-snapshot (1:20060615-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 15 Jun 2006 19:41:34 +0200
+
+emacs-snapshot (1:20060609-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/control.in: Drop Build-Depends on gcc-4.1, now the default compiler.
+  * debian/control: Regenerate.
+
+  * debian/rules: Don't set CC.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri,  9 Jun 2006 18:54:35 +0200
+
+emacs-snapshot (1:20060602-1) unstable; urgency=low
+
+  * The "Isabella Afterhours" release.
+
+  * New snapshot:
+    + The menu bar can now be navigated with keys, via F10.
+    + Org-mode has been updated to version 4.35.
+
+  * debian/rules:
+    + Build with gcc-4.1, hoping to solve long-standing FTBFS bugs on
+      m68k.  This also allows us to finally get rid of -Wno-pointer-sign
+      (closes: #368023).
+    + Use 'tail -n +2' instead of 'tail +2', with thanks to Sven Joachim
+      (closes: #368846).
+
+  * debian/control.in: Add Build-Depends on gcc-4.1.
+  * debian/control: Regenerate.
+
+  * debian/patches/debian-puresize.dpatch: Resync with upstream.
+  * debian/patches/debian-menu.dpatch: Ditto.
+
+  * debian/README.in: Remove reference to the Arch archive, it might go
+    away soon.
+
+  * debian/copyright.in: Move Debian differences blurb closer to the top.
+  * debian/copyright: Regenerate.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri,  2 Jun 2006 19:58:14 +0200
+
+emacs-snapshot (1:20060524-1) unstable; urgency=low
+
+  * New snapshot:
+    + In Dired, `dired-goto-file' is now bound to j instead of M-g.
+      As a result of this change, it's now possible to use the new
+      error bindings in Dired buffers (M-g M-p, M-g M-n).
+    + Emacs can now play sounds via a native ALSA interface.
+    + Org-mode has been updated to version 4.33.
+
+  * debian/control.in: Add Build-Depends on libasound2-dev.
+  * debian/control: Regenerate.
+
+  * debian/patches/tmp-fixes.dpatch: Dropped.
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Wed, 24 May 2006 19:32:11 +0200
+
+emacs-snapshot (1:20060518-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/rules: Cleanups.
+  * debian/patches/tmp-fixes.dpatch: Revert crashy font selection changes.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 18 May 2006 21:33:28 +0200
+
+emacs-snapshot (1:20060512-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/patches/tmp-fixes.dpatch: Drop Ibuffer changes.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 12 May 2006 20:05:37 +0200
+
+emacs-snapshot (1:20060505-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/control.in:
+    + libxaw7-dev pulls libxaw-headers, so there's no need to Build-Depend
+      on the latter.
+    + Bump Standards-Version to 3.7.2, no changes needed.
+  * debian/control: Regenerate.
+
+  * debian/patches/tmp-fixes.dpatch: Drop help-mode changes.  Revert buggy
+    change to ibuffer.el.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri,  5 May 2006 18:35:28 +0200
+
+emacs-snapshot (1:20060427-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/patches/debian-puresize.h: Resync with upstream.
+  * debian/patches/tmp-fixes.dpatch: Drop recenter changes.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 27 Apr 2006 20:31:42 +0200
+
+emacs-snapshot (1:20060420-1) unstable; urgency=low
+
+  * New snapshot:
+    + RMAIL doesn't barf on MIME mail anymore (closes: #363327).
+    + org-mode now handles local links correctly (closes: #363328).
+    + Includes Tramp 2.0.53.
+    + History commands in comint-derived modes no longer clobber partial
+      inputs.
+
+  * debian/patches/tmp-fixes.dpatch: Revert dodgy changes to recenter, and
+    buggy changes to help-mode.  Just for safety.
+
+  * debian/patches/debian-puresize.h: New patch, bump BASE_PURESIZE to
+    1210000.  This is needed to make room for Debian modifications in the
+    Emacs binary.
+  * debian/patches/00list: Update.
+
+  * debian/copyright.in: Update copyright years and GFDL version, thanks
+    to Sven Joachim <sven_joachim@web.de> (closes: #363123).
+  * debian/copyright: Regenerate.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 20 Apr 2006 20:47:43 +0200
+
+emacs-snapshot (1:20060415-2) unstable; urgency=low
+
+  * debian/control.in: Add Build-Depends on libxaw-headers, libxaw7-dev.
+  * debian/control: Regenerate.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Mon, 17 Apr 2006 13:09:12 +0200
+
+emacs-snapshot (1:20060415-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/control.in: Don't Build-Depend on gcc-3.3 on m68k.
+  * debian/control: Regenerate.
+  * debian/rules: Give up on compilation with gcc-3.3 on m68k.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 15 Apr 2006 19:20:16 +0200
+
+emacs-snapshot (1:20060406-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/debian-dp-split.dpatch: Rename variable to the more logical
+    `display-buffer-prefer-horizontal-split'.
+
+  * debian/emacs.desktop: Add text/plain to MimeTypes (closes: #360415).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu,  6 Apr 2006 20:17:32 +0200
+
+emacs-snapshot (1:20060330-2) unstable; urgency=low
+
+  * debian/patches/tmp-fixes.dpatch: Revert annoying changes that make
+    completion windows stay around in comint-derived modes.
+  * debian/debian-dp-split.dpatch: New patch, adds a new variable named
+    `display-buffer-prefer-vertical-split' which allows for a vertical
+    split of windows created by `display-buffer', instead of the default
+    horizontal split.  This is very convenient on modern wide screens.
+    Requested by Cyril Bouthors <cyb@debian.org>.
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat,  1 Apr 2006 19:18:43 +0200
+
+emacs-snapshot (1:20060330-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 30 Mar 2006 20:19:28 +0200
+
+emacs-snapshot (1:20060323-1) unstable; urgency=low
+
+  * New snapshot:
+    + Ibuffer now uses the list of displayed group filters in M-j and
+      friends (closes: #357364).
+    + Probably fixes issues with the speed of fontification in large
+      buffers (see #358038, #358456).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 23 Mar 2006 19:50:31 +0100
+
+emacs-snapshot (1:20060315-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Wed, 15 Mar 2006 20:22:24 +0100
+
+emacs-snapshot (1:20060301-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Wed,  1 Mar 2006 21:27:33 +0100
+
+emacs-snapshot (1:20060224-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/patches/tmp-fixes.dpatch: Dropped.
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 24 Feb 2006 19:12:07 +0100
+
+emacs-snapshot (1:20060217-2) unstable; urgency=low
+
+  * debian/rules: *Really* use gcc-3.3 on m68k.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 18 Feb 2006 12:47:08 +0100
+
+emacs-snapshot (1:20060217-1) unstable; urgency=low
+
+  * New snapshot, includes the fix for Tramp on Solaris (closes: #352149).
+
+  * debian/control.in: Build-Depend on gcc-3.3 on m68k.
+  * debian/control: Regenerate.
+  * debian/rules: Build with gcc-3.3 on m68k.
+
+  * debian/patches/tmp-fixes.dpatch: Revert changes that make C-h c insert
+    text in the current buffer.
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 17 Feb 2006 20:02:28 +0100
+
+emacs-snapshot (1:20060209-1) unstable; urgency=low
+
+  * New snapshot:
+    + ERC has been updated to version 5.1.1.
+    + MH-E has been updated to version 7.91.
+
+  * debian/rules: Apply patch from Stefan Schmitt <sschmitt@gmx.de>
+    splitting the build target in subflavor targets.
+
+  * debian/patches/tmp-fixes.dpatch: Dropped.
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu,  9 Feb 2006 19:32:23 +0100
+
+emacs-snapshot (1:20060202-1) unstable; urgency=low
+
+  * New snapshot:
+    + ERC (version 5.1) is now part of Emacs.
+    + Tramp has been updated to version 2.0.52.
+    + MH-E has been updated to version 7.90.
+    + Several cases where code run from signal handlers could clobber Lisp
+      data have been fixed, which should make Emacs more reliable.
+
+  * debian/patches/tmp-fixes.dpatch: Drop last week's changes (included in
+    this new upstream snapshot).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu,  2 Feb 2006 20:53:10 +0100
+
+emacs-snapshot (1:20060120-2) unstable; urgency=low
+
+  * The "Everything in its right place" release.
+
+  * Not a new upstream snapshot: the trunk appears to be a dangerous place
+    at the moment, let's give it some time to settle down.
+  * debian/patches/tmp-fixes.dpatch: Revert a change that makes C-a skip
+    over fields (closes: #349819), add a patch to fix the "cursors appear
+    in all windows when the echo area is active" syndrome, other minor
+    changes.
+
+  * Introducing subflavors:
+    + It is now possible to install the -x, -gtk and -nox binary packages
+      concurrently, each installed package constitutes a "subflavor" of the
+      emacs-snapshot flavor.  To make this possible, a number of files have
+      been moved from the binary packages to -common or -bin-common, and
+      /usr/bin/emacs-snapshot is now an alternative.
+    + In addition, the way the packages install menu entries has been
+      reworked: the text version entry is now installed in emacs-common, and
+      menu/desktop entries installed by the -x and -gtk subflavors now have
+      only one entry (which mentions the right subflavor instead of a plain
+      "X11").
+  * debian/control.in:
+    + emacs no longer Conflicts/Replaces emacs-gtk, emacs-nox.
+    + emacs-gtk no longer Conflicts/Replaces emacs, emacs-nox.
+    + emacs-nox no longer Conflicts/Replaces emacs-gtk, emacs.
+    + emacs-common Conflicts with emacs{,-gtk,-nox} (<< 1:20060120-2)
+    + emacs-bin-common Conflicts with emacs{,-gtk,-nox} (<< 1:20060120-2)
+  * debian/control: Regenerate.
+  * debian/emacs.desktop:
+    + Use @SUB_FLAVOR@, not "X11".
+    + Run the subflavor command, not just @BIN_NAME@.
+  * debian/emacs.menu.in: Remove text entry, use @SUB_FLAVOR@.
+  * debian/emacs.postinst:
+    + Install the subflavor alternative.
+    + If we're the first subflavor of this flavor, call `emacs-install'.
+    + Register the subflavor in /var/lib/@BIN_NAME@/installed-subflavors.
+  * debian/emacs.prerm:
+    + Remove the subflavor alternative.
+    + Unregister the subflavor.
+    + If we were the last installed subflavor, call `emacs-remove'.
+  * debian/rules:
+    + Generate emacs-common.menu, expand *.menu.in (not only emacs.menu.in).
+    + Handle new replacement variable SUB_FLAVOR.
+    + Set emacs subflavor to "X11", emacs-gtk subflavor to "GTK".
+    + Install /var/lib/@BIN_NAME@/installed-subflavors in emacs-common.
+    + Move emacs.1emacs-snapshot.gz symlink to emacs-bin-common.
+    + Don't install the DOC file in binary packages, install it in
+      emacs-common.
+    + Don't ship a flavor symlink in binary packages (now an alternative).
+    + Don't remove the DOC file from the emacs-common tree.
+    + Call dh_installmenu in binary-indep target, too.
+  * debian/emacs-common.overrides.lintian: Add override to silence lintian
+    about the missing /usr/bin/emacs-snapshot.
+  * debian/NEWS: Mention subflavors.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 28 Jan 2006 14:55:50 +0100
+
+emacs-snapshot (1:20060120-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 20 Jan 2006 18:35:44 +0100
+
+emacs-snapshot (1:20060114-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/patches/debian-menu.dpatch: New patch, add Debian related items
+    to the Help menu (README, NEWS, changelog).
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 14 Jan 2006 21:29:32 +0100
+
+emacs-snapshot (1:20060109-1) unstable; urgency=low
+
+  * New snapshot:
+    + Now supports IPv6 for client/server network processes.
+    + If the user interrupts `save-buffer', `buffer-backed-up' is now
+      correctly reset to nil (closes: #343705).
+
+  * debian/patches/tmp-fixes.dpatch: Temporary patch reverting changes to
+    mouse.el that prevent a mouse-1 click from working in non-selected
+    windows, which is especially annoying in Gnus (closes: #347207).
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Mon,  9 Jan 2006 19:32:53 +0100
+
+emacs-snapshot (1:20060103-1) unstable; urgency=low
+
+  * New snapshot:
+    + battery.el's ACPI code also tries /proc/acpi/thermal_zone/THM0 to get
+      the system temperature (closes: #344528).
+    + font-lock defaults are now set early and in all entry points, which
+      should hopefully fix fontification issues in Gnus (closes: #344610).
+    + Should now manage to byte-compile semantic (closes: #343709, #344999).
+    + The GTK+ file selector has been significantly improved.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Tue,  3 Jan 2006 20:06:13 +0100
+
+emacs-snapshot (1:20051221-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/patches/tmp-fixes.dpatch: Dropped.
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Wed, 21 Dec 2005 14:53:27 +0100
+
+emacs-snapshot (1:20051215-1) unstable; urgency=low
+
+  * New snapshot:
+    + SPC doesn't complete file names in the minibuffer anymore.  See the
+      FAQ for instructions on how to get the old behavior back.
+    + Characters are now translated in isearch, which makes it possible to
+      search for Cyrillic UTF-8 chars, etc (closes: #337600).
+    + The Emacs FAQ has been updated for the upcoming 22.1 release.
+
+  * debian/patches/tmp-fixes.dpatch: Drop last week's changes, add a patch
+    from RMS fixing autoload problems leading to the recursive load of
+    newsticker.el (closes: #342846).
+
+  * debian/copyright.in: Update with new Savannah CVS setup.
+  * debian/copyright: Regenerate.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 15 Dec 2005 20:16:20 +0100
+
+emacs-snapshot (1:20051207-1) unstable; urgency=low
+
+  * New snapshot:
+    + CC Mode has been updated to version 5.31 and doesn't infloop on
+      unbalanced bracket/paren expressions anymore (closes: #341716).
+      See <URL: http://cc-mode.sf.net/changes-531.php> for more info.
+    + tumme.el is now part of the Emacs distribution, as a replacement
+      for thumbs.el.
+
+  * debian/patches/debian-mail-from-style.dpatch: Resync with upstream.
+  * debian/patches/tmp-fixes.dpatch: Temporary patch reverting changes to
+    `enlarge-window' that break `balance-windows', and changes to the
+     minibuffer maps that make SPC a regular character and not complete
+     anymore (these changes broke ido, perhaps others).
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Wed,  7 Dec 2005 20:32:36 +0100
+
+emacs-snapshot (1:20051202-1) unstable; urgency=low
+
+  * New snapshot:
+    + More `hard-newline' changes have been reverted, fixing issues in
+      Gnus where messages would be sent as format=flowed without
+      warning (closes: #340988).
+    + hi-lock-mode has been revamped and should now work in special
+      buffers (see #339920).
+    + The Calc global entry point (`calc-dispatch') is now bound to `C-x *'.
+
+  * debian/rules:
+    + Add a symlink to the Emacs NEWS file in /usr/share/doc/emacs-common
+      (suggested by Vincent Lefevre).
+    + Install emacs.xpm ourselves (it was previously added in the upstream
+      tarball manually).
+
+  * debian/patches/tmp-fixes.dpatch: Dropped.
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri,  2 Dec 2005 18:49:40 +0100
+
+emacs-snapshot (1:20051124-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/bug.script.in: New file.
+  * debian/bug.presubj.in: Likewise.
+  * debian/bug.control.in: Likewise.
+
+  * debian/rules:
+    + Install README.Debian for emacs-bin-common.
+    + Generate bug files from debian/bug.*.in.
+    + Install bug script and bug control file under /usr/share/bug for
+      all binary packages.  Install presubj file for emacs, emacs-gtk
+      and emacs-nox.
+    + Misc cleanups.
+
+  * debian/patches/tmp-fixes.dpatch: Temporary patch reverting hi-lock
+    changes that broke fontification in special buffers (Gnus, ERC, ...)
+    if hi-lock mode was on.  With thanks to Jay Berkenbilt, Bill Wohler
+    and Michael Olson for their help in tracking down this problem
+    (closes: #339920).
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 24 Nov 2005 20:24:28 +0100
+
+emacs-snapshot (1:20051117-1) unstable; urgency=low
+
+  * New snapshot:
+    + file-name-shadow-mode is now enabled by default.
+    + Emacs now has an icon of its own, instead of the GNU icon.
+    + Displaying a non-break space character in an overlay doesn't make
+      Emacs infloop in redisplay anymore (closes: #337151).
+    + `C-h d' now runs apropos-documentation.
+    + savehist.el has been updated to version 24.
+
+  * debian/rules:
+    + Don't install the gnu icon.
+    + Fix installation of README.Debian for emacs{,-{gtk,nox,el}}.
+
+  * debian/gnu-32x32.xpm: Remove.
+  * debian/README.in: Remove reference to the gnu icon.
+
+  * debian/emacs.desktop: Use the new icon.
+  * debian/emacs.menu.in: Ditto.
+  * debian/emacs.overrides.lintian: Ditto.
+
+  * debian/compat: Switch to debhelper compatibility level 5.
+  * debian/control.in: Build-Depend on debhelper (>= 5.0.0).
+  * debian/control: Regenerate.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 17 Nov 2005 19:00:40 +0100
+
+emacs-snapshot (1:20051111-1) unstable; urgency=low
+
+  * New snapshot:
+    + Font-Lock mode is now enabled by default.
+    + rcirc.el and newsticker.el have been updated to newer versions.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 11 Nov 2005 15:39:58 +0100
+
+emacs-snapshot (1:20051103-1) unstable; urgency=low
+
+  * New snapshot, includes a newer version of savehist.el (closes: #336976).
+
+  * debian/rules: Source files are now compressed upstream, just move them
+    to emacs-el.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu,  3 Nov 2005 19:09:09 +0100
+
+emacs-snapshot (1:20051027-1) unstable; urgency=low
+
+  * New snapshot:
+    + eterm-color.ti now defines the correct terminal name (closes: #335241).
+    + Exiting when some buffers still have clients attached now prompts
+      only once (closes: #335444).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 27 Oct 2005 18:28:24 +0200
+
+emacs-snapshot (1:20051020-1) unstable; urgency=low
+
+  * New snapshot:
+    + Includes savehist.el, a package to save minibuffer histories between
+      sessions.
+    + Includes rcirc.el, a simple IRC client.
+    + Includes MH-E version 7.85.
+
+  * debian/control.in: Delete Uploaders field.
+  * debian/control: Regenerate.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 20 Oct 2005 20:33:49 +0200
+
+emacs-snapshot (1:20051014-1) unstable; urgency=low
+
+  * New snapshot:
+    + Emacs now shows its icon by default in the GNOME task list and
+      elsewhere, the new option --no-bitmap-icon turns it off.
+    + Includes Tramp 2.0.51.
+
+  * debian/control.in:
+    + Conflict with old versions of dictionaries-common since proper
+      support for emacs-snapshot was introduced in version 0.60.0, suggested
+      by Karl Chen (closes: #333409).
+    + Remove useless (but harmless) Replaces on emacs21, suggested by
+      Sven Joachim.
+  * debian/control: Regenerate.
+
+  * debian/emacs.desktop: Remove -i switch.
+  * debian/emacs.menu.in: Likewise.
+
+  * debian/patches/tmp-build-fix.dpatch: Drop.
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 14 Oct 2005 18:10:18 +0200
+
+emacs-snapshot (1:20051007-1) unstable; urgency=low
+
+  * New snapshot:
+    + BibTeX mode now honors `sentence-end-double-space' and other filling
+      variables, thanks to Roland Winkler (closes: #330917).
+    + Autoloads in cua-base and ibuf-ext no longer explicitely request the
+      .el file (closes: #332315).
+    + Includes Speedbar version 1.0.
+
+  * debian/patches/tmp-build-fix.dpatch: Temporary patch reverting
+    unimportant changes that break the emacs-nox build.
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri,  7 Oct 2005 15:41:44 +0200
+
+emacs-snapshot (1:20050929-1) unstable; urgency=low
+
+  * The "Dittsche" release.
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 29 Sep 2005 08:52:15 +0200
+
+emacs-snapshot (1:20050922-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 22 Sep 2005 08:23:16 +0200
+
+emacs-snapshot (1:20050918-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * Add linda overrides, bringing the override support level with lintian.
+    + debian/*.overrides: Rename to debian/*.overrides.lintian.
+    + debian/emacs-bin-common.overrides.linda: New file.
+    + debian/emacs-common.overrides.linda: Ditto.
+    + debian/emacs-el.overrides.linda: Ditto.
+    + debian/emacs.overrides.linda: Ditto.
+
+  * debian/patches/debian-version-mention.dpatch: Fix patch description to
+    mention emacs-version and not version as the function modified.
+
+  * debian/rules:
+    + Update lintian override filenames.
+    + Install linda overrides.
+    + Remove useless '--with-gif' confflag.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 18 Sep 2005 15:33:30 +0200
+
+emacs-snapshot (1:20050908-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/rules: Compress all files in emacs-el.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu,  8 Sep 2005 18:33:23 +0200
+
+emacs-snapshot (1:20050901-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/patches/debian-rpath.dpatch: New file, disables RPATH in
+    emacs-x and emacs-gtk binaries.
+  * debian/patches/00list: Update.
+
+  * debian/emacs-bin-common.overrides: Add overrides for man pages
+    installed as alternatives: their section is correct, and the binaries
+    do have man pages.
+
+  * debian/emacs-common.overrides: Add override for the "wrong name for
+    upstream changelog" check: it's a directory, and it holds the (many)
+    upstream changelogs (and the top-level changelog is now symlinked,
+    too).
+
+  * debian/rules:
+    + Strip the dpatch-list-patch header line.
+    + Symlink upstream top-level changelog.
+    + Swap fixed and variable parts in changelog file names.
+
+  * debian/patches/debian-cssc-vc-backend.dpatch: Add "Provided by" line.
+  * debian/patches/debian-font-lock-tty.dpatch: Ditto.
+  * debian/patches/debian-licenses-location.dpatch: Ditto.
+  * debian/patches/debian-vc-bfn.dpatch: Ditto.
+  * debian/patches/debian-version-mention.dpatch: Ditto.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu,  1 Sep 2005 18:25:51 +0200
+
+emacs-snapshot (1:20050825-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/emacs-bin-common.prerm: Fix buggy loop left over from
+    pre-unstable packaging, because of this no alternatives were actually
+    removed when emacs-bin-common was removed... (closes: #324870).
+
+  * debian/emacs-bin-common.postinst:
+    + In emacs-snapshot, the binary named 'emacs' is moved out of the way
+      before expanding @ALTERNATIVES@ so it doesn't appear in the list.
+      Don't special-case for it in emacs-bin-common.postinst as it'll never
+      be there.
+    + Remove unused INFOFILES variable.
+
+  * debian/rules:
+    + Add upstream changelogs in /usr/share/doc so that users can have
+      access to them without downloading 30M of sources.  It doesn't make
+      much difference in a package that occupies more than 50M and has some
+      real value for users since emacs-snapshot is a constantly moving
+      target.
+    + Don't install menu items for emacs-nox.
+
+  * debian/patches/debian-licenses-location.dpatch: New patch, modifies
+    `describe-copying' to find the full text of the GPL in the system-wide
+    location for licenses (/usr/share/common-licenses), the COPYING file
+    included in the Emacs distribution isn't installed (and differs from
+    the Debian version in whitespace only).
+
+  * New versioning scheme: the overly large version number in previous
+    uploads triggered a bug in quinn-diff which resulted in emacs-snapshot
+    not appearing in q-d output and thus not being rebuilt on some archs.
+    The bug has been fixed in quinn-diff (thanks to Ryan Murray) but to
+    prevent any further damage, I'm changing the versioning scheme to
+    something sane (and mandated by Policy, see §3.2.1).
+    The historical versioning scheme was of doubtful value anyway.
+
+  * debian/changelog: Delete trailing whitespace in pre-unstable entries.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 25 Aug 2005 18:35:13 +0200
+
+emacs-snapshot (20050819140000-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/rules: README.Debian is generated from the list of Debian
+    patches and its size varies depending on the number of patches, so
+    dh_compress sometimes compresses it, and sometimes not.  To avoid
+    having to fix the references in debian/copyright and NEWS, forcibly
+    leave it uncompressed.
+
+  * debian/patches/image-pbm-xbm.dpatch: Dropped (fixed upstream).
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 19 Aug 2005 18:34:53 +0200
+
+emacs-snapshot (20050812140000-2) unstable; urgency=low
+
+  * debian/patches/image-pbm-xbm.dpatch: New file, revert an upstream
+    change that erroneously removes the pbm and xbm image types.
+  * debian/patches/00list: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 12 Aug 2005 20:00:22 +0200
+
+emacs-snapshot (20050812140000-1) unstable; urgency=low
+
+  * New snapshot:
+    + Fixes a bug triggered by GTK+ 2.6.9 where opened menus could
+      disappear randomly in emacs-snapshot-gtk (closes: #322307).
+    + Includes Tramp 2.0.50.
+
+  * debian/patches/debian-emacs-news.dpatch: Fix reference to
+    README.Debian, it isn't compressed automatically in emacs-snapshot
+    (it's now installed by dh_installdocs).
+
+  * debian/changelog:
+    + Fix name of NEWS file in previous entry.
+    + Add mode to the local variables section.
+
+  * debian/rules:
+    + Set pkg_name for emacs-common and emacs-bin-common to fix the
+      generation of lintian override files.
+    + Set flavour description.
+    + Pipe dpatch-list-patch output to sed to generate outline compliant
+      headings, the outline regexp used in the emacs21 packages doesn't
+      match in emacs-snapshot, and it's simpler to have regular outline
+      sections in the file in the first place.
+
+  * debian/copyright.in:
+    + Use the new FSF postal address (updated in COPYING in the Emacs
+      sources).
+    + Add 2005 to copyright years.
+    + Fix location of README.Debian.
+  * debian/copyright: Regenerate.
+
+  * debian/patches/debian-font-lock-tty.dpatch: Add outline markers.
+  * debian/patches/debian-vc-bfn.dpatch: Ditto.
+
+  * debian/patches/debian-cssc-vc-backend.dpatch: Add dpatch description
+    marker (caused an empty patch description in README.Debian).
+
+  * debian/control.in: Add flavour description to the short description of
+    the main package, which is emacs-snapshot in this source package
+    (closes: #322180).
+  * debian/control: Regenerate.
+
+  * debian/README.in:
+    + Add information section stolen from the initial NEWS entry.
+    + Remove paragraph about .elc files and Leim being added to the
+      upstream sources: these packages are built from a snapshot tarball for
+      which neither of these things is true.
+    + Remove local variables section.
+    + Add note about the baz archive.
+
+  * debian/emacs.menu.in: Add -i option to the menu command item in order
+    to get the Emacs icon in the GNOME window list (and equivalent
+    features in other desktop environments).
+  * debian/emacs.desktop: Ditto.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 12 Aug 2005 17:51:10 +0200
+
+emacs-snapshot (20050805100000-1) unstable; urgency=low
+
+  * Initial snapshot release in unstable.  See NEWS.Debian.gz for general
+    information on these packages.
+
+  * debian/control.in:
+    + Set myself as Maintainer, Jerome and Rob as Uploaders.
+    + Bump dpatch build-dependency to dpatch (>= 2.0.9).
+    + Bump Standards-Version to 3.6.2, no changes needed.
+    + Fix Replaces line on emacs21.
+  * debian/control: Regenerate.
+
+  * debian/rules:
+    + Add -Wno-pointer-sign to CFLAGS.
+    + Generate debian/README.Debian from the templates.
+
+  * debian/NEWS: New file.
+
+  * debian/patches/debian-font-lock-tty.dpatch: New file.
+  * debian/patches/debian-vc-bfn.dpatch: New file.
+  * debian/patches/00list: Update.
+
+  * Several other minor changes, see the baz log.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri,  5 Aug 2005 14:41:18 +0200
+
+emacs-snapshot (20050519215621-1) unstable; urgency=low
+
+  * New snapshot release.
+
+  * Do not force epaths re-generation after calls to configure any more
+    since configure now provides a '--enable-locallisppath'
+    - debian/rules:
+      + Add --enable-locallisppath option to confflags
+      + Remove epaths_force_cmd function
+      + Remove calls to epaths_force_cmd
+
+ -- Jerome Marant <jerome@debian.org>  Thu, 19 May 2005 22:07:33 +0200
+
+emacs-snapshot (20050425220908-2) unstable; urgency=low
+
+  * Merge fixes from Davide Salvetti <salve@debian.org>
+    - debian/patches/misc-unseparated.dpatch: Remove hunks.
+
+  * Incorporated fixes from Daniel Brockman <daniel@brockman.se>:
+    - debian/rules:
+      + Don't prefix local_lpath paths with EMACS_COMMON
+      + Add new epaths_force_cmd
+      + Add calls to epaths_force_cmd after every call to configure
+      + Add new variable local_lpath_install which prefixes all
+        paths from local_lpath with EMACS_COMMON
+      + Set locallisppath to local_lpath_install at install-time
+
+ -- Jerome Marant <jerome@debian.org>  Thu, 12 May 2005 21:57:05 +0200
+
+emacs-snapshot (20050425220908-1) unstable; urgency=low
+
+  * New snapshot release.
+
+  * Merge changes from 21.4a-1
+
+  * debian/control:
+    - Switch Maintainer and Uploaders fields.
+    - Build-depend on dpatch >= 2.0.9.
+
+  * debian/rules: properly install emacs-snapshot-nox manpage.
+
+  * debian/patches/misc-unseparated.dpatch:
+    - Fix docstring for message-sendmail-f-is-evil: the first line of a
+      docstring should be a complete sentence describing the function.
+      Thanks to Kai Großjohann <kai@emptydomain.de>
+    - Updated patch to etc/NEWS.
+
+ -- Jerome Marant <jerome@debian.org>  Mon, 25 Apr 2005 22:37:09 +0200
+
+emacs-snapshot (20040508-1) unstable; urgency=low
+
+  * Initial release. This package is branched from emacs21 21.3+1-5.
+
+  * Port package to debhelper [Jérôme Marant]
+    - debian/control.in: added debhelper to build-dependencies.
+    - debian/control: regenerated.
+    - debian/rules
+    - debian/build-binary-pkg: removed.
+    - debian/compat: new file containing debhelper compatibility version.
+    - debian/docs: new file.
+    - debian/emacs-common.docs: new file. 
+
+  * Add GTK+ 2.x support (#179469, #194388) [Jérôme Marant]
+    - debian/control.in: add new package emacs-gtk
+    - debian/control: regenerated.
+    - debian/rules
+
+  * Remove upstream applied patches [Jérôme Marant]
+    - debian/patches/scroll-margin.dpatch
+    - debian/patches/save-buffer.dpatch
+    - debian/patches/hurd-libio-glibc.dpatch
+    - debian/patches/detect-coding-iso2022.dpatch
+    - debian/patches/browse-url.dpatch
+    - debian/patches/battery-acpi-support.dpatch
+
+ -- Jerome Marant <jerome@debian.org>  Sat,  8 May 2004 14:42:33 +0200

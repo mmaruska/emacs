@@ -1,0 +1,17 @@
+** Mention Debian-specific changes in the Emacs NEWS file.
+   Provided by: Rob Browning <rlb@defaultvalue.org>
+
+--- emacs-snapshot-20070902.orig/etc/NEWS
++++ emacs-snapshot-20070902/etc/NEWS
+@@ -21,6 +21,11 @@
+ so we will look at it and add it to the manual.
+ 
+ 
++* Debian specific changes to Emacs
++
++Please see /usr/share/doc/emacs-snapshot-common/README.Debian.
++
++
+ * About external Lisp packages
+ 
+ 

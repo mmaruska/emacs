@@ -1,0 +1,18 @@
+** Use CSSC instead of SCCS.
+   SCCS isn't in Debian, use CSSC as replacement.
+
+   Provided by: Rob Browning <rlb@defaultvalue.org>
+
+--- emacs-snapshot-20070902.orig/lisp/vc-hooks.el
++++ emacs-snapshot-20070902/lisp/vc-hooks.el
+@@ -76,8 +76,8 @@
+   :group 'vc)
+ 
+ (defcustom vc-path
+-  (if (file-directory-p "/usr/sccs")
+-      '("/usr/sccs")
++  (if (file-directory-p "/usr/lib/cssc")
++      '("/usr/lib/cssc")
+     nil)
+   "List of extra directories to search for version control commands."
+   :type '(repeat directory)
