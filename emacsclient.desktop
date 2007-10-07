@@ -9,5 +9,5 @@ TryExec=@BIN_NAME@
 Terminal=false
 Type=Application
 Icon=/usr/share/icons/@BIN_NAME@/emacs.xpm
-Categories=Application;Utility;TextEditor;
+Categories=Development;Utility;TextEditor;
 MimeType=text/plain
