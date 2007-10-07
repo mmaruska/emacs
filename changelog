@@ -1,3 +1,14 @@
+emacs-snapshot (1:20071007-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/{emacs,emacsclient}.desktop: Switch main category from
+    'Application' to 'Development'.
+
+  * debian/patches/tmp-fixes.diff: Dropped.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 07 Oct 2007 14:13:21 +0200
+
 emacs-snapshot (1:20070930-1) unstable; urgency=low
 
   * New snapshot.
