@@ -3,7 +3,7 @@
 
 --- a/lisp/menu-bar.el
 +++ b/lisp/menu-bar.el
-@@ -1281,6 +1281,28 @@
+@@ -1282,6 +1282,28 @@
    (info "elisp")
    (Info-index topic))
  
@@ -29,10 +29,10 @@
 +    (view-file "/usr/share/doc/emacs-snapshot-common/README.Debian")
 +    (goto-address)))
 +
- (define-key menu-bar-apropos-menu [apropos-documentation]
+ (define-key menu-bar-search-documentation-menu [search-documentation-strings]
    '(menu-item "Search Documentation Strings..." apropos-documentation
                :help
-@@ -1362,7 +1384,7 @@
+@@ -1363,7 +1385,7 @@
      (view-file (expand-file-name "MORE.STUFF"
  				 data-directory))
      (goto-address)))
@@ -41,10 +41,10 @@
    '("--"))
  (define-key menu-bar-help-menu [more]
    '(menu-item "External Packages" menu-bar-help-extra-packages
-@@ -1379,6 +1401,17 @@
+@@ -1380,6 +1402,17 @@
    (list 'menu-item "Describe" menu-bar-describe-menu))
- (define-key menu-bar-help-menu [apropos]
-   (list 'menu-item "Search Documentation" menu-bar-apropos-menu))
+ (define-key menu-bar-help-menu [search-documentation]
+   (list 'menu-item "Search Documentation" menu-bar-search-documentation-menu))
 +(define-key menu-bar-help-menu [sep2]
 +  '("--"))
 +(define-key menu-bar-help-menu [debian-emacs-changelog]
