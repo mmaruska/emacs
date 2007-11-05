@@ -1,3 +1,10 @@
+emacs-snapshot (1:20071105-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/NEWS: Add note about Gnus upgrade.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Mon, 05 Nov 2007 19:02:00 +0100
+
 emacs-snapshot (1:20071027-1) unstable; urgency=low
 
   * New snapshot.
