@@ -393,9 +393,6 @@ emacs_confflags += --with-x-toolkit=gtk
 emacs_nox_confflags := ${confflags}
 emacs_nox_confflags += --with-x=no
 
-distrib_id := $(shell lsb_release -s -i)
-distrib_name := $(shell lsb_release -s -c)
-
 build: patch build-stamp
 
 build-stamp: bootstrap emacs emacs-nox
