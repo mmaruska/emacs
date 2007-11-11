@@ -1,3 +1,12 @@
+emacs-snapshot (1:20071111-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/control{,.in}: Add Homepage, Vcs-Browser and Vcs-Git fields.
+  * debian/rules: Cleanup old lsb_release calls.
+  * debian/emacs{,-bin-common}.overrides.lintian: Cleanups.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 11 Nov 2007 16:56:09 +0100
+
 emacs-snapshot (1:20071105-1) unstable; urgency=low
 
   * New snapshot.
