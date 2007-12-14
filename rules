@@ -393,7 +393,18 @@ emacs_confflags += --with-x-toolkit=gtk
 emacs_nox_confflags := ${confflags}
 emacs_nox_confflags += --with-x=no
 
-build: patch build-stamp
+distrib_id := $(shell lsb_release -s -i)
+distrib_name := $(shell lsb_release -s -c)
+
+check-distribution:
+	@if [ ! "${distrib_id}" = "Debian" ]; then			\
+		echo "Building on ${distrib_id} ${distrib_name}" ;	\
+		echo "Disabling Debian-specific patches." ;		\
+		sed -i "/^debian-emacs-bugmail/d"			\
+			debian/patches/series ;				\
+	fi
+
+build: check-distribution patch build-stamp
 
 build-stamp: bootstrap emacs emacs-nox
 	dh_testdir
