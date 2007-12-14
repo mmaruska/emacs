@@ -3,7 +3,8 @@ debian-site-init.diff
 debian-startup.diff
 debian-emacs-news.diff
 debian-mail-from-style.diff
-debian-emacs-bug.diff
+debian-emacs-bugmail.diff
+debian-emacs-bugver.diff
 debian-menu.diff
 fix-font-lock-tty.diff
 debian-licenses-location.diff
