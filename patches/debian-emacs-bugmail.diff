@@ -1,0 +1,14 @@
+** M-x report-emacs-bug CCs the report to the maintainer.
+   Provided by: Romain Francoise <rfrancoise@debian.org>
+
+--- emacs-snapshot-20070902.orig/lisp/mail/emacsbug.el
++++ emacs-snapshot-20070902/lisp/mail/emacsbug.el
+@@ -98,7 +98,7 @@
+ 	  (with-current-buffer (get-buffer-create "*Messages*")
+ 	    (point-max-marker)))
+     (compose-mail reporting-address
+-		  topic)
++		  topic '(("Cc" . "rfrancoise@debian.org")))
+     ;; The rest of this does not execute
+     ;; if the user was asked to confirm and said no.
+     (rfc822-goto-eoh)
