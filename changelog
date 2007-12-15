@@ -1,8 +1,20 @@
 emacs-snapshot (1:20071215-1) unstable; urgency=low
 
+  * The "Pocketful of mumbles" release.
+
   * New snapshot.
 
- -- Romain Francoise <rfrancoise@debian.org>  Sat, 15 Dec 2007 12:52:21 +0100
+  * debian/control.in: Add build-depends on lsb-release.
+  * debian/control: Regenerate.
+
+  * debian/patches/debian-emacs-bugmail.diff,
+    debian/patches/debian-emacs-bugver.diff: New patches split off from
+    debian-emacs-bug.diff.
+  * debian/patches/series: Update accordingly.
+  * debian/rules: Disable debian-emacs-bugmail.diff if not building on
+    Debian (based on lsb_release output).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 15 Dec 2007 14:07:15 +0100
 
 emacs-snapshot (1:20071209-1) unstable; urgency=low
 
