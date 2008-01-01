@@ -1,3 +1,9 @@
+emacs-snapshot (1:20080101-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Tue, 01 Jan 2008 20:12:06 +0100
+
 emacs-snapshot (1:20071215-1) unstable; urgency=low
 
   * The "Pocketful of mumbles" release.
