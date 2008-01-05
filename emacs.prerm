@@ -2,11 +2,6 @@
 
 set -e
 
-# Remove our subflavor alternative, unless we're upgrading.
-if [ "$1" != "upgrade" ]; then
-  update-alternatives --remove @BIN_NAME@ /usr/bin/@BIN_NAME@-@X_SUPPORT@
-fi
-
 # Unregister ourselves as a subflavor of this flavor
 rm -f /var/lib/@BIN_NAME@/installed-subflavors/@BIN_NAME@-@X_SUPPORT@
 
@@ -34,6 +29,11 @@ else
 	update-alternatives --remove emacs /usr/bin/@BIN_NAME@
 	update-alternatives --remove editor /usr/bin/@BIN_NAME@
     fi
+fi
+
+# Remove our subflavor alternative, unless we're upgrading.
+if [ "$1" != "upgrade" ]; then
+  update-alternatives --remove @BIN_NAME@ /usr/bin/@BIN_NAME@-@X_SUPPORT@
 fi
 
 #DEBHELPER#
