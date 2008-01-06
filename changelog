@@ -3,8 +3,10 @@ emacs-snapshot (1:20080106-1) unstable; urgency=low
   * New snapshot.
   * debian/emacs.prerm: Remove alternatives in reverse creation order
     (LP: #162932).
+  * debian/patches/debian-inst.diff: New patch, disables installation of
+    the upstream desktop file, etc.
 
- -- Romain Francoise <rfrancoise@debian.org>  Sun, 06 Jan 2008 12:39:29 +0100
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 06 Jan 2008 13:24:07 +0100
 
 emacs-snapshot (1:20080101-1) unstable; urgency=low
 
