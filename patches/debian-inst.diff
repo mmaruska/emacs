@@ -1,0 +1,24 @@
+** The installation of some files in system-wide directories has been disabled.
+   Provided by: Romain Francoise <rfrancoise@debian.org>
+
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -435,7 +435,7 @@
+ ## Nuisance because i) it needs to be the user running install, so
+ ## configure can't set it; ii) can't (?) use the result of rule
+ ## commands to set make variables.
+-install-arch-indep: mkdir info install-etc
++install-arch-indep: mkdir info
+ 	-set ${COPYDESTS} ; \
+ 	unset CDPATH; \
+ 	for dir in ${COPYDIR} ; do \
+@@ -619,8 +619,7 @@
+ 	  $(DESTDIR)${bindir} $(DESTDIR)${docdir} $(DESTDIR)${libexecdir} \
+ 	  $(DESTDIR)${datadir}/emacs/site-lisp \
+ 	  $(DESTDIR)${datadir}/emacs/${version}/site-lisp \
+-	  $(DESTDIR)`echo ${locallisppath} | sed 's,:, $(DESTDIR),g'` \
+-	  $(DESTDIR)${desktopdir} $${icondirs}
++	  $(DESTDIR)`echo ${locallisppath} | sed 's,:, $(DESTDIR),g'`
+ 
+ ### Delete all the installed files that the `install' target would
+ ### create (but not the noninstalled files such as `make all' would
