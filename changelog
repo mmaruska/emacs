@@ -1,8 +1,9 @@
 emacs-snapshot (1:20080126-1) unstable; urgency=low
 
   * New snapshot.
+  * debian/control: Set Standards-Version to 3.7.3, no changes needed.
 
- -- Romain Francoise <rfrancoise@debian.org>  Sat, 26 Jan 2008 21:46:35 +0100
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 26 Jan 2008 21:47:13 +0100
 
 emacs-snapshot (1:20080120-1) unstable; urgency=low
 
