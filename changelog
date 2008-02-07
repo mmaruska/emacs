@@ -3,10 +3,10 @@ emacs-snapshot (1:20080201-1) UNRELEASED; urgency=low
   * New snapshot.
 
   * debian/rules: Add --enable-font-backend to emacs confflags.
-  * debian/control.in: Add libxft-dev to build-depends.
+  * debian/control.in: Add libxft-dev and libdbus-1-dev to build-depends.
   * debian/control: Regenerate.
 
- -- Romain Francoise <rfrancoise@debian.org>  Fri, 01 Feb 2008 19:19:03 +0100
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 07 Feb 2008 19:54:02 +0100
 
 emacs-snapshot (1:20080126-1) unstable; urgency=low
 
