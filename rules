@@ -393,6 +393,7 @@ emacs_confflags += --enable-font-backend
 # Emacs-nox confflags
 emacs_nox_confflags := ${confflags}
 emacs_nox_confflags += --with-x=no
+emacs_nox_confflags += --without-dbus
 
 distrib_id := $(shell lsb_release -s -i)
 distrib_name := $(shell lsb_release -s -c)
