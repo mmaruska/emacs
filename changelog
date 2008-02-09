@@ -1,6 +1,11 @@
-emacs-snapshot (1:20080201-1) UNRELEASED; urgency=low
+emacs-snapshot (1:20080209-1) unstable; urgency=low
 
-  * New snapshot.
+  * The "Manuscript Replica" release.
+
+  * New snapshot:
+    + The Emacs character set is now a superset of Unicode.
+    + Emacs has a new font backend with support for Xft/Freetype.
+    + D-Bus support is now enabled.
 
   * debian/rules: Add --enable-font-backend to emacs confflags.
   * debian/control.in:
@@ -8,7 +13,7 @@ emacs-snapshot (1:20080201-1) UNRELEASED; urgency=low
     + Add libxft-dev and libdbus-1-dev to build-depends.
   * debian/control: Regenerate.
 
- -- Romain Francoise <rfrancoise@debian.org>  Sat, 09 Feb 2008 13:38:17 +0100
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 09 Feb 2008 14:29:22 +0100
 
 emacs-snapshot (1:20080126-1) unstable; urgency=low
 
