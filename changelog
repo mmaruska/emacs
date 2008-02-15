@@ -1,3 +1,10 @@
+emacs-snapshot (1:20080215-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/rules: Add --without-dbus to emacs-nox confflags.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 15 Feb 2008 19:02:30 +0100
+
 emacs-snapshot (1:20080209-1) unstable; urgency=low
 
   * The "Manuscript Replica" release.
