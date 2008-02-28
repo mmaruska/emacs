@@ -6,7 +6,10 @@ emacs-snapshot (1:20080228-1) unstable; urgency=low
     + Build emacs-nox without sound support.
     + Use bzip2 compression to save bandwidth.
 
- -- Romain Francoise <rfrancoise@debian.org>  Thu, 28 Feb 2008 18:28:45 +0100
+  * debian/patches/tmp-fixes.diff: Revert a bunch of commits which break
+    reverse video in the modeline.
+  
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 28 Feb 2008 20:55:55 +0100
 
 emacs-snapshot (1:20080215-1) unstable; urgency=low
 
