@@ -1,3 +1,13 @@
+emacs-snapshot (1:20080228-1) unstable; urgency=low
+
+  * New snapshot.
+
+  * debian/rules:
+    + Build emacs-nox without sound support.
+    + Use bzip2 compression to save bandwidth.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 28 Feb 2008 18:28:45 +0100
+
 emacs-snapshot (1:20080215-1) unstable; urgency=low
 
   * New snapshot.
