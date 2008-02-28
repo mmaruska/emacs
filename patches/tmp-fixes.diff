@@ -1,0 +1,917 @@
+* Some upstream changes were temporarily reverted.
+  Provided by: Romain Francoise <rfrancoise@debian.org>
+
+--- a/src/xdisp.c
++++ b/src/xdisp.c
+@@ -5808,29 +5808,29 @@
+ 		 can be defined in the display table.  Fill
+ 		 IT->ctl_chars with glyphs for what we have to
+ 		 display.  Then, set IT->dpvec to these glyphs.  */
+-	      Lisp_Object gc;
++	      GLYPH g;
+ 	      int ctl_len;
+ 	      int face_id, lface_id = 0 ;
+-	      int escape_glyph;
++	      GLYPH escape_glyph;
+ 
+ 	      /* Handle control characters with ^.  */
+ 
+ 	      if (it->c < 128 && it->ctl_arrow_p)
+ 		{
+-		  int g;
+-
+ 		  g = '^';	     /* default glyph for Control */
+ 		  /* Set IT->ctl_chars[0] to the glyph for `^'.  */
+ 		  if (it->dp
+-		      && (gc = DISP_CTRL_GLYPH (it->dp), GLYPH_CODE_P (gc))
+-		      && GLYPH_CODE_CHAR_VALID_P (gc))
++		      && INTEGERP (DISP_CTRL_GLYPH (it->dp))
++		      && GLYPH_CHAR_VALID_P (XINT (DISP_CTRL_GLYPH (it->dp))))
+ 		    {
+-		      g = GLYPH_CODE_CHAR (gc);
+-		      lface_id = GLYPH_CODE_FACE (gc);
++		      g = XINT (DISP_CTRL_GLYPH (it->dp));
++		      lface_id = FAST_GLYPH_FACE (g);
+ 		    }
+ 		  if (lface_id)
+ 		    {
+-		      face_id = merge_faces (it->f, Qt, lface_id, it->face_id);
++		       g = FAST_GLYPH_CHAR (g);
++		       face_id = merge_faces (it->f, Qt, lface_id,
++					      it->face_id);
+ 		    }
+ 		  else if (it->f == last_escape_glyph_frame
+ 			   && it->face_id == last_escape_glyph_face_id)
+@@ -5848,7 +5848,8 @@
+ 		    }
+ 
+ 		  XSETINT (it->ctl_chars[0], g);
+-		  XSETINT (it->ctl_chars[1], it->c ^ 0100);
++		  g = it->c ^ 0100;
++		  XSETINT (it->ctl_chars[1], g);
+ 		  ctl_len = 2;
+ 		  goto display_control;
+ 		}
+@@ -5863,8 +5864,8 @@
+ 		  face_id = merge_faces (it->f, Qnobreak_space, 0,
+ 					 it->face_id);
+ 
+-		  it->c = ' ';
+-		  XSETINT (it->ctl_chars[0], ' ');
++		  g = it->c = ' ';
++		  XSETINT (it->ctl_chars[0], g);
+ 		  ctl_len = 1;
+ 		  goto display_control;
+ 		}
+@@ -5875,16 +5876,17 @@
+ 	      escape_glyph = '\\';
+ 
+ 	      if (it->dp
+-		  && (gc = DISP_ESCAPE_GLYPH (it->dp), GLYPH_CODE_P (gc))
+-		  && GLYPH_CODE_CHAR_VALID_P (gc))
++		  && INTEGERP (DISP_ESCAPE_GLYPH (it->dp))
++		  && GLYPH_CHAR_VALID_P (XFASTINT (DISP_ESCAPE_GLYPH (it->dp))))
+ 		{
+-		  escape_glyph = GLYPH_CODE_CHAR (gc);
+-		  lface_id = GLYPH_CODE_FACE (gc);
++		  escape_glyph = XFASTINT (DISP_ESCAPE_GLYPH (it->dp));
++		  lface_id = FAST_GLYPH_FACE (escape_glyph);
+ 		}
+ 	      if (lface_id)
+ 		{
+ 		  /* The display table specified a face.
+ 		     Merge it into face_id and also into escape_glyph.  */
++		  escape_glyph = FAST_GLYPH_CHAR (escape_glyph);
+ 		  face_id = merge_faces (it->f, Qt, lface_id,
+ 					 it->face_id);
+ 		}
+@@ -5909,8 +5911,8 @@
+ 	      if (EQ (Vnobreak_char_display, Qt)
+ 		  && it->c == 0xAD)
+ 		{
+-		  it->c = '-';
+-		  XSETINT (it->ctl_chars[0], '-');
++		  g = it->c = '-';
++		  XSETINT (it->ctl_chars[0], g);
+ 		  ctl_len = 1;
+ 		  goto display_control;
+ 		}
+@@ -5921,8 +5923,8 @@
+ 	      if (it->c == 0xA0 || it->c == 0xAD)
+ 		{
+ 		  XSETINT (it->ctl_chars[0], escape_glyph);
+-		  it->c = (it->c == 0xA0 ? ' ' : '-');
+-		  XSETINT (it->ctl_chars[1], it->c);
++		  g = it->c = (it->c == 0xA0 ? ' ' : '-');
++		  XSETINT (it->ctl_chars[1], g);
+ 		  ctl_len = 2;
+ 		  goto display_control;
+ 		}
+@@ -5958,7 +5960,6 @@
+ 
+ 		for (i = 0; i < len; i++)
+ 		  {
+-		    int g;
+ 		    XSETINT (it->ctl_chars[i * 4], escape_glyph);
+ 		    /* Insert three more glyphs into IT->ctl_chars for
+ 		       the octal display of the character.  */
+@@ -6198,20 +6199,18 @@
+ next_element_from_display_vector (it)
+      struct it *it;
+ {
+-  Lisp_Object gc;
+-
+   /* Precondition.  */
+   xassert (it->dpvec && it->current.dpvec_index >= 0);
+ 
+   it->face_id = it->saved_face_id;
+ 
+-  /* KFS: This code used to check ip->dpvec[0] instead of the current element.
+-          That seemed totally bogus - so I changed it...  */
+-
+-  if ((gc = it->dpvec[it->current.dpvec_index], GLYPH_CODE_P (gc))
+-      && GLYPH_CODE_CHAR_VALID_P (gc))
++  if (INTEGERP (*it->dpvec)
++      && GLYPH_CHAR_VALID_P (XFASTINT (*it->dpvec)))
+     {
+-      it->c = GLYPH_CODE_CHAR (gc);
++      GLYPH g;
++
++      g = XFASTINT (it->dpvec[it->current.dpvec_index]);
++      it->c = FAST_GLYPH_CHAR (g);
+       it->len = CHAR_BYTES (it->c);
+ 
+       /* The entry may contain a face id to use.  Such a face id is
+@@ -6221,7 +6220,7 @@
+ 	it->face_id = it->dpvec_face_id;
+       else
+ 	{
+-	  int lface_id = GLYPH_CODE_FACE (gc);
++	  int lface_id = FAST_GLYPH_FACE (g);
+ 	  if (lface_id > 0)
+ 	    it->face_id = merge_faces (it->f, Qt, lface_id,
+ 				       it->saved_face_id);
+--- a/src/term.c
++++ b/src/term.c
+@@ -235,7 +235,7 @@
+ tty_set_terminal_modes (struct terminal *terminal)
+ {
+   struct tty_display_info *tty = terminal->display_info.tty;
+-
++  
+   if (tty->output)
+     {
+       if (tty->TS_termcap_modes)
+@@ -569,6 +569,7 @@
+      struct coding_system *coding;
+ {
+   struct glyph *src_end = src + src_len;
++  register GLYPH g;
+   unsigned char *buf;
+   int nchars, nbytes, required;
+   register int tlen = GLYPH_TABLE_LENGTH;
+@@ -614,7 +615,7 @@
+ 	  for (i = 0; i < cmp->glyph_len; i++)
+ 	    {
+ 	      int c = COMPOSITION_GLYPH (cmp, i);
+-
++	      
+ 	      if (! char_charset (c, charset_list, NULL))
+ 		break;
+ 	      buf += CHAR_STRING (c, buf);
+@@ -630,14 +631,13 @@
+       /* We must skip glyphs to be padded for a wide character.  */
+       else if (! CHAR_GLYPH_PADDING_P (*src))
+ 	{
+-	  GLYPH g;
+ 	  int c;
+ 	  Lisp_Object string;
+ 
+ 	  string = Qnil;
+-	  SET_GLYPH_FROM_CHAR_GLYPH (g, src[0]);
++	  g = GLYPH_FROM_CHAR_GLYPH (src[0]);
+ 
+-	  if (GLYPH_INVALID_P (g) || GLYPH_SIMPLE_P (tbase, tlen, g))
++	  if (g < 0 || g >= tlen)
+ 	    {
+ 	      /* This glyph doesn't has an entry in Vglyph_table.  */
+ 	      c = src->u.ch;
+@@ -651,10 +651,10 @@
+ 	      if (GLYPH_SIMPLE_P (tbase, tlen, g))
+ 		/* We set the multi-byte form of a character in G
+ 		   (that should be an ASCII character) at WORKBUF.  */
+-		c = GLYPH_CHAR (g);
++		c = FAST_GLYPH_CHAR (g);
+ 	      else
+ 		/* We have a string in Vglyph_table.  */
+-		string = tbase[GLYPH_CHAR (g)];
++		string = tbase[g];
+ 	    }
+ 
+ 	  if (NILP (string))
+@@ -1016,7 +1016,7 @@
+   if (!FRAME_MEMORY_BELOW_FRAME (f)
+       && vpos + i >= FRAME_LINES (f))
+     return;
+-
++  
+   if (multi)
+     {
+       raw_cursor_to (f, vpos, 0);
+@@ -1046,7 +1046,7 @@
+         OUTPUTL (tty, scroll, tty->specified_window - vpos);
+       tty_set_scroll_region (f, 0, tty->specified_window);
+     }
+-
++  
+   if (!FRAME_SCROLL_REGION_OK (f)
+       && FRAME_MEMORY_BELOW_FRAME (f)
+       && n < 0)
+@@ -1371,7 +1371,7 @@
+ 
+   char **address = term_get_fkeys_address;
+   KBOARD *kboard = term_get_fkeys_kboard;
+-
++  
+   /* This can happen if CANNOT_DUMP or with strange options.  */
+   if (!KEYMAPP (kboard->Vinput_decode_map))
+     kboard->Vinput_decode_map = Fmake_sparse_keymap (Qnil);
+@@ -1792,7 +1792,6 @@
+      enum display_element_type what;
+ {
+   struct it temp_it;
+-  Lisp_Object gc;
+   GLYPH glyph;
+ 
+   temp_it = *it;
+@@ -1805,32 +1804,34 @@
+   if (what == IT_CONTINUATION)
+     {
+       /* Continuation glyph.  */
+-      SET_GLYPH_FROM_CHAR (glyph, '\\');
+       if (it->dp
+-	  && (gc = DISP_CONTINUE_GLYPH (it->dp), GLYPH_CODE_P (gc))
+-	  && GLYPH_CODE_CHAR_VALID_P (gc))
++	  && INTEGERP (DISP_CONTINUE_GLYPH (it->dp))
++	  && GLYPH_CHAR_VALID_P (XINT (DISP_CONTINUE_GLYPH (it->dp))))
+ 	{
+-	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
+-	  spec_glyph_lookup_face (XWINDOW (it->window), &glyph);
++	  glyph = XINT (DISP_CONTINUE_GLYPH (it->dp));
++	  glyph = spec_glyph_lookup_face (XWINDOW (it->window), glyph);
+ 	}
++      else
++	glyph = '\\';
+     }
+   else if (what == IT_TRUNCATION)
+     {
+       /* Truncation glyph.  */
+-      SET_GLYPH_FROM_CHAR (glyph, '$');
+       if (it->dp
+-	  && (gc = DISP_TRUNC_GLYPH (it->dp), GLYPH_CODE_P (gc))
+-	  && GLYPH_CODE_CHAR_VALID_P (gc))
++	  && INTEGERP (DISP_TRUNC_GLYPH (it->dp))
++	  && GLYPH_CHAR_VALID_P (XINT (DISP_TRUNC_GLYPH (it->dp))))
+ 	{
+-	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
+-	  spec_glyph_lookup_face (XWINDOW (it->window), &glyph);
++	  glyph = XINT (DISP_TRUNC_GLYPH (it->dp));
++	  glyph = spec_glyph_lookup_face (XWINDOW (it->window), glyph);
+ 	}
++      else
++	glyph = '$';
+     }
+   else
+     abort ();
+ 
+-  temp_it.c = GLYPH_CHAR (glyph);
+-  temp_it.face_id = GLYPH_FACE (glyph);
++  temp_it.c = FAST_GLYPH_CHAR (glyph);
++  temp_it.face_id = FAST_GLYPH_FACE (glyph);
+   temp_it.len = CHAR_BYTES (temp_it.c);
+ 
+   produce_glyphs (&temp_it);
+@@ -2242,7 +2243,7 @@
+    This function ignores suspended devices.
+ 
+    Returns NULL if the named terminal device is not opened.  */
+-
++ 
+ struct terminal *
+ get_named_tty (name)
+      char *name;
+@@ -2346,12 +2347,12 @@
+ {
+   struct terminal *t = get_tty_terminal (tty, 1);
+   FILE *f;
+-
++  
+   if (!t)
+     error ("Unknown tty device");
+ 
+   f = t->display_info.tty->input;
+-
++  
+   if (f)
+     {
+       /* First run `suspend-tty-functions' and then clean up the tty
+@@ -2368,17 +2369,17 @@
+       reset_sys_modes (t->display_info.tty);
+ 
+       delete_keyboard_wait_descriptor (fileno (f));
+-
++      
+       fclose (f);
+       if (f != t->display_info.tty->output)
+         fclose (t->display_info.tty->output);
+-
++      
+       t->display_info.tty->input = 0;
+       t->display_info.tty->output = 0;
+ 
+       if (FRAMEP (t->display_info.tty->top_frame))
+         FRAME_SET_VISIBLE (XFRAME (t->display_info.tty->top_frame), 0);
+-
++      
+     }
+ 
+   /* Clear display hooks to prevent further output.  */
+@@ -2491,7 +2492,7 @@
+       /* write_glyphs writes at cursor position, so we need to
+ 	 temporarily move cursor coordinates to the beginning of
+ 	 the highlight region.  */
+-
++      
+       /* Save current cursor co-ordinates */
+       save_y = curY (tty);
+       save_x = curX (tty);
+@@ -2535,7 +2536,7 @@
+ 	  pos_y = row->y + WINDOW_TOP_EDGE_Y (w);
+ 	  pos_x = row->used[LEFT_MARGIN_AREA] + start_hpos
+ 	    + WINDOW_LEFT_EDGE_X (w);
+-
++	  
+ 	  cursor_to (f, pos_y, pos_x);
+ 
+ 	  if (draw == DRAW_MOUSE_FACE)
+@@ -2959,10 +2960,10 @@
+     result->modifiers = down_modifier;
+   else
+     result->modifiers = 0;
+-
++  
+   if (event->type & GPM_SINGLE)
+     result->modifiers |= click_modifier;
+-
++  
+   if (event->type & GPM_DOUBLE)
+     result->modifiers |= double_modifier;
+ 
+@@ -2995,7 +2996,7 @@
+   return Qnil;
+ }
+ 
+-int
++int 
+ handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event, struct input_event* hold_quit)
+ {
+   struct frame *f = XFRAME (tty->top_frame);
+@@ -3106,7 +3107,7 @@
+ 
+   if (!tty || gpm_tty != tty)
+     return Qnil;       /* Not activated on this terminal, nothing to do.  */
+-
++  
+   if (gpm_fd >= 0)
+     delete_gpm_wait_descriptor (gpm_fd);
+   while (Gpm_Close()); /* close all the stack */
+@@ -3210,7 +3211,7 @@
+   terminal->delete_glyphs_hook = &tty_delete_glyphs;
+ 
+   terminal->ring_bell_hook = &tty_ring_bell;
+-
++  
+   terminal->reset_terminal_modes_hook = &tty_reset_terminal_modes;
+   terminal->set_terminal_modes_hook = &tty_set_terminal_modes;
+   terminal->update_begin_hook = 0; /* Not needed. */
+@@ -3228,7 +3229,7 @@
+ 
+   terminal->read_socket_hook = &tty_read_avail_input; /* keyboard.c */
+   terminal->frame_up_to_date_hook = 0; /* Not needed. */
+-
++  
+   terminal->delete_frame_hook = &delete_tty_output;
+   terminal->delete_terminal_hook = &delete_tty;
+ }
+@@ -3858,7 +3859,7 @@
+ 
+   if (terminal)
+     delete_tty (terminal);
+-
++  
+   if (must_succeed)
+     fatal (str2, arg1, arg2);
+   else
+@@ -3889,7 +3890,7 @@
+   struct tty_display_info *tty;
+   Lisp_Object tail, frame;
+   int last_terminal;
+-
++  
+   /* Protect against recursive calls.  Fdelete_frame in
+      delete_terminal calls us back when it deletes our last frame.  */
+   if (!terminal->name)
+@@ -3899,7 +3900,7 @@
+     abort ();
+ 
+   tty = terminal->display_info.tty;
+-
++  
+   last_terminal = 1;
+   FOR_EACH_FRAME (tail, frame)
+     {
+@@ -3912,7 +3913,7 @@
+     }
+   if (last_terminal)
+       error ("Attempt to delete the sole terminal device with live frames");
+-
++  
+   if (tty == tty_list)
+     tty_list = tty->next;
+   else
+--- a/src/msdos.c
++++ b/src/msdos.c
+@@ -987,8 +987,8 @@
+   /* Set up the unsupported character glyph */
+   if (!NILP (Vdos_unsupported_char_glyph))
+     {
+-      unsupported_char = GLYPH_CHAR (XINT (Vdos_unsupported_char_glyph));
+-      unsupported_face = GLYPH_FACE (XINT (Vdos_unsupported_char_glyph));
++      unsupported_char = FAST_GLYPH_CHAR (XINT (Vdos_unsupported_char_glyph));
++      unsupported_face = FAST_GLYPH_FACE (XINT (Vdos_unsupported_char_glyph));
+     }
+ 
+   screen_buf = screen_bp = alloca (str_len * 2);
+@@ -1021,12 +1021,13 @@
+ 	}
+       else
+ 	{
+-	  GLYPH g;
++	  register GLYPH g = GLYPH_FROM_CHAR_GLYPH (*str);
+ 	  int glyph_not_in_table = 0;
+ 
+-	  SET_GLYPH_FROM_CHAR_GLYPH (g, *str);
+-
+-	  if (GLYPH_INVALID_P (g) || GLYPH_SIMPLE_P (tbase, tlen, g))
++	  /* If g is negative, it means we have a multibyte character
++	     in *str.  That's what GLYPH_FROM_CHAR_GLYPH returns for
++	     multibyte characters.  */
++	  if (g < 0 || g >= tlen)
+ 	    {
+ 	      /* This glyph doesn't have an entry in Vglyph_table.  */
+ 	      ch = str->u.ch;
+@@ -1037,7 +1038,7 @@
+ 	      /* This glyph has an entry in Vglyph_table, so process
+ 		 any aliases before testing for simpleness.  */
+ 	      GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
+-	      ch = GLYPH_CHAR (g);
++	      ch = FAST_GLYPH_CHAR (g);
+ 	    }
+ 
+ 	  /* Convert the character code to multibyte, if they
+@@ -1053,10 +1054,10 @@
+ 	  /* Invalid characters are displayed with a special glyph.  */
+ 	  if (! CHAR_VALID_P (ch, 0))
+ 	    {
+-	      ch = !NILP (Vdos_unsupported_char_glyph)
++	      g = !NILP (Vdos_unsupported_char_glyph)
+ 		? XINT (Vdos_unsupported_char_glyph)
+-		: '\177';
+-	      SET_GLYPH_CHAR (g, ch);
++		: MAKE_GLYPH (sf, '\177', GLYPH_FACE (sf, g));
++	      ch = FAST_GLYPH_CHAR (g);
+ 	    }
+ 
+ 	  /* If the face of this glyph is different from the current
+--- a/src/lisp.h
++++ b/src/lisp.h
+@@ -1424,54 +1424,43 @@
+ #define KEY_DESCRIPTION_SIZE ((2 * 6) + 1 + (CHARACTERBITS / 3) + 1 + 1)
+ 
+ 
+-/* The glyph datatype, used to represent characters on the display.
+-   It consists of a char code and a face id.  */
++/* The glyph datatype, used to represent characters on the display.  */
+ 
+-typedef struct {
+-  int ch;
+-  int face_id;
+-} GLYPH;
++/* Glyph code to use as an index to the glyph table.  If it is out of
++   range for the glyph table, or the corresonding element in the table
++   is nil, the low 8 bits are the single byte character code, and the
++   bits above are the numeric face ID.  If FID is the face ID of a
++   glyph on a frame F, then F->display.x->faces[FID] contains the
++   description of that face.  This is an int instead of a short, so we
++   can support a good bunch of face ID's (2^(31 - 8)); given that we
++   have no mechanism for tossing unused frame face ID's yet, we'll
++   probably run out of 255 pretty quickly.
++   This is always -1 for a multibyte character.  */
++#define GLYPH int
++
++/* Mask bits for face.  */
++#define GLYPH_MASK_FACE    0x7FC00000
++ /* Mask bits for character code.  */
++#define GLYPH_MASK_CHAR    0x003FFFFF /* The lowest 22 bits */
++
++/* The FAST macros assume that we already know we're in an X window.  */
++
++/* Set a character code and a face ID in a glyph G.  */
++#define FAST_MAKE_GLYPH(char, face) ((char) | ((face) << CHARACTERBITS))
+ 
+ /* Return a glyph's character code.  */
+-#define GLYPH_CHAR(glyph) ((glyph).ch)
++#define FAST_GLYPH_CHAR(glyph) ((glyph) & GLYPH_MASK_CHAR)
+ 
+ /* Return a glyph's face ID.  */
+-#define GLYPH_FACE(glyph) ((glyph).face_id)
++#define FAST_GLYPH_FACE(glyph) (((glyph) & GLYPH_MASK_FACE) >> CHARACTERBITS)
+ 
+-#define SET_GLYPH_CHAR(glyph, char) ((glyph).ch = (char))
+-#define SET_GLYPH_FACE(glyph, face) ((glyph).face_id = (face))
+-#define SET_GLYPH(glyph, char, face) ((glyph).ch = (char), (glyph).face_id = (face))
++/* Slower versions that test the frame type first.  */
++#define MAKE_GLYPH(f, char, face) (FAST_MAKE_GLYPH (char, face))
++#define GLYPH_CHAR(f, g) (FAST_GLYPH_CHAR (g))
++#define GLYPH_FACE(f, g) (FAST_GLYPH_FACE (g))
+ 
+ /* Return 1 if GLYPH contains valid character code.  */
+-#define GLYPH_CHAR_VALID_P(glyph) CHAR_VALID_P (GLYPH_CHAR (glyph), 1)
+-
+-
+-/* Glyph Code from a display vector may either be an integer which
+-   encodes a char code in the lower CHARACTERBITS bits and a (very small)
+-   face-id in the upper bits, or it may be a cons (CHAR . FACE-ID).  */
+-
+-#define GLYPH_CODE_CHAR(gc) \
+-  (CONSP (gc) ? XINT (XCAR (gc)) : INTEGERP (gc) ? (XINT (gc) & ((1 << CHARACTERBITS)-1)) : 0)
+-
+-#define GLYPH_CODE_FACE(gc) \
+-  (CONSP (gc) ? XINT (XCDR (gc)) : INTEGERP (gc) ? (XINT (gc) >> CHARACTERBITS) : DEFAULT_FACE_ID)
+-
+-/* Return 1 if glyph code from display vector contains valid character code.  */
+-#define GLYPH_CODE_CHAR_VALID_P(gc) CHAR_VALID_P (GLYPH_CODE_CHAR (gc), 1)
+-
+-#define GLYPH_CODE_P(gc) ((CONSP (gc) && INTEGERP (XCAR (gc)) && INTEGERP (XCDR (gc))) || INTEGERP (gc))
+-
+-/* Only called when GLYPH_CODE_P (gc) is true.  */
+-#define SET_GLYPH_FROM_GLYPH_CODE(glyph, gc)				\
+-  do									\
+-    {									\
+-      if (CONSP (gc))							\
+-	SET_GLYPH (glyph, XINT (XCAR (gc)), XINT (XCDR (gc)));		\
+-      else								\
+-	SET_GLYPH (glyph, (XINT (gc) & ((1 << CHARACTERBITS)-1)),	\
+-		   (XINT (gc) >> CHARACTERBITS));			\
+-    }									\
+-  while (0)
++#define GLYPH_CHAR_VALID_P(glyph) CHAR_VALID_P (FAST_GLYPH_CHAR (glyph), 1)
+ 
+ /* The ID of the mode line highlighting face.  */
+ #define GLYPH_MODE_LINE_FACE 1
+--- a/src/indent.c
++++ b/src/indent.c
+@@ -447,9 +447,9 @@
+ 		 next_element_from_display_vector does it.  */
+ 	      Lisp_Object entry = AREF (charvec, i);
+ 
+-	      if (GLYPH_CODE_P (entry)
+-		  && GLYPH_CODE_CHAR_VALID_P (entry))
+-		c = GLYPH_CODE_CHAR (entry);
++	      if (INTEGERP (entry)
++		  && GLYPH_CHAR_VALID_P (XFASTINT (entry)))
++		c = FAST_GLYPH_CHAR (XFASTINT (entry));
+ 	      else
+ 		c = ' ';
+ 	    }
+@@ -583,11 +583,12 @@
+ 	    {
+ 	      /* This should be handled the same as
+ 		 next_element_from_display_vector does it.  */
+-	      Lisp_Object entry = AREF (charvec, i);
++	      Lisp_Object entry;
++	      entry = AREF (charvec, i);
+ 
+-	      if (GLYPH_CODE_P (entry)
+-		  && GLYPH_CODE_CHAR_VALID_P (entry))
+-		c = GLYPH_CODE_CHAR (entry);
++	      if (INTEGERP (entry)
++		  && GLYPH_CHAR_VALID_P (XFASTINT (entry)))
++		c = FAST_GLYPH_CHAR (XFASTINT (entry));
+ 	      else
+ 		c = ' ';
+ 
+@@ -1020,11 +1021,13 @@
+ 	    {
+ 	      /* This should be handled the same as
+ 		 next_element_from_display_vector does it.  */
+-	      Lisp_Object entry = AREF (charvec, i);
+ 
+-	      if (GLYPH_CODE_P (entry)
+-		  && GLYPH_CODE_CHAR_VALID_P (entry))
+-		c = GLYPH_CODE_CHAR (entry);
++	      Lisp_Object entry;
++	      entry = AREF (charvec, i);
++
++	      if (INTEGERP (entry)
++		  && GLYPH_CHAR_VALID_P (XFASTINT (entry)))
++		c = FAST_GLYPH_CHAR (XFASTINT (entry));
+ 	      else
+ 		c = ' ';
+ 
+@@ -1624,9 +1627,9 @@
+ 		     next_element_from_display_vector does it.  */
+ 		  Lisp_Object entry = AREF (charvec, i);
+ 
+-		  if (GLYPH_CODE_P (entry)
+-		      && GLYPH_CODE_CHAR_VALID_P (entry))
+-		    c = GLYPH_CODE_CHAR (entry);
++		  if (INTEGERP (entry)
++		      && GLYPH_CHAR_VALID_P (XFASTINT (entry)))
++		    c = FAST_GLYPH_CHAR (XFASTINT (entry));
+ 		  else
+ 		    c = ' ';
+ 		}
+--- a/src/disptab.h
++++ b/src/disptab.h
+@@ -74,37 +74,38 @@
+ /* Given BASE and LEN returned by the two previous macros,
+    return nonzero if the GLYPH code G should be output as a single
+    character with code G.  Return zero if G has a string in the table.  */
+-#define GLYPH_SIMPLE_P(base,len,g) \
+-  (GLYPH_FACE (g) != DEFAULT_FACE_ID || GLYPH_CHAR (g) >= (len) || !STRINGP (base[GLYPH_CHAR (g)]))
++#define GLYPH_SIMPLE_P(base,len,g) ((g) >= (len) || !STRINGP (base[g]))
+ 
+ /* Given BASE and LEN returned by the two previous macros,
+    return nonzero if GLYPH code G is aliased to a different code.  */
+-#define GLYPH_ALIAS_P(base,len,g) \
+-  (GLYPH_FACE (g) == DEFAULT_FACE_ID && GLYPH_CHAR (g) < (len) && INTEGERP (base[GLYPH_CHAR (g)]))
++#define GLYPH_ALIAS_P(base,len,g) ((g) < (len) && INTEGERP (base[g]))
++
++/* Assuming that GLYPH_SIMPLE_P (BASE, LEN, G) is 1,
++   return the alias for G.  */
++#define GLYPH_ALIAS(base, g) XINT (base[g])
+ 
+ /* Follow all aliases for G in the glyph table given by (BASE,
+    LENGTH), and set G to the final glyph.  */
+-#define GLYPH_FOLLOW_ALIASES(base, length, g)			\
+-  do {								\
+-    while (GLYPH_ALIAS_P ((base), (length), (g)))		\
+-      SET_GLYPH_CHAR ((g), XINT ((base)[GLYPH_CHAR (g)]));	\
+-    if (!GLYPH_CHAR_VALID_P (g))				\
+-      SET_GLYPH_CHAR (g, ' ');					\
++#define GLYPH_FOLLOW_ALIASES(base, length, g)		\
++  do {							\
++    while (GLYPH_ALIAS_P ((base), (length), (g)))	\
++      (g) = GLYPH_ALIAS ((base), (g));			\
++    if (!GLYPH_CHAR_VALID_P (FAST_GLYPH_CHAR (g)))	\
++      g = FAST_MAKE_GLYPH (' ', FAST_GLYPH_FACE (g));	\
+   } while (0)
+ 
+ /* Assuming that GLYPH_SIMPLE_P (BASE, LEN, G) is 0,
+    return the length and the address of the character-sequence
+    used for outputting GLYPH G.  */
+-#define GLYPH_LENGTH(base,g)   SCHARS (base[GLYPH_CHAR (g)])
+-#define GLYPH_STRING(base,g)   SDATA (base[GLYPH_CHAR (g)])
++#define GLYPH_LENGTH(base,g)   SCHARS (base[g])
++#define GLYPH_STRING(base,g)   SDATA (base[g])
+ 
+ /* GLYPH for a space character.  */
+ 
+ #define SPACEGLYPH 040
+ #define NULL_GLYPH 00
+ 
+-#define SET_GLYPH_FROM_CHAR(glyph, c) \
+-  SET_GLYPH (glyph, c, DEFAULT_FACE_ID)
++#define GLYPH_FROM_CHAR(c) (c)
+ 
+ /* arch-tag: d7f792d2-f59c-4904-a91e-91522e3ab349
+    (do not change this comment) */
+--- a/src/dispnew.c
++++ b/src/dispnew.c
+@@ -1468,11 +1468,9 @@
+       len = 0;
+       while (beg < end)
+ 	{
+-	  GLYPH g;
++	  GLYPH g = GLYPH_FROM_CHAR_GLYPH (*beg);
+ 
+-	  SET_GLYPH_FROM_CHAR_GLYPH (g, *beg);
+-
+-	  if (GLYPH_INVALID_P (g) < 0
++	  if (g < 0
+ 	      || GLYPH_SIMPLE_P (glyph_table_base, glyph_table_len, g))
+ 	    len += 1;
+ 	  else
+@@ -2177,7 +2175,7 @@
+       else if (!NILP (w->left_margin_cols)
+ 	       || !NILP (w->right_margin_cols))
+ 	return 1;
+-
++ 
+       w = NILP (w->next) ? 0 : XWINDOW (w->next);
+     }
+   return 0;
+@@ -2742,9 +2740,7 @@
+   struct glyph_matrix *window_matrix;
+   int window_y, frame_y;
+   /* If non-zero, a glyph to insert at the right border of W.  */
+-  GLYPH right_border_glyph;
+-
+-  SET_GLYPH_FROM_CHAR (right_border_glyph, 0);
++  GLYPH right_border_glyph = 0;
+ 
+   /* Set window_matrix to the matrix we have to add to FRAME_MATRIX.  */
+   if (w->must_be_updated_p)
+@@ -2755,19 +2751,15 @@
+       if (!WINDOW_RIGHTMOST_P (w))
+ 	{
+ 	  struct Lisp_Char_Table *dp = window_display_table (w);
+-	  Lisp_Object gc;
+ 
+-	  SET_GLYPH_FROM_CHAR (right_border_glyph, '|');
+-	  if (dp
+-	      && (gc = DISP_BORDER_GLYPH (dp), GLYPH_CODE_P (gc))
+-	      && GLYPH_CODE_CHAR_VALID_P (gc))
+-	    {
+-	      SET_GLYPH_FROM_GLYPH_CODE (right_border_glyph, gc);
+-	      spec_glyph_lookup_face (w, &right_border_glyph);
+-	    }
+-
+-	  if (GLYPH_FACE (right_border_glyph) <= 0)
+-	    SET_GLYPH_FACE (right_border_glyph, VERTICAL_BORDER_FACE_ID);
++	  right_border_glyph
++	    = ((dp && INTEGERP (DISP_BORDER_GLYPH (dp)))
++	       ? spec_glyph_lookup_face (w, XINT (DISP_BORDER_GLYPH (dp)))
++	       : '|');
++
++	  if (FAST_GLYPH_FACE (right_border_glyph) <= 0)
++	    right_border_glyph
++	      = FAST_MAKE_GLYPH (right_border_glyph, VERTICAL_BORDER_FACE_ID);
+ 	}
+     }
+   else
+@@ -2817,7 +2809,7 @@
+ 
+           /* Maybe insert a vertical border between horizontally adjacent
+ 	     windows.  */
+-          if (GLYPH_CHAR (right_border_glyph) != 0)
++          if (right_border_glyph)
+ 	    {
+               struct glyph *border = window_row->glyphs[LAST_AREA] - 1;
+ 	      SET_CHAR_GLYPH_FROM_GLYPH (*border, right_border_glyph);
+@@ -2853,19 +2845,21 @@
+    This is used for glyphs displayed specially and not part of the text;
+    for instance, vertical separators, truncation markers, etc.  */
+ 
+-void
++GLYPH
+ spec_glyph_lookup_face (w, glyph)
+      struct window *w;
+-     GLYPH *glyph;
++     GLYPH glyph;
+ {
+-  int lface_id = GLYPH_FACE (*glyph);
++  int lface_id = FAST_GLYPH_FACE (glyph);
+   /* Convert the glyph's specified face to a realized (cache) face.  */
+   if (lface_id > 0)
+     {
+       int face_id = merge_faces (XFRAME (w->frame),
+ 				 Qt, lface_id, DEFAULT_FACE_ID);
+-      SET_GLYPH_FACE (*glyph, face_id);
++      glyph
++	= FAST_MAKE_GLYPH (FAST_GLYPH_CHAR (glyph), face_id);
+     }
++  return glyph;
+ }
+ 
+ /* Add spaces to a glyph row ROW in a window matrix.
+@@ -4064,7 +4058,7 @@
+ {
+   int i;
+   struct frame *f = XFRAME (WINDOW_FRAME (w));
+-
++  
+   /* If rows overlapping others have been changed, the rows being
+      overlapped have to be redrawn.  This won't draw lines that have
+      already been drawn in update_window_line because overlapped_p in
+@@ -4115,7 +4109,7 @@
+   int i, bottom_y;
+   struct glyph_row *row;
+   struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
+-
++  
+   for (i = 0; i < w->current_matrix->nrows; ++i)
+     {
+       row = w->current_matrix->rows + i;
+@@ -6202,10 +6196,10 @@
+       continue;
+ 
+     get_tty_size (fileno (tty->input), &width, &height);
+-
++    
+     if (width > 5 && height > 2) {
+       Lisp_Object tail, frame;
+-
++      
+       FOR_EACH_FRAME (tail, frame)
+         if (FRAME_TERMCAP_P (XFRAME (frame)) && FRAME_TTY (XFRAME (frame)) == tty)
+           /* Record the new sizes, but don't reallocate the data
+@@ -6214,7 +6208,7 @@
+           change_frame_size (XFRAME (frame), height, width, 0, 1, 0);
+     }
+   }
+-
++  
+   errno = old_errno;
+ }
+ #endif /* SIGWINCH */
+@@ -6459,7 +6453,7 @@
+     error ("Unknown terminal device");
+ 
+   tty = t->display_info.tty;
+-
++  
+   if (tty->termscript)
+     {
+       fwrite (SDATA (string), 1, SBYTES (string), tty->termscript);
+@@ -6798,7 +6792,7 @@
+ 
+   /* Construct the space glyph.  */
+   space_glyph.type = CHAR_GLYPH;
+-  SET_CHAR_GLYPH (space_glyph, ' ', DEFAULT_FACE_ID, 0);
++  SET_CHAR_GLYPH_FROM_GLYPH (space_glyph, ' ');
+   space_glyph.charpos = -1;
+ 
+   inverse_video = 0;
+@@ -6969,7 +6963,7 @@
+                                      Ftty_type (selected_frame)), Qnil));
+     Fmodify_frame_parameters (selected_frame, Fcons (Fcons (Qtty, Qnil), Qnil));
+   }
+-
++  
+   {
+     struct frame *sf = SELECTED_FRAME ();
+     int width = FRAME_TOTAL_COLS (sf);
+--- a/src/dispextern.h
++++ b/src/dispextern.h
+@@ -418,7 +418,7 @@
+ /* Is GLYPH a space?  */
+ 
+ #define CHAR_GLYPH_SPACE_P(GLYPH) \
+-  ((GLYPH).u.ch == SPACEGLYPH)
++     (GLYPH_FROM_CHAR_GLYPH ((GLYPH)) == SPACEGLYPH)
+ 
+ /* Are glyph slices of glyphs *X and *Y equal */
+ 
+@@ -465,25 +465,18 @@
+ 
+ #define SET_CHAR_GLYPH_FROM_GLYPH(GLYPH, FROM)			\
+      SET_CHAR_GLYPH ((GLYPH),					\
+-	 	     GLYPH_CHAR ((FROM)),			\
+-		     GLYPH_FACE ((FROM)),			\
++	 	     FAST_GLYPH_CHAR ((FROM)),			\
++		     FAST_GLYPH_FACE ((FROM)),			\
+ 		     0)
+ 
+ /* Construct a glyph code from a character glyph GLYPH.  If the
+    character is multibyte, return -1 as we can't use glyph table for a
+    multibyte character.  */
+ 
+-#define SET_GLYPH_FROM_CHAR_GLYPH(G, GLYPH)			\
+-  do								\
+-    {								\
+-      if ((GLYPH).u.ch < 256)					\
+-	SET_GLYPH ((G), (GLYPH).u.ch, ((GLYPH).face_id));	\
+-      else							\
+-	SET_GLYPH ((G), -1, 0);					\
+-    }								\
+-  while (0)
+-
+-#define GLYPH_INVALID_P(GLYPH) (GLYPH_CHAR (GLYPH) < 0)
++#define GLYPH_FROM_CHAR_GLYPH(GLYPH)				\
++  ((GLYPH).u.ch < 256						\
++   ? ((GLYPH).u.ch | ((GLYPH).face_id << CHARACTERBITS))	\
++   : -1)
+ 
+ /* Is GLYPH a padding glyph?  */
+ 
+@@ -3024,7 +3017,7 @@
+ void init_display P_ ((void));
+ void syms_of_display P_ ((void));
+ extern Lisp_Object Qredisplay_dont_pause;
+-void spec_glyph_lookup_face P_ ((struct window *, GLYPH *));
++GLYPH spec_glyph_lookup_face P_ ((struct window *, GLYPH));
+ 
+ /* Defined in terminal.c */
+ 
