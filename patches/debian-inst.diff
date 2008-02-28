@@ -3,16 +3,16 @@
 
 --- a/Makefile.in
 +++ b/Makefile.in
-@@ -435,7 +435,7 @@
- ## Nuisance because i) it needs to be the user running install, so
- ## configure can't set it; ii) can't (?) use the result of rule
- ## commands to set make variables.
+@@ -438,7 +438,7 @@
+ ## Note that the Makefiles in the etc directory are potentially useful
+ ## in an installed Emacs, so should not be excluded.
+ 
 -install-arch-indep: mkdir info install-etc
 +install-arch-indep: mkdir info
  	-set ${COPYDESTS} ; \
  	unset CDPATH; \
  	for dir in ${COPYDIR} ; do \
-@@ -619,8 +619,7 @@
+@@ -613,8 +613,7 @@
  	  $(DESTDIR)${bindir} $(DESTDIR)${docdir} $(DESTDIR)${libexecdir} \
  	  $(DESTDIR)${datadir}/emacs/site-lisp \
  	  $(DESTDIR)${datadir}/emacs/${version}/site-lisp \
