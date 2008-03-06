@@ -388,7 +388,6 @@ confflags += --enable-locallisppath=${local_lpath}
 emacs_confflags := ${confflags}
 emacs_confflags += --with-x=yes
 emacs_confflags += --with-x-toolkit=gtk
-emacs_confflags += --enable-font-backend
 
 # Emacs-nox confflags
 emacs_nox_confflags := ${confflags}
