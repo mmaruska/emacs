@@ -1,3 +1,14 @@
+emacs-snapshot (1:20080307-1) unstable; urgency=low
+
+  * The "Your light white is bright, light white light" release.
+
+  * New snapshot.
+  * debian/rules: Update emacs confflags; --enable-font-backend is now the
+    default.
+  * debian/patches/tmp-fixes.diff: Dropped.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 07 Mar 2008 18:23:58 +0100
+
 emacs-snapshot (1:20080228-1) unstable; urgency=low
 
   * New snapshot.
@@ -8,7 +19,7 @@ emacs-snapshot (1:20080228-1) unstable; urgency=low
 
   * debian/patches/tmp-fixes.diff: Revert a bunch of commits which break
     reverse video in the modeline.
-  
+
  -- Romain Francoise <rfrancoise@debian.org>  Thu, 28 Feb 2008 20:55:55 +0100
 
 emacs-snapshot (1:20080215-1) unstable; urgency=low
