@@ -1,3 +1,9 @@
+emacs-snapshot (1:20080315-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 15 Mar 2008 14:35:32 +0100
+
 emacs-snapshot (1:20080307-1) unstable; urgency=low
 
   * The "Your light white is bright, light white light" release.
