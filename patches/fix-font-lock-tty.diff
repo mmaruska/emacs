@@ -10,14 +10,11 @@
 
    Provided by: Romain Francoise <rfrancoise@debian.org>
 
---- emacs-snapshot-20070902.orig/lisp/font-lock.el
-+++ emacs-snapshot-20070902/lisp/font-lock.el
-@@ -1822,9 +1822,9 @@
-     (((class color) (min-colors 16) (background dark))
-      (:foreground "red1"))
+--- a/lisp/font-lock.el
++++ b/lisp/font-lock.el
+@@ -1845,7 +1845,7 @@
      (((class color) (min-colors 8) (background light))
--     )
-+     (:foreground "red"))
+      (:foreground "red"))
      (((class color) (min-colors 8) (background dark))
 -     )
 +     (:foreground "red1"))
