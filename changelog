@@ -1,3 +1,10 @@
+emacs-snapshot (1:20080416-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/patches/tmp-fixes.diff: Dropped.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Wed, 16 Apr 2008 19:19:27 +0200
+
 emacs-snapshot (1:20080406-2) unstable; urgency=low
 
   * debian/patches/tmp-fixes.diff: Revert changes that break functionp.
