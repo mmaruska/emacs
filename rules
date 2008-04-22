@@ -179,16 +179,13 @@ NONPERSISTENT_AUTOGEN_FILES := \
   debian/${bin_name}-nox.postinst \
   debian/${bin_name}-nox.prerm \
   debian/${bin_name}-nox.overrides.lintian \
-  debian/${bin_name}-el.overrides.linda \
   debian/${bin_name}-common.postinst \
   debian/${bin_name}-common.prerm \
   debian/${bin_name}-common.overrides.lintian \
-  debian/${bin_name}-common.overrides.linda \
   debian/${bin_name}-common.menu \
   debian/${bin_name}-bin-common.postinst \
   debian/${bin_name}-bin-common.prerm \
-  debian/${bin_name}-bin-common.overrides.lintian \
-  debian/${bin_name}-bin-common.overrides.linda
+  debian/${bin_name}-bin-common.overrides.lintian
 
 DEBPKGFILES := ${PERSISTENT_AUTOGEN_FILES} ${NONPERSISTENT_AUTOGEN_FILES}
 
@@ -551,7 +548,6 @@ install: build $(DEBPKGFILES)
 	rm -rf $(EMACS_COMMON)/var/games/emacs
 
 	$(call inst_overrides,lintian,$(EMACS_COMMON),${bin_name}-common)
-	$(call inst_overrides,linda,$(EMACS_COMMON),${bin_name}-common)
 	$(call inst_bug_files,$(EMACS_COMMON),${bin_name}-common)
 
 	# Remove extra license files
@@ -592,7 +588,6 @@ install: build $(DEBPKGFILES)
 	$(call inst_desktop,$(EMACS_BIN_COMMON),emacsclient-${bin_name})
 	$(call inst_readme,$(EMACS_BIN_COMMON),${bin_name}-bin-common)
 	$(call inst_overrides,lintian,$(EMACS_BIN_COMMON),${bin_name}-bin-common)
-	$(call inst_overrides,linda,$(EMACS_BIN_COMMON),${bin_name}-bin-common)
 	$(call inst_bug_files,$(EMACS_BIN_COMMON),${bin_name}-bin-common)
 
 	##################################################
@@ -628,7 +623,6 @@ install: build $(DEBPKGFILES)
 	      (cd $(EMACS_EL) && tar xpf -)
 
 	$(call inst_readme,$(EMACS_EL),${bin_name}-el)
-	$(call inst_overrides,linda,$(EMACS_EL),${bin_name}-el)
 	$(call inst_bug_files,$(EMACS_EL),${bin_name}-el)
 
 	##################################################
