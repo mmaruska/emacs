@@ -156,9 +156,6 @@ local_lpath := ${local_lpath}:/usr/local/share/emacs/site-lisp
 local_lpath := ${local_lpath}:/usr/share/emacs/${runtime_ver}/site-lisp
 local_lpath := ${local_lpath}:/usr/share/emacs/site-lisp
 
-# This shouldn't be needed as of 20.3
-local_lpath := ${local_lpath}:/usr/share/emacs/${runtime_ver}/leim
-
 # Installation local_lpath
 local_lpath_install := $(EMACS_COMMON)/$(subst :,:$(EMACS_COMMON)/,${local_lpath})
 
