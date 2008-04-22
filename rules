@@ -456,7 +456,7 @@ clean: unpatch debian-clean
 	CFLAGS="${CFLAGS}" ./configure ${emacs_confflags}
 	[ ! -f Makefile ] || $(MAKE) maintainer-clean
 
-	rm -f src/{x,nox}-emacs
+	rm -f src/{gtk,nox}-emacs
 
 	# Remove byte compiled files
 	find -name "*.elc" | xargs --no-run-if-empty rm
