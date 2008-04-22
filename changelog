@@ -1,3 +1,17 @@
+emacs-snapshot (1:20080416-2) UNRELEASED; urgency=low
+
+  [ Romain Francoise ]
+  * debian/patches/debian-cssc-vc-backend.diff: Dropped.
+
+  [ Sven Joachim ]
+  * debian/*.linda: Remove, linda is gone.
+  * debian/rules: Delete all references to *linda.
+  * debian/rules: Don't add leim directory to local_lpath, it
+    would appear twice in load-path (see #476660).
+  * debian/rules: Fix clean target.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Tue, 22 Apr 2008 21:12:36 +0200
+
 emacs-snapshot (1:20080416-1) unstable; urgency=low
 
   * New snapshot.
