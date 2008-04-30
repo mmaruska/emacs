@@ -1,6 +1,7 @@
-emacs-snapshot (1:20080416-2) UNRELEASED; urgency=low
+emacs-snapshot (1:20080430-1) unstable; urgency=low
 
   [ Romain Francoise ]
+  * New snapshot.
   * debian/patches/debian-cssc-vc-backend.diff: Dropped.
 
   [ Sven Joachim ]
@@ -10,7 +11,7 @@ emacs-snapshot (1:20080416-2) UNRELEASED; urgency=low
     would appear twice in load-path (see #476660).
   * debian/rules: Fix clean target.
 
- -- Romain Francoise <rfrancoise@debian.org>  Tue, 22 Apr 2008 21:12:36 +0200
+ -- Romain Francoise <rfrancoise@debian.org>  Wed, 30 Apr 2008 21:00:05 +0200
 
 emacs-snapshot (1:20080416-1) unstable; urgency=low
 
