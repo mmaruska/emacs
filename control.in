@@ -7,6 +7,7 @@ Standards-Version: 3.7.3
 Homepage: http://www.gnu.org/software/emacs/
 Vcs-Browser: http://git.debian.org/?p=users/rfrancoise/emacs-snapshot.git
 Vcs-Git: git://git.debian.org/git/users/rfrancoise/emacs-snapshot.git
+Bugs: mailto:rfrancoise@debian.org
 
 Package: @BIN_NAME@-common
 Section: editors
