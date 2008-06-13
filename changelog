@@ -1,3 +1,14 @@
+emacs-snapshot (1:20080613-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/emacs.preinst: Drop check for running emacsen.
+  * debian/control.in:
+    + Add Bugs header in source stanza.
+    + Temporarily add build-depends on libxcb-render-util0-dev.
+  * debian/control: Regenerate.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 13 Jun 2008 20:10:03 +0200
+
 emacs-snapshot (1:20080606-1) unstable; urgency=low
 
   * New snapshot.
