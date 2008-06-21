@@ -413,7 +413,7 @@ bootstrap-stamp:
 	# generate .elc files
 	CFLAGS="${CFLAGS}" ./configure ${emacs_confflags}
 	${build_cmd} bootstrap
-	${build_cmd} distclean
+	${build_cmd} -C src distclean
 
 	touch $@
 
@@ -422,7 +422,7 @@ emacs-stamp:
 	dh_testdir
 
 	$(call emacs_build,${emacs_confflags},gtk-emacs)
-	${build_cmd} distclean
+	${build_cmd} -C src distclean
 
 	touch $@
 
