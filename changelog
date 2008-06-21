@@ -5,8 +5,11 @@ emacs-snapshot (1:20080621-1) unstable; urgency=low
     + Set Standards-Version to 3.8.0.
     + Drop build-depends on libxcb-render-util0-dev.
   * debian/control: Regenerate.
+  * debian/rules:
+    + Run distclean in src, not top-level.
+    + Ignore errors from maintainer-clean.
 
- -- Romain Francoise <rfrancoise@debian.org>  Sat, 21 Jun 2008 13:41:11 +0200
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 21 Jun 2008 15:19:44 +0200
 
 emacs-snapshot (1:20080613-1) unstable; urgency=low
 
