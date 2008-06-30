@@ -1,3 +1,10 @@
+emacs-snapshot (1:20080630-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/rules: Revert 20080621-1 changes.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Mon, 30 Jun 2008 12:27:13 +0200
+
 emacs-snapshot (1:20080623-1) unstable; urgency=low
 
   * New snapshot.
