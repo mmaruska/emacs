@@ -451,7 +451,7 @@ clean: unpatch debian-clean
 	# that may have been happening during the previous
 	# build
 	CFLAGS="${CFLAGS}" ./configure ${emacs_confflags}
-	[ ! -f Makefile ] || $(MAKE) -i maintainer-clean
+	[ ! -f Makefile ] || $(MAKE) maintainer-clean
 
 	rm -f src/{gtk,nox}-emacs
 
