@@ -5,7 +5,7 @@ Maintainer: Romain Francoise <rfrancoise@debian.org>
 Build-Depends: libncurses5-dev,
                texinfo,
                liblockfile-dev,
-               libgif-dev,
+               libgif-dev | libungif4-dev,
                libtiff-dev,
                libpng12-dev,
                libjpeg62-dev,
