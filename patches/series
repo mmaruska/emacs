@@ -12,4 +12,3 @@ debian-browse-url.diff
 debian-version-mention.diff
 debian-emacs-manpage.diff
 debian-inst.diff
-fix-gcc-4.3-mktime.diff
