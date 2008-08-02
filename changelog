@@ -2,8 +2,12 @@ emacs-snapshot (1:20080802-1) unstable; urgency=low
 
   * New snapshot.
   * debian/patches/fix-gcc-4.3-mktime.diff: Dropped.
+  * debian/control.in:
+    + Wrap long field values.
+    + Build-depend on libgif-dev | libungif4-dev.
+  * debian/control: Regenerate.
 
- -- Romain Francoise <rfrancoise@debian.org>  Sat, 02 Aug 2008 15:07:30 +0200
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 02 Aug 2008 15:13:18 +0200
 
 emacs-snapshot (1:20080727-1) unstable; urgency=low
 
