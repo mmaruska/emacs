@@ -1,6 +1,6 @@
 emacs-snapshot (1:20080831-1) unstable; urgency=low
 
-  * New snapshot.
+  * New snapshot, fixes possible code execution via python.el (CVE-2008-3949).
 
  -- Romain Francoise <rfrancoise@debian.org>  Sun, 31 Aug 2008 12:48:55 +0200
 
