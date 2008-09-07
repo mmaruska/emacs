@@ -291,7 +291,7 @@ debian/emacsclient-${bin_name}.%: debian/emacsclient.%
 	${expand_file_subst_vars}
 
 debian/emacs.xpm: src/emacs-icon.h
-	sed -e '/HAVE_XPM/i\/* XPM */' -e '//,//!d' -e '//d' < $< > $@
+	sed -e '/HAVE_XPM/,//!d' -e '//c\/* XPM */' < $< > $@
 
 define build_cmd
 	${MAKE} CFLAGS="${CFLAGS}" LDFLAGS="${LDFLAGS}"
