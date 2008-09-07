@@ -16,9 +16,6 @@ TODO                                               -*- outline -*-
 ** Use the upstream desktop file
    There are some minor differences to reconcile via a patch.
 
-** Fix `patch_info' in debian/rules to support patches w/ diffstat
-   Using quilt header --strip-diffstat but needs additional tweaks.
-
 * P2
 
 ** Cleanup the lintian hints, some of them are wrong/outdated

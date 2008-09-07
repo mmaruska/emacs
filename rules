@@ -239,9 +239,9 @@ check-vars:
 .PHONY: check-vars
 
 define patch_info
-	{ for p in $$($(DEB_QUILT_CMD) series | grep "^$(1)-"); do \
-	      $(DEB_QUILT_CMD) header $$p; \
-	  done } \
+	{ for p in $$($(DEB_QUILT_CMD) series | grep "^$(1)-"); do	     \
+	      $(DEB_QUILT_CMD) header --strip-diffstat $$p | sed 's/^---//'; \
+	  done }							     \
 	| grep -v '^#' | cat -s
 endef
 
