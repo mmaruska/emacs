@@ -6,13 +6,6 @@ TODO                                               -*- outline -*-
 ** Override the lintian error about libungif4-dev
    We build-dep on 'libgif-dev | libungif4-dev' to allow backporting.
 
-** Install icons properly under /usr/share/icons/hicolor
-   Now that we have a complete set of icons we should use them as
-   intended (and get rid of debian/emacs.xpm).
-
-** Change the icon used in the desktop files to be the new icon
-   (see also previous item)
-
 ** Use the upstream desktop file
    There are some minor differences to reconcile via a patch.
 

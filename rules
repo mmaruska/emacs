@@ -499,6 +499,15 @@ install: build $(DEBPKGFILES)
 	# This is a duplicate of the file in <emacs flavour>/site-lisp
 	rm $(EMACS_COMMON)/usr/share/emacs/site-lisp/subdirs.el
 
+	# Make icons visible under /usr/share/icons/hicolor/
+	dir=usr/share/emacs/${nominal_ver}/etc/images/icons;		\
+	for f in $$(cd $(EMACS_COMMON)/$$dir;				\
+		find -regex ".*/emacs\(-document\)?.\(png\|svg\)$$"	\
+		     -printf "%P\n"); do				\
+		dh_link -p${bin_name}-common $$dir/$$f			\
+			usr/share/icons/$${f/emacs/${bin_name}};	\
+	done
+
 	# Install icon, and create symlink in the icons directory
 	cp debian/emacs.xpm \
 		$(EMACS_COMMON)/usr/share/emacs/${runtime_ver}/etc/emacs.xpm

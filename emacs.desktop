@@ -8,6 +8,6 @@ Exec=/usr/bin/@BIN_NAME@-@X_SUPPORT@
 TryExec=@BIN_NAME@
 Terminal=false
 Type=Application
-Icon=/usr/share/icons/@BIN_NAME@/emacs.xpm
+Icon=emacs-snapshot
 Categories=Development;Utility;TextEditor;
 MimeType=text/plain
