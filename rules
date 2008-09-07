@@ -168,6 +168,7 @@ NONPERSISTENT_AUTOGEN_FILES := \
   debian/bug.presubj \
   debian/bug.script \
   debian/bug.control \
+  debian/emacs.xpm \
   debian/emacsclient-${bin_name}.desktop \
   debian/${bin_name}.menu \
   debian/${bin_name}.preinst \
@@ -294,6 +295,12 @@ debian/${bin_name}-bin-common.%: debian/emacs-bin-common.%
 
 debian/emacsclient-${bin_name}.%: debian/emacsclient.%
 	${expand_file_subst_vars}
+
+debian/emacs.xpm:
+	sed -n '/HAVE_XPM/,/HAVE_XPM/p' < src/emacs-icon.h >$@
+	sed -i '1d' $@
+	sed -i '1i \/* XPM */' $@
+	sed -i '$$d' $@
 
 define build_cmd
 	${MAKE} CFLAGS="${CFLAGS}" LDFLAGS="${LDFLAGS}"
@@ -508,7 +515,8 @@ install: build $(DEBPKGFILES)
 			usr/share/icons/$${f/emacs/${bin_name}};	\
 	done
 
-	# Install icon, and create symlink in the icons directory
+	# Install XPM icon (for the menu file), and create symlink in
+	# the icons directory
 	cp debian/emacs.xpm \
 		$(EMACS_COMMON)/usr/share/emacs/${runtime_ver}/etc/emacs.xpm
 	dh_link -p${bin_name}-common \
