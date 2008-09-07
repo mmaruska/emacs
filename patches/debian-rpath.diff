@@ -4,9 +4,13 @@
 
    Provided by: Romain Francoise <rfrancoise@debian.org>
 
---- emacs-snapshot-20070902.orig/configure
-+++ emacs-snapshot-20070902/configure
-@@ -9446,7 +9446,7 @@
+---
+ configure |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/configure
++++ b/configure
+@@ -9135,7 +9135,7 @@
  if test "${x_libraries}" != NONE; then
    if test -n "${x_libraries}"; then
      LD_SWITCH_X_SITE=-L`echo ${x_libraries} | sed -e "s/:/ -L/g"`

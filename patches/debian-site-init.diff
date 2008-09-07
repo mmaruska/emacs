@@ -5,8 +5,12 @@
 
    Provided by: Michael Olson <mwolson@gnu.org>
 
+---
+ lisp/site-init.el |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
 --- /dev/null
-+++ emacs-snapshot-20070902/lisp/site-init.el
++++ b/lisp/site-init.el
 @@ -0,0 +1,10 @@
 +
 +;; Place the flavor-specific info directory ahead of the general one.

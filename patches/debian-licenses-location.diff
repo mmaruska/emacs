@@ -6,9 +6,13 @@
 
    Provided by: Romain Francoise <rfrancoise@debian.org>
 
+---
+ lisp/help.el |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
 --- a/lisp/help.el
 +++ b/lisp/help.el
-@@ -307,7 +307,8 @@
+@@ -305,7 +305,8 @@
  (defun describe-copying ()
    "Display info on how you may redistribute copies of GNU Emacs."
    (interactive)
@@ -16,5 +20,5 @@
 +  (view-file "/usr/share/common-licenses/GPL")
 +  (goto-char (point-min)))
  
- (defalias 'describe-project 'describe-gnu-project)
  (defun describe-gnu-project ()
+   "Display info on the GNU project."

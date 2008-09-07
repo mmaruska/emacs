@@ -1,9 +1,13 @@
 ** M-x report-emacs-bug CCs the report to the maintainer.
    Provided by: Romain Francoise <rfrancoise@debian.org>
 
---- emacs-snapshot-20070902.orig/lisp/mail/emacsbug.el
-+++ emacs-snapshot-20070902/lisp/mail/emacsbug.el
-@@ -98,7 +98,7 @@
+---
+ lisp/mail/emacsbug.el |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/lisp/mail/emacsbug.el
++++ b/lisp/mail/emacsbug.el
+@@ -100,7 +100,7 @@
  	  (with-current-buffer (get-buffer-create "*Messages*")
  	    (point-max-marker)))
      (compose-mail reporting-address

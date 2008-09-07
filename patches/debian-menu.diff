@@ -1,9 +1,13 @@
 ** Debian-related items were added to the Help menu.
    Provided by: Romain Francoise <rfrancoise@debian.org>
 
+---
+ lisp/menu-bar.el |   35 ++++++++++++++++++++++++++++++++++-
+ 1 file changed, 34 insertions(+), 1 deletion(-)
+
 --- a/lisp/menu-bar.el
 +++ b/lisp/menu-bar.el
-@@ -1282,6 +1282,28 @@
+@@ -1413,6 +1413,28 @@
    (info "elisp")
    (Info-index topic))
  
@@ -32,16 +36,16 @@
  (define-key menu-bar-search-documentation-menu [search-documentation-strings]
    '(menu-item "Search Documentation Strings..." apropos-documentation
                :help
-@@ -1363,7 +1385,7 @@
+@@ -1494,7 +1516,7 @@
      (view-file (expand-file-name "MORE.STUFF"
  				 data-directory))
      (goto-address)))
 -(define-key menu-bar-help-menu [sep2]
 +(define-key menu-bar-help-menu [sep3]
    '("--"))
- (define-key menu-bar-help-menu [more]
+ (define-key menu-bar-help-menu [external-packages]
    '(menu-item "External Packages" menu-bar-help-extra-packages
-@@ -1380,6 +1402,17 @@
+@@ -1511,6 +1533,17 @@
    (list 'menu-item "Describe" menu-bar-describe-menu))
  (define-key menu-bar-help-menu [search-documentation]
    (list 'menu-item "Search Documentation" menu-bar-search-documentation-menu))
@@ -58,4 +62,4 @@
 +	      :help "Display the README.Debian file"))
  (define-key menu-bar-help-menu [sep1]
    '("--"))
- (define-key menu-bar-help-menu [eliza]
+ (define-key menu-bar-help-menu [emacs-psychotherapist]

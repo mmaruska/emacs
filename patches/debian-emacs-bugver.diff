@@ -1,9 +1,13 @@
 ** M-x report-emacs-bug includes the package version.
    Provided by: Romain Francoise <rfrancoise@debian.org>
 
---- emacs-snapshot-20070902.orig/lisp/mail/emacsbug.el
-+++ emacs-snapshot-20070902/lisp/mail/emacsbug.el
-@@ -146,6 +146,11 @@
+---
+ lisp/mail/emacsbug.el |    5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/lisp/mail/emacsbug.el
++++ b/lisp/mail/emacsbug.el
+@@ -148,6 +148,11 @@
      (add-text-properties (1+ user-point) (point) prompt-properties)
  
      (insert "\n\nIn " (emacs-version) "\n")

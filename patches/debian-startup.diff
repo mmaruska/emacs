@@ -1,9 +1,13 @@
 ** Define a Debian-specific Emacs flavor.
    Provided by: Rob Browning <rlb@defaultvalue.org>
 
+---
+ lisp/startup.el |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
 --- a/lisp/startup.el
 +++ b/lisp/startup.el
-@@ -317,6 +317,10 @@
+@@ -381,6 +381,10 @@
  
  (defvar normal-top-level-add-subdirs-inode-list nil)
  
@@ -14,7 +18,7 @@
  (defvar no-blinking-cursor nil)
  
  (defvar default-frame-background-mode)
-@@ -879,7 +883,13 @@
+@@ -960,7 +964,13 @@
      ;; should check init-file-user instead, since that is already set.
      ;; See cus-edit.el for an example.
      (if site-run-file

@@ -1,9 +1,13 @@
 ** The installation of some files in system-wide directories has been disabled.
    Provided by: Romain Francoise <rfrancoise@debian.org>
 
+---
+ Makefile.in |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
 --- a/Makefile.in
 +++ b/Makefile.in
-@@ -438,7 +438,7 @@
+@@ -442,7 +442,7 @@
  ## Note that the Makefiles in the etc directory are potentially useful
  ## in an installed Emacs, so should not be excluded.
  
@@ -12,7 +16,7 @@
  	-set ${COPYDESTS} ; \
  	unset CDPATH; \
  	for dir in ${COPYDIR} ; do \
-@@ -613,8 +613,7 @@
+@@ -620,8 +620,7 @@
  	  $(DESTDIR)${bindir} $(DESTDIR)${docdir} $(DESTDIR)${libexecdir} \
  	  $(DESTDIR)${datadir}/emacs/site-lisp \
  	  $(DESTDIR)${datadir}/emacs/${version}/site-lisp \

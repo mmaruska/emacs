@@ -1,9 +1,13 @@
 ** `mail-from-style' is set to 'system-default by default.
    Provided by: Romain Francoise <rfrancoise@debian.org>
 
---- emacs-snapshot-20070902.orig/lisp/mail/sendmail.el
-+++ emacs-snapshot-20070902/lisp/mail/sendmail.el
-@@ -59,7 +59,7 @@
+---
+ lisp/mail/sendmail.el |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/lisp/mail/sendmail.el
++++ b/lisp/mail/sendmail.el
+@@ -58,7 +58,7 @@
    :type 'file)
  
  ;;;###autoload

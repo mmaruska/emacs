@@ -10,9 +10,13 @@
 
    Provided by: Romain Francoise <rfrancoise@debian.org>
 
+---
+ lisp/font-lock.el |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 --- a/lisp/font-lock.el
 +++ b/lisp/font-lock.el
-@@ -1845,7 +1845,7 @@
+@@ -1844,7 +1844,7 @@
      (((class color) (min-colors 8) (background light))
       (:foreground "red"))
      (((class color) (min-colors 8) (background dark))

@@ -1,9 +1,13 @@
 ** Some documentation references to /usr/local/ have been changed to /usr.
    Provided by: Romain Francoise <rfrancoise@debian.org>
 
+---
+ doc/man/emacs.1 |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
 --- a/doc/man/emacs.1
 +++ b/doc/man/emacs.1
-@@ -630,28 +630,28 @@
+@@ -628,28 +628,28 @@
  .
  .
  .SH FILES
@@ -38,7 +42,7 @@
  various services to assist users of GNU Emacs, including education,
  troubleshooting, porting and customization.
  .
-@@ -675,7 +675,7 @@
+@@ -673,7 +673,7 @@
  
  Please do not send anything but bug reports to this mailing list.
  For more information about Emacs mailing lists, see the

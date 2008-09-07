@@ -1,8 +1,12 @@
 ** Mention Debian-specific changes in the Emacs NEWS file.
    Provided by: Rob Browning <rlb@defaultvalue.org>
 
---- emacs-snapshot-20070902.orig/etc/NEWS
-+++ emacs-snapshot-20070902/etc/NEWS
+---
+ etc/NEWS |    5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/etc/NEWS
++++ b/etc/NEWS
 @@ -21,6 +21,11 @@
  so we will look at it and add it to the manual.
  
