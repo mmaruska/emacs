@@ -248,17 +248,11 @@ endef
 
 # we use PHONY because deleting patches won't cause rebuild otherwise.
 debian/README.Debian: debian/README.in debian/patches/*.diff
-	cp debian/README.in debian/README.Debian
-	@echo "* Additional features" >> debian/README.Debian
-	@echo >> debian/README.Debian
-	$(call patch_info,feature) >> debian/README.Debian
-	@echo "* Bugfixes" >> debian/README.Debian
-	@echo >> debian/README.Debian
-	$(call patch_info,fix) >> debian/README.Debian
-	@echo "* Changes specific to Debian-based systems" \
-		>> debian/README.Debian
-	@echo >> debian/README.Debian
-	$(call patch_info,debian) >> debian/README.Debian
+	@(cat $<;							  \
+	  printf "* Additional features\n\n"; $(call patch_info,feature); \
+	  printf "* Bugfixes\n\n"; $(call patch_info,fix);		  \
+	  printf "* Changes specific to Debian-based systems\n\n";	  \
+	  $(call patch_info,debian)) >$@
 .PHONY: debian/README.Debian
 
 debian/%: debian/%.in debian/changelog
