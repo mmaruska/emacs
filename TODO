@@ -3,9 +3,6 @@ TODO                                               -*- outline -*-
 
 * P1
 
-** Override the lintian error about libungif4-dev
-   We build-dep on 'libgif-dev | libungif4-dev' to allow backporting.
-
 ** Use the upstream desktop file
    There are some minor differences to reconcile via a patch.
 
