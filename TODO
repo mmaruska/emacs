@@ -42,7 +42,11 @@ TODO                                               -*- outline -*-
     |Total                                             |      5160|
     +--------------------------------------------------+----------+
 
-   Does hardy support lzma compression?
+   Distribution status: sid ok, intrepid ok, lenny ok.
+
+   Damien Cassou <damien.cassou@gmail.com> reports that lzma is also
+   supported on hardy and successfully built and installed
+   emacs-snapshot with lzma compression.
 
 ** Build and install out of tree as emacs22 does
 
