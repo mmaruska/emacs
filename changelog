@@ -1,3 +1,23 @@
+emacs-snapshot (1:20080914-1) unstable; urgency=low
+
+  * The "Everybody does a little dance with the devil" release.
+
+  * New snapshot.
+  * debian/rules:
+    + Cleanup debian/README.Debian generation rule.
+    + Strip diffstat from quilt headers when building debian/README.Debian.
+    + Update list of changelogs to install.
+    + Generate debian/emacs.xpm from src/emacs-icon.h.
+    + Remove extra directories mbox-{changes,trunk-annotations}.
+    + Install symlinks for the new Emacs 23 icons under /usr/share/icons.
+  * debian/emacs{,client}.desktop: Use the new icon.
+  * debian/source.lintian-overrides: Override build-depends-on-obsolete-package,
+    we build-depend on libungif4-dev to make backporting easier.
+  * debian/emacs.xpm: Remove.
+  * debian/TODO: New file.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 14 Sep 2008 11:43:52 +0200
+
 emacs-snapshot (1:20080831-1) unstable; urgency=low
 
   * New snapshot, fixes possible code execution via python.el (CVE-2008-3949).
