@@ -562,10 +562,6 @@ install: build $(DEBPKGFILES)
 	# Remove extra license files
 	rm -f $(EMACS_COMMON)/usr/share/emacs/${runtime_ver}/{etc,lisp}/COPYING
 
-	# FIXME
-	rm -rf $(EMACS_COMMON)/usr/share/emacs/${runtime_ver}/lisp/mail/mbox-changes
-	rm -rf $(EMACS_COMMON)/usr/share/emacs/${runtime_ver}/lisp/mail/mbox-trunk-annotations
-
 	##################################################
 	# emacs-bin-common (preparation)
 
