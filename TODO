@@ -68,3 +68,4 @@ TODO                                               -*- outline -*-
 ** Add GNUstep subflavor?
    Not sure it's worth it, and it adds constraints due to additional
    binary dependencies.
+   (Note, it's broken upstream atm: http://emacsbugs.donarmstrong.com/620)
