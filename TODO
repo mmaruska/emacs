@@ -50,6 +50,9 @@ TODO                                               -*- outline -*-
 
 ** Build and install out of tree as emacs22 does
 
+** Set `trash-directory' to ~/.local/share/Trash/files (the fd.o location)
+   (Suggested by Damien Cassou.)
+
 * P3
 
 ** Find a way to link the emacs and emacsclient alternatives
