@@ -310,7 +310,6 @@ emacs_inst = (${MAKE} install					\
 		libexecdir=${1}/usr/lib				\
 		infodir=${1}/usr/share/info/${info_emacsdir}	\
 		mandir=${1}/usr/share/man			\
-		manext=.1${bin_name}				\
 		locallisppath=${local_lpath_install})
 
 define emacs_build
@@ -587,6 +586,9 @@ install: build $(DEBPKGFILES)
 	# Move man pages
 	$(INSTALL) -d $(EMACS_BIN_COMMON)/usr/share
 	mv $(EMACS_COMMON)/usr/share/man $(EMACS_BIN_COMMON)/usr/share
+	for f in $(EMACS_BIN_COMMON)/usr/share/man/man1/*.1 ; do \
+		mv $$f $${f}${bin_name} ; \
+	done
 
 	# Fix manpages
 	perl -pi -e "s|man1/etags\\.1|man1/etags\\.1${bin_name}|" \
