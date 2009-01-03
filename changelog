@@ -1,3 +1,16 @@
+emacs-snapshot (1:20090103-1) unstable; urgency=low
+
+  [ Romain Francoise ]
+  * New snapshot.
+
+  [ Sven Joachim ]
+  * debian/rules: Fix manpages installation.
+  * debian/emacs-bin-common.postinst: Install slave alternatives for
+    the new manpages.
+  * debian/emacs-bin-common.overrides.lintian: Update for the new manpages.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 03 Jan 2009 23:05:54 +0100
+
 emacs-snapshot (1:20081221-1) unstable; urgency=low
 
   * New snapshot.
