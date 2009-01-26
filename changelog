@@ -1,3 +1,11 @@
+emacs-snapshot (1:20090126-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/control.in: Add libgpm-dev to build-depends.
+  * debian/control: Regenerate.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Mon, 26 Jan 2009 21:15:26 +0100
+
 emacs-snapshot (1:20090118-1) unstable; urgency=low
 
   * New snapshot.
