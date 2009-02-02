@@ -1,3 +1,9 @@
+emacs-snapshot (1:20090202-1) unstable; urgency=low
+
+  * New snapshot (from the EMACS_PRETEST_23_0_90 tag).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Mon, 02 Feb 2009 20:06:19 +0100
+
 emacs-snapshot (1:20090126-1) unstable; urgency=low
 
   * New snapshot.
