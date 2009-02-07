@@ -1,8 +1,10 @@
 emacs-snapshot (1:20090207-1) unstable; urgency=low
 
   * New snapshot.
+  * debian/control.in: Add libgpmg1-dev as alternative to libgpm-dev.
+  * debian/control: Regenerate.
 
- -- Romain Francoise <rfrancoise@debian.org>  Sat, 07 Feb 2009 12:21:30 +0100
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 07 Feb 2009 12:22:51 +0100
 
 emacs-snapshot (1:20090202-1) unstable; urgency=low
 
