@@ -22,32 +22,6 @@ TODO                                               -*- outline -*-
 
 ** Set up something to provide nightly builds
 
-** Switch to lzma compression
-   Will have to wait for lenny to be released, will make decompression
-   faster and provide significant space savings:
-
-    +-----------------------------+----------+---------+----------+
-    |                             |bzip2 (KB)|lzma (KB)|saves (KB)|
-    +-----------------------------+----------+---------+----------+
-    |emacs-snapshot               |      4177|     3051|      1126|
-    +-----------------------------+----------+---------+----------+
-    |emacs-snapshot-nox           |      3810|     2742|      1068|
-    +-----------------------------+----------+---------+----------+
-    |emacs-snapshot-common        |     18499|    15502|      2997|
-    +-----------------------------+----------+---------+----------+
-    |emacs-snapshot-bin-common    |       170|      140|        30|
-    +-----------------------------+----------+---------+----------+
-    |emacs-snapshot-el            |     11946|    12007|       -61|
-    +-----------------------------+----------+---------+----------+
-    |Total                                             |      5160|
-    +--------------------------------------------------+----------+
-
-   Distribution status: sid ok, intrepid ok, lenny ok.
-
-   Damien Cassou <damien.cassou@gmail.com> reports that lzma is also
-   supported on hardy and successfully built and installed
-   emacs-snapshot with lzma compression.
-
 ** Build and install out of tree as emacs22 does
 
 ** Set `trash-directory' to ~/.local/share/Trash/files (the fd.o location)
