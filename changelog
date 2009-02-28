@@ -1,3 +1,10 @@
+emacs-snapshot (1:20090228-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/rules: Use lzma compression.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 28 Feb 2009 17:09:37 +0100
+
 emacs-snapshot (1:20090222-1) unstable; urgency=low
 
   * New snapshot.
