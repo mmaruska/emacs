@@ -1,3 +1,16 @@
+emacs-snapshot (1:20090308-1) unstable; urgency=low
+
+  * The "Vi veri veniversum vivus vici" release.
+
+  * New snapshot.
+  * debian/rules: Store debugging symbols in emacs-snapshot-dbg.
+  * debian/control.in:
+    + Add new binary package emacs-snapshot-dbg.
+    + Add pre-depends on dpkg (>= 1.14.21) for lzma support.
+  * debian/control: Regenerate.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 08 Mar 2009 20:00:45 +0100
+
 emacs-snapshot (1:20090228-1) unstable; urgency=low
 
   * New snapshot.
