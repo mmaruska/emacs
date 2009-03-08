@@ -653,7 +653,6 @@ binary-indep: build install
 	dh_installdocs -i
 	dh_installmenu -i
 	dh_link -i
-	dh_strip -i
 	dh_compress -XREADME.Debian -i
 	dh_fixperms -i
 	dh_installdeb -i
@@ -673,7 +672,7 @@ binary-arch: build install
 	dh_installmenu -a
 	dh_desktop -a
 	dh_link -a
-	dh_strip -a
+	dh_strip -a --dbg-package=emacs-snapshot-dbg
 	dh_compress -a
 	dh_fixperms -a -X${movemail_bin}
 	dh_installdeb -a
