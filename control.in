@@ -30,7 +30,8 @@ Package: @BIN_NAME@-common
 Section: editors
 Priority: optional
 Architecture: all
-Depends: emacsen-common (>= 1.4.10), dpkg (>= 1.9.0)
+Pre-Depends: dpkg (>= 1.14.21)
+Depends: emacsen-common (>= 1.4.10)
 Suggests: @BIN_NAME@-el
 Conflicts: @BIN_NAME@-el (<< ${source:Version}),
            w3-el,
@@ -47,6 +48,7 @@ Package: @BIN_NAME@-bin-common
 Section: editors
 Priority: optional
 Architecture: any
+Pre-Depends: dpkg (>= 1.14.21)
 Depends: @BIN_NAME@-common (= ${source:Version}), ${shlibs:Depends}
 Conflicts: @BIN_NAME@ (<< 1:20060120-2),
            @BIN_NAME@-gtk (<< 1:20060120-2),
@@ -60,6 +62,7 @@ Package: @BIN_NAME@
 Section: editors
 Priority: optional
 Architecture: any
+Pre-Depends: dpkg (>= 1.14.21)
 Depends: @BIN_NAME@-bin-common (= ${binary:Version}), ${shlibs:Depends}
 Provides: emacsen, editor, info-browser, mail-reader, news-reader
 Conflicts: w3-el, @BIN_NAME@-gtk (<= 1:20070824-1)
@@ -70,6 +73,7 @@ Package: @BIN_NAME@-gtk
 Section: editors
 Priority: extra
 Architecture: all
+Pre-Depends: dpkg (>= 1.14.21)
 Depends: @BIN_NAME@
 Description: The GNU Emacs editor (transitional package)
  Empty package to facilitate upgrades, can be safely removed.
@@ -78,6 +82,7 @@ Package: @BIN_NAME@-nox
 Section: editors
 Priority: optional
 Architecture: any
+Pre-Depends: dpkg (>= 1.14.21)
 Depends: @BIN_NAME@-bin-common (= ${binary:Version}), ${shlibs:Depends}
 Provides: @BIN_NAME@, emacsen, editor, info-browser, mail-reader, news-reader
 Conflicts: w3-el
@@ -89,6 +94,7 @@ Package: @BIN_NAME@-el
 Section: editors
 Priority: optional
 Architecture: all
+Pre-Depends: dpkg (>= 1.14.21)
 Depends: @BIN_NAME@-common (= ${source:Version})
 Description: GNU Emacs LISP (.el) files
  GNU Emacs is the extensible self-documenting text editor.

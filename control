@@ -30,7 +30,8 @@ Package: emacs-snapshot-common
 Section: editors
 Priority: optional
 Architecture: all
-Depends: emacsen-common (>= 1.4.10), dpkg (>= 1.9.0)
+Pre-Depends: dpkg (>= 1.14.21)
+Depends: emacsen-common (>= 1.4.10)
 Suggests: emacs-snapshot-el
 Conflicts: emacs-snapshot-el (<< ${source:Version}),
            w3-el,
@@ -47,6 +48,7 @@ Package: emacs-snapshot-bin-common
 Section: editors
 Priority: optional
 Architecture: any
+Pre-Depends: dpkg (>= 1.14.21)
 Depends: emacs-snapshot-common (= ${source:Version}), ${shlibs:Depends}
 Conflicts: emacs-snapshot (<< 1:20060120-2),
            emacs-snapshot-gtk (<< 1:20060120-2),
@@ -60,6 +62,7 @@ Package: emacs-snapshot
 Section: editors
 Priority: optional
 Architecture: any
+Pre-Depends: dpkg (>= 1.14.21)
 Depends: emacs-snapshot-bin-common (= ${binary:Version}), ${shlibs:Depends}
 Provides: emacsen, editor, info-browser, mail-reader, news-reader
 Conflicts: w3-el, emacs-snapshot-gtk (<= 1:20070824-1)
@@ -70,6 +73,7 @@ Package: emacs-snapshot-gtk
 Section: editors
 Priority: extra
 Architecture: all
+Pre-Depends: dpkg (>= 1.14.21)
 Depends: emacs-snapshot
 Description: The GNU Emacs editor (transitional package)
  Empty package to facilitate upgrades, can be safely removed.
@@ -78,6 +82,7 @@ Package: emacs-snapshot-nox
 Section: editors
 Priority: optional
 Architecture: any
+Pre-Depends: dpkg (>= 1.14.21)
 Depends: emacs-snapshot-bin-common (= ${binary:Version}), ${shlibs:Depends}
 Provides: emacs-snapshot, emacsen, editor, info-browser, mail-reader, news-reader
 Conflicts: w3-el
@@ -89,6 +94,7 @@ Package: emacs-snapshot-el
 Section: editors
 Priority: optional
 Architecture: all
+Pre-Depends: dpkg (>= 1.14.21)
 Depends: emacs-snapshot-common (= ${source:Version})
 Description: GNU Emacs LISP (.el) files
  GNU Emacs is the extensible self-documenting text editor.
