@@ -105,6 +105,7 @@ Package: @BIN_NAME@-dbg
 Section: editors
 Priority: extra
 Architecture: any
+Pre-Depends: dpkg (>= 1.14.21)
 Depends: @BIN_NAME@ (= ${binary:Version}) | @BIN_NAME@-nox (= ${binary:Version})
 Description: The GNU Emacs editor (debugging symbols)
  GNU Emacs is the extensible self-documenting text editor.

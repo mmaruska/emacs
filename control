@@ -105,6 +105,7 @@ Package: emacs-snapshot-dbg
 Section: editors
 Priority: extra
 Architecture: any
+Pre-Depends: dpkg (>= 1.14.21)
 Depends: emacs-snapshot (= ${binary:Version}) | emacs-snapshot-nox (= ${binary:Version})
 Description: The GNU Emacs editor (debugging symbols)
  GNU Emacs is the extensible self-documenting text editor.
