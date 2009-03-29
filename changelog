@@ -1,3 +1,11 @@
+emacs-snapshot (1:20090329-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/control.in: Add pre-depends on dpkg to emacs-snapshot-dbg.
+  * debian/control: Regenerate.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 29 Mar 2009 19:38:52 +0200
+
 emacs-snapshot (1:20090320-1) unstable; urgency=low
 
   * New snapshot.
