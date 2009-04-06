@@ -552,8 +552,8 @@ install: build $(DEBPKGFILES)
 	# make sure /usr/local dir doesn't exist
 	rm -rf $(EMACS_COMMON)/usr/local
 
-	# Remove /var/games/emacs, too.
-	rm -rf $(EMACS_COMMON)/var/games/emacs
+	# Remove /var/games, too.
+	rm -rf $(EMACS_COMMON)/var/games
 
 	$(call inst_overrides,lintian,$(EMACS_COMMON),${bin_name}-common)
 	$(call inst_bug_files,$(EMACS_COMMON),${bin_name}-common)
