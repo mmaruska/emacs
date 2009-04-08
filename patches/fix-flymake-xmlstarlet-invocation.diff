@@ -1,0 +1,21 @@
+* Emacs now invokes the correct xmlstarlet executable on Debian systems.
+  Emacs invokes xmlstarlet rather than xml, which is the correct
+  executable name on Debian systems.
+
+  Provided-by: Rob Browning <rlb@defaultvalue.org>
+
+---
+ lisp/progmodes/flymake.el |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/lisp/progmodes/flymake.el
++++ b/lisp/progmodes/flymake.el
+@@ -1754,7 +1754,7 @@
+ 
+ ;;;; xml-specific init-cleanup routines
+ (defun flymake-xml-init ()
+-  (list "xml" (list "val" (flymake-init-create-temp-buffer-copy 'flymake-create-temp-inplace))))
++  (list "xmlstarlet" (list "val" (flymake-init-create-temp-buffer-copy 'flymake-create-temp-inplace))))
+ 
+ (provide 'flymake)
+ 
