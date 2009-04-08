@@ -19,6 +19,10 @@ done
 (rmdir /usr/local/share/emacs/${FULL}/site-lisp 2>/dev/null && \
  rmdir /usr/local/share/emacs/${FULL}           2>/dev/null) || true
 
+# Running Emacs as root can create this file, remove it to avoid stray
+# directories on package removal (see #522248).
+rm -f /usr/share/emacs/${FULL}/etc/emacs.pyc
+
 #DEBHELPER#
 
 exit 0
