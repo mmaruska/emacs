@@ -1,3 +1,20 @@
+emacs-snapshot (1:20090411-1) unstable; urgency=low
+
+  [ Romain Francoise ]
+  * New snapshot.
+  * debian/emacs-common.prerm: Delete /usr/share/emacs/${FULL}/etc/emacs.pyc
+    (see #522248 for context).
+  * debian/control.in: Set Standards-Version to 3.8.1.
+  * debian/control: Regenerate.
+  * debian/patches/fix-flymake-xmlstarlet-invocation.diff: New patch
+    stolen from emacs22.
+  * debian/patches/series: Update accordingly.
+
+  [ Sven Joachim ]
+  * debian/rules: Don't ship /var/games in emacs-common.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 11 Apr 2009 19:23:31 +0200
+
 emacs-snapshot (1:20090329-1) unstable; urgency=low
 
   * New snapshot.
