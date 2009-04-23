@@ -1,3 +1,11 @@
+emacs-snapshot (1:20090423-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/emacs-common.prerm: Also remove emacs{2,3}.pyc.
+  * debian/patches/fix-flymake-xmlstarlet-invocation.diff: Fix header.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 23 Apr 2009 21:41:53 +0200
+
 emacs-snapshot (1:20090411-1) unstable; urgency=low
 
   [ Romain Francoise ]
