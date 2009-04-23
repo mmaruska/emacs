@@ -1,8 +1,8 @@
-* Emacs now invokes the correct xmlstarlet executable on Debian systems.
-  Emacs invokes xmlstarlet rather than xml, which is the correct
-  executable name on Debian systems.
+** Emacs now invokes the correct xmlstarlet executable on Debian systems.
+   Emacs invokes xmlstarlet rather than xml, which is the correct
+   executable name on Debian systems.
 
-  Provided-by: Rob Browning <rlb@defaultvalue.org>
+   Provided-by: Rob Browning <rlb@defaultvalue.org>
 
 ---
  lisp/progmodes/flymake.el |    2 +-
