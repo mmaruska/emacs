@@ -102,7 +102,7 @@ Description: GNU Emacs LISP (.el) files
  saving space in the main package for small systems.
 
 Package: emacs-snapshot-dbg
-Section: editors
+Section: debug
 Priority: extra
 Architecture: any
 Pre-Depends: dpkg (>= 1.14.21)
