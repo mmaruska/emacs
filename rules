@@ -670,7 +670,6 @@ binary-arch: build install
 	dh_installdocs -a
 	dh_installexamples -a
 	dh_installmenu -a
-	dh_desktop -a
 	dh_link -a
 	dh_strip -a --dbg-package=emacs-snapshot-dbg
 	dh_compress -a
