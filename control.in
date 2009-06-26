@@ -31,7 +31,7 @@ Section: editors
 Priority: optional
 Architecture: all
 Pre-Depends: dpkg (>= 1.14.21)
-Depends: emacsen-common (>= 1.4.10)
+Depends: emacsen-common (>= 1.4.10), install-info
 Suggests: @BIN_NAME@-el
 Conflicts: @BIN_NAME@-el (<< ${source:Version}),
            w3-el,

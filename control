@@ -31,7 +31,7 @@ Section: editors
 Priority: optional
 Architecture: all
 Pre-Depends: dpkg (>= 1.14.21)
-Depends: emacsen-common (>= 1.4.10)
+Depends: emacsen-common (>= 1.4.10), install-info
 Suggests: emacs-snapshot-el
 Conflicts: emacs-snapshot-el (<< ${source:Version}),
            w3-el,
