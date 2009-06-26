@@ -1,3 +1,15 @@
+emacs-snapshot (1:20090626-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/control.in:
+    + Make emacs-snapshot-common depend on install-info.
+    + Set Standards-Version to 3.8.2.
+    + Move emacs-snapshot-dbg to section 'debug'.
+  * debian/control: Regenerate.
+  * debian/rules: Stop using dh_desktop.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 26 Jun 2009 20:26:50 +0200
+
 emacs-snapshot (1:20090618-1) unstable; urgency=low
 
   * New snapshot.
