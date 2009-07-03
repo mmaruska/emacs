@@ -1,6 +1,12 @@
+emacs-snapshot (1:20090703-1) unstable; urgency=low
+
+  * New snapshot (from the EMACS_23_1_RC branch).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 03 Jul 2009 20:24:38 +0200
+
 emacs-snapshot (1:20090626-1) unstable; urgency=low
 
-  * New snapshot.
+  * New snapshot (from the EMACS_23_1_RC branch).
   * debian/control.in:
     + Make emacs-snapshot-common depend on install-info.
     + Set Standards-Version to 3.8.2.
