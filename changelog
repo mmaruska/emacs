@@ -1,3 +1,9 @@
+emacs-snapshot (1:20090710-1) unstable; urgency=low
+
+  * New snapshot (from the EMACS_23_1_RC branch).
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 10 Jul 2009 21:42:23 +0200
+
 emacs-snapshot (1:20090703-1) unstable; urgency=low
 
   * New snapshot (from the EMACS_23_1_RC branch).
