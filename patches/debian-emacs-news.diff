@@ -7,7 +7,7 @@
 
 --- a/etc/NEWS
 +++ b/etc/NEWS
-@@ -21,6 +21,11 @@
+@@ -22,6 +22,11 @@
  so we will look at it and add it to the manual.
  
  
@@ -16,6 +16,6 @@
 +Please see /usr/share/doc/emacs-snapshot-common/README.Debian.
 +
 +
- * Installation Changes in Emacs 23.1
+ * Changes in Emacs 23.2
  
- ** The default X toolkit is now Gtk+, rather than Lucid.
+ ** The default value of `trash-directory' has changed to nil, which
