@@ -16,6 +16,6 @@
 +Please see /usr/share/doc/emacs-snapshot-common/README.Debian.
 +
 +
- * Changes in Emacs 23.2
+ * Installation Changes in Emacs 23.2
  
- ** The default value of `trash-directory' has changed to nil, which
+ ** New configure options for Emacs developers
