@@ -546,8 +546,8 @@ install: build $(DEBPKGFILES)
 		usr/share/doc/${bin_name}-common/NEWS
 
 	# Get rid of unwanted dir file.
-	rm $(EMACS_COMMON)/usr/share/info/${info_emacsdir}/dir
-	rm $(EMACS_COMMON)/usr/share/info/${info_emacsdir}/dir.old*
+	rm -f $(EMACS_COMMON)/usr/share/info/${info_emacsdir}/dir
+	rm -f $(EMACS_COMMON)/usr/share/info/${info_emacsdir}/dir.old*
 
 	# make sure /usr/local dir doesn't exist
 	rm -rf $(EMACS_COMMON)/usr/local
