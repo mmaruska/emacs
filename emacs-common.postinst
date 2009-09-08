@@ -3,20 +3,6 @@
 MAJOR=@MAJOR_VERSION@
 MINOR=@MINOR_VERSION@
 FULL=@FULL_VERSION@
-INFOFILES="@INFO_FILES@"
-INFO_SUBDIR=@INFO_EMACSDIR@
-INFO_TITLE="@INFO_TITLE@"
-
-for file in ${INFOFILES}
-do
-  install-info --quiet --section "${INFO_TITLE}" "${INFO_TITLE}" \
-    /usr/share/info/${INFO_SUBDIR}/${file}.gz || true
-done
-
-# Remove stale entry for emacs-xtra (emacs-snapshot only, #404694)
-if grep -q emacs-snapshot/emacs-xtra /usr/share/info/dir; then
-    install-info --quiet --remove-exactly emacs-snapshot/emacs-xtra
-fi
 
 # Create the site-lisp dir for this flavor if we're allowed
 
