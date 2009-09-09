@@ -31,7 +31,7 @@ Section: editors
 Priority: optional
 Architecture: all
 Pre-Depends: dpkg (>= 1.14.21)
-Depends: emacsen-common (>= 1.4.10), install-info
+Depends: emacsen-common (>= 1.4.10), install-info, ${misc:Depends}
 Suggests: @BIN_NAME@-el
 Conflicts: @BIN_NAME@-el (<< ${source:Version}),
            w3-el,
@@ -49,7 +49,8 @@ Section: editors
 Priority: optional
 Architecture: any
 Pre-Depends: dpkg (>= 1.14.21)
-Depends: @BIN_NAME@-common (= ${source:Version}), ${shlibs:Depends}
+Depends: @BIN_NAME@-common (= ${source:Version}), ${shlibs:Depends},
+         ${misc:Depends}
 Conflicts: @BIN_NAME@ (<< 1:20060120-2),
            @BIN_NAME@-gtk (<< 1:20060120-2),
            @BIN_NAME@-nox (<< 1:20060120-2)
@@ -63,7 +64,8 @@ Section: editors
 Priority: optional
 Architecture: any
 Pre-Depends: dpkg (>= 1.14.21)
-Depends: @BIN_NAME@-bin-common (= ${binary:Version}), ${shlibs:Depends}
+Depends: @BIN_NAME@-bin-common (= ${binary:Version}), ${shlibs:Depends},
+         ${misc:Depends}
 Provides: emacsen, editor, info-browser, mail-reader, news-reader
 Conflicts: w3-el, @BIN_NAME@-gtk (<= 1:20070824-1)
 Description: The GNU Emacs editor@FLAVOUR_DESC@
@@ -83,7 +85,8 @@ Section: editors
 Priority: optional
 Architecture: any
 Pre-Depends: dpkg (>= 1.14.21)
-Depends: @BIN_NAME@-bin-common (= ${binary:Version}), ${shlibs:Depends}
+Depends: @BIN_NAME@-bin-common (= ${binary:Version}), ${shlibs:Depends},
+         ${misc:Depends}
 Provides: @BIN_NAME@, emacsen, editor, info-browser, mail-reader, news-reader
 Conflicts: w3-el
 Description: The GNU Emacs editor (without X support)
@@ -95,7 +98,7 @@ Section: editors
 Priority: optional
 Architecture: all
 Pre-Depends: dpkg (>= 1.14.21)
-Depends: @BIN_NAME@-common (= ${source:Version})
+Depends: @BIN_NAME@-common (= ${source:Version}), ${misc:Depends}
 Description: GNU Emacs LISP (.el) files
  GNU Emacs is the extensible self-documenting text editor.
  This package contains the elisp sources for the convenience of users,
@@ -106,7 +109,8 @@ Section: debug
 Priority: extra
 Architecture: any
 Pre-Depends: dpkg (>= 1.14.21)
-Depends: @BIN_NAME@ (= ${binary:Version}) | @BIN_NAME@-nox (= ${binary:Version})
+Depends: @BIN_NAME@ (= ${binary:Version}) | @BIN_NAME@-nox (= ${binary:Version}),
+         ${misc:Depends}
 Description: The GNU Emacs editor (debugging symbols)
  GNU Emacs is the extensible self-documenting text editor.
  This package contains the debugging symbols useful for debugging Emacs.
