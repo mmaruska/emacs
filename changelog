@@ -1,3 +1,19 @@
+emacs-snapshot (1:20090909-1) unstable; urgency=low
+
+  [ Romain Francoise ]
+  * New snapshot.
+  * debian/control.in:
+    + Add dependencies on ${misc:Depends}.
+    + Set Standards-Version to 3.8.3.
+  * debian/control: Regenerate.
+  * debian/README.source: New file.
+
+  [ Sven Joachim ]
+  * debian/rules: Don't fail trying to remove nonexistent info dir.
+  * Remove install-info calls from emacs-common maintainer scripts.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Wed, 09 Sep 2009 20:34:24 +0200
+
 emacs-snapshot (1:20090814-1) unstable; urgency=low
 
   * New snapshot.
