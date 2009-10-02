@@ -7,7 +7,7 @@
 
 --- a/Makefile.in
 +++ b/Makefile.in
-@@ -442,7 +442,7 @@
+@@ -459,7 +459,7 @@
  ## Note that the Makefiles in the etc directory are potentially useful
  ## in an installed Emacs, so should not be excluded.
  
@@ -16,7 +16,7 @@
  	-set ${COPYDESTS} ; \
  	unset CDPATH; \
  	for dir in ${COPYDIR} ; do \
-@@ -620,8 +620,7 @@
+@@ -640,8 +640,7 @@
  	  $(DESTDIR)${bindir} $(DESTDIR)${docdir} $(DESTDIR)${libexecdir} \
  	  $(DESTDIR)${datadir}/emacs/site-lisp \
  	  $(DESTDIR)${datadir}/emacs/${version}/site-lisp \
@@ -25,4 +25,4 @@
 +	  $(DESTDIR)`echo ${locallisppath} | sed 's,:, $(DESTDIR),g'`
  
  ### Delete all the installed files that the `install' target would
- ### create (but not the noninstalled files such as `make all' would
+ ### create (but not the noninstalled files such as `make all' would create).

@@ -10,7 +10,7 @@
 
 --- a/lisp/progmodes/flymake.el
 +++ b/lisp/progmodes/flymake.el
-@@ -1754,7 +1754,7 @@
+@@ -1757,7 +1757,7 @@
  
  ;;;; xml-specific init-cleanup routines
  (defun flymake-xml-init ()

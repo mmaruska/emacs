@@ -27,7 +27,7 @@
    "The name of the browser program used by `browse-url-generic'."
    :type '(choice string (const :tag "None" nil))
    :group 'browse-url)
-@@ -876,6 +876,14 @@
+@@ -879,6 +879,14 @@
  Galeon, Konqueror, Netscape, Mosaic, Lynx in an xterm, and then W3."
    (apply
     (cond

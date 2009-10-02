@@ -7,7 +7,7 @@
 
 --- a/lisp/menu-bar.el
 +++ b/lisp/menu-bar.el
-@@ -1412,6 +1412,28 @@
+@@ -1420,6 +1420,28 @@
    (info "elisp")
    (Info-index topic))
  
@@ -34,9 +34,9 @@
 +    (goto-address)))
 +
  (define-key menu-bar-search-documentation-menu [search-documentation-strings]
-   '(menu-item "Search Documentation Strings..." apropos-documentation
+   `(menu-item ,(purecopy "Search Documentation Strings...") apropos-documentation
                :help
-@@ -1493,7 +1515,7 @@
+@@ -1501,7 +1523,7 @@
      (view-file (expand-file-name "MORE.STUFF"
  				 data-directory))
      (goto-address-mode 1)))
@@ -44,22 +44,22 @@
 +(define-key menu-bar-help-menu [sep3]
    '("--"))
  (define-key menu-bar-help-menu [external-packages]
-   '(menu-item "External Packages" menu-bar-help-extra-packages
-@@ -1510,6 +1532,17 @@
-   (list 'menu-item "Describe" menu-bar-describe-menu))
+   `(menu-item ,(purecopy "External Packages") menu-bar-help-extra-packages
+@@ -1518,6 +1540,17 @@
+   `(menu-item ,(purecopy "Describe") ,menu-bar-describe-menu))
  (define-key menu-bar-help-menu [search-documentation]
-   (list 'menu-item "Search Documentation" menu-bar-search-documentation-menu))
+   `(menu-item ,(purecopy "Search Documentation") ,menu-bar-search-documentation-menu))
 +(define-key menu-bar-help-menu [sep2]
 +  '("--"))
 +(define-key menu-bar-help-menu [debian-emacs-changelog]
-+  '(menu-item "Debian ChangeLog" debian-emacs-changelog
-+	      :help "Display the Debian changelog"))
++  `(menu-item ,(purecopy "Debian ChangeLog") debian-emacs-changelog
++	      :help ,(purecopy "Display the Debian changelog")))
 +(define-key menu-bar-help-menu [debian-emacs-news]
-+  '(menu-item "Debian News" debian-emacs-news
-+	      :help "Display the NEWS.Debian file"))
++  `(menu-item ,(purecopy "Debian News") debian-emacs-news
++	      :help ,(purecopy "Display the NEWS.Debian file")))
 +(define-key menu-bar-help-menu [debian-emacs-readme]
-+  '(menu-item "Debian README" debian-emacs-readme
-+	      :help "Display the README.Debian file"))
++  `(menu-item ,(purecopy "Debian README") debian-emacs-readme
++	      :help ,(purecopy "Display the README.Debian file")))
  (define-key menu-bar-help-menu [sep1]
    '("--"))
  (define-key menu-bar-help-menu [emacs-psychotherapist]
