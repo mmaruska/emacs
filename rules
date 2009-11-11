@@ -18,8 +18,6 @@
 
 SHELL = /bin/bash
 
-include /usr/share/quilt/quilt.make
-
 # XXX: we use DEB_QUILT_CMD below, it's originally a cdbs internal
 # variable since Ubuntu's emacs22 uses cdbs's quilt patchsys.
 DEB_QUILT_CMD := QUILT_PATCHES=debian/patches quilt --quiltrc /dev/null
@@ -396,7 +394,7 @@ check-distribution:
 			debian/patches/series ;				\
 	fi
 
-build: check-distribution patch build-stamp
+build: check-distribution build-stamp
 
 build-stamp: bootstrap emacs emacs-nox
 	dh_testdir
@@ -440,7 +438,7 @@ debian-clean:
 
 	dh_clean
 
-clean: unpatch debian-clean
+clean: debian-clean
 
 	rm -f *-stamp
 
