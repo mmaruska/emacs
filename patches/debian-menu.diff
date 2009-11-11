@@ -7,7 +7,7 @@
 
 --- a/lisp/menu-bar.el
 +++ b/lisp/menu-bar.el
-@@ -1420,6 +1420,28 @@
+@@ -1435,6 +1435,28 @@
    (info "elisp")
    (Info-index topic))
  
@@ -36,16 +36,16 @@
  (define-key menu-bar-search-documentation-menu [search-documentation-strings]
    `(menu-item ,(purecopy "Search Documentation Strings...") apropos-documentation
                :help
-@@ -1501,7 +1523,7 @@
+@@ -1516,7 +1538,7 @@
      (view-file (expand-file-name "MORE.STUFF"
  				 data-directory))
      (goto-address-mode 1)))
 -(define-key menu-bar-help-menu [sep2]
 +(define-key menu-bar-help-menu [sep3]
-   '("--"))
+   menu-bar-separator)
  (define-key menu-bar-help-menu [external-packages]
    `(menu-item ,(purecopy "External Packages") menu-bar-help-extra-packages
-@@ -1518,6 +1540,17 @@
+@@ -1533,6 +1555,17 @@
    `(menu-item ,(purecopy "Describe") ,menu-bar-describe-menu))
  (define-key menu-bar-help-menu [search-documentation]
    `(menu-item ,(purecopy "Search Documentation") ,menu-bar-search-documentation-menu))
@@ -61,5 +61,5 @@
 +  `(menu-item ,(purecopy "Debian README") debian-emacs-readme
 +	      :help ,(purecopy "Display the README.Debian file")))
  (define-key menu-bar-help-menu [sep1]
-   '("--"))
+   menu-bar-separator)
  (define-key menu-bar-help-menu [emacs-psychotherapist]

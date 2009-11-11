@@ -7,7 +7,7 @@
 
 --- a/lisp/mail/emacsbug.el
 +++ b/lisp/mail/emacsbug.el
-@@ -100,7 +100,7 @@
+@@ -99,7 +99,7 @@
  	  (with-current-buffer (get-buffer-create "*Messages*")
  	    (point-max-marker)))
      (compose-mail reporting-address
