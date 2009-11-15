@@ -1,3 +1,18 @@
+emacs-snapshot (1:20091115-1) unstable; urgency=low
+
+  * The "Revenge on House Harkonnen" release.
+
+  * New snapshot.
+  * Switch to 3.0 (quilt) source format:
+    + Remove patch/unpatch logic from debian/rules.
+    + Remove README.source.
+    + Refresh all patches.
+  * debian/patches/tmp-fixes.diff: Add patch from YAMAMOTO Mitsuharu
+    fixing bootstrap after `make distclean'.
+  * debian/patches/series: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sun, 15 Nov 2009 15:10:18 +0100
+
 emacs-snapshot (1:20091023-1) unstable; urgency=low
 
   * New snapshot.
