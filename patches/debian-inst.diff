@@ -16,7 +16,7 @@
  	-set ${COPYDESTS} ; \
  	unset CDPATH; \
  	for dir in ${COPYDIR} ; do \
-@@ -640,8 +640,7 @@
+@@ -641,8 +641,7 @@
  	  $(DESTDIR)${bindir} $(DESTDIR)${docdir} $(DESTDIR)${libexecdir} \
  	  $(DESTDIR)${datadir}/emacs/site-lisp \
  	  $(DESTDIR)${datadir}/emacs/${version}/site-lisp \

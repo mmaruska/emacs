@@ -11,7 +11,7 @@
    :type 'file)
  
  ;;;###autoload
--(defcustom mail-from-style 'angles
+-(defcustom mail-from-style 'default
 +(defcustom mail-from-style 'system-default
    "Specifies how \"From:\" fields look.
  
