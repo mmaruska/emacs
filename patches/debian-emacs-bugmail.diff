@@ -7,12 +7,12 @@
 
 --- a/lisp/mail/emacsbug.el
 +++ b/lisp/mail/emacsbug.el
-@@ -99,7 +99,7 @@
+@@ -106,7 +106,7 @@
+     (setq message-end-point
  	  (with-current-buffer (get-buffer-create "*Messages*")
  	    (point-max-marker)))
-     (compose-mail reporting-address
--		  topic)
-+		  topic '(("Cc" . "rfrancoise@debian.org")))
-     ;; The rest of this does not execute
-     ;; if the user was asked to confirm and said no.
-     (rfc822-goto-eoh)
+-    (compose-mail reporting-address topic)
++    (compose-mail reporting-address topic '(("Cc" . "rfrancoise@debian.org")))
+     ;; The rest of this does not execute if the user was asked to
+     ;; confirm and said no.
+     ;; Message-mode sorts the headers before sending.  We sort now so
