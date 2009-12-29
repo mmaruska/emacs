@@ -247,6 +247,8 @@ endef
 # we use PHONY because deleting patches won't cause rebuild otherwise.
 debian/README.Debian: debian/README.in debian/patches/*.diff
 	@(cat $<;							  \
+	  [ -f .bzr-revno ] && printf "Based on upstream revision %s.\n\n"\
+		$$(cat .bzr-revno);					  \
 	  printf "* Additional features\n\n"; $(call patch_info,feature); \
 	  printf "* Bugfixes\n\n"; $(call patch_info,fix);		  \
 	  printf "* Changes specific to Debian-based systems\n\n";	  \
