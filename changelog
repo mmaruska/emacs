@@ -1,3 +1,10 @@
+emacs-snapshot (1:20100111-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/rules: Build emacs-nox first.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Mon, 11 Jan 2010 20:48:28 +0100
+
 emacs-snapshot (1:20100106-1) unstable; urgency=low
 
   * New snapshot.
