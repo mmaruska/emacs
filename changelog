@@ -1,3 +1,11 @@
+emacs-snapshot (1:20100303-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/control.in: Set Standards-Version to 3.8.4.
+  * debian/control: Regenerate.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Wed, 03 Mar 2010 18:43:51 +0100
+
 emacs-snapshot (1:20100224-1) unstable; urgency=low
 
   * New snapshot.
