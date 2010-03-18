@@ -2,17 +2,18 @@
    Provided by: Romain Francoise <rfrancoise@debian.org>
 
 ---
- lisp/mail/emacsbug.el |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lisp/mail/emacsbug.el |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 --- a/lisp/mail/emacsbug.el
 +++ b/lisp/mail/emacsbug.el
-@@ -106,7 +106,7 @@
+@@ -97,7 +97,8 @@
      (setq message-end-point
  	  (with-current-buffer (get-buffer-create "*Messages*")
  	    (point-max-marker)))
--    (compose-mail reporting-address topic)
-+    (compose-mail reporting-address topic '(("Cc" . "rfrancoise@debian.org")))
+-    (compose-mail report-emacs-bug-address topic)
++    (compose-mail report-emacs-bug-address topic
++		  '(("Cc" . "rfrancoise@debian.org")))
      ;; The rest of this does not execute if the user was asked to
      ;; confirm and said no.
-     ;; Message-mode sorts the headers before sending.  We sort now so
+     (when (eq major-mode 'message-mode)
