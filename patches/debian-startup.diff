@@ -18,7 +18,7 @@
  (defvar no-blinking-cursor nil)
  
  (defvar default-frame-background-mode)
-@@ -949,7 +953,13 @@
+@@ -956,7 +960,13 @@
      ;; should check init-file-user instead, since that is already set.
      ;; See cus-edit.el for an example.
      (if site-run-file

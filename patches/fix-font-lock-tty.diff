@@ -16,7 +16,7 @@
 
 --- a/lisp/font-lock.el
 +++ b/lisp/font-lock.el
-@@ -1854,7 +1854,7 @@
+@@ -1871,7 +1871,7 @@
      (((class color) (min-colors 8) (background light))
       (:foreground "red"))
      (((class color) (min-colors 8) (background dark))
