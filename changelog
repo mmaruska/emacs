@@ -1,3 +1,9 @@
+emacs-snapshot (1:20100419-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Mon, 19 Apr 2010 20:09:40 +0200
+
 emacs-snapshot (1:20100418-1) unstable; urgency=low
 
   * New snapshot.
