@@ -1,3 +1,10 @@
+emacs-snapshot (1:20100524-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/rules: Look for upstream version in src/emacs.c.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Mon, 24 May 2010 13:53:40 +0200
+
 emacs-snapshot (1:20100510-1) unstable; urgency=low
 
   * New snapshot.
