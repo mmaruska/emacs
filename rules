@@ -94,9 +94,8 @@ debian_ver := $(shell echo ${debian_ver} | perl -pe 's/Version:\s+//o')
 # Always everything after the last '-'
 debian_rev := $(shell echo ${debian_ver} | perl -pe 's/.*-//o')
 
-# This is the official upstream version defined by the emacs-version
-# constant in lisp/version.el
-nominal_ver := $(shell egrep 'defconst[[:space:]]*emacs-version' lisp/version.el)
+# This is the official upstream version defined by src/emacs.c
+nominal_ver := $(shell grep 'char emacs_version' src/emacs.c)
 nominal_ver := $(shell echo '${nominal_ver}' | sed -e 's;^[^"]*"\([^"]*\)".*$$;\1;')
 
 # This must be the version that's actually used at runtime for things
