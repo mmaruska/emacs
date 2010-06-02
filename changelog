@@ -1,3 +1,10 @@
+emacs-snapshot (1:20100602-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/patches/debian-emacs-bugmail.diff: Change CC to X-Debbugs-CC.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Wed, 02 Jun 2010 18:59:49 +0200
+
 emacs-snapshot (1:20100524-1) unstable; urgency=low
 
   * New snapshot.
