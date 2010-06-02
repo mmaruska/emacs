@@ -13,7 +13,7 @@
  	    (point-max-marker)))
 -    (compose-mail report-emacs-bug-address topic)
 +    (compose-mail report-emacs-bug-address topic
-+		  '(("Cc" . "rfrancoise@debian.org")))
++		  '(("X-Debbugs-CC" . "rfrancoise@debian.org")))
      ;; The rest of this does not execute if the user was asked to
      ;; confirm and said no.
      (when (eq major-mode 'message-mode)
