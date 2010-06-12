@@ -18,4 +18,4 @@
 +
  * Installation Changes in Emacs 24.1
  
- ---
+ ** Configure links against libselinux if it is found.

@@ -7,7 +7,7 @@
 
 --- a/Makefile.in
 +++ b/Makefile.in
-@@ -459,7 +459,7 @@
+@@ -470,7 +470,7 @@
  ## Note that the Makefiles in the etc directory are potentially useful
  ## in an installed Emacs, so should not be excluded.
  
@@ -16,7 +16,7 @@
  	-set ${COPYDESTS} ; \
  	unset CDPATH; \
  	for dir in ${COPYDIR} ; do \
-@@ -641,8 +641,7 @@
+@@ -656,8 +656,7 @@
  	  $(DESTDIR)${bindir} $(DESTDIR)${docdir} $(DESTDIR)${libexecdir} \
  	  $(DESTDIR)${datadir}/emacs/site-lisp \
  	  $(DESTDIR)${datadir}/emacs/${version}/site-lisp \
