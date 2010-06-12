@@ -1,3 +1,10 @@
+emacs-snapshot (1:20100612-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/rules: configure with --without-compress-info.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 12 Jun 2010 12:11:37 +0200
+
 emacs-snapshot (1:20100608-1) unstable; urgency=low
 
   * New snapshot.
