@@ -1,3 +1,10 @@
+emacs-snapshot (1:20100619-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/patches/tmp-fixes.diff: Dropped.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 19 Jun 2010 11:05:12 +0200
+
 emacs-snapshot (1:20100612-1) unstable; urgency=low
 
   * New snapshot.
