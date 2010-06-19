@@ -1,3 +1,10 @@
+emacs-snapshot (1:20100619-2) unstable; urgency=low
+
+  * debian/patches/tmp-fixes.diff: Resurrect; revert ef7d88db and 5ab4001.
+  * debian/patches/series: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 19 Jun 2010 19:16:39 +0200
+
 emacs-snapshot (1:20100619-1) unstable; urgency=low
 
   * New snapshot.
