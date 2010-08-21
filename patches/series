@@ -8,7 +8,6 @@ debian-menu.diff
 fix-font-lock-tty.diff
 debian-licenses-location.diff
 debian-rpath.diff
-debian-browse-url.diff
 debian-version-mention.diff
 debian-emacs-manpage.diff
 debian-inst.diff
