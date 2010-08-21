@@ -1,3 +1,15 @@
+emacs-snapshot (1:20100821-1) unstable; urgency=low
+
+  * The "Sleeping when the day breaks, dreaming as the evening falls" release.
+
+  * New snapshot.
+  * debian/patches/debian-browse-url.diff: Dropped; Emacs now tries
+    xdg-open first, which has a much better chance of finding the
+    right browser than looking at the `x-www-browser' alternative.
+  * debian/patches/series: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 21 Aug 2010 19:07:06 +0200
+
 emacs-snapshot (1:20100814-1) unstable; urgency=low
 
   * New snapshot.
