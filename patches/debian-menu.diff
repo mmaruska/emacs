@@ -7,7 +7,7 @@
 
 --- a/lisp/menu-bar.el
 +++ b/lisp/menu-bar.el
-@@ -1447,6 +1447,28 @@
+@@ -1536,6 +1536,28 @@
    (info "elisp")
    (Info-index topic))
  
@@ -36,7 +36,7 @@
  (define-key menu-bar-search-documentation-menu [search-documentation-strings]
    `(menu-item ,(purecopy "Search Documentation Strings...") apropos-documentation
                :help
-@@ -1528,7 +1550,7 @@
+@@ -1617,7 +1639,7 @@
      (view-file (expand-file-name "MORE.STUFF"
  				 data-directory))
      (goto-address-mode 1)))
@@ -44,8 +44,8 @@
 +(define-key menu-bar-help-menu [sep3]
    menu-bar-separator)
  (define-key menu-bar-help-menu [external-packages]
-   `(menu-item ,(purecopy "External Packages") menu-bar-help-extra-packages
-@@ -1545,6 +1567,17 @@
+   `(menu-item ,(purecopy "Finding Extra Packages") menu-bar-help-extra-packages
+@@ -1634,6 +1656,17 @@
    `(menu-item ,(purecopy "Describe") ,menu-bar-describe-menu))
  (define-key menu-bar-help-menu [search-documentation]
    `(menu-item ,(purecopy "Search Documentation") ,menu-bar-search-documentation-menu))

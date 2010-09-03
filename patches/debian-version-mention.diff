@@ -7,7 +7,7 @@
 
 --- a/lisp/version.el
 +++ b/lisp/version.el
-@@ -50,8 +50,8 @@
+@@ -51,8 +51,8 @@
    (interactive "P")
    (let ((version-string
           (format (if (not (called-interactively-p 'interactive))

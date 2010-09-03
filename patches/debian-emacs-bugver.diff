@@ -7,7 +7,7 @@
 
 --- a/lisp/mail/emacsbug.el
 +++ b/lisp/mail/emacsbug.el
-@@ -152,6 +152,11 @@
+@@ -200,6 +200,11 @@
      (add-text-properties (1+ user-point) (point) prompt-properties)
  
      (insert "\n\nIn " (emacs-version) "\n")

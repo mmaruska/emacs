@@ -7,7 +7,7 @@
 
 --- a/lisp/mail/emacsbug.el
 +++ b/lisp/mail/emacsbug.el
-@@ -97,7 +97,8 @@
+@@ -145,7 +145,8 @@
      (setq message-end-point
  	  (with-current-buffer (get-buffer-create "*Messages*")
  	    (point-max-marker)))

@@ -12,7 +12,7 @@
 
 --- a/lisp/help.el
 +++ b/lisp/help.el
-@@ -309,7 +309,8 @@
+@@ -311,7 +311,8 @@
  (defun describe-copying ()
    "Display info on how you may redistribute copies of GNU Emacs."
    (interactive)

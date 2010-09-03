@@ -7,7 +7,7 @@
 
 --- a/doc/man/emacs.1
 +++ b/doc/man/emacs.1
-@@ -540,28 +540,28 @@
+@@ -541,28 +541,28 @@
  .
  .
  .SH FILES
@@ -42,7 +42,7 @@
  various services to assist users of GNU Emacs, including education,
  troubleshooting, porting and customization.
  .
-@@ -588,7 +588,7 @@
+@@ -589,7 +589,7 @@
  
  Please do not send anything but bug reports to this mailing list.
  For more information about Emacs mailing lists, see the
