@@ -1,3 +1,11 @@
+emacs-snapshot (1:20100903-2) unstable; urgency=low
+
+  * debian/patches/tmp-fixes.diff: Resurrect; add 40286e6 to avoid
+    infloop in code conversion when ispell is loaded.
+  * debian/patches/series: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Mon, 06 Sep 2010 21:04:40 +0200
+
 emacs-snapshot (1:20100903-1) unstable; urgency=low
 
   * New snapshot.
