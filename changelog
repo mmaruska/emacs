@@ -1,3 +1,11 @@
+emacs-snapshot (1:20100903-3) unstable; urgency=low
+
+  * debian/patches/tmp-fixes-2.diff: Add b3d458b to fix ispell
+    dictionary switching.
+  * debian/patches/series: Update.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Wed, 08 Sep 2010 21:48:24 +0200
+
 emacs-snapshot (1:20100903-2) unstable; urgency=low
 
   * debian/patches/tmp-fixes.diff: Resurrect; add 40286e6 to avoid
