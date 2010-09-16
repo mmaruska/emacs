@@ -46,8 +46,3 @@ TODO                                               -*- outline -*-
    Not sure it's worth it, and it adds constraints due to additional
    binary dependencies.
    (Note, it's broken upstream atm: http://emacsbugs.donarmstrong.com/620)
-
-** Build with support for m17n/otf?
-   Adds support for various asian scripts, but also brings a lot of
-   binary dependencies which are unneeded for most western users.
-   Perhaps requires adding an additional emacs-m17n binary package?
