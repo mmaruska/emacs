@@ -1,10 +1,10 @@
 emacs-snapshot (1:20100916-1) UNRELEASED; urgency=low
 
   * debian/rules: Build emacs with --with-imagemagick=yes.
-  * debian/control.in: Add libmagickwand-dev to build-depends.
+  * debian/control.in: Add libmagickwand-dev and libxml2-dev to build-depends.
   * debian/control: Regenerate.
 
- -- Romain Francoise <rfrancoise@debian.org>  Thu, 16 Sep 2010 19:04:23 +0200
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 16 Sep 2010 19:05:42 +0200
 
 emacs-snapshot (1:20100903-3) unstable; urgency=low
 

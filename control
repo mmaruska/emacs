@@ -20,7 +20,8 @@ Build-Depends: libncurses5-dev,
                libxft-dev,
                libdbus-1-dev,
                libgpm-dev | libgpmg1-dev,
-               libmagickwand-dev
+               libmagickwand-dev,
+               libxml2-dev
 Standards-Version: 3.9.1
 Homepage: http://www.gnu.org/software/emacs/
 Vcs-Browser: http://git.debian.org/?p=users/rfrancoise/emacs-snapshot.git
