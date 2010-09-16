@@ -12,5 +12,3 @@ debian-version-mention.diff
 debian-emacs-manpage.diff
 debian-inst.diff
 fix-flymake-xmlstarlet-invocation.diff
-tmp-fixes.diff
-tmp-fixes-2.diff
