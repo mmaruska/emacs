@@ -1,12 +1,15 @@
-emacs-snapshot (1:20100916-1) UNRELEASED; urgency=low
+emacs-snapshot (1:20100916-1) unstable; urgency=low
 
+  * The "Until we bleed" release.
+
+  * New snapshot.
   * debian/rules: Build emacs with --with-imagemagick=yes.
   * debian/control.in: Add libmagickwand-dev, libxml2-dev, libm17n-dev and
     libotf-dev to build-depends.
   * debian/control: Regenerate.
   * debian/patches/tmp-fixes{,-2}.diff: Dropped.
 
- -- Romain Francoise <rfrancoise@debian.org>  Thu, 16 Sep 2010 19:10:24 +0200
+ -- Romain Francoise <rfrancoise@debian.org>  Thu, 16 Sep 2010 19:21:57 +0200
 
 emacs-snapshot (1:20100903-3) unstable; urgency=low
 
