@@ -1,3 +1,10 @@
+emacs-snapshot (1:20101001-1) unstable; urgency=low
+
+  * This snapshot includes a new version of nnimap. Please report any
+    problems to the ding@gnus.org mailing list.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Fri, 01 Oct 2010 18:18:12 +0200
+
 emacs-snapshot (1:20071105-1) unstable; urgency=low
 
   * The Gnus version bundled with Emacs is now the development branch,
