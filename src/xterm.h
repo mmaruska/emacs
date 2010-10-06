@@ -246,6 +246,8 @@ struct x_display_info
   Atom Xatom_wm_configure_denied; /* When our config request is denied */
   Atom Xatom_wm_window_moved;     /* When the WM moves us.  */
   Atom Xatom_wm_client_leader;    /* Id of client leader window.  */
+  /* mmc */
+  Atom Xatom_wm_client_machine;    /* hostname of where emacs process runs.  */
 
   /* EditRes protocol */
   Atom Xatom_editres;
