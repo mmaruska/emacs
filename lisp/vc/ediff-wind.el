@@ -926,8 +926,15 @@ create a new splittable frame if none is found."
       ;;(setq user-grabbed-mouse (ediff-user-grabbed-mouse))
       (run-hooks 'ediff-before-setup-control-frame-hook))
 
+    ;; mmc: Record the current frame's id:
+    (let ((base-frame-id (string-to-number
+                          (aget
+                           (frame-parameters)
+                           'window-id))))
+
     (setq old-ctl-frame (with-current-buffer ctl-buffer ediff-control-frame))
     (with-current-buffer ctl-buffer
+
       (setq ctl-frame (if (frame-live-p old-ctl-frame)
 			  old-ctl-frame
 			(make-frame ediff-control-frame-parameters))
@@ -937,6 +944,15 @@ create a new splittable frame if none is found."
 	  (if (face-attribute 'mode-line :box)
 	      (set-face-attribute 'mode-line ctl-frame :box nil))
 	(error)))
+
+    (modify-frame-parameters nil
+			     `((window-group . ,base-frame-id)))
+      ;(set-frame-group-leader nil base-frame-id)
+      (message "Creating new frame, and grouping with %d" base-frame-id)
+      (modify-frame-parameters ctl-frame
+			       `((window-group . ,base-frame-id)))
+      ;(set-frame-group-leader ctl-frame base-frame-id)
+      )
 
     (setq ctl-frame-iconified-p (ediff-frame-iconified-p ctl-frame))
     (select-frame ctl-frame)
@@ -971,7 +987,7 @@ create a new splittable frame if none is found."
 		  designated-minibuffer-frame))
 	   (cons 'width fwidth)
 	   (cons 'height fheight)
-	   (cons 'user-position t)
+	   ;;(cons 'user-position t)
 	   ))
 
     ;; adjust autoraise
