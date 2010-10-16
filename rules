@@ -182,6 +182,7 @@ NONPERSISTENT_AUTOGEN_FILES := \
   debian/${bin_name}-common.overrides.lintian \
   debian/${bin_name}-common.menu \
   debian/${bin_name}-bin-common.postinst \
+  debian/${bin_name}-bin-common.preinst \
   debian/${bin_name}-bin-common.prerm \
   debian/${bin_name}-bin-common.overrides.lintian
 
