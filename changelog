@@ -1,3 +1,12 @@
+emacs-snapshot (1:20101016-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/rules: Generate emacs-bin-common.preinst.
+  * debian/emacs-bin-common.preinst: Remove b2m alternative on upgrade.
+  * debian/emacs-bin-common.postinst: Remove references to b2m.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 16 Oct 2010 16:12:03 +0200
+
 emacs-snapshot (1:20101008-1) unstable; urgency=low
 
   * New snapshot.
