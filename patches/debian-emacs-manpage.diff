@@ -1,4 +1,4 @@
-** Some documentation references to /usr/local/ have been changed to /usr.
+** Some documentation references to /usr/local have been changed to /usr.
    Provided by: Romain Francoise <rfrancoise@debian.org>
 
 ---
@@ -7,7 +7,7 @@
 
 --- a/doc/man/emacs.1
 +++ b/doc/man/emacs.1
-@@ -541,28 +541,28 @@
+@@ -541,29 +541,29 @@
  .
  .
  .SH FILES
@@ -16,7 +16,8 @@
  The complete text of the Emacs reference manual is included in a
  convenient tree structured form.
  Also includes the Emacs Lisp Reference Manual, useful to anyone
- wishing to write programs in the Emacs Lisp extension language.
+ wishing to write programs in the Emacs Lisp extension language,
+ and the Introduction to Programming in Emacs Lisp.
  
 -/usr/local/share/emacs/$VERSION/lisp \(em Lisp source files and
 +/usr/share/emacs/$VERSION/lisp \(em Lisp source files and
