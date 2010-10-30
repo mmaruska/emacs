@@ -1,3 +1,11 @@
+emacs-snapshot (1:20101030-1) unstable; urgency=low
+
+  * New snapshot.
+  * debian/control.in: Add libgnutls-dev to build-depends.
+  * debian/control: Regenerate.
+
+ -- Romain Francoise <rfrancoise@debian.org>  Sat, 30 Oct 2010 16:36:10 +0200
+
 emacs-snapshot (1:20101024-1) unstable; urgency=low
 
   * New snapshot.
