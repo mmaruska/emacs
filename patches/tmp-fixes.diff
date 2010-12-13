@@ -1,0 +1,161 @@
+---
+ src/ChangeLog |    9 -----
+ src/lread.c   |  100 ++++++++++++++++++++++++++++++----------------------------
+ 2 files changed, 53 insertions(+), 56 deletions(-)
+
+--- a/src/ChangeLog
++++ b/src/ChangeLog
+@@ -16,15 +16,6 @@
+ 	(make_dom): Return CDATA sections (like <style>foo</style>) as
+ 	text nodes.
+ 
+-2010-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+-
+-	* lread.c (read1): Allow newstyle unquote outside of backquote.
+-	Disallow old-style backquotes inside new-style backquotes.
+-	Don't count unquotes to figure out when we're "syntactically inside
+-	but semantically outside of a backquote" any more.
+-	Extend the restriction no-unescaped-commas-and-backquotes-in-symbols
+-	to all contexts.
+-
+ 2010-12-05  Chong Yidong  <cyd@stupidchicken.com>
+ 
+ 	* process.c: Remove checks for HAVE_SYS_IOCTL_H (Bug#7484).
+--- a/src/lread.c
++++ b/src/lread.c
+@@ -2637,7 +2637,7 @@
+ 	   old-style.  For Emacs-25, we should completely remove this
+ 	   first_in_list exception (old-style can still be obtained via
+ 	   "(\`" anyway).  */
+-	if (!new_backquote_flag && first_in_list && next_char == ' ')
++	if (first_in_list && next_char == ' ')
+ 	  {
+ 	    Vold_style_backquotes = Qt;
+ 	    goto default_label;
+@@ -2654,48 +2654,33 @@
+ 	  }
+       }
+     case ',':
+-      {
+-	int next_char = READCHAR;
+-	UNREAD (next_char);
+-	/* Transition from old-style to new-style:
+-           It used to be impossible to have a new-style , other than within
+-	   a new-style `.  This is sufficient when ` and , are used in the
+-	   normal way, but ` and , can also appear in args to macros that
+-	   will not interpret them in the usual way, in which case , may be
+-	   used without any ` anywhere near.
+-	   So we now use the same heuristic as for backquote: old-style
+-	   unquotes are only recognized when first on a list, and when
+-	   followed by a space.
+-	   Because it's more difficult to peak 2 chars ahead, a new-style
+-	   ,@ can still not be used outside of a `, unless it's in the middle
+-	   of a list.  */
+-	if (new_backquote_flag
+-	    || !first_in_list
+-	    || (next_char != ' ' && next_char != '@'))
+-	  {
+-	    Lisp_Object comma_type = Qnil;
+-	    Lisp_Object value;
+-	    int ch = READCHAR;
+-
+-	    if (ch == '@')
+-	      comma_type = Qcomma_at;
+-	    else if (ch == '.')
+-	      comma_type = Qcomma_dot;
+-	    else
+-	      {
+-		if (ch >= 0) UNREAD (ch);
+-		comma_type = Qcomma;
+-	      }
++      if (new_backquote_flag)
++	{
++	  Lisp_Object comma_type = Qnil;
++	  Lisp_Object value;
++	  int ch = READCHAR;
++
++	  if (ch == '@')
++	    comma_type = Qcomma_at;
++	  else if (ch == '.')
++	    comma_type = Qcomma_dot;
++	  else
++	    {
++	      if (ch >= 0) UNREAD (ch);
++	      comma_type = Qcomma;
++	    }
++
++	  new_backquote_flag--;
++	  value = read0 (readcharfun);
++	  new_backquote_flag++;
++	  return Fcons (comma_type, Fcons (value, Qnil));
++	}
++      else
++	{
++	  Vold_style_backquotes = Qt;
++	  goto default_label;
++	}
+ 
+-	    value = read0 (readcharfun);
+-	    return Fcons (comma_type, Fcons (value, Qnil));
+-	  }
+-	else
+-	  {
+-	    Vold_style_backquotes = Qt;
+-	    goto default_label;
+-	  }
+-      }
+     case '?':
+       {
+ 	int modifiers;
+@@ -2722,9 +2707,26 @@
+ 	c |= modifiers;
+ 
+ 	next_char = READCHAR;
+-	ok = (next_char <= 040
+-	      || (next_char < 0200
+-		  && (strchr ("\"';()[]#?`,.", next_char))));
++	if (next_char == '.')
++	  {
++	    /* Only a dotted-pair dot is valid after a char constant.  */
++	    int next_next_char = READCHAR;
++	    UNREAD (next_next_char);
++
++	    ok = (next_next_char <= 040
++		  || (next_next_char < 0200
++		      && (strchr ("\"';([#?", next_next_char)
++			  || (!first_in_list && next_next_char == '`')
++			  || (new_backquote_flag && next_next_char == ','))));
++	  }
++	else
++	  {
++	    ok = (next_char <= 040
++		  || (next_char < 0200
++		      && (strchr ("\"';()[]#?", next_char)
++			  || (!first_in_list && next_char == '`')
++			  || (new_backquote_flag && next_char == ','))));
++	  }
+ 	UNREAD (next_char);
+ 	if (ok)
+ 	  return make_number (c);
+@@ -2866,7 +2868,9 @@
+ 
+ 	if (next_char <= 040
+ 	    || (next_char < 0200
+-		&& (strchr ("\"';([#?`,", next_char))))
++		&& (strchr ("\"';([#?", next_char)
++		    || (!first_in_list && next_char == '`')
++		    || (new_backquote_flag && next_char == ','))))
+ 	  {
+ 	    *pch = c;
+ 	    return Qnil;
+@@ -2891,7 +2895,9 @@
+ 	  while (c > 040
+ 		 && c != 0x8a0 /* NBSP */
+ 		 && (c >= 0200
+-		     || !(strchr ("\"';()[]#`,", c))))
++		     || (!strchr ("\"';()[]#", c)
++			 && !(!first_in_list && c == '`')
++			 && !(new_backquote_flag && c == ','))))
+ 	    {
+ 	      if (end - p < MAX_MULTIBYTE_LENGTH)
+ 		{
