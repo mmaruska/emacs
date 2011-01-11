@@ -1,0 +1,19 @@
+** M-x report-emacs-bug CCs the report to the maintainer.
+   Provided by: Romain Francoise <rfrancoise@debian.org>
+
+---
+ lisp/mail/emacsbug.el |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- a/lisp/mail/emacsbug.el
++++ b/lisp/mail/emacsbug.el
+@@ -145,7 +145,8 @@
+     (setq message-end-point
+ 	  (with-current-buffer (get-buffer-create "*Messages*")
+ 	    (point-max-marker)))
+-    (compose-mail report-emacs-bug-address topic)
++    (compose-mail report-emacs-bug-address topic
++		  '(("X-Debbugs-CC" . "rfrancoise@debian.org")))
+     ;; The rest of this does not execute if the user was asked to
+     ;; confirm and said no.
+     (when (eq major-mode 'message-mode)

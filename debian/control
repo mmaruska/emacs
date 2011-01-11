@@ -1,0 +1,121 @@
+Source: emacs-snapshot
+Section: editors
+Priority: optional
+Maintainer: Romain Francoise <rfrancoise@debian.org>
+Build-Depends: libncurses5-dev,
+               texinfo,
+               liblockfile-dev,
+               libgif-dev | libungif4-dev,
+               libtiff-dev,
+               libpng12-dev,
+               libjpeg62-dev,
+               libxpm-dev,
+               libgtk2.0-dev,
+               dpkg-dev (>> 1.10.0),
+               quilt (>= 0.42),
+               debhelper (>= 5.0.0),
+               libasound2-dev [!hurd-i386 !kfreebsd-i386 !kfreebsd-amd64],
+               librsvg2-dev,
+               lsb-release,
+               libxft-dev,
+               libm17n-dev,
+               libotf-dev,
+               libdbus-1-dev,
+               libgpm-dev | libgpmg1-dev,
+               libmagickwand-dev,
+               libxml2-dev,
+               libgnutls-dev
+Standards-Version: 3.9.1
+Homepage: http://www.gnu.org/software/emacs/
+Vcs-Browser: http://git.debian.org/?p=users/rfrancoise/emacs-snapshot.git
+Vcs-Git: git://git.debian.org/git/users/rfrancoise/emacs-snapshot.git
+Bugs: mailto:rfrancoise@debian.org
+
+Package: emacs-snapshot-common
+Section: editors
+Priority: optional
+Architecture: all
+Pre-Depends: dpkg (>= 1.14.21)
+Depends: emacsen-common (>= 1.4.10), install-info, ${misc:Depends}
+Suggests: emacs-snapshot-el
+Conflicts: emacs-snapshot-el (<< ${source:Version}),
+           w3-el,
+           dictionaries-common (<< 0.60.0),
+           emacs-snapshot (<< 1:20060120-2),
+           emacs-snapshot-gtk (<< 1:20060120-2),
+           emacs-snapshot-nox (<< 1:20060120-2)
+Description: The GNU Emacs editor's common infrastructure
+ GNU Emacs is the extensible self-documenting text editor.
+ This package contains the infrastructure common between emacs-snapshot
+ and emacs-snapshot-nox.
+
+Package: emacs-snapshot-bin-common
+Section: editors
+Priority: optional
+Architecture: any
+Pre-Depends: dpkg (>= 1.14.21)
+Depends: emacs-snapshot-common (= ${source:Version}), ${shlibs:Depends},
+         ${misc:Depends}
+Conflicts: emacs-snapshot (<< 1:20060120-2),
+           emacs-snapshot-gtk (<< 1:20060120-2),
+           emacs-snapshot-nox (<< 1:20060120-2)
+Description: The GNU Emacs editor's shared, architecture dependent files
+ GNU Emacs is the extensible self-documenting text editor.
+ This package contains the architecture dependent infrastructure
+ that's shared by emacs-snapshot and emacs-snapshot-nox.
+
+Package: emacs-snapshot
+Section: editors
+Priority: optional
+Architecture: any
+Pre-Depends: dpkg (>= 1.14.21)
+Depends: emacs-snapshot-bin-common (= ${binary:Version}), ${shlibs:Depends},
+         ${misc:Depends}
+Provides: emacsen, editor, info-browser, mail-reader, news-reader
+Conflicts: w3-el, emacs-snapshot-gtk (<= 1:20070824-1)
+Description: The GNU Emacs editor (development snapshot)
+ GNU Emacs is the extensible self-documenting text editor.
+
+Package: emacs-snapshot-gtk
+Section: editors
+Priority: extra
+Architecture: all
+Pre-Depends: dpkg (>= 1.14.21)
+Depends: emacs-snapshot, ${misc:Depends}
+Description: The GNU Emacs editor (transitional package)
+ Empty package to facilitate upgrades, can be safely removed.
+
+Package: emacs-snapshot-nox
+Section: editors
+Priority: optional
+Architecture: any
+Pre-Depends: dpkg (>= 1.14.21)
+Depends: emacs-snapshot-bin-common (= ${binary:Version}), ${shlibs:Depends},
+         ${misc:Depends}
+Provides: emacs-snapshot, emacsen, editor, info-browser, mail-reader, news-reader
+Conflicts: w3-el
+Description: The GNU Emacs editor (without X support)
+ GNU Emacs is the extensible self-documenting text editor.
+ This package contains a version of Emacs compiled without support for X.
+
+Package: emacs-snapshot-el
+Section: editors
+Priority: optional
+Architecture: all
+Pre-Depends: dpkg (>= 1.14.21)
+Depends: emacs-snapshot-common (= ${source:Version}), ${misc:Depends}
+Description: GNU Emacs LISP (.el) files
+ GNU Emacs is the extensible self-documenting text editor.
+ This package contains the elisp sources for the convenience of users,
+ saving space in the main package for small systems.
+
+Package: emacs-snapshot-dbg
+Section: debug
+Priority: extra
+Architecture: any
+Pre-Depends: dpkg (>= 1.14.21)
+Depends: emacs-snapshot (= ${binary:Version}) | emacs-snapshot-nox (= ${binary:Version}),
+         ${misc:Depends}
+Description: The GNU Emacs editor (debugging symbols)
+ GNU Emacs is the extensible self-documenting text editor.
+ This package contains the debugging symbols useful for debugging Emacs.

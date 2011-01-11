@@ -1,0 +1,9 @@
+emacs-snapshot for Debian                                -*- outline -*-
+-------------------------
+
+* Notes about emacs-snapshot
+
+These packages are based on the initial packaging work of Jérôme Marant
+and Rob Browning (assisted by numerous contributors) and are maintained
+by Romain Francoise <rfrancoise@debian.org>.
+
