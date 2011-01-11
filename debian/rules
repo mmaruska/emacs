@@ -112,6 +112,7 @@ minor_ver := $(shell echo ${runtime_ver} | perl -pe 's/^[^.]*\.//o')
 # one re-release of the upstream source.  Rare, but it happens...
 # Always everything before the last '-'
 debsrc_ver := $(shell echo ${debian_ver} | perl -pe 's/-[^-]+$$//o')
+debsrc_ver_noepoch := $(shell echo ${debian_ver} | cut -d: -f2)
 
 # These are used for cross-compiling and for saving the configure script
 # from having to guess our platform (since we know it already)
@@ -243,6 +244,10 @@ define patch_info
 	  done }							     \
 	| grep -v '^#' | cat -s
 endef
+
+orig:
+	git archive --format=tar --prefix=emacs-snapshot-$(debsrc_ver_noepoch)/ HEAD | gzip -9 > ../emacs-snapshot_$(debsrc_ver_noepoch).orig.tar.gz
+.PHONY: orig
 
 # we use PHONY because deleting patches won't cause rebuild otherwise.
 debian/README.Debian: debian/README.in debian/patches/*.diff
