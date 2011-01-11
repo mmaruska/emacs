@@ -1,7 +1,7 @@
 Source: emacs-snapshot
 Section: editors
 Priority: optional
-Maintainer: Romain Francoise <rfrancoise@debian.org>
+Maintainer: Julien Danjou <acid@debian.org>
 Build-Depends: libncurses5-dev,
                texinfo,
                liblockfile-dev,

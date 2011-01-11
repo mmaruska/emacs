@@ -1,3 +1,10 @@
+emacs-snapshot (1:20110111-1) unstable; urgency=low
+
+  * New snapshot.
+  * New maintainer.
+
+ -- Julien Danjou <acid@debian.org>  Tue, 11 Jan 2011 17:08:36 +0100
+
 emacs-snapshot (1:20101212-2) unstable; urgency=low
 
   * debian/patches/tmp-fixes.diff: Resurrect; revert b4b8f0804f13d0a8a5f
