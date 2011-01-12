@@ -2,12 +2,12 @@
 
 This package was debianized by Rob Browning <rlb@defaultvalue.org>
 on Tue, 16 Dec 1997 00:05:45 -0600 and is now maintained by
-Romain Francoise <rfrancoise@debian.org>.
+Julien Danjou <acid@debian.org>.
 
-The Debian source is based on a CVS checkout of the GNU Emacs CVS trunk,
+The Debian source is based on a git checkout of the GNU Emacs Bazaar trunk,
 which can be obtained with:
 
-  cvs -z3 -d :pserver:anonymous@cvs.savannah.gnu.org:/sources/emacs co emacs
+  git clone git://git.savannah.gnu.org/emacs.git
 
 For more details, see <URL: http://savannah.gnu.org/projects/emacs>.
 

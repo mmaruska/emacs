@@ -1,7 +1,7 @@
 Source: @SRC_NAME@
 Section: editors
 Priority: optional
-Maintainer: Romain Francoise <rfrancoise@debian.org>
+Maintainer: Julien Danjou <acid@debian.org>
 Build-Depends: libncurses5-dev,
                texinfo,
                liblockfile-dev,
@@ -27,9 +27,9 @@ Build-Depends: libncurses5-dev,
                libgnutls-dev
 Standards-Version: 3.9.1
 Homepage: http://www.gnu.org/software/emacs/
-Vcs-Browser: http://git.debian.org/?p=users/rfrancoise/emacs-snapshot.git
-Vcs-Git: git://git.debian.org/git/users/rfrancoise/emacs-snapshot.git
-Bugs: mailto:rfrancoise@debian.org
+Vcs-Browser: http://git.debian.org/?p=users/acid/emacs-snapshot.git
+Vcs-Git: git://git.debian.org/git/users/acid/emacs-snapshot.git
+Bugs: mailto:acid@debian.org
 
 Package: @BIN_NAME@-common
 Section: editors

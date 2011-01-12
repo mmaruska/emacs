@@ -1,7 +1,7 @@
 Source: emacs-snapshot
 Section: editors
 Priority: optional
-Maintainer: Julien Danjou <acid@debian.org>
+Maintainer: Romain Francoise <rfrancoise@debian.org>
 Build-Depends: libncurses5-dev,
                texinfo,
                liblockfile-dev,
@@ -81,7 +81,7 @@ Section: editors
 Priority: extra
 Architecture: all
 Pre-Depends: dpkg (>= 1.14.21)
-Depends: emacs-snapshot, ${misc:Depends}
+Depends: emacs-snapshot
 Description: The GNU Emacs editor (transitional package)
  Empty package to facilitate upgrades, can be safely removed.
 
