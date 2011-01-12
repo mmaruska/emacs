@@ -81,7 +81,7 @@ Section: editors
 Priority: extra
 Architecture: all
 Pre-Depends: dpkg (>= 1.14.21)
-Depends: @BIN_NAME@
+Depends: @BIN_NAME@, ${misc:Depends}
 Description: The GNU Emacs editor (transitional package)
  Empty package to facilitate upgrades, can be safely removed.
 
