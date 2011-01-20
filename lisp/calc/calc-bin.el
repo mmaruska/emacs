@@ -1,7 +1,7 @@
 ;;; calc-bin.el --- binary functions for Calc
 
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -854,5 +854,4 @@ the size of a Calc bignum digit.")
 
 (provide 'calc-bin)
 
-;; arch-tag: f6dba7bc-53b2-41ae-919c-c266ab0ca8b3
 ;;; calc-bin.el ends here

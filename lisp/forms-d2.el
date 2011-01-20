@@ -1,7 +1,7 @@
 ;;; forms-d2.el --- demo forms-mode -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1991, 1994, 1995, 1996, 1997, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jvromans@squirrel.nl>
 ;; Created: 1989
@@ -101,5 +101,4 @@ used to fill to the column."
 
 ;; That's all, folks!
 
-;; arch-tag: 8e5d5dac-7abf-4722-ab5e-03eb749beaca
 ;;; forms-d2.el ends here

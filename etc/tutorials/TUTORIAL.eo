@@ -1082,7 +1082,7 @@ kopirajton, kaj venas kun permeso por disdoni kopiojn se certaj
 kondiæoj estas observataj:
 
    Copyright (C) 1985, 1999, 2001, 2002, 2005,
-   2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
    Æi tiu dosiero estas parto de "GNU Emacs".
  
@@ -1115,4 +1115,3 @@ kaj kompletigis Sergio B. Pokrovskij.
 ;;;   coding: latin-3
 ;;; End:
 
-;; arch-tag: ee436ebb-58b6-4102-9402-1e92c33966e9

@@ -1,7 +1,7 @@
 ;;; cc-styles.el --- support for styles in CC Mode
 
 ;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Authors:    2004- Alan Mackenzie
@@ -656,5 +656,4 @@ any reason to call this function directly."
 
 (cc-provide 'cc-styles)
 
-;; arch-tag: c764f61a-96ba-484a-a68f-101c0e9d5d2c
 ;;; cc-styles.el ends here

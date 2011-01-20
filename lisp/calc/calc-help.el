@@ -1,7 +1,7 @@
 ;;; calc-help.el --- help display functions for Calc,
 
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -688,5 +688,4 @@ C-w  Describe how there is no warranty for Calc."
 
 (provide 'calc-help)
 
-;; arch-tag: 2d347593-7591-449e-a64a-93dab5f2f686
 ;;; calc-help.el ends here

@@ -1,7 +1,7 @@
 ;;; vc-rcs.el --- support for RCS version-control
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
@@ -1467,5 +1467,4 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
 
 (provide 'vc-rcs)
 
-;; arch-tag: 759b4916-5b0d-431d-b647-b185b8c652cf
 ;;; vc-rcs.el ends here

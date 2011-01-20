@@ -1,6 +1,6 @@
 /* Menu support for GNU Emacs on the Microsoft W32 API.
    Copyright (C) 1986, 1988, 1993, 1994, 1996, 1998, 1999, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -88,9 +88,6 @@ Lisp_Object Qdebug_on_next_call;
 extern Lisp_Object Qmenu_bar;
 
 extern Lisp_Object QCtoggle, QCradio;
-
-extern Lisp_Object Voverriding_local_map;
-extern Lisp_Object Voverriding_local_map_menu_flag;
 
 extern Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 
@@ -1734,5 +1731,3 @@ globals_of_w32menu (void)
   unicode_message_box = (MessageBoxW_Proc) GetProcAddress (user32, "MessageBoxW");
 }
 
-/* arch-tag: 0eaed431-bb4e-4aac-a527-95a1b4f1fed0
-   (do not change this comment) */

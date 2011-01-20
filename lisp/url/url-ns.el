@@ -1,7 +1,7 @@
 ;;; url-ns.el --- Various netscape-ish functions for proxy definitions
 
 ;; Copyright (C) 1997, 1998, 1999, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -102,5 +102,4 @@
 
 (provide 'url-ns)
 
-;; arch-tag: 69520992-cf97-40b4-9ad1-c866d3cae5bf
 ;;; url-ns.el ends here

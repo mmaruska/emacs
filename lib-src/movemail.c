@@ -1,7 +1,7 @@
 /* movemail foo bar -- move file foo to file bar,
    locking file foo the way /bin/mail respects.
    Copyright (C) 1986, 1992, 1993, 1994, 1996, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+                 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -63,9 +63,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <time.h>
 
 #include <getopt.h>
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
@@ -933,7 +931,5 @@ strerror (errnum)
 
 #endif /* ! HAVE_STRERROR */
 
-/* arch-tag: 1c323112-41fe-4fe5-8de9-494de631f73f
-   (do not change this comment) */
 
 /* movemail.c ends here */

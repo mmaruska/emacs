@@ -1,6 +1,6 @@
 ;;; mh-thread.el --- MH-E threading support
 
-;; Copyright (C) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
@@ -880,5 +880,4 @@ This function can only be used the folder is threaded."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: b10e62f5-f028-4e04-873e-89d0e069b3d5
 ;;; mh-thread.el ends here

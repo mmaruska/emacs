@@ -1,6 +1,6 @@
 ;;; inversion.el --- When you need something in version XX.XX
 
-;;; Copyright (C) 2002, 2003, 2005, 2006, 2007, 2008, 2009, 2010
+;;; Copyright (C) 2002, 2003, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;; Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -538,5 +538,4 @@ The package should have VERSION available for download."
 
 (provide 'inversion)
 
-;; arch-tag: 7239729c-3051-4d85-bb09-dcf92363aa3b
 ;;; inversion.el ends here

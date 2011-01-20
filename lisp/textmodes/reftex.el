@@ -1,6 +1,6 @@
 ;;; reftex.el --- minor mode for doing \label, \ref, \cite, \index in LaTeX
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -2582,5 +2582,4 @@ With optional NODE, go directly to that node."
 
 ;;;============================================================================
 
-;; arch-tag: 49e0da4e-bd5e-4cfc-a717-fb444fccb9e6
 ;;; reftex.el ends here

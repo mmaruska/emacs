@@ -1,7 +1,7 @@
 ;;; em-rebind.el --- rebind keys when point is at current input
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;;   2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -246,5 +246,4 @@ input."
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: 76d84f12-cc56-4d67-9b7d-c6b44ad20530
 ;;; em-rebind.el ends here

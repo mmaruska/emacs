@@ -1,3 +1,18 @@
+2011-01-18  Glenn Morris  <rgm@gnu.org>
+
+	* ert.texi: Relicense under GFDL 1.3+, and standardize license notice.
+
+2011-01-14  Eduard Wiebe  <usenet@pusto.de>
+
+	* nxml-mode.texi (Introduction): Fix file name typos.
+
+2011-01-13  Christian Ohler  <ohler@gnu.org>
+
+	* ert.texi: New file.
+
+	* Makefile.in:
+	* makefile.w32-in: Add ert.texi.
+
 2011-01-10  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
 	* dbus.texi (Receiving Method Calls): New function

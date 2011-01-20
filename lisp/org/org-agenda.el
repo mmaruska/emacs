@@ -1,6 +1,6 @@
 ;;; org-agenda.el --- Dynamic task and appointment lists for Org
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
@@ -8058,6 +8058,5 @@ belonging to the \"Work\" category."
 
 (provide 'org-agenda)
 
-;; arch-tag: 77f7565d-7c4b-44af-a2df-9f6f7070cff1
 
 ;;; org-agenda.el ends here

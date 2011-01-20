@@ -1,6 +1,6 @@
 ;;; cedet.el --- Setup CEDET environment
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
@@ -132,5 +132,4 @@ if the package has not been loaded."
 
 (provide 'cedet)
 
-;; arch-tag: ad4b0b63-d1f9-4a41-b003-9bbb2feb5226
 ;;; cedet.el ends here

@@ -1,6 +1,6 @@
 ;;; slovak.el --- support for Slovak -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
-;; Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation.
 
 ;; Authors:    Tibor ,B)(Bimko <tibor.simko@fmph.uniba.sk>,
@@ -46,5 +46,4 @@ and selects the Slovak tutorial."))
 
 (provide 'slovak)
 
-;; arch-tag: 1bae098a-33b2-4426-8c29-59e44fe05484
 ;;; slovak.el ends here

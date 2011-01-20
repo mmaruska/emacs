@@ -1,6 +1,6 @@
 ;;; idlw-toolbar.el --- a debugging toolbar for IDLWAVE
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@astro.uva.nl>
@@ -969,5 +969,4 @@ static char * file[] = {
 (provide 'idlw-toolbar)
 (provide 'idlwave-toolbar)
 
-;; arch-tag: ec9a3717-c44c-4716-9bda-cdacbe5ddb62
 ;;; idlw-toolbar.el ends here

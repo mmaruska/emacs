@@ -1,7 +1,7 @@
 ;;; url-mail.el --- Mail Uniform Resource Locator retrieval code
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -142,5 +142,4 @@
 
 (provide 'url-mailto)
 
-;; arch-tag: 7b7ad52e-8760-497b-9444-75fae14e34c5
 ;;; url-mailto.el ends here

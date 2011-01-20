@@ -1,6 +1,6 @@
 ;;; ede-proj-prog.el --- EDE Generic Project program support
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2005, 2008, 2009, 2010
+;; Copyright (C) 1998, 1999, 2000, 2001, 2005, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -141,5 +141,4 @@ Optional COMMAND is the command to run in place of asking the user."
 
 (provide 'ede/proj-prog)
 
-;; arch-tag: 0bfa9364-f385-4745-a846-462146a79a25
 ;;; ede/proj-prog.el ends here

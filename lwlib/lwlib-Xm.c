@@ -1,6 +1,6 @@
 /* The lwlib interface to Motif widgets.
    Copyright (C) 1994, 1995, 1996, 1997, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
                  Free Software Foundation, Inc.
    Copyright (C) 1992 Lucid, Inc.
 
@@ -1958,5 +1958,3 @@ xm_manage_resizing (Widget w, Boolean flag)
   XtVaSetValues (w, XtNallowShellResize, flag, NULL);
 }
 
-/* arch-tag: 73976f64-73b2-4600-aa13-d9ede20ee965
-   (do not change this comment) */

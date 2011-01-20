@@ -1,6 +1,6 @@
 ;;; newsticker-testsuite.el --- Test suite for newsticker.
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
@@ -177,5 +177,4 @@ Signals an error if something goes wrong."
 
 (provide 'newsticker-testsuite)
 
-;; arch-tag: e6c09af2-cc7a-4373-8f5f-9c36699ec34c
 ;;; newsticker-testsuite.el ends here

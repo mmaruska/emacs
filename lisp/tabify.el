@@ -1,7 +1,7 @@
 ;;; tabify.el --- tab conversion commands for Emacs
 
 ;; Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Package: emacs
@@ -90,5 +90,4 @@ The variable `tab-width' controls the spacing of tab stops."
 
 (provide 'tabify)
 
-;; arch-tag: c83893b1-e0cc-4e57-8a09-73fd03466416
 ;;; tabify.el ends here

@@ -1,6 +1,6 @@
 ;;; asm-mode.el --- mode for editing assembler code
 
-;; Copyright (C) 1991, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1991, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;; Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
@@ -243,5 +243,4 @@ repeatedly until you are satisfied with the kind of comment."
 
 (provide 'asm-mode)
 
-;; arch-tag: 210e695f-f338-4376-8913-a4c5c72ac848
 ;;; asm-mode.el ends here

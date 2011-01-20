@@ -1,6 +1,6 @@
 ;;; semantic/db-javascript.el --- Semantic database extensions for javascript
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Joakim Verona
@@ -307,5 +307,4 @@ Return a list of tags."
 
 (provide 'semantic/db-javascript)
 
-;; arch-tag: 69cf8ad1-7ea9-41af-851c-41f24c873374
 ;;; semantic/db-javascript.el ends here

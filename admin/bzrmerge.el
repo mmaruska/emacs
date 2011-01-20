@@ -24,8 +24,11 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl))                        ; assert
+
 (defun bzrmerge-merges ()
-  "Return the list of already merged (not not committed) revisions.
+  "Return the list of already merged (not yet committed) revisions.
 The list returned is sorted by oldest-first."
   (with-current-buffer (get-buffer-create "*bzrmerge*")
     (erase-buffer)
@@ -112,7 +115,7 @@ are both lists of revnos, in oldest-first order."
               (re-search-forward "^message:\n")
               (while (and (not skip)
                           (re-search-forward
-                           "back[- ]?port\\|merge\\|re-?generate\\|bump version" nil t))
+                           "back[- ]?port\\|merge\\|sync\\|re-?generate\\|bump version" nil t))
                 (let ((str (buffer-substring (line-beginning-position)
                                              (line-end-position))))
                   (when (string-match "\\` *" str)
@@ -170,7 +173,8 @@ are both lists of revnos, in oldest-first order."
             ))
           ;; Try to resolve the conflicts.
           (cond
-           ((member file '("configure" "lisp/ldefs-boot.el"))
+           ((member file '("configure" "lisp/ldefs-boot.el"
+                           "lisp/emacs-lisp/cl-loaddefs.el"))
             (call-process "bzr" nil t nil "revert" file)
             (revert-buffer nil 'noconfirm))
            (t
@@ -214,6 +218,7 @@ Does not make other difference."
     (setq bzrmerge-already-done nil)
     (let ((merge (car missing))
           (skip (cdr missing))
+          (unsafe nil)
           beg end)
       (when (or merge skip)
         (cond
@@ -245,6 +250,7 @@ Does not make other difference."
                           "--force" "-r" (format "%s..%s" beg end) from)
             ;; The merge did not update the metadata, so force the next time
             ;; around to update it (as a "skip").
+            (setq unsafe t)
             (push end skip))
           (pop-to-buffer (current-buffer))
           (sit-for 1)
@@ -267,6 +273,15 @@ Does not make other difference."
             (when conflicted
               (setq bzrmerge-already-done
                     (list (cons merge skip) from missing))
+              (if unsafe
+                  ;; FIXME: Obviously, we'd rather make it right rather
+                  ;; than output such a warning.  But I don't know how to add
+                  ;; the metadata to bzr's since the technique used in
+                  ;; bzrmerge-add-metadata does not work when there
+                  ;; are conflicts.
+                  (display-warning 'bzrmerge "Resolve conflicts manually.
+¡BEWARE!  Important metadata is kept in this Emacs session!
+Do not commit without re-running `M-x bzrmerge' first!"))
               (error "Resolve conflicts manually")))))
         (cons merge skip)))))
 

@@ -1,6 +1,6 @@
 ;;; cc-bytecomp.el --- compile time setup for proper compilation
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author:     Martin Stjernholm
@@ -434,5 +434,4 @@ exclude any functions that have been bound during compilation with
 
 (provide 'cc-bytecomp)
 
-;; arch-tag: 2d71b3ad-57b0-4b13-abd3-ab836e08f975
 ;;; cc-bytecomp.el ends here

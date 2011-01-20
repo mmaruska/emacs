@@ -1,7 +1,7 @@
 ;;; dired.el --- directory-browsing commands
 
 ;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1997, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -3562,7 +3562,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "2fbc81b9fecc09f713ec022d1f0365fa")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "adcb55a439048f158f47c5c96b3dad09")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -4021,7 +4021,7 @@ true then the type of the file linked to by FILE is printed instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump) "dired-x" "dired-x.el"
-;;;;;;  "27c312d6d5d40d8cb4ef8d62e30d5f4a")
+;;;;;;  "6d47e23fbd9236014786c50618e99f09")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

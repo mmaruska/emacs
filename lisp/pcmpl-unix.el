@@ -1,7 +1,7 @@
 ;;; pcmpl-unix.el --- standard UNIX completions
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Package: pcomplete
 
@@ -171,5 +171,4 @@ Includes files as well as host names followed by a colon."
 
 (provide 'pcmpl-unix)
 
-;; arch-tag: 3f9eb5af-7e0e-449d-b586-381cbbf8fc5c
 ;;; pcmpl-unix.el ends here

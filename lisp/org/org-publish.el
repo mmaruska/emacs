@@ -1,5 +1,5 @@
 ;;; org-publish.el --- publish related org-mode files as a website
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
 ;;          Free Software Foundation, Inc.
 
 ;; Author: David O'Toole <dto@gnu.org>
@@ -1077,6 +1077,5 @@ Returns value on success, else nil."
 
 (provide 'org-publish)
 
-;; arch-tag: 72807f3c-8af0-4a6b-8dca-c3376eb25adb
 
 ;;; org-publish.el ends here

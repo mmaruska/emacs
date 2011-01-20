@@ -1,6 +1,6 @@
 /* String search routines for GNU Emacs.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1997, 1998, 1999, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -90,13 +90,6 @@ Lisp_Object Qinvalid_regexp;
 
 /* Error condition used for failing searches */
 Lisp_Object Qsearch_failed;
-
-Lisp_Object Vsearch_spaces_regexp;
-
-/* If non-nil, the match data will not be changed during call to
-   searching or matching functions.  This variable is for internal use
-   only.  */
-Lisp_Object Vinhibit_changing_match_data;
 
 static void set_search_regs (EMACS_INT, EMACS_INT);
 static void save_search_regs (void);
@@ -3224,7 +3217,7 @@ syms_of_search (void)
   saved_last_thing_searched = Qnil;
   staticpro (&saved_last_thing_searched);
 
-  DEFVAR_LISP ("search-spaces-regexp", &Vsearch_spaces_regexp,
+  DEFVAR_LISP ("search-spaces-regexp", Vsearch_spaces_regexp,
       doc: /* Regexp to substitute for bunches of spaces in regexp search.
 Some commands use this for user-specified regexps.
 Spaces that occur inside character classes or repetition operators
@@ -3232,7 +3225,7 @@ or other such regexp constructs are not replaced with this.
 A value of nil (which is the normal value) means treat spaces literally.  */);
   Vsearch_spaces_regexp = Qnil;
 
-  DEFVAR_LISP ("inhibit-changing-match-data", &Vinhibit_changing_match_data,
+  DEFVAR_LISP ("inhibit-changing-match-data", Vinhibit_changing_match_data,
       doc: /* Internal use only.
 If non-nil, the primitive searching and matching functions
 such as `looking-at', `string-match', `re-search-forward', etc.,
@@ -3262,5 +3255,3 @@ is to bind it with `let' around a small expression.  */);
   defsubr (&Sregexp_quote);
 }
 
-/* arch-tag: a6059d79-0552-4f14-a2cb-d379a4e3c78f
-   (do not change this comment) */

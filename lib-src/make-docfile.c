@@ -1,6 +1,6 @@
 /* Generate doc-string file for GNU Emacs from source files.
    Copyright (C) 1985, 1986, 1992, 1993, 1994, 1997, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -78,9 +78,7 @@ void fatal (const char *s1, const char *s2) NO_RETURN;
 #undef chdir
 #endif
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 /* Stdio stream for output to the DOC file.  */
 FILE *outfile;
@@ -1201,7 +1199,5 @@ scan_lisp_file (const char *filename, const char *mode)
   return 0;
 }
 
-/* arch-tag: f7203aaf-991a-4238-acb5-601db56f2894
-   (do not change this comment) */
 
 /* make-docfile.c ends here */

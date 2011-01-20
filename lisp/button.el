@@ -1,7 +1,7 @@
 ;;; button.el --- clickable buttons
 ;;
 ;; Copyright (C) 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: extensions
@@ -477,5 +477,4 @@ Returns the button found."
 
 (provide 'button)
 
-;; arch-tag: 5f2c7627-413b-4097-b282-630f89d9c5e9
 ;;; button.el ends here

@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/loading
@@ -994,7 +994,3 @@ symbol, and the value is a list of forms.  The forms are evaluated
 when the key matches the absolute true name or feature name of the
 library being loaded.
 @end defvar
-
-@ignore
-   arch-tag: df731f89-0900-4389-a436-9105241b6f7a
-@end ignore

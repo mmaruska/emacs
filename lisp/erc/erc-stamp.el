@@ -1,6 +1,6 @@
 ;;; erc-stamp.el --- Timestamping for ERC messages
 
-;; Copyright (C) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
@@ -422,4 +422,3 @@ NOW is position of point currently."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 57aefab4-63e0-4c48-91d5-6efa145487e0

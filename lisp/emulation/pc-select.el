@@ -3,7 +3,7 @@
 ;;;		     including key bindings.
 
 ;; Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Staats <michael@thp.Uni-Duisburg.DE>
 ;; Keywords: convenience emulations
@@ -983,5 +983,4 @@ but before calling PC Selection mode):
       (setq pc-select-key-bindings-alist nil
 	    pc-select-saved-settings-alist nil))))
 
-;; arch-tag: 10697b70-ae07-4f3e-ad23-7814a3f418c2
 ;;; pc-select.el ends here

@@ -1,6 +1,6 @@
 ;;; org-ascii.el --- ASCII export for Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
@@ -719,5 +719,4 @@ publishing directory."
 
 (provide 'org-ascii)
 
-;; arch-tag: aa96f882-f477-4e13-86f5-70d43e7adf3c
 ;;; org-ascii.el ends here

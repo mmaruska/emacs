@@ -1,6 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs support programs on NT.
    Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010  Free Software Foundation, Inc.
+                 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -374,5 +374,3 @@ stat (const char * path, struct stat * buf)
   return 0;
 }
 
-/* arch-tag: 7b63fb83-70ee-4124-8822-54e53e5d0773
-   (do not change this comment) */

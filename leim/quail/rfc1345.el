@@ -1,6 +1,6 @@
 ;;; rfc1345.el --- Quail method for RFC 1345 mnemonics -*- coding: utf-8 -*-
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
@@ -2062,5 +2062,4 @@ E.g. &a' -> á"
 
 (provide 'rfc1345)
 
-;; arch-tag: a951cfd9-1d19-44a7-aa98-04515fc4e502
 ;;; rfc1345.el ends here

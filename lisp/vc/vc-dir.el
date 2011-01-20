@@ -1,6 +1,6 @@
 ;;; vc-dir.el --- Directory status display under VC
 
-;; Copyright (C) 2007, 2008, 2009, 2010
+;; Copyright (C) 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author:   Dan Nicolaescu <dann@ics.uci.edu>
@@ -1259,5 +1259,4 @@ These are the commands available for use in the file status buffer:
 
 (provide 'vc-dir)
 
-;; arch-tag: 0274a2e3-e8e9-4b1a-a73c-e8b9129d5d15
 ;;; vc-dir.el ends here

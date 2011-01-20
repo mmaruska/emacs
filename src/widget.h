@@ -1,6 +1,6 @@
 /* The emacs frame widget public header file.
    Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+                 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -99,5 +99,3 @@ void widget_store_internal_border (Widget widget);
 
 #endif /* _EmacsFrame_h */
 
-/* arch-tag: 98be17cc-8878-4701-abfa-66f1c04e9cb7
-   (do not change this comment) */

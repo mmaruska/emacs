@@ -1,6 +1,6 @@
 ;;; utf-7.el --- utf-7 coding system
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
@@ -127,5 +127,4 @@ ESC and SKIP-CHARS are adjusted for the normal and IMAP versions."
 
 (provide 'utf-7)
 
-;; arch-tag: 975ee403-90a4-4286-97d2-4ed1323f4ef9
 ;;; utf-7.el ends here

@@ -1,6 +1,6 @@
 /* xfont.c -- X core font driver.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -1114,5 +1114,3 @@ syms_of_xfont (void)
   register_font_driver (&xfont_driver, NULL);
 }
 
-/* arch-tag: 23c5f366-a5ee-44b7-a3b7-90d6da7fd749
-   (do not change this comment) */

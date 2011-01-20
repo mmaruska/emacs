@@ -1,6 +1,6 @@
 /* Lock files for editing.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1996, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -32,10 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <sys/file.h>
 #include <fcntl.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #ifdef __FreeBSD__
 #include <sys/sysctl.h>
@@ -48,10 +45,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "character.h"
 #include "coding.h"
 #include "systime.h"
-
-/* The directory for writing temporary files.  */
-
-Lisp_Object Vtemporary_file_directory;
 
 #ifdef CLASH_DETECTION
 
@@ -735,7 +728,7 @@ init_filelock (void)
 void
 syms_of_filelock (void)
 {
-  DEFVAR_LISP ("temporary-file-directory", &Vtemporary_file_directory,
+  DEFVAR_LISP ("temporary-file-directory", Vtemporary_file_directory,
 	       doc: /* The directory for writing temporary files.  */);
   Vtemporary_file_directory = Qnil;
 
@@ -746,5 +739,3 @@ syms_of_filelock (void)
 #endif
 }
 
-/* arch-tag: e062676d-50b2-4be0-ab96-197c81b181a1
-   (do not change this comment) */

@@ -2,7 +2,7 @@
    expression library, version 0.12.
 
    Copyright (C) 1985, 1989, 1990, 1991, 1992, 1993, 1995, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
                  Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
@@ -626,5 +626,3 @@ extern void re_set_whitespace_regexp (const char *regexp);
 
 #endif /* regex.h */
 
-/* arch-tag: bda6e3ec-3c02-4237-a55a-01ad2e120083
-   (do not change this comment) */

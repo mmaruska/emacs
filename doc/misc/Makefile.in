@@ -1,7 +1,7 @@
 #### Makefile for documentation other than the Emacs manual.
 
 # Copyright (C) 1994, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-#   2004, 2005, 2006, 2007, 2008, 2009, 2010
+#   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #   Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -62,6 +62,7 @@ INFO_TARGETS = \
 	$(infodir)/emacs-mime \
 	$(infodir)/epa \
 	$(infodir)/erc \
+	$(infodir)/ert \
 	$(infodir)/eshell \
 	$(infodir)/eudc \
 	$(infodir)/efaq \
@@ -112,6 +113,7 @@ DVI_TARGETS = \
 	emacs-mime.dvi \
 	epa.dvi \
 	erc.dvi \
+	ert.dvi \
 	eshell.dvi \
 	eudc.dvi \
 	faq.dvi \
@@ -162,6 +164,7 @@ PDF_TARGETS = \
 	emacs-mime.pdf \
 	epa.pdf \
 	erc.pdf \
+	ert.pdf \
 	eshell.pdf \
 	eudc.pdf \
 	faq.pdf \
@@ -359,6 +362,14 @@ erc.dvi: ${srcdir}/erc.texi
 	$(ENVADD) $(TEXI2DVI) $<
 erc.pdf: ${srcdir}/erc.texi
 	$(ENVADD) $(TEXI2PDF) $<
+
+ert : $(infodir)/ert
+$(infodir)/ert: ert.texi $(infodir)
+	cd $(srcdir); $(MAKEINFO) ert.texi
+ert.dvi: ert.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/ert.texi
+ert.pdf: ert.texi
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/ert.texi
 
 eshell : $(infodir)/eshell
 $(infodir)/eshell: eshell.texi

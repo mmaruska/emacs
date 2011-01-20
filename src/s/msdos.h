@@ -1,7 +1,7 @@
 /* System description file for MS-DOS
 
 Copyright (C) 1993, 1996, 1997, 2001, 2002, 2003, 2004, 2005, 2006,
-  2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+                 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -125,5 +125,3 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
 
-/* arch-tag: d184f860-815d-4ff4-8187-d05c0f3c37d0
-   (do not change this comment) */

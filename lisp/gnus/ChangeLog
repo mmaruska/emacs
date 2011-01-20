@@ -1,3 +1,38 @@
+2011-01-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-highlight): Remove argument passed to
+	gnus-article-add-buttons.
+
+2011-01-19  Tom Rauchenwald  <sehnsucht.nach.unendlichkeit@quantentunnel.de>  (tiny change)
+
+	* spam.el (spam-spamassassin-register-with-sa-learn): Insert a full
+	From header with a date and "nobody" as the sender.
+
+2011-01-19  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (gnus-article-add-buttons): Simplify condition.
+	(gnus-button-push): Remove gnus-button-entry function, it fails heavily
+	if you have the same regexp several times.
+	(gnus-button-push): Fix matching when regexp is symbol.
+
+2011-01-15  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-mail): A compose-mail function should
+	accept headers as strings.
+
+2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el (message-tool-bar-gnome): Tweak tool-bar items.  Add
+	:vert-only tags.
+	(message-mail): New arg RETURN-ACTION.
+	(message-return-action): New var.
+	(message-bury): Use it.
+	(message-mode): Make it buffer-local.
+	(message-send-and-exit): Always call message-bury.
+
+	* gnus-msg.el (gnus-msg-mail): New arg RETURN-ACTION.  Pass it to
+	message-mail.
+
 2011-01-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-convert-partial-article): Protect against
@@ -19018,7 +19053,7 @@
 
 See ChangeLog.2 for earlier changes.
 
-  Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+  Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
     Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.

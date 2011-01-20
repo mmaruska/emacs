@@ -1,6 +1,6 @@
 ;;; cal-move.el --- calendar functions for movement in the calendar
 
-;; Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -406,5 +406,4 @@ Negative DAY counts backward from end of year."
 
 (provide 'cal-move)
 
-;; arch-tag: d0883c46-7e16-4914-8ff8-8f67e699b781
 ;;; cal-move.el ends here

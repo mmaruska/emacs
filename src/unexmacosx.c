@@ -1,6 +1,6 @@
 /* Dump Emacs in Mach-O format for use on Mac OS X.
    Copyright (C) 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+                 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -91,6 +91,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 #include <stdarg.h>
 #include <sys/types.h>
+#include <config.h>
+#undef malloc
+#undef realloc
+#undef free
 #include <unistd.h>
 #include <mach/mach.h>
 #include <mach-o/loader.h>
@@ -98,10 +102,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if defined (__ppc__)
 #include <mach-o/ppc/reloc.h>
 #endif
-#include <config.h>
-#undef malloc
-#undef realloc
-#undef free
 #ifdef HAVE_MALLOC_MALLOC_H
 #include <malloc/malloc.h>
 #else
@@ -1376,5 +1376,3 @@ unexec_free (void *ptr)
     malloc_zone_free (emacs_zone, (unexec_malloc_header_t *) ptr - 1);
 }
 
-/* arch-tag: 1a784f7b-a184-4c4f-9544-da8619593d72
-   (do not change this comment) */

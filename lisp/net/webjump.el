@@ -1,7 +1,7 @@
 ;;; webjump.el --- programmable Web hotlist
 
 ;; Copyright (C) 1996, 1997, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author:    Neil W. Van Dyke <nwv@acm.org>
 ;; Created:   09-Aug-1996
@@ -480,5 +480,4 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
 
 (provide 'webjump)
 
-;; arch-tag: f1d20156-0a6f-488b-bd91-f69ee8b6d5cc
 ;;; webjump.el ends here

@@ -1,6 +1,6 @@
 ;;; org-wl.el --- Support for links to Wanderlust messages from within Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Tokuya Kameshima <kames at fa2 dot so-net dot ne dot jp>
@@ -310,6 +310,5 @@ for namazu index."
 
 (provide 'org-wl)
 
-;; arch-tag: 29b75a0f-ef2e-430b-8abc-acff75bde54a
 
 ;;; org-wl.el ends here

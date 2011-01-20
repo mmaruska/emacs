@@ -1,6 +1,6 @@
 ;;; cfengine.el --- mode for editing Cfengine files
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;; Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
@@ -250,5 +250,4 @@ to the action header."
 
 (provide 'cfengine)
 
-;; arch-tag: 6b931be2-1505-4124-afa6-9675971e26d4
 ;;; cfengine.el ends here

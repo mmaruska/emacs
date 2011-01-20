@@ -1,6 +1,6 @@
 ;;; org-html.el --- HTML export for Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
@@ -2415,5 +2415,4 @@ Replaces invalid characters with \"_\" and then prepends a prefix."
 
 (provide 'org-html)
 
-;; arch-tag: 8109d84d-eb8f-460b-b1a8-f45f3a6c7ea1
 ;;; org-html.el ends here

@@ -1,7 +1,7 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -3441,30 +3441,62 @@ does not pop any summary buffer."
 ;;;; *** Rmail Mailing Commands ***
 
 (defun rmail-start-mail (&optional noerase to subject in-reply-to cc
-				   replybuffer sendactions same-window others)
-  (let (yank-action)
+				   replybuffer sendactions same-window
+				   other-headers)
+  (let ((switch-function
+	 (cond (same-window nil)
+	       (rmail-mail-new-frame 'switch-to-buffer-other-frame)
+	       (t 'switch-to-buffer-other-window)))
+	yank-action)
     (if replybuffer
 	;; The function used here must behave like insert-buffer wrt
 	;; point and mark (see doc of sc-cite-original).
 	(setq yank-action (list 'insert-buffer replybuffer)))
-    (setq others (cons (cons "cc" cc) others))
-    (setq others (cons (cons "in-reply-to" in-reply-to) others))
-    (if same-window
-	(compose-mail to subject others
-		      noerase nil
-		      yank-action sendactions)
-      (if rmail-mail-new-frame
-	  (prog1
-	      (compose-mail to subject others
-			    noerase 'switch-to-buffer-other-frame
-			    yank-action sendactions)
-	    ;; This is not a standard frame parameter;
-	    ;; nothing except sendmail.el looks at it.
-	    (modify-frame-parameters (selected-frame)
-				     '((mail-dedicated-frame . t))))
-	(compose-mail to subject others
-		      noerase 'switch-to-buffer-other-window
-		      yank-action sendactions)))))
+    (push (cons "cc" cc) other-headers)
+    (push (cons "in-reply-to" in-reply-to) other-headers)
+    (prog1
+	(compose-mail to subject other-headers noerase
+		      switch-function yank-action sendactions
+		      '(rmail-mail-return))
+      (if (eq switch-function 'switch-to-buffer-other-frame)
+	  ;; This is not a standard frame parameter; nothing except
+	  ;; sendmail.el looks at it.
+	  (modify-frame-parameters (selected-frame)
+				   '((mail-dedicated-frame . t)))))))
+
+(defun rmail-mail-return ()
+  (cond
+   ;; If there is only one visible frame with no special handling,
+   ;; consider deleting the mail window to return to Rmail.
+   ((or (null (delq (selected-frame) (visible-frame-list)))
+	(not (or (window-dedicated-p (frame-selected-window))
+		 (and pop-up-frames (one-window-p))
+		 (cdr (assq 'mail-dedicated-frame
+			    (frame-parameters))))))
+    (let (rmail-flag summary-buffer)
+      (and (not (one-window-p))
+	   (with-current-buffer
+	       (window-buffer (next-window (selected-window) 'not))
+	     (setq rmail-flag (eq major-mode 'rmail-mode))
+	     (setq summary-buffer
+		   (and (boundp 'mail-bury-selects-summary)
+			mail-bury-selects-summary
+			(boundp 'rmail-summary-buffer)
+			rmail-summary-buffer
+			(buffer-name rmail-summary-buffer)
+			(not (get-buffer-window rmail-summary-buffer))
+			rmail-summary-buffer))))
+      (if rmail-flag
+	  ;; If the Rmail buffer has a summary, show that.
+	  (if summary-buffer (switch-to-buffer summary-buffer)
+	    (delete-window)))))
+   ;; If the frame was probably made for this buffer, the user
+   ;; probably wants to delete it now.
+   ((display-multi-frame-p)
+    (delete-frame (selected-frame)))
+   ;; The previous frame is where normally they have the Rmail buffer
+   ;; displayed.
+   (t (other-frame -1))))
 
 (defun rmail-mail ()
   "Send mail in another window.
@@ -4231,7 +4263,7 @@ encoded string (and the same mask) will decode the string."
 ;;; Start of automatically extracted autoloads.
 
 ;;;### (autoloads (rmail-edit-current-message) "rmailedit" "rmailedit.el"
-;;;;;;  "4bf8a5cdfc921b9e30680ee71b7f9ca6")
+;;;;;;  "1602595714ff15197cf32727d6765c31")
 ;;; Generated autoloads from rmailedit.el
 
 (autoload 'rmail-edit-current-message "rmailedit" "\
@@ -4243,7 +4275,7 @@ Edit the contents of this message.
 
 ;;;### (autoloads (rmail-next-labeled-message rmail-previous-labeled-message
 ;;;;;;  rmail-read-label rmail-kill-label rmail-add-label) "rmailkwd"
-;;;;;;  "rmailkwd.el" "112240cbb53c402294013cc49987771a")
+;;;;;;  "rmailkwd.el" "061943b8a3dfd5695715b36736827950")
 ;;; Generated autoloads from rmailkwd.el
 
 (autoload 'rmail-add-label "rmailkwd" "\
@@ -4286,7 +4318,7 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "3735f9bfe6ff3e612091857cc6b401b6")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "783deb7c855767051af119f1bfd8d84e")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\
@@ -4312,7 +4344,7 @@ attachments as specfied by `rmail-mime-attachment-dirs-alist'.
 ;;;***
 
 ;;;### (autoloads (set-rmail-inbox-list) "rmailmsc" "rmailmsc.el"
-;;;;;;  "c3575020691d5769bcf08ecc932304c3")
+;;;;;;  "f1d9be06745c78b90224da788f61c2d9")
 ;;; Generated autoloads from rmailmsc.el
 
 (autoload 'set-rmail-inbox-list "rmailmsc" "\
@@ -4328,7 +4360,7 @@ This applies only to the current session.
 
 ;;;### (autoloads (rmail-sort-by-labels rmail-sort-by-lines rmail-sort-by-correspondent
 ;;;;;;  rmail-sort-by-recipient rmail-sort-by-author rmail-sort-by-subject
-;;;;;;  rmail-sort-by-date) "rmailsort" "rmailsort.el" "b96e85edd736f23f1e9d54a299268d1e")
+;;;;;;  rmail-sort-by-date) "rmailsort" "rmailsort.el" "8b20167ea495d683f83f980833e948e0")
 ;;; Generated autoloads from rmailsort.el
 
 (autoload 'rmail-sort-by-date "rmailsort" "\
@@ -4387,7 +4419,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order.
 
 ;;;### (autoloads (rmail-summary-by-senders rmail-summary-by-topic
 ;;;;;;  rmail-summary-by-regexp rmail-summary-by-recipients rmail-summary-by-labels
-;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "666a5db1021cdcba6e68a18a553d65f1")
+;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "b1d2ca7470a7d8baffe9e90a15a5b5e0")
 ;;; Generated autoloads from rmailsum.el
 
 (autoload 'rmail-summary "rmailsum" "\
@@ -4435,7 +4467,7 @@ SENDERS is a string of regexps separated by commas.
 ;;;***
 
 ;;;### (autoloads (unforward-rmail-message undigestify-rmail-message)
-;;;;;;  "undigest" "undigest.el" "8cf8a8ffa48eeddf0bde388fa8de1783")
+;;;;;;  "undigest" "undigest.el" "1b5181e02606e49ede71604472250cc3")
 ;;; Generated autoloads from undigest.el
 
 (autoload 'undigestify-rmail-message "undigest" "\

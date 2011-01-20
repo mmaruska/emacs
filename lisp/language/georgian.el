@@ -1,6 +1,6 @@
 ;;; georgian.el --- language support for Georgian -*- no-byte-compile: t -*-
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
@@ -48,5 +48,4 @@
 
 (provide 'georgian)
 
-;; arch-tag: 15499fbb-26d4-4a13-9d78-135eef7d32f5
 ;;; georgian.el ends here

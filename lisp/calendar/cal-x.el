@@ -1,7 +1,7 @@
 ;;; cal-x.el --- calendar windows in dedicated frames
 
 ;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;;   2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 ;;         Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -189,5 +189,4 @@ See `calendar-frame-setup' for more information."
 
 (provide 'cal-x)
 
-;; arch-tag: c6dbddca-ae84-442d-87fc-244b76e38e17
 ;;; cal-x.el ends here

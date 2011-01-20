@@ -1,6 +1,6 @@
 ;;; org-archive.el --- Archiving for Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
@@ -466,6 +466,5 @@ This command is set with the variable `org-archive-default-command'."
 
 (provide 'org-archive)
 
-;; arch-tag: 0837f601-9699-43c3-8b90-631572ae6c85
 
 ;;; org-archive.el ends here

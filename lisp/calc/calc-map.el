@@ -1,7 +1,7 @@
 ;;; calc-map.el --- higher-order functions for Calc
 
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -1274,5 +1274,4 @@
 
 (provide 'calc-map)
 
-;; arch-tag: 980eac49-00e0-4870-b72a-e726b74c7990
 ;;; calc-map.el ends here

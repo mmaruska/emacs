@@ -1,7 +1,7 @@
 ;;; reftex-global.el --- operations on entire documents with RefTeX
 
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -475,5 +475,4 @@ With no argument, this command toggles
 (add-minor-mode 'reftex-isearch-minor-mode "/I" nil nil 
 		'reftex-isearch-minor-mode)
 
-;; arch-tag: 2dbf7633-92c8-4340-8656-7aa019d0f80d
 ;;; reftex-global.el ends here

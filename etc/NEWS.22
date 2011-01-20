@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
           Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
@@ -5607,4 +5607,3 @@ mode: outline
 paragraph-separate: "[ 	]*$"
 end:
 
-arch-tag: 1aca9dfa-2ac4-4d14-bebf-0007cee12793

@@ -1,7 +1,7 @@
 ;;; scribe.el --- scribe mode, and its idiosyncratic commands
 
 ;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;;   2009, 2010, 2011  Free Software Foundation, Inc.
 
 ;; Author: William Sommerfeld
 ;; (according to ack.texi)
@@ -326,5 +326,4 @@ preceding text is of the form @Command."
 
 (provide 'scribe)
 
-;; arch-tag: 64f454c4-7544-4ea2-9d14-f0b668f2cdc6
 ;;; scribe.el ends here

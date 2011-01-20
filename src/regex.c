@@ -3,7 +3,7 @@
    internationalization features.)
 
    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
                  Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
@@ -196,9 +196,7 @@
    even if config.h says that we can.  */
 # undef REL_ALLOC
 
-# ifdef HAVE_UNISTD_H
-#  include <unistd.h>
-# endif
+# include <unistd.h>
 
 /* When used in Emacs's lib-src, we need xmalloc and xrealloc. */
 
@@ -3999,7 +3997,6 @@ analyse_first (const re_char *p, const re_char *pend, char *fastmap, const int m
 	{
 	case succeed:
 	  return 1;
-	  continue;
 
 	case duplicate:
 	  /* If the first character has to match a backreference, that means
@@ -6735,4 +6732,3 @@ regfree (regex_t *preg)
 WEAK_ALIAS (__regfree, regfree)
 
 #endif /* not emacs  */
-

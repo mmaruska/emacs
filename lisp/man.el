@@ -1,7 +1,7 @@
 ;;; man.el --- browse UNIX manual pages -*- coding: iso-8859-1 -*-
 
 ;; Copyright (C) 1993, 1994, 1996, 1997, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Maintainer: FSF
@@ -1721,5 +1721,4 @@ Uses `Man-name-local-regexp'."
 
 (provide 'man)
 
-;; arch-tag: 587cda76-8e23-4594-b1f3-89b6b09a0d47
 ;;; man.el ends here

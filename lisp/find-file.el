@@ -5,7 +5,7 @@
 ;; Keywords: c, matching, tools
 
 ;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -968,5 +968,4 @@ That name was previously determined by `ff-which-function-are-we-in'."
 
 (provide 'find-file)
 
-;; arch-tag: 5a2fc49e-3b0a-4708-9acf-fb14e471a97a
 ;;; find-file.el ends here

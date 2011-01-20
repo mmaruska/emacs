@@ -1,6 +1,6 @@
 ;;; semantic/db-ebrowse.el --- Semanticdb backend using ebrowse.
 
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   Free Software Foundation, Inc.
 
 ;; Authors: Eric M. Ludlam <zappo@gnu.org>
@@ -661,5 +661,4 @@ Return a list of tags."
 
 (provide 'semantic/db-ebrowse)
 
-;; arch-tag: e7d15223-6074-4c87-baf0-98fdd22ff873
 ;;; semantic/db-ebrowse.el ends here

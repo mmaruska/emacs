@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
@@ -24,7 +24,3 @@ the Emacs Manual}).  This chapter describes more advanced VC usage.
 @iftex
 @include vc1-xtra.texi
 @end iftex
-
-@ignore
-   arch-tag: 11a18d0e-1baf-49da-8e38-f61195ae4dc3
-@end ignore
