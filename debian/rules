@@ -245,9 +245,9 @@ define patch_info
 	| grep -v '^#' | cat -s
 endef
 
-orig:
+get-orig-source:
 	git archive --format=tar --prefix=emacs-snapshot-$(upstream_ver)/ HEAD | gzip -9 > ../emacs-snapshot_$(upstream_ver).orig.tar.gz
-.PHONY: orig
+.PHONY: get-orig-source
 
 # we use PHONY because deleting patches won't cause rebuild otherwise.
 debian/README.Debian: debian/README.in debian/patches/*.diff
