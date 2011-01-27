@@ -1,3 +1,103 @@
+2011-01-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Let the debugger continue to the normal handler (bug#7825).
+	* eval.c (maybe_call_debugger): Declare before new use.
+	(find_handler_clause): Don't call debugger any more.
+	Ignore Vstack_trace_on_error.
+	Use XCAR/XCDR.
+	(syms_of_eval): Remove Vstack_trace_on_error.
+	(Fsignal): Only modify handlerlist when we know we need to do it.
+	Call the debugger when necessary.
+	* globals.h (Vstack_trace_on_error): Remove.
+
+2011-01-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_parse_fcname): Rewrite GTK font name parser.
+
+2011-01-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (handle_fontified_prop): Be careful with font-lock changing
+	the buffer's point-max (bug#7876).
+
+2011-01-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* lisp.h (XPNTR): Obey DATA_SEG_BITS in all non-USE_LSB_TAG cases.
+	Remove unused case (Bug#6811).
+
+2011-01-23  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (x_set_offset): Set dont_constrain to 0 so the call to
+	setFrameTopLeftPoint is constrained.
+
+2011-01-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Check return values of some library calls.
+	* emacs.c (main): Check dup result.
+	* frame.c: Include <limits.h>, for INT_MIN and INT_MAX.
+	(frame_name_fnn_p): Check strtol result.
+
+	* image.c (x_create_bitmap_from_xpm_data): Add cast to fix type clash
+	when calling XpmCreatePixmapFromData.
+
+	Promote SSDATA macro from gtkutil.c and xsmfns.c to lisp.h.
+	* lisp.h (SSDATA): New macro.
+	All uses of (char *) SDATA (x) replaced with SSDATA (x),
+	and all uses of (unsigned char *) SDATA (x) replaced with SDATA (x).
+	* gtkutil.c (SSDATA): Remove, as lisp.h now defines this.
+	* xsmfns.c (SSDATA): Likewise.
+
+2011-01-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (select_window): New function.
+	(Fselect_window): Call it.
+	(inhibit_point_swap): Variable deleted.
+	(Fset_window_configuration): Call select_window directly.
+
+2011-01-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (constrainFrameRect): Only constrain the first time called.
+
+2011-01-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (x_set_offset, windowDidMove): When calculating y, use first
+	screen, not the window screen.
+	(x_set_window_size): Remove constraints.
+	Calculate origin.y only if zooming is 0 and without referring to a
+	screen.
+	(windowWillResize): Don't modify frameSize.
+	(windowDidBecomeKey, mouseDown): Set dont_constrain to 1.
+	(initFrameFromEmacs): Initialize ns_userRect.
+	(windowShouldZoom): Set zooming to one.  Remove all other code.
+	(windowWillUseStandardFrame): Move static ns_userRect to EmacsView.
+	Zero it after restore.
+	(constrainFrameRect): New method for EmacsWindow.
+	(mouseDragged): Always post NSWindowDidResizeNotification after call to
+	windowWillResize.
+
+	* nsterm.h (ns_output): Add dont_constrain and zooming.
+	(EmacsView): Add ns_userRect.
+
+	* nsterm.m (keyDown): If ns_right_alternate_modifier is Qleft, check
+	if ns_alternate_modifier is none.
+
+2011-01-20  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* unexmacosx.c: Add comment about include order.
+
+2011-01-20  Glenn Morris  <rgm@gnu.org>
+
+	* minibuf.c (syms_of_minibuf) <read-expression-history>:
+	Give it a doc string.
+	* globals.h: Add Vread_expression_history.
+
+	* macros.c (syms_of_macros) <kbd-macro-termination-hook>:
+	Give it a doc string.
+	* globals.h: Add Vkbd_macro_termination_hook.
+
+2011-01-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fns.c (Fyes_or_no_p): Revert 2011-01-07 change, removing ARGS.
+
 2011-01-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix X11 compilation failure.
@@ -649,9 +749,9 @@
 
 2011-01-11  Tassilo Horn  <tassilo@member.fsf.org>
 
-	* image.c (imagemagick_load_image, Finit_image_library): Free
-	intermediate image after creating a MagickWand from it.  Terminate
-	MagickWand environment after image loading.
+	* image.c (imagemagick_load_image, Finit_image_library):
+	Free intermediate image after creating a MagickWand from it.
+	Terminate MagickWand environment after image loading.
 
 2011-01-10  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -722,7 +822,7 @@
 
 2011-01-04  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
-	* dbusbind.c (Fdbus_register_method): Added optional parameter
+	* dbusbind.c (Fdbus_register_method): Add optional parameter
 	dont_register_service.  Updated docstring accordingly.
 
 2011-01-04  Glenn Morris  <rgm@gnu.org>
@@ -30153,8 +30253,7 @@ See ChangeLog.10 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2007, 2008, 2009, 2010, 2011
-    Free Software Foundation, Inc.
+  Copyright (C) 2007-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

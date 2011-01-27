@@ -1,7 +1,6 @@
 ;;; rcirc.el --- default, simple IRC client.
 
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2005-2011  Free Software Foundation, Inc.
 
 ;; Author: Ryan Yeske <rcyeske@gmail.com>
 ;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
@@ -1029,6 +1028,9 @@ If ALL is non-nil, update prompts in all IRC buffers."
 (defun rcirc-kill-buffer-hook ()
   "Part the channel when killing an rcirc buffer."
   (when (eq major-mode 'rcirc-mode)
+    (when (and rcirc-log-flag
+               rcirc-log-directory)
+      (rcirc-log-write))
     (rcirc-clean-up-buffer "Killed buffer")))
 
 (defun rcirc-change-major-mode-hook ()

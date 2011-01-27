@@ -1,7 +1,6 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
 
-Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999,
-  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2011
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -912,13 +911,12 @@ main (int argc, char **argv)
 	  emacs_close (0);
 	  emacs_close (1);
 	  result = emacs_open (term, O_RDWR, 0);
-	  if (result < 0)
+	  if (result < 0 || dup (0) < 0)
 	    {
 	      char *errstring = strerror (errno);
 	      fprintf (stderr, "%s: %s: %s\n", argv[0], term, errstring);
 	      exit (1);
 	    }
-	  dup (0);
 	  if (! isatty (0))
 	    {
 	      fprintf (stderr, "%s: %s: not a tty\n", argv[0], term);
@@ -2205,7 +2203,7 @@ synchronize_locale (int category, Lisp_Object *plocale, Lisp_Object desired_loca
     {
       *plocale = desired_locale;
       setlocale (category, (STRINGP (desired_locale)
-			    ? (char *) SDATA (desired_locale)
+			    ? SSDATA (desired_locale)
 			    : ""));
     }
 }
@@ -2490,4 +2488,3 @@ libraries; only those already known by Emacs will be loaded.  */);
   /* Make sure IS_DAEMON starts up as false.  */
   daemon_pipe[1] = 0;
 }
-

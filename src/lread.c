@@ -1,8 +1,6 @@
 /* Lisp parsing and input streams.
 
-Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995, 1997,
-  1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-  2009, 2010, 2011  Free Software Foundation, Inc.
+Copyright (C) 1985-1989, 1993-1995, 1997-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1082,9 +1080,9 @@ Return t if the file exists and loads successfully.  */)
 #ifdef DOS_NT
 	  fmode = "rb";
 #endif /* DOS_NT */
-	  stat ((char *)SDATA (efound), &s1);
+	  stat (SSDATA (efound), &s1);
 	  SSET (efound, SBYTES (efound) - 1, 0);
-	  result = stat ((char *)SDATA (efound), &s2);
+	  result = stat (SSDATA (efound), &s2);
 	  SSET (efound, SBYTES (efound) - 1, 'c');
 
 	  if (result >= 0 && (unsigned) s1.st_mtime < (unsigned) s2.st_mtime)
@@ -1125,7 +1123,7 @@ Return t if the file exists and loads successfully.  */)
 #ifdef WINDOWSNT
   emacs_close (fd);
   efound = ENCODE_FILE (found);
-  stream = fopen ((char *) SDATA (efound), fmode);
+  stream = fopen (SSDATA (efound), fmode);
 #else  /* not WINDOWSNT */
   stream = fdopen (fd, fmode);
 #endif /* not WINDOWSNT */
@@ -4404,4 +4402,3 @@ to load.  See also `load-dangerous-libraries'.  */);
   Qrehash_threshold = intern_c_string ("rehash-threshold");
   staticpro (&Qrehash_threshold);
 }
-

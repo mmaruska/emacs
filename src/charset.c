@@ -1,6 +1,5 @@
 /* Basic character set support.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-     2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+   Copyright (C) 2001-2011  Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -666,7 +665,7 @@ map_charset_for_dump (void (*c_function) (Lisp_Object, Lisp_Object), Lisp_Object
   c = temp_charset_work->min_char;
   stop = (temp_charset_work->max_char < 0x20000
 	  ? temp_charset_work->max_char : 0xFFFF);
-	  
+
   while (1)
     {
       int index = GET_TEMP_CHARSET_WORK_ENCODER (c);
@@ -1828,7 +1827,7 @@ encode_char (struct charset *charset, int c)
       else
 	{
 	  code = GET_TEMP_CHARSET_WORK_ENCODER (c);
-	  code = INDEX_TO_CODE_POINT (charset, code);	  
+	  code = INDEX_TO_CODE_POINT (charset, code);
 	}
     }
   else				/* method == CHARSET_METHOD_OFFSET */
@@ -2295,7 +2294,7 @@ init_charset (void)
 {
   Lisp_Object tempdir;
   tempdir = Fexpand_file_name (build_string ("charsets"), Vdata_directory);
-  if (access ((char *) SDATA (tempdir), 0) < 0)
+  if (access (SSDATA (tempdir), 0) < 0)
     {
       dir_warning ("Error: charsets directory (%s) does not exist.\n\
 Emacs will not function correctly without the character map files.\n\
@@ -2431,4 +2430,3 @@ the value may be a list of mnemonics.  */);
 }
 
 #endif /* emacs */
-

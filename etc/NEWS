@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2010, 2011  Free Software Foundation, Inc.
+Copyright (C) 2010-2011  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -327,6 +327,8 @@ prompts for a number to count from and for a format string.
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
+** The Landmark game is now invoked with `landmark', not `lm'.
+
 ** Prolog mode has been completely revamped, with lots of additional
 functionality such as more intelligent indentation, electricty, support for
 more variants, including Mercury, and a lot more.
@@ -605,6 +607,11 @@ means to prompt the user for command specifics, e.g. a merge location.
 
 **** Currently supported by Bzr.
 
+** Miscellaneous
+
+---
+*** `copyright-fix-years' can optionally convert consecutive years to ranges.
+
 
 * New Modes and Packages in Emacs 24.1
 
@@ -685,10 +692,13 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 
 * Lisp changes in Emacs 24.1
 
+** Removed the stack-trace-on-error variable.
+Also the debugger can now "continue" from an error, which means it will jump
+to the error handler as if the debugger had not been invoked instead of
+jumping all the way to the top-level.
+
 ** New function `read-char-choice' reads a restricted set of characters,
 discarding any inputs not inside the set.
-
-** `y-or-n-p' and `yes-or-no-p' now accept format string arguments.
 
 ** `image-library-alist' is renamed to `dynamic-library-alist'.
 The variable is now used to load all kind of supported dynamic libraries,

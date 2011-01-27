@@ -1,7 +1,6 @@
 /* Keyboard and mouse input; editor command loop.
-   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995,
-                 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+
+Copyright (C) 1985-1989, 1993-1997, 1999-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -8177,8 +8176,8 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
       /* Try to make one from caption and key.  */
       Lisp_Object key = PROP (TOOL_BAR_ITEM_KEY);
       Lisp_Object capt = PROP (TOOL_BAR_ITEM_CAPTION);
-      const char *label = SYMBOLP (key) ? (char *) SDATA (SYMBOL_NAME (key)) : "";
-      const char *caption = STRINGP (capt) ? (char *) SDATA (capt) : "";
+      const char *label = SYMBOLP (key) ? SSDATA (SYMBOL_NAME (key)) : "";
+      const char *caption = STRINGP (capt) ? SSDATA (capt) : "";
       EMACS_INT max_lbl = 2 * tool_bar_max_label_size;
       char *buf = (char *) xmalloc (max_lbl + 1);
       Lisp_Object new_lbl;
@@ -12298,4 +12297,3 @@ mark_kboards (void)
       }
   }
 }
-

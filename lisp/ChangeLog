@@ -1,3 +1,270 @@
+2011-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* msb.el (msb-after-load-hooks): Make it an obsolete alias.
+	(msb-after-load-hook): Remove eval-after-load wackiness.
+
+2011-01-25  Sam Steingold  <sds@gnu.org>
+
+	* vc/vc-svn.el (vc-svn-diff): Use `diff-command' instead of the
+	literal "diff" (important for windows-nt).
+
+2011-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-at-end-flag)
+	(copyright-names-regexp): Add safety properties.
+	(copyright-year-ranges): New option.
+	(copyright-find-end): New function, split from copyright-update-year.
+	(copyright-update-year): Use copyright-find-end.
+	(copyright-fix-years): Optionally, convert years to ranges.
+	Handle years continued over comment lines.
+	Do not mess with the fill-prefix.
+	Do not call copyright-update.
+	(copyright-update-directory): Optionally, fix years rather than update.
+	Skip directories.  Find files with only safe local vars.
+
+2011-01-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (file-name-non-special): Only change buffer-file-name after
+	insert-file-contents if it's `visit'ing the file (bug#7854).
+
+2011-01-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-revert): Doc fix (Bug#7758).
+
+	* simple.el (line-move-visual): Doc fix (Bug#7594).
+
+2011-01-25  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* progmodes/ruby-mode.el (ruby-here-doc-beg-match): Fix for
+	here-doc which ends with an underscore.
+	(ruby-mode-set-encoding): Skip shebang line always.
+	(ruby-mode-map): Bind C-c C-c to comment-region.
+	(ruby-font-lock-keywords): Highlight literal hash key labels as symbols.
+	(ruby-forward-sexp): Stop after literal hash key labels.
+	(ruby-font-lock-syntactic-keywords): Highlight regexp after open
+	bracket.
+
+2011-01-25  Keitaro Miyazaki  <keitaro.miyazaki@gmail.com>  (tiny change)
+
+	* emacs-lisp/re-builder.el (reb-mode-map): Set case-fold-search in
+	the correct buffer (Bug#7650).
+
+2011-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* comint.el (comint-mode): Doc fix.  (Bug#7897)
+
+	* simple.el (do-auto-fill): Give it a doc string.
+
+	* button.el (make-text-button): Doc fix.  (See bug#7881)
+
+2011-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-syntax-propertize-special-constructs):
+	Don't move backward, so as not to fall in an inf-loop (bug#7736).
+
+	* progmodes/ruby-mode.el (ruby-syntax-propertize-function): (bug#7735)
+	Handle ?" and friends differently (e.g. don't use backrefs).
+
+2011-01-24  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-default-power-reference-level)
+	(calc-default-field-reference-level): New variables.
+	* calc/calc-units.el (math-standard-units):  Add dB and Np.
+	(math-logunits): New variable.
+	(math-extract-logunits, math-logcombine, calcFunc-luplus)
+	(calcFunc-luminus, calc-luplus, calc-luminus, math-logunit-level)
+	(calcFunc-fieldlevel, calcFunc-powerlevel, calc-level):
+	New functions.
+	(math-find-base-units-rec): Add entry for ln(10).
+	* calc/calc-help.el (calc-u-prefix-help): Add logarithmic help.
+	(calc-ul-prefix-help): New function.
+	* calc/calc-ext.el (calc-init-extensions): Autoload new units
+	functions. Add keybindings for new units functions.
+
+2011-01-22  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
+
+	* net/rcirc.el (rcirc-kill-buffer-hook): Flush logs when killing
+	rcirc buffers.  (Bug#4940)
+
+2011-01-22  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-find-copyright): New function,
+	split out from copyright-update-year.
+	(copyright-update): Don't mess with the GPL version if we don't own the
+	copyright.  Update license regexp, and remove no longer needed
+	Esperanto stuff.
+	(copyright-fix-years): Use copyright-find-copyright.
+
+2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/diff.el (diff-sentinel): Doc fix (Bug#7682).
+
+2011-01-22  Jari Aalto  <jari.aalto@cante.net>
+
+	* play/landmark.el: Change `lm-' prefix to `landmark-' (Bug#7672).
+	(lm): Rename to landmark.
+	(lm-test-run): Rename to landmark-test-run.
+
+2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/re-builder.el (reb-mode-map): Fix logic error in
+	"Case sensitive" menu item.
+
+2011-01-22  Roland McGrath  <roland@frob.com>
+
+	* comint.el (comint-replace-by-expanded-history-before-point): Fix
+	expansion of !$ and !!:N syntax to pick the indicated word (bug#7883).
+
+2011-01-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/js.el (js--regexp-literal): Count backslashes (bug#7882).
+
+2011-01-22  Jari Aalto  <jari.aalto@cante.net>
+
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	Assume foo(bar) is a manpage reference rather than some unquoted
+	symbol (bug#7705).
+
+2011-01-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (shell-quote-argument): Properly quote \n (bug#7687).
+	Suggested by Flo <sensorflo@gmail.com>.
+
+2011-01-22  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist):
+	Fix custom type.  (Bug#7812)
+
+2011-01-22  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-prefixed-keybindings): Bind (prefixed) '#' to
+	allout-number-siblings, in keeping with what obtained due to
+	(now-defunct) allout-keybindings-list.  Ditch repeat binding to
+	(prefixed) ?i.
+	(allout-before-change-handler): Better expose spots affected by
+	undo.
+
+2011-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* man.el (Man-highlight-references0): Use make-button (Bug#7881).
+
+2011-01-22  Phil Hagelberg  <phil@evri.com>
+
+	* pcmpl-unix.el (pcmpl-ssh-config-file): New option.
+	(pcmpl-ssh-known-hosts): Rename from pcmpl-ssh-hosts.
+	(pcmpl-ssh-config-hosts): New function.
+	(pcmpl-ssh-hosts): Use pcmpl-ssh-config-hosts in addition to
+	pcmpl-ssh-known-hosts.
+
+2011-01-21  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-undo.el (calc-undo): Autoload it.
+	* calc/calc-ext.el (calc-init-extensions): Remove keybindings
+	and autoload for `calc-undo'.
+	* calc/calc.el (calc-mode-map): Add keybindings for `calc-undo'.
+	* calc/calc-prog.el:
+	* calc/calc-graph.el:
+	* calc/calc-map.el: Change `arglist' to `math-arglist' throughout.
+
+2011-01-21  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* calc/calc-ext.el (calc-init-extensions): Map all `undo'
+	keybindings to `calc-undo'.
+
+2011-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Don't mess with *temp*.
+	* obsolete/spell.el: Move from textmodes/spell.el.
+	(spell-string):
+	* term.el (term-read-input-ring):
+	* startup.el (display-startup-echo-area-message):
+	* progmodes/antlr-mode.el (antlr-directory-dependencies):
+	* comint.el (comint-read-input-ring): Use with-temp-buffer.
+	* international/mule.el (ctext-pre-write-conversion): Don't hardcode
+	point-min==1.
+
+2011-01-20  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: (allout-institute-keymap): Use fset instead of
+	reapplying defalias.
+
+	(allout-hotspot-key-handler): Check for non-control-modified
+	bindings for hotspot characters if there are no control-modified
+	versions.
+
+	* allout.el: Summary - migrate to defining allout mode using
+	define-minor-mode instead of defun.  Significantly clean-up
+	internal keymap provisions, refactoring and, in the process,
+	removing a lot of accumulated cruft.
+
+	allout-mode-map is now a keymap by virtue of being a defalias to
+	allout-mode-map-value, which contains the actual keymap structure.
+
+	(allout-mode): Use define-minor-mode rather than defun.
+	Remove now-unnecessary minor-mode setup activities from the body.
+	Specify :keymap as allout-mode-map so the minor-mode-map-alist
+	entry will be '(allout-mode . allout-mode-map) - see
+	allout-mode-map-value, below.  Adjust docstring to track changes.
+	(allout-minor-mode): Remove this defalias, now that we're using
+	define-minor-mode.
+	(allout-mode-map): Set value to be 'allout-mode-map.  The actual
+	keymap is allout-mode-map-value, via defalias.
+	(allout-mode-map-value): The variable holding the actual mode
+	keymap structure, by virtue of defalias from allout-mode-map.
+	(allout-compose-and-institute-keymap): Rename from
+	allout-bind-keys, and including the binding-composition
+	functionality of the former produce-allout-mode-map and
+	allout-setup-mode-map.
+	(allout-institute-keymap): Take over the "setup" part of the former
+	allout-setup-mode-map.  Reassign allout-mode-map-value value and
+	update the defalias.
+	(allout-command-prefix) (allout-prefixed-keybindings)
+	(allout-unprefixed-keybindings):
+	Use allout-compose-and-institute-keymap to process the bindings.
+	(allout-unprefixed-keybindings): Remove extraneous '?' question
+	marks.
+	(allout-prefixed-keybindings): Elide binding to (prefixed) \C-h -
+	user can customize if they want to use that binding.
+	Bind allout-copy-topic-as-kill to (prefixed) \M-k.
+	Bind allout-up-current-level to (prefixed) \C-u.  (I think i mistakenly
+	elided that, previously, instead of the one for \C-h.)
+	(allout-hotspot-key-handler): Remove attempt to resolve the key
+	through the literal key-string lookup on allout-keybindings-list.
+	That probably hasn't worked for a Long Time, and removal of
+	allout-keybindings-list further simplifies the keybindings
+	situation.
+	(allout-pre-command-business): Use allout-mode-map-value instead
+	of allout-mode-map.
+	(allout-preempt-trailing-ctrl-h): Remove.  The user can customize
+	the bindings if they want to use a keybinding having a trailing
+	\C-h.  No deprecation needed since this feature was never in a
+	release.
+	(allout-keybindings-list): Remove.  It's not been useful for a
+	while.  (See allout-hotspot-key-handler changes, above.)
+	(produce-allout-mode-map): Remove.  Consolidate into
+	allout-compose-and-institute-keymap.
+	(allout-mode-map-adjustments): Remove.  No longer necessary with
+	removal of allout-preempt-trailing-ctrl-h.
+	(allout-setup-mode-map): Remove.  Consolidate into
+	allout-compose-and-institute-keymap and allout-institute-keymap.
+
+2011-01-20  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-svn.el (vc-svn-after-dir-status): Tweak previous change.
+
+	* simple.el (read-expression-history): Remove, it's in minibuf.c.
+
+2011-01-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (y-or-n-p): Revert 2011-01-07 change, removing ARGS.
+
+	* files.el (find-alternate-file, basic-save-buffer)
+	(basic-save-buffer-2, revert-buffer, recover-file)
+	(kill-buffer-ask, abort-if-file-too-large)
+	(set-visited-file-name, write-file, backup-buffer)
+	(basic-save-buffer, save-some-buffers):
+	* dired-aux.el (dired-compress-file): Callers changed.
+
 2011-01-19  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-svn.el (vc-svn-after-dir-status, vc-svn-parse-status):
@@ -21018,7 +21285,7 @@ See ChangeLog.14 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2009, 2010, 2011  Free Software Foundation, Inc.
+  Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

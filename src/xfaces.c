@@ -1,8 +1,6 @@
 /* xfaces.c -- "Face" primitives.
 
-   Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-  2005, 2006, 2007, 2008, 2009, 2010, 2011
-  Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 1998-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3612,7 +3610,7 @@ x_update_menu_appearance (struct frame *f)
 #if defined HAVE_X_I18N
 	      char *fontsetname = xic_create_fontsetname (SDATA (xlfd), motif);
 #else
-	      char *fontsetname = (char *) SDATA (xlfd);
+	      char *fontsetname = SSDATA (xlfd);
 #endif
 	      sprintf (line, "%s.pane.menubar*font%s: %s",
 		       myname, suffix, fontsetname);
@@ -3621,7 +3619,7 @@ x_update_menu_appearance (struct frame *f)
 		       myname, popup_path, suffix, fontsetname);
 	      XrmPutLineResource (&rdb, line);
 	      changed_p = 1;
-	      if (fontsetname != (char *) SDATA (xlfd))
+	      if (fontsetname != SSDATA (xlfd))
 		xfree (fontsetname);
 	    }
 	}
@@ -6763,4 +6761,3 @@ a font of 10 point, we actually use a font of 10 * RESCALE-RATIO point.  */);
   defsubr (&Sx_family_fonts);
 #endif
 }
-

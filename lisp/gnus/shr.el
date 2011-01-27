@@ -1,6 +1,6 @@
 ;;; shr.el --- Simple HTML Renderer
 
-;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -462,11 +462,12 @@ redirects somewhere else."
 	      (search-forward "\r\n\r\n" nil t))
       (let ((data (buffer-substring (point) (point-max))))
         (with-current-buffer buffer
-          (let ((alt (buffer-substring start end))
-		(inhibit-read-only t))
-	    (delete-region start end)
-	    (goto-char start)
-	    (shr-put-image data alt))))))
+	  (save-excursion
+	    (let ((alt (buffer-substring start end))
+		  (inhibit-read-only t))
+	      (delete-region start end)
+	      (goto-char start)
+	      (shr-put-image data alt)))))))
   (kill-buffer (current-buffer)))
 
 (defun shr-put-image (data alt)
@@ -611,13 +612,67 @@ ones, in case fg and bg are nil."
   (save-excursion
     (goto-char start)
     (while (< (point) end)
-      (when (bolp)
+      (when (and (bolp)
+		 (not (eq type :background)))
 	(skip-chars-forward " "))
       (when (> (line-end-position) (point))
 	(shr-put-color-1 (point) (min (line-end-position) end) type color))
       (if (< (line-end-position) end)
 	  (forward-line 1)
-	(goto-char end)))))
+	(goto-char end)))
+    (when (and (eq type :background)
+	       (= shr-table-depth 0))
+      (shr-expand-newlines start end color))))
+
+(defun shr-expand-newlines (start end color)
+  (save-restriction
+    ;; Skip past all white space at the start and ends.
+    (goto-char start)
+    (skip-chars-forward " \t\n")
+    (beginning-of-line)
+    (setq start (point))
+    (goto-char end)
+    (skip-chars-backward " \t\n")
+    (forward-line 1)
+    (setq end (point))
+    (narrow-to-region start end)
+    (let ((width (shr-natural-width))
+	  column)
+      (goto-char (point-min))
+      (while (not (eobp))
+	(end-of-line)
+	(when (and (< (setq column (current-column)) width)
+		   (< (setq column (shr-previous-newline-padding-width column))
+		      width))
+	  (let ((overlay (make-overlay (point) (1+ (point)))))
+	    (overlay-put overlay 'before-string
+			 (concat
+			  (mapconcat
+			   (lambda (overlay)
+			     (let ((string (plist-get
+					    (overlay-properties overlay)
+					    'before-string)))
+			       (if (not string)
+				   ""
+				 (overlay-put overlay 'before-string "")
+				 string)))
+			   (overlays-at (point))
+			   "")
+			  (propertize (make-string (- width column) ? )
+				      'face (list :background color))))))
+	(forward-line 1)))))
+
+(defun shr-previous-newline-padding-width (width)
+  (let ((overlays (overlays-at (point)))
+	(previous-width 0))
+    (if (null overlays)
+	width
+      (dolist (overlay overlays)
+	(setq previous-width
+	      (+ previous-width
+		 (length (plist-get (overlay-properties overlay)
+				    'before-string)))))
+      (+ width previous-width))))
 
 (defun shr-put-color-1 (start end type color)
   (let* ((old-props (get-text-property start 'face))

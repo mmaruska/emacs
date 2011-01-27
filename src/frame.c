@@ -1,8 +1,6 @@
 /* Generic frame functions.
 
-   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-  Free Software Foundation, Inc.
+Copyright (C) 1993-1995, 1997, 1999-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -23,6 +21,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
 #include <ctype.h>
+#include <errno.h>
+#include <limits.h>
 #include <setjmp.h>
 #include "lisp.h"
 #include "character.h"
@@ -2149,10 +2149,13 @@ frame_name_fnn_p (char *str, EMACS_INT len)
   if (len > 1 && str[0] == 'F')
     {
       char *end_ptr;
+      long int n;
+      errno = 0;
+      n = strtol (str + 1, &end_ptr, 10);
 
-      strtol (str + 1, &end_ptr, 10);
-
-      if (end_ptr == str + len)
+      if (end_ptr == str + len
+	  && INT_MIN <= n && n <= INT_MAX
+	  && ((LONG_MIN < n && n < LONG_MAX) || errno != ERANGE))
 	return 1;
     }
   return 0;
@@ -4037,7 +4040,7 @@ On Nextstep, this just calls `ns-parse-geometry'.  */)
 
   CHECK_STRING (string);
 
-  geometry = XParseGeometry ((char *) SDATA (string),
+  geometry = XParseGeometry (SSDATA (string),
 			     &x, &y, &width, &height);
   result = Qnil;
   if (geometry & XValue)
@@ -4637,4 +4640,3 @@ automatically.  See also `mouse-autoselect-window'.  */);
 #endif
 
 }
-

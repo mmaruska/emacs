@@ -1,6 +1,5 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999, 2000,
-                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Copyright (C) 1985-1987, 1993-1995, 1997-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -444,7 +443,13 @@ enum pvec_type
    ((var) = ((EMACS_INT) ((EMACS_UINT) (type) << VALBITS) \
 	     + ((EMACS_INT) (ptr) & VALMASK)))
 
+#ifdef DATA_SEG_BITS
+/* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
+   which were stored in a Lisp_Object */
+#define XPNTR(a) ((EMACS_UINT) (((a) & VALMASK) | DATA_SEG_BITS))
+#else
 #define XPNTR(a) ((EMACS_UINT) ((a) & VALMASK))
+#endif
 
 #endif /* not USE_LSB_TAG */
 
@@ -482,6 +487,14 @@ enum pvec_type
 # define XSET(var, vartype, ptr) \
    (((var).s.val = ((EMACS_INT) (ptr))), ((var).s.type = ((char) (vartype))))
 
+#ifdef DATA_SEG_BITS
+/* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
+   which were stored in a Lisp_Object */
+#define XPNTR(a) (XUINT (a) | DATA_SEG_BITS)
+#else
+#define XPNTR(a) ((EMACS_INT) XUINT (a))
+#endif
+
 #endif	/* !USE_LSB_TAG */
 
 #if __GNUC__ >= 2 && defined (__OPTIMIZE__)
@@ -502,23 +515,6 @@ extern Lisp_Object make_number (EMACS_INT);
 #endif
 
 #define EQ(x, y) (XHASH (x) == XHASH (y))
-
-#ifndef XPNTR
-#ifdef DATA_SEG_BITS
-/* This case is used for the rt-pc.
-   In the diffs I was given, it checked for ptr = 0
-   and did not adjust it in that case.
-   But I don't think that zero should ever be found
-   in a Lisp object whose data type says it points to something.  */
-#define XPNTR(a) (XUINT (a) | DATA_SEG_BITS)
-#else
-/* Some versions of gcc seem to consider the bitfield width when
-   issuing the "cast to pointer from integer of different size"
-   warning, so the cast is here to widen the value back to its natural
-   size.  */
-#define XPNTR(a) ((EMACS_INT) XUINT (a))
-#endif
-#endif /* no XPNTR */
 
 /* Largest and smallest representable fixnum values.  These are the C
    values.  */
@@ -634,6 +630,9 @@ extern Lisp_Object make_number (EMACS_INT);
 #define SSET(string, index, new) (SDATA (string)[index] = (new))
 #define SCHARS(string)		(XSTRING (string)->size + 0)
 #define SBYTES(string)		(STRING_BYTES (XSTRING (string)) + 0)
+
+/* Avoid "differ in sign" warnings.  */
+#define SSDATA(x)  ((char *) SDATA (x))
 
 #define STRING_SET_CHARS(string, newsize) \
     (XSTRING (string)->size = (newsize))
@@ -1844,7 +1843,7 @@ extern void defvar_kboard (struct Lisp_Kboard_Objfwd *, const char *, int);
 
 /* Macros we use to define forwarded Lisp variables.
    These are used in the syms_of_FILENAME functions.
-   
+
    An ordinary (not in buffer_defaults, per-buffer, or per-keyboard)
    lisp variable is actually a field in `struct emacs_globals'.  The
    field's name begins with "f_", which is a convention enforced by

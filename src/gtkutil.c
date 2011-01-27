@@ -1,6 +1,6 @@
 /* Functions for creating and updating GTK widgets.
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-     Free Software Foundation, Inc.
+
+Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -45,9 +45,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define FRAME_TOTAL_PIXEL_WIDTH(f) \
   (FRAME_PIXEL_WIDTH (f) + FRAME_TOOLBAR_WIDTH (f))
-
-/* Avoid "differ in sign" warnings */
-#define SSDATA(x)  ((char *) SDATA (x))
 
 #ifndef HAVE_GTK_WIDGET_SET_HAS_WINDOW
 #define gtk_widget_set_has_window(w, b) \
@@ -4565,4 +4562,3 @@ xg_initialize (void)
 }
 
 #endif /* USE_GTK */
-

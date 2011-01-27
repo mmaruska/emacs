@@ -1,6 +1,5 @@
 /* X Selection processing for Emacs.
-   Copyright (C) 1993, 1994, 1995, 1996, 1997, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1993-1997, 2000-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -235,9 +234,9 @@ symbol_to_x_atom (struct x_display_info *dpyinfo, Display *display, Lisp_Object 
   if (EQ (sym, QNULL))	    return dpyinfo->Xatom_NULL;
   if (!SYMBOLP (sym)) abort ();
 
-  TRACE1 (" XInternAtom %s", (char *) SDATA (SYMBOL_NAME (sym)));
+  TRACE1 (" XInternAtom %s", SSDATA (SYMBOL_NAME (sym)));
   BLOCK_INPUT;
-  val = XInternAtom (display, (char *) SDATA (SYMBOL_NAME (sym)), False);
+  val = XInternAtom (display, SSDATA (SYMBOL_NAME (sym)), False);
   UNBLOCK_INPUT;
   return val;
 }
@@ -2255,7 +2254,7 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
       else if (STRINGP (o))
         {
           BLOCK_INPUT;
-          val = (long) XInternAtom (dpy, (char *) SDATA (o), False);
+          val = (long) XInternAtom (dpy, SSDATA (o), False);
           UNBLOCK_INPUT;
         }
       else
@@ -2392,7 +2391,7 @@ FRAME is on.  If FRAME is nil, the selected frame is used.  */)
   else if (STRINGP (atom))
     {
       BLOCK_INPUT;
-      x_atom = XInternAtom (FRAME_X_DISPLAY (f), (char *) SDATA (atom), False);
+      x_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (atom), False);
       UNBLOCK_INPUT;
     }
   else

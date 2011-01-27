@@ -1,7 +1,6 @@
 ;;; gnus-sum.el --- summary mode commands for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -360,7 +359,7 @@ first subject), `unread' (place point on the subject line of the first
 unread article), `best' (place point on the subject line of the
 higest-scored article), `unseen' (place point on the subject line of
 the first unseen article), `unseen-or-unread' (place point on the subject
-line of the first unseen article or, if all article have been seen, on the
+line of the first unseen article or, if all articles have been seen, on the
 subject line of the first unread article), or a function to be called to
 place point on some subject line."
   :version "24.1"
@@ -9836,7 +9835,8 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 	    (unless (member to-group to-groups)
 	      (push to-group to-groups))
 
-	    (unless (memq article gnus-newsgroup-unreads)
+	    (when (and (not (memq article gnus-newsgroup-unreads))
+		       (cdr art-group))
 	      (push 'read to-marks)
 	      (gnus-info-set-read
 	       info (gnus-add-to-range (gnus-info-read info)
@@ -9853,14 +9853,16 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 
 	      ;; Enter the article into the cache in the new group,
 	      ;; if that is required.
-	      (when gnus-use-cache
+	      (when (and to-article
+			 gnus-use-cache)
 		(gnus-cache-possibly-enter-article
 		 to-group to-article
 		 (memq article gnus-newsgroup-marked)
 		 (memq article gnus-newsgroup-dormant)
 		 (memq article gnus-newsgroup-unreads)))
 
-	      (when gnus-preserve-marks
+	      (when (and gnus-preserve-marks
+			 to-article)
 		;; Copy any marks over to the new group.
 		(when (and (equal to-group gnus-newsgroup-name)
 			   (not (memq article gnus-newsgroup-unreads)))

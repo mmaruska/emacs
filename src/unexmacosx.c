@@ -1,6 +1,5 @@
 /* Dump Emacs in Mach-O format for use on Mac OS X.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2001-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -86,15 +85,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    be changed accordingly.
 */
 
-#include <stdio.h>
+/* config.h #define:s malloc/realloc/free and then includes stdlib.h.
+   We want the undefined versions, but if config.h includes stdlib.h
+   with the #define:s in place, the prototypes will be wrong and we get
+   warnings.  To prevent that, include stdlib.h before config.h.  */
+
 #include <stdlib.h>
-#include <fcntl.h>
-#include <stdarg.h>
-#include <sys/types.h>
 #include <config.h>
 #undef malloc
 #undef realloc
 #undef free
+#include <stdio.h>
+#include <fcntl.h>
+#include <stdarg.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <mach/mach.h>
 #include <mach-o/loader.h>

@@ -2,9 +2,7 @@
 # DIST: make most of the changes to this file you might want, so try
 # DIST: that first.
 
-# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-#   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-#   Free Software Foundation, Inc.
+# Copyright (C) 1992-2011  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -260,7 +258,7 @@ EMACSFULL = `echo emacs-${version}${EXEEXT} | sed '$(TRANSFORM)'`
 # Subdirectories to make recursively.  `lisp' is not included
 # because the compiled lisp files are part of the distribution.
 # leim is not included because it needs special handling.
-# 
+#
 # Actually, we now include `lisp' as well, since the compiled files
 # are not included any more in case of bootstrap or in case Emacs was
 # checked out from a VCS.
@@ -326,6 +324,9 @@ gnulib_srcdir = ../gnulib
 $(gnulib_srcdir):
 	git clone git://git.savannah.gnu.org/gnulib.git $@
 
+# A shorter name that satisfies MS-DOS 8+3 constraints.
+DOS-gnulib-comp.m4 = gl-comp.m4
+
 # Update modules from gnulib, for maintainers, who should have it in
 # $(gnulib_srcdir) (relative to $(srcdir) and should have build tools
 # as per $(gnulib_srcdir)/DEPENDENCIES.
@@ -335,6 +336,8 @@ GNULIB_TOOL_FLAGS = \
 sync-from-gnulib: $(gnulib_srcdir)
 	cd $(srcdir) && \
 	  $(gnulib_srcdir)/gnulib-tool $(GNULIB_TOOL_FLAGS) $(GNULIB_MODULES)
+	cd $(srcdir)/m4 && rm gnulib-cache.m4 warn-on-use.m4
+	cd $(srcdir)/m4 && mv gnulib-comp.m4 $(DOS-gnulib-comp.m4)
 	cp $(gnulib_srcdir)/build-aux/texinfo.tex $(srcdir)/doc/misc
 	cp \
 	  $(gnulib_srcdir)/build-aux/config.sub \
@@ -407,14 +410,14 @@ AUTOCONF_INPUTS = @MAINT@ $(srcdir)/configure.in $(srcdir)/aclocal.m4
 $(srcdir)/configure: $(AUTOCONF_INPUTS)
 	cd ${srcdir} && autoconf
 
-ACLOCAL_INPUTS = @MAINT@ $(srcdir)/m4/gnulib-comp.m4
+ACLOCAL_INPUTS = @MAINT@ $(srcdir)/m4/$(DOS-gnulib-comp.m4)
 $(srcdir)/aclocal.m4: $(ACLOCAL_INPUTS)
 	cd $(srcdir) && aclocal -I m4
 
 AUTOMAKE_INPUTS = @MAINT@ $(srcdir)/aclocal.m4 $(srcdir)/lib/Makefile.am
 $(srcdir)/lib/Makefile.in: $(AUTOMAKE_INPUTS)
 	cd $(srcdir) && automake --gnu -a -c lib/Makefile
-am--refresh:
+am--refresh: $(srcdir)/aclocal.m4 $(srcdir)/configure $(srcdir)/src/config.in
 .PHONY: am--refresh
 
 $(srcdir)/src/config.in: $(srcdir)/src/stamp-h.in
@@ -862,7 +865,7 @@ dist:
 
 .PHONY: info dvi dist check html
 
-info-real: 
+info-real:
 	(cd doc/emacs; $(MAKE) $(MFLAGS) info)
 	(cd doc/misc; $(MAKE) $(MFLAGS) info)
 	(cd doc/lispref; $(MAKE) $(MFLAGS) info)

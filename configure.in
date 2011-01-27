@@ -4,9 +4,7 @@ dnl 	autoconf
 dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003, 2004,
-dnl    2005, 2006, 2007, 2008, 2009, 2010, 2011
-dnl    Free Software Foundation, Inc.
+dnl Copyright (C) 1994-1996, 1999-2011  Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -515,6 +513,17 @@ case "${canonical}" in
     CFLAGS="-D_INCLUDE__STDC_A1_SOURCE $CFLAGS"
   ;;
 
+  ia64*-hp-hpux1[1-9]* )
+    machine=hp800 opsys=hpux11
+    ## FIXME.  Peter O'Gorman reports that dumping using unexelf.o doesn't
+    ## work either: http://debbugs.gnu.org/cgi/bugreport.cgi?bug=6811
+    CANNOT_DUMP=yes    
+  ;;
+
+  hppa*-*-linux-gnu* )
+    machine=hp800 opsys=gnu-linux
+  ;;
+
   ## IBM machines
   rs6000-ibm-aix4.[23]* )
     machine=ibmrs6000 opsys=aix4-2
@@ -843,16 +852,16 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
 CPP=`eval "echo $CPP"`
 
 
-dnl Not used by any currently supported platform.
 dnl The function dump-emacs will not be defined and temacs will do
 dnl (load "loadup") automatically unless told otherwise.
-CANNOT_DUMP=no
+test "x$CANNOT_DUMP" = "x" && CANNOT_DUMP=no
 case "$opsys" in
-  your-opsys-here)
-   CANNOT_DUMP=yes
-   AC_DEFINE(CANNOT_DUMP, 1, [Define if Emacs cannot be dumped on your system.])
-  ;;
+  your-opsys-here) CANNOT_DUMP=yes ;;
 esac
+
+test "$CANNOT_DUMP" = "yes" && \
+  AC_DEFINE(CANNOT_DUMP, 1, [Define if Emacs cannot be dumped on your system.])
+
 AC_SUBST(CANNOT_DUMP)
 
 
@@ -877,11 +886,11 @@ case "$opsys" in
    # emacs, instead of the generic ELF dump code found in unexelf.c.
    # The resulting binary has a complete symbol table, and is better
    # for debugging and other observability tools (debuggers, pstack, etc).
-   # 
+   #
    # If you encounter a problem using dldump(), please consider sending
    # a message to the OpenSolaris tools-linking mailing list:
    #      http://mail.opensolaris.org/mailman/listinfo/tools-linking
-   # 
+   #
    # It is likely that dldump() works with older Solaris too, but this has
    # not been tested, so for now this change is for Solaris 10 or newer.
    UNEXEC_OBJ=unexsol.o
@@ -948,7 +957,7 @@ if test "$machine" = "alpha"; then
       AC_MSG_ERROR([What gives?  Fix me if DEC Unix supports ELF now.])
     fi
   else
-    UNEXEC_OBJ=unexalpha.o 
+    UNEXEC_OBJ=unexalpha.o
   fi
 fi
 AC_SUBST(C_SWITCH_MACHINE)
@@ -1130,7 +1139,7 @@ AC_DEFUN([PKG_CHECK_MODULES], [
 
 if test "${with_sound}" != "no"; then
   # Sound support for GNU/Linux and the free BSDs.
-  AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h soundcard.h, 
+  AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h soundcard.h,
     have_sound_header=yes)
   # Emulation library used on NetBSD.
   AC_CHECK_LIB(ossaudio, _oss_ioctl, LIBSOUND=-lossaudio, LIBSOUND=)
@@ -1817,7 +1826,7 @@ if test "${HAVE_X11}" = "yes"; then
     PKG_CHECK_MODULES(IMAGEMAGICK, $IMAGEMAGICK_MODULE, HAVE_IMAGEMAGICK=yes, :)
     AC_SUBST(IMAGEMAGICK_CFLAGS)
     AC_SUBST(IMAGEMAGICK_LIBS)
-  
+
     if test $HAVE_IMAGEMAGICK = yes; then
       AC_DEFINE(HAVE_IMAGEMAGICK, 1, [Define to 1 if using imagemagick.])
       CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
@@ -2252,17 +2261,9 @@ if test "${HAVE_X11}" = "yes"; then
        HAVE_XFT=no
     fi
 
-
-    HAVE_FREETYPE=no
     ## We used to allow building with FreeType and without Xft.
     ## However, the ftx font backend driver is not in good shape.
-    if test "${HAVE_XFT}" = "yes"; then
-      dnl As we use Xft, we anyway use freetype.
-      dnl There's no need for additional CFLAGS and LIBS.
-      HAVE_FREETYPE=yes
-      FONTCONFIG_CFLAGS=
-      FONTCONFIG_LIBS=
-    fi
+    HAVE_FREETYPE=$HAVE_XFT
 
     HAVE_LIBOTF=no
     if test "${HAVE_FREETYPE}" = "yes"; then
@@ -2670,6 +2671,8 @@ AC_FUNC_FSEEKO
 AC_FUNC_GETPGRP
 
 # Configure gnulib.
+gl_ASSERT_NO_GNULIB_POSIXCHECK
+gl_ASSERT_NO_GNULIB_TESTS
 gl_INIT
 
 AC_FUNC_STRFTIME
@@ -3241,7 +3244,7 @@ fi
 
 if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
   OLDXMENU_TARGET=
-  OLDXMENU=nothing  
+  OLDXMENU=nothing
   LIBXMENU=
   OLDXMENU_DEPS=
 fi
@@ -3305,7 +3308,7 @@ case "$opsys" in
      headerpad_extra=690
    fi
    LD_SWITCH_SYSTEM_TEMACS="-prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
- 
+
    ## This is here because src/Makefile.in did some extra fiddling around
    ## with LD_SWITCH_SYSTEM.  The cpp logic was:
    ##   #ifndef LD_SWITCH_SYSTEM
@@ -3441,8 +3444,9 @@ AC_SUBST(WINDOW_SUPPORT)
 
 
 AH_TOP([/* GNU Emacs site configuration template file.
-   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005,
-     2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+
+Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2011
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

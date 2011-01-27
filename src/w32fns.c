@@ -1,8 +1,6 @@
 /* Graphical user interface functions for the Microsoft W32 API.
 
-Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-                 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1507,11 +1505,11 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   BLOCK_INPUT;
 
   result = x_text_icon (f,
-			(char *) SDATA ((!NILP (f->icon_name)
-					 ? f->icon_name
-					 : !NILP (f->title)
-					 ? f->title
-					 : f->name)));
+			SSDATA ((!NILP (f->icon_name)
+				 ? f->icon_name
+				 : !NILP (f->title)
+				 ? f->title
+				 : f->name)));
 
   if (result)
     {
@@ -3877,7 +3875,7 @@ w32_window (struct frame *f, long window_prompting, int minibuffer_only)
      Elsewhere we specify the window name for the window manager.  */
 
   {
-    char *str = (char *) SDATA (Vx_resource_name);
+    char *str = SSDATA (Vx_resource_name);
     f->namebuf = (char *) xmalloc (strlen (str) + 1);
     strcpy (f->namebuf, str);
   }
@@ -3943,9 +3941,9 @@ x_icon (struct frame *f, Lisp_Object parms)
 	 ? IconicState
 	 : NormalState));
 
-  x_text_icon (f, (char *) SDATA ((!NILP (f->icon_name)
-				     ? f->icon_name
-				     : f->name)));
+  x_text_icon (f, SSDATA ((!NILP (f->icon_name)
+			   ? f->icon_name
+			   : f->name)));
 #endif
 
   UNBLOCK_INPUT;
@@ -4723,7 +4721,7 @@ x_display_info_for_name (Lisp_Object name)
   validate_x_resource_name ();
 
   dpyinfo = w32_term_init (name, (unsigned char *)0,
-			     (char *) SDATA (Vx_resource_name));
+			   SSDATA (Vx_resource_name));
 
   if (dpyinfo == 0)
     error ("Cannot connect to server %s", SDATA (name));
@@ -4786,7 +4784,7 @@ terminate Emacs if we can't open the connection.
   add_system_logical_colors_to_map (&Vw32_color_map);
 
   if (! NILP (xrm_string))
-    xrm_option = (unsigned char *) SDATA (xrm_string);
+    xrm_option = SDATA (xrm_string);
   else
     xrm_option = (unsigned char *) 0;
 
@@ -4807,7 +4805,7 @@ terminate Emacs if we can't open the connection.
   /* This is what opens the connection and sets x_current_display.
      This also initializes many symbols, such as those used for input.  */
   dpyinfo = w32_term_init (display, xrm_option,
-			     (char *) SDATA (Vx_resource_name));
+			   SSDATA (Vx_resource_name));
 
   if (dpyinfo == 0)
     {
@@ -6188,7 +6186,7 @@ an integer representing a ShowWindow flag:
 	code_convert_string_norecord (make_unibyte_string (errstr,
 							   strlen (errstr)),
 				      Vlocale_coding_system, 0);
-      errstr = (char *)SDATA (decoded);
+      errstr = SSDATA (decoded);
     }
   error ("ShellExecute failed: %s", errstr);
 }
@@ -7203,4 +7201,3 @@ w32_last_error (void)
 {
   return GetLastError ();
 }
-

@@ -434,10 +434,6 @@ struct emacs_globals
      continue the interrupted redisplay. */
   int f_debugger_may_continue;
 
-  /* List of conditions (non-nil atom means all) which cause a backtrace
-     if an error is handled by the command loop's error handler.  */
-  Lisp_Object f_Vstack_trace_on_error;
-
   /* List of conditions (non-nil atom means all) which enter the debugger
      if an error is handled by the command loop's error handler.  */
   Lisp_Object f_Vdebug_on_error;
@@ -937,6 +933,9 @@ struct emacs_globals
 
   Lisp_Object f_Vobarray;
 
+  /* Normal hook run whenever a keyboard macro terminates.  */
+  Lisp_Object f_Vkbd_macro_termination_hook;
+
   /* Kbd macro currently being executed (a string or vector).  */
   Lisp_Object f_Vexecuting_kbd_macro;
 
@@ -979,6 +978,8 @@ struct emacs_globals
   Lisp_Object f_Vminibuffer_setup_hook;
 
   Lisp_Object f_Vminibuffer_exit_hook;
+
+  Lisp_Object f_Vread_expression_history;
 
   /* Function to call to read a buffer name.  */
   Lisp_Object f_Vread_buffer_function;
@@ -1951,6 +1952,8 @@ extern struct emacs_globals globals;
     globals.f_Vexec_path
 #define Vexec_suffixes \
     globals.f_Vexec_suffixes
+#define Vkbd_macro_termination_hook \
+    globals.f_Vkbd_macro_termination_hook
 #define Vexecuting_kbd_macro \
     globals.f_Vexecuting_kbd_macro
 #define Vface_default_stipple \
@@ -2263,6 +2266,8 @@ extern struct emacs_globals globals;
     globals.f_Vquit_flag
 #define Vread_buffer_function \
     globals.f_Vread_buffer_function
+#define Vread_expression_history \
+    globals.f_Vread_expression_history
 #define Vread_circle \
     globals.f_Vread_circle
 #define Vread_expression_map \
@@ -2317,8 +2322,6 @@ extern struct emacs_globals globals;
     globals.f_Vsource_directory
 #define Vspecial_event_map \
     globals.f_Vspecial_event_map
-#define Vstack_trace_on_error \
-    globals.f_Vstack_trace_on_error
 #define Vstandard_display_table \
     globals.f_Vstandard_display_table
 #define Vstandard_input \

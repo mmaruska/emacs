@@ -1,6 +1,5 @@
 /* Coding system handler (conversion, detection, etc).
-   Copyright (C) 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2001-2011 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -5380,9 +5379,9 @@ detect_coding_charset (struct coding_system *coding,
   attrs = CODING_ID_ATTRS (coding->id);
   valids = AREF (attrs, coding_attr_charset_valids);
   name = CODING_ID_NAME (coding->id);
-  if (strncmp ((char *) SDATA (SYMBOL_NAME (name)),
+  if (strncmp (SSDATA (SYMBOL_NAME (name)),
 	       "iso-8859-", sizeof ("iso-8859-") - 1) == 0
-      || strncmp ((char *) SDATA (SYMBOL_NAME (name)),
+      || strncmp (SSDATA (SYMBOL_NAME (name)),
 		  "iso-latin-", sizeof ("iso-latin-") - 1) == 0)
     check_latin_extra = 1;
 
@@ -10827,7 +10826,7 @@ emacs_strerror (int error_number)
       Lisp_Object dec = code_convert_string_norecord (build_string (str),
 						      Vlocale_coding_system,
 						      0);
-      str = (char *) SDATA (dec);
+      str = SSDATA (dec);
     }
 
   return str;

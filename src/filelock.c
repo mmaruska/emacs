@@ -1,6 +1,5 @@
 /* Lock files for editing.
-   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1996, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Copyright (C) 1985-1987, 1993-1994, 1996, 1998-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -358,11 +357,11 @@ lock_file_1 (char *lfname, int force)
   boot_time = get_boot_time ();
 
   if (STRINGP (Fuser_login_name (Qnil)))
-    user_name = (char *)SDATA (Fuser_login_name (Qnil));
+    user_name = SSDATA (Fuser_login_name (Qnil));
   else
     user_name = "";
   if (STRINGP (Fsystem_name ()))
-    host_name = (char *)SDATA (Fsystem_name ());
+    host_name = SSDATA (Fsystem_name ());
   else
     host_name = "";
   lock_info_str = (char *)alloca (strlen (user_name) + strlen (host_name)
@@ -738,4 +737,3 @@ syms_of_filelock (void)
   defsubr (&Sfile_locked_p);
 #endif
 }
-

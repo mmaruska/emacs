@@ -1,6 +1,5 @@
 /* Synchronous subprocess invocation for GNU Emacs.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Copyright (C) 1985-1988, 1993-1995, 1999-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1278,7 +1277,7 @@ getenv_internal_1 (const char *var, int varlen, char **value, int *valuelen,
 	{
 	  if (SBYTES (entry) > varlen && SREF (entry, varlen) == '=')
 	    {
-	      *value = (char *) SDATA (entry) + (varlen + 1);
+	      *value = SSDATA (entry) + (varlen + 1);
 	      *valuelen = SBYTES (entry) - (varlen + 1);
 	      return 1;
 	    }
@@ -1310,7 +1309,7 @@ getenv_internal (const char *var, int varlen, char **value, int *valuelen,
 	= Fframe_parameter (NILP (frame) ? selected_frame : frame, Qdisplay);
       if (STRINGP (display))
 	{
-	  *value    = (char *) SDATA (display);
+	  *value    = SSDATA (display);
 	  *valuelen = SBYTES (display);
 	  return 1;
 	}
@@ -1594,4 +1593,3 @@ See `setenv' and `getenv'.  */);
   defsubr (&Sgetenv_internal);
   defsubr (&Scall_process_region);
 }
-

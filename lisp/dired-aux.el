@@ -1,7 +1,6 @@
 ;;; dired-aux.el --- less commonly used parts of dired
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 1998, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+;; Copyright (C) 1985-1986, 1992, 1994, 1998, 2000-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
@@ -821,8 +820,8 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
 	       (let ((out-name (concat file ".gz")))
 		 (and (or (not (file-exists-p out-name))
 			  (y-or-n-p
-			   "File %s already exists.  Really compress? "
-			   out-name))
+			   (format "File %s already exists.  Really compress? "
+				   out-name)))
 		      (not (dired-check-process (concat "Compressing " file)
 						"gzip" "-f" file))
 		      (or (file-exists-p out-name)

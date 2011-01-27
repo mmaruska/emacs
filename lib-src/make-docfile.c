@@ -1,6 +1,5 @@
 /* Generate doc-string file for GNU Emacs from source files.
-   Copyright (C) 1985, 1986, 1992, 1993, 1994, 1997, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -158,7 +157,11 @@ main (int argc, char **argv)
     }
   if (argc > i + 1 && !strcmp (argv[i], "-d"))
     {
-      chdir (argv[i + 1]);
+      if (chdir (argv[i + 1]) != 0)
+	{
+	  perror (argv[i + 1]);
+	  return EXIT_FAILURE;
+	}
       i += 2;
     }
 
@@ -648,6 +651,7 @@ scan_c_file (char *filename, const char *mode)
 
 	      if (defunflag && (commas == 1 || commas == 2))
 		{
+		  int scanned = 0;
 		  do
 		    c = getc (infile);
 		  while (c == ' ' || c == '\n' || c == '\r' || c == '\t');
@@ -655,12 +659,14 @@ scan_c_file (char *filename, const char *mode)
 		    goto eof;
 		  ungetc (c, infile);
 		  if (commas == 2) /* pick up minargs */
-		    fscanf (infile, "%d", &minargs);
+		    scanned = fscanf (infile, "%d", &minargs);
 		  else /* pick up maxargs */
 		    if (c == 'M' || c == 'U') /* MANY || UNEVALLED */
 		      maxargs = -1;
 		    else
-		      fscanf (infile, "%d", &maxargs);
+		      scanned = fscanf (infile, "%d", &maxargs);
+		  if (scanned < 0)
+		    goto eof;
 		}
 	    }
 

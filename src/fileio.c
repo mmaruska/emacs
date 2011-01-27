@@ -1,8 +1,6 @@
 /* File IO for GNU Emacs.
 
-Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996, 1997,
-  1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-  2009, 2010, 2011  Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -194,7 +192,7 @@ report_file_error (const char *string, Lisp_Object data)
 	  {
 	    int c;
 
-	    str = (char *) SDATA (errstring);
+	    str = SSDATA (errstring);
 	    c = STRING_CHAR (str);
 	    Faset (errstring, make_number (0), make_number (DOWNCASE (c)));
 	  }
@@ -2558,7 +2556,7 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
     return Qnil;
   return (statbuf.st_mode & S_IFMT) == S_IFDIR ? Qt : Qnil;
 #else
-  return (check_writable (!NILP (dir) ? (char *) SDATA (dir) : "")
+  return (check_writable (!NILP (dir) ? SSDATA (dir) : "")
 	  ? Qt : Qnil);
 #endif
 }
