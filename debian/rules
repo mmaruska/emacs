@@ -246,7 +246,7 @@ define patch_info
 endef
 
 get-orig-source:
-	git archive --format=tar --prefix=emacs-snapshot-$(upstream_ver)/ HEAD | gzip -9 > ../emacs-snapshot_$(upstream_ver).orig.tar.gz
+	git archive --format=tar --prefix=emacs-snapshot-$(upstream_ver)/ HEAD | xz -9 > ../emacs-snapshot_$(upstream_ver).orig.tar.xz
 .PHONY: get-orig-source
 
 # we use PHONY because deleting patches won't cause rebuild otherwise.
