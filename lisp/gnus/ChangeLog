@@ -1,3 +1,37 @@
+2011-01-28  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-int.el (gnus-request-marks): Call *-request-marks instead of the
+	older request-update-info.
+
+	* gnus-art.el (article-make-date-line): Limit the length a bit more.
+
+2011-01-28  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml2015.el (mml2015-epg-sign, mml2015-epg-encrypt): Give
+	mml2015-signers higher precedence over mml2015-sign-with-sender.
+
+2011-01-27  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-refresh-group): Refresh even non-visible
+	groups.  This makes the nndraft:queue group pop up if it's not already
+	there.
+
+	* gnus-sum.el (gnus-summary-read-group-1): Fix the "contains no
+	messages" logic, which was reversed.
+
+	* gnus-art.el (article-update-date-lapsed): Ensure that point stays at
+	the "same place" even if point is on the line being replaced.
+	(article-update-date-lapsed): Allow updating both the combined lapsed
+	and the lapsed headers.
+	(article-update-date-lapsed): Skip past all the X-Sent/Date headers.
+	(article-make-date-line): Limit the number of segments dynamically to
+	avoid too-long lines.
+
+2011-01-27  Julien Danjou  <julien@danjou.info>
+
+	* mml2015.el (mml2015-epg-sign): Add and use mml2015-sign-with-sender.
+	(mml2015-epg-encrypt): Use mml2015-sign-with-sender.
+
 2011-01-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* shr.el (shr-expand-newlines, shr-previous-newline-padding-width):
