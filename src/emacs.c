@@ -88,9 +88,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
-/* If you change the following line, remember to update
-   msdos/mainmake.v2 which gleans the Emacs version from it!  */
-static const char emacs_version[] = "24.0.50";
+static const char emacs_version[] = VERSION;
 static const char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
 
 /* Make these values available in GDB, which doesn't see macros.  */
@@ -755,8 +753,8 @@ main (int argc, char **argv)
 	    }
 	  else
 	    {
-	      version = SDATA (tem);
-	      copyright = SDATA (tem2);
+	      version = SSDATA (tem);
+	      copyright = SSDATA (tem2);
 	    }
 	}
       else
@@ -1988,7 +1986,7 @@ all of which are called before Emacs is actually killed.  */)
      kill it because we are exiting Emacs deliberately (not crashing).
      Do it after shut_down_emacs, which does an auto-save.  */
   if (STRINGP (Vauto_save_list_file_name))
-    unlink (SDATA (Vauto_save_list_file_name));
+    unlink (SSDATA (Vauto_save_list_file_name));
 
   exit (INTEGERP (arg) ? XINT (arg) : EXIT_SUCCESS);
 }
@@ -2169,7 +2167,7 @@ You must run Emacs in batch mode in order to dump it.  */)
 #ifdef USE_MMAP_FOR_BUFFERS
   mmap_set_vars (0);
 #endif
-  unexec (SDATA (filename), !NILP (symfile) ? SDATA (symfile) : 0);
+  unexec (SSDATA (filename), !NILP (symfile) ? SSDATA (symfile) : 0);
 #ifdef USE_MMAP_FOR_BUFFERS
   mmap_set_vars (1);
 #endif

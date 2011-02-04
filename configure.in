@@ -517,7 +517,7 @@ case "${canonical}" in
     machine=hp800 opsys=hpux11
     ## FIXME.  Peter O'Gorman reports that dumping using unexelf.o doesn't
     ## work either: http://debbugs.gnu.org/cgi/bugreport.cgi?bug=6811
-    CANNOT_DUMP=yes    
+    CANNOT_DUMP=yes
   ;;
 
   hppa*-*-linux-gnu* )
@@ -2006,7 +2006,8 @@ if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
 #include <X11/Intrinsic.h>
 #include <X11/Xaw3d/Simple.h>],
       [],
-      emacs_cv_xaw3d=yes,
+      [AC_CHECK_LIB(Xaw3d, XawScrollbarSetThumb,
+                    emacs_cv_xaw3d=yes, emacs_cv_xaw3d=no)],
       emacs_cv_xaw3d=no)])
   else
     emacs_cv_xaw3d=no
@@ -2675,8 +2676,6 @@ gl_ASSERT_NO_GNULIB_POSIXCHECK
 gl_ASSERT_NO_GNULIB_TESTS
 gl_INIT
 
-AC_FUNC_STRFTIME
-
 # UNIX98 PTYs.
 AC_CHECK_FUNCS(grantpt)
 
@@ -3072,15 +3071,7 @@ if test "x$GCC" = xyes \
    AC_MSG_ERROR([GCC 4.5.0 has problems compiling Emacs; see etc/PROBLEMS'.])
 fi
 
-#### Find out which version of Emacs this is.
-[version=`grep 'const char emacs_version' ${srcdir}/src/emacs.c \
-	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`]
-if test x"${version}" = x; then
-  AC_MSG_ERROR([can't find current emacs version in `${srcdir}/src/emacs.c'.])
-fi
-if test x"${version}" != x"$PACKAGE_VERSION"; then
-  AC_MSG_WARN([version mismatch between `${srcdir}/configure.in' and `${srcdir}/src/emacs.c'.])
-fi
+version=$PACKAGE_VERSION
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
@@ -3527,8 +3518,6 @@ AH_BOTTOM([
 #define RE_TRANSLATE_P(TBL) (!(INTEGERP (TBL) && XINT (TBL) == 0))
 #endif
 #endif
-
-#define my_strftime nstrftime	/* for strftime.c */
 
 /* These default definitions are good for almost all machines.
    The exceptions override them in m/MACHINE.h.  */

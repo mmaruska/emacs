@@ -7036,23 +7036,6 @@ XTread_socket (struct terminal *terminal, int expected, struct input_event *hold
 
   ++handling_signal;
 
-#ifdef HAVE_X_SM
-  /* Only check session manager input for the primary display. */
-  if (terminal->id == 1 && x_session_have_connection ())
-    {
-      struct input_event inev;
-      BLOCK_INPUT;
-      /* We don't need to EVENT_INIT (inev) here, as
-         x_session_check_input copies an entire input_event.  */
-      if (x_session_check_input (&inev))
-        {
-          kbd_buffer_store_event_hold (&inev, hold_quit);
-          count++;
-        }
-      UNBLOCK_INPUT;
-    }
-#endif
-
   /* For debugging, this gives a way to fake an I/O error.  */
   if (terminal->display_info.x == XTread_socket_fake_io_error)
     {
@@ -7711,12 +7694,6 @@ x_connection_closed (Display *dpy, const char *error_message)
   strcpy (error_msg, error_message);
   handling_signal = 0;
 
-  /* Prevent being called recursively because of an error condition
-     below.  Otherwise, we might end up with printing ``can't find per
-     display information'' in the recursive call instead of printing
-     the original message here.  */
-  x_catch_errors (dpy);
-
   /* Inhibit redisplay while frames are being deleted. */
   specbind (Qinhibit_redisplay, Qt);
 
@@ -7759,26 +7736,9 @@ x_connection_closed (Display *dpy, const char *error_message)
      first place, so don't try to close it.  */
   if (dpyinfo)
     {
-#ifdef USE_X_TOOLKIT
-      /* We have to close the display to inform Xt that it doesn't
-	 exist anymore.  If we don't, Xt will continue to wait for
-	 events from the display.  As a consequence, a sequence of
-
-	 M-x make-frame-on-display RET :1 RET
-	 ...kill the new frame, so that we get an IO error...
-	 M-x make-frame-on-display RET :1 RET
-
-	 will indefinitely wait in Xt for events for display `:1',
-	 opened in the first call to make-frame-on-display.
-
-	 Closing the display is reported to lead to a bus error on
-	 OpenWindows in certain situations.  I suspect that is a bug
-	 in OpenWindows.  I don't know how to circumvent it here.  */
-      fatal_error_signal_hook = x_fatal_error_signal;
-      XtCloseDisplay (dpy);
-      fatal_error_signal_hook = NULL;
-#endif /* USE_X_TOOLKIT */
-
+      /* We can not call XtCloseDisplay here because it calls XSync.
+         XSync inside the error handler apparently hangs Emacs.  On
+         current Xt versions, this isn't needed either.  */
 #ifdef USE_GTK
       /* A long-standing GTK bug prevents proper disconnect handling
 	 (https://bugzilla.gnome.org/show_bug.cgi?id=85715).  Once,
@@ -7808,8 +7768,6 @@ For details, see etc/PROBLEMS.\n",
 	Fdelete_terminal (tmp, Qnoelisp);
       }
     }
-
-  x_uncatch_errors ();
 
   if (terminal_list == 0)
     {
@@ -7949,7 +7907,7 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
       && (FRAME_XIC_STYLE (f) & (XIMPreeditPosition | XIMStatusArea)))
     {
       BLOCK_INPUT;
-      xic_set_xfontset (f, SDATA (fontset_ascii (fontset)));
+      xic_set_xfontset (f, SSDATA (fontset_ascii (fontset)));
       UNBLOCK_INPUT;
     }
 #endif
@@ -9750,10 +9708,6 @@ static int x_timeout_atimer_activated_flag;
 
 static int x_initialized;
 
-#ifdef HAVE_X_SM
-static int x_session_initialized;
-#endif
-
 /* Test whether two display-name strings agree up to the dot that separates
    the screen number from the server number.  */
 static int
@@ -9873,7 +9827,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       ++x_initialized;
     }
 
-  if (! x_display_ok (SDATA (display_name)))
+  if (! x_display_ok (SSDATA (display_name)))
     error ("Display %s can't be opened", SDATA (display_name));
 
 #ifdef USE_GTK
@@ -9965,7 +9919,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	argv[argc++] = xrm_option;
       }
     turn_on_atimers (0);
-    dpy = XtOpenDisplay (Xt_app_con, SDATA (display_name),
+    dpy = XtOpenDisplay (Xt_app_con, SSDATA (display_name),
 			 resource_name, EMACS_CLASS,
 			 emacs_options, XtNumber (emacs_options),
 			 &argc, argv);
@@ -10004,8 +9958,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
     for (share = x_display_list, tail = x_display_name_list; share;
 	 share = share->next, tail = XCDR (tail))
-      if (same_x_server (SDATA (XCAR (XCAR (tail))),
-			 SDATA (display_name)))
+      if (same_x_server (SSDATA (XCAR (XCAR (tail))),
+			 SSDATA (display_name)))
 	break;
     if (share)
       terminal->kboard = share->terminal->kboard;
@@ -10066,7 +10020,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   /* Set the name of the terminal. */
   terminal->name = (char *) xmalloc (SBYTES (display_name) + 1);
-  strncpy (terminal->name, SDATA (display_name), SBYTES (display_name));
+  strncpy (terminal->name, SSDATA (display_name), SBYTES (display_name));
   terminal->name[SBYTES (display_name)] = 0;
 
 #if 0
@@ -10157,8 +10111,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 					  build_string ("PrivateColormap"),
 					  Qnil, Qnil);
 	  if (STRINGP (value)
-	      && (!strcmp (SDATA (value), "true")
-		  || !strcmp (SDATA (value), "on")))
+	      && (!strcmp (SSDATA (value), "true")
+		  || !strcmp (SSDATA (value), "on")))
 	    dpyinfo->cmap = XCopyColormapAndFree (dpyinfo->display, dpyinfo->cmap);
 	}
     }
@@ -10355,8 +10309,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 				    build_string ("Synchronous"),
 				    Qnil, Qnil);
     if (STRINGP (value)
-	&& (!strcmp (SDATA (value), "true")
-	    || !strcmp (SDATA (value), "on")))
+	&& (!strcmp (SSDATA (value), "true")
+	    || !strcmp (SSDATA (value), "on")))
       XSynchronize (dpyinfo->display, True);
   }
 
@@ -10368,13 +10322,13 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 				    Qnil, Qnil);
 #ifdef USE_XIM
     if (STRINGP (value)
-	&& (!strcmp (SDATA (value), "false")
-	    || !strcmp (SDATA (value), "off")))
+	&& (!strcmp (SSDATA (value), "false")
+	    || !strcmp (SSDATA (value), "off")))
       use_xim = 0;
 #else
     if (STRINGP (value)
-	&& (!strcmp (SDATA (value), "true")
-	    || !strcmp (SDATA (value), "on")))
+	&& (!strcmp (SSDATA (value), "true")
+	    || !strcmp (SSDATA (value), "on")))
       use_xim = 1;
 #endif
   }
@@ -10672,9 +10626,6 @@ x_initialize (void)
   last_tool_bar_item = -1;
   any_help_event_p = 0;
   ignore_next_mouse_click_timeout = 0;
-#ifdef HAVE_X_SM
-  x_session_initialized = 0;
-#endif
 
 #ifdef USE_GTK
   current_count = -1;

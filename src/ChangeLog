@@ -1,3 +1,159 @@
+2011-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (IGNORE_VALUE_H): New variable.
+	($(BLD)/sysdep.$(O)): Depend on $(IGNORE_VALUE_H).
+
+2011-02-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	allow C code to suppress warnings about ignored return values
+
+	We need to go through the code and for each such warning, either
+	fix the code to pay attention to the returned value, or tell GCC
+	that we really do want to ignore the returned value.  Here is one
+	example of how to do the latter.
+	* sysdep.c: Include <ignore-value.h>.
+	(sys_subshell): Suppress an undesirable warning about not checking
+	the returned value of 'write', as there's nothing useful one can
+	do with that returned value.
+
+2011-02-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_connection_closed): Remove all calls that calls
+	XSync (Bug#7949).
+
+2011-02-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (tiff_load): Avoid compiler warning in 2nd arg to
+	TIFFClientOpen.
+
+2011-02-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsmfns.c (ice_connection_closed): Call delete_read_fd.
+	(x_session_check_input): Change args and return type so it can be used
+	as argument to add_read_fd.  Make static.  Remove call to select.
+	Call kbd_buffer_store_event for emacs_event.
+	(smc_save_yourself_CB): Also store initial argv to SmRestartCommand.
+	(ice_conn_watch_CB): Call add_read_fd.
+
+	* xterm.c (XTread_socket): Remove HAVE_X_SM block with call to
+	x_session_check_input.
+	(x_session_initialized): Remove definition.
+	(x_initialize): Remove setting of x_session_initialized.
+
+	* xterm.h (x_session_check_input): Remove declaration.
+
+2011-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	format-time-string now supports subsecond time stamp resolution
+	* editfns.c (emacs_nmemftime): Renamed from emacs_memftimeu,
+	for consistency with its new argument and with gnulib nstrftime.
+	All callers changed.  New argument NS.
+	(Fformat_time_string): Check that the time argument's microseconds
+	component, if any, is in range; this avoids integer overflow and
+	also nstrftime needs this.  Document %N.
+
+2011-01-31  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* image.c (DEF_IMGLIB_FN): Add parameter rettype, use it instead
+	of int.  All uses adjusted.
+	(PNG_JMPBUF, png_load, jpeg_load, tiff_load, gif_load)
+	(svg_load_image): Remove casts.
+
+2011-01-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (fn_png_longjmp, fn_png_set_longjmp_fn): New png
+	function definitions for compiling with libpng-1.5.
+	(PNG_LONGJMP, PNG_JMPBUF): New macros for libpng-1.5.
+	(my_png_error, png_load): Use them.  Suggested by Thomas Klausner
+	(Bug#7908).
+
+2011-01-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (HAVE_STRFTIME): Don't define.
+
+	* makefile.w32-in (OBJ2): Remove strftime.$(O).
+	($(BLD)/strftime.$(O)): Remove prerequisites.
+
+2011-01-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	src/emacs.c now gets version number from configure.in
+	* emacs.c (emacs_version): Set to VERSION so that it
+	is determined automatically from ../configure.in.
+
+2011-01-31  Jim Meyering  <meyering@redhat.com>
+
+	* charset.c (load_charset_map): Don't deref NULL on failed malloc.
+	Use xmalloc rather than malloc.
+
+2011-01-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	strftime: import from gnulib
+	* Makefile.in (obj): Remove strftime.o, as gnulib now does this for us.
+	* deps.mk (strftime.o): Remove.
+	* editfns.c: Include <strftime.h>, supplied by gnulib.
+	(emacs_strftimeu): Remove decl.
+	(emacs_memftimeu): Use nstrftime (the gnulib name) rather than
+	emacs_strftimeu.
+	* config.in: Regenerate.
+	* strftime.c: Remove; we now use strftime from gnulib.
+
+	Use SSDATA when the context wants char *.
+	* alloc.c, buffer.c, bytecode.c, callproc.c, dired.c:
+	* dispnew.c, doc.c, editfns.c, emacs.c, fileio.c, filelock.c:
+	* fns.c, font.c, frame.c, image.c, indent.c, keyboard.c:
+	* lread.c, minibuf.c, print.c, process.c, search.c, widget.c:
+	* xdisp.c, xfaces.c, xfns.c, xml.c, xselect.c, xterm.c:
+	Use SSDATA (not SDATA) when the context of the expression wants
+	char * (not unsigned char *).
+
+2011-01-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* .gdbinit: Read global lisp variables as globals.f_V*.
+
+2011-01-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* font.c (PROP_MATCH): Remove parameter N and use strlen instead.
+	All uses changed.
+	(PROP_SAVE): Likewise.
+
+2011-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (make_lispy_position): Fix typo in last change
+	(Bug#7935).
+
+2011-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (HAVE_MKTIME): Remove.
+
+	* makefile.w32-in (LOCAL_FLAGS): Add -I../lib.
+	(GNULIB): New variable.
+	(LIBS): Add $(GNULIB).
+	$(TEMACS): Depend on $(GNULIB).
+	<top-level>: Fix font-lock disrupted by a lone `"'.
+
+2011-01-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsselect.m (ns_string_from_pasteboard): Get length of string
+	and use make_string instead of build_string (Bug#7934).
+	(ns_string_to_pasteboard_internal): Use initWithBytesNoCopy
+	instead of stringWithUTF8String  (Bug#7934).
+
+2011-01-29  Anders Lindgren  <andlind@gmail.com> (tiny change)
+
+        * nsfont.m (nsfont_open): Ensure that fonts with inexact
+        descenders would not become one pixel too tall (Bug#7887).
+
+2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (make_lispy_position): For clicks on right fringe or
+	margin, compute text position using the X coordinate relative to
+	the left of the text area (Bug#7839).
+
+2011-01-28  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_spec_pattern): Check each extra property
+	value.
+
 2011-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (safe_eval_handler): Distinguish symbols and strings.

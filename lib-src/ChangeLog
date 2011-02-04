@@ -1,3 +1,47 @@
+2011-02-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (ETAGS_CFLAGS, CTAGS_CFLAGS): Add
+	``-DEMACS_NAME="\"GNU Emacs\""''.
+	(obj): Remove strftime.o.
+
+2011-01-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (VERSION): Don't define, defined on nt/config.nt.
+	(ECLIENT_CFLAGS): Remove -DVERSION.
+	($(BLD)/emacsclient.$(O)): Don't depend on makefile.w32-in.
+
+2011-01-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	src/emacs.c now gets version number from configure.in
+	* ebrowse.c: Adjust comment to say that.
+
+2011-01-30  Jim Meyering  <meyering@redhat.com>
+
+	make-docfile: don't corrupt heap for an invalid .elc file
+	"printf '#@1a' > in.elc; ./make-docfile in.elc" would store 0
+	one byte before just-malloc'd saved_string buffer.
+	* make-docfile.c (scan_lisp_file): Diagnose an invalid dynamic
+	doc string length.  Also fix an always-false while-loop test.
+
+2011-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (LOCAL_FLAGS): Add -I../lib.
+	(GETOPTOBJS, GETOPTDEPS): Remove targets.
+	(MOVEMAILOBJS): Replace $(GETOPTOBJS) with ../lib/$(BLD)/libgnu.$(A).
+	($(BLD)/movemail.exe): Depend on ../lib/getopt.h.
+	(ECLIENTOBJS, ETAGSOBJ, CTAGSOBJ, EBROWSEOBJ): Replace getopt.o
+	and getopt1.o with ../lib/$(BLD)/libgnu.$(A).
+	(clean): Don't remove getopt.h.
+	(getopt.h, $(BLD)/getopt.$(O), $(BLD)/getopt1.$(O)): Remove targets.
+	($(BLD)/ctags.$(O), $(BLD)/etags.$(O)): Replace getopt.h with
+	$(EMACS_ROOT)/lib/getopt.h.
+
+2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ntlib.c (setregid): New stub, renamed from setegid.
+
+	* ntlib.h: Update prototype.
+
 2011-01-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* movemail.c (main): Use setregid instead of setegid, which is

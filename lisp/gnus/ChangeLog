@@ -1,3 +1,176 @@
+2011-02-04  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-setup-1): Don't bind the constant
+	-forbidden-properties.
+	(message-setup-1): Revert previous change, since it needs to bind the
+	props to insert them.
+	(message-resend): Allow removing the read-only separator line.
+
+2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-accept-article): Give an error message if
+	the APPEND wasn't successful.
+
+2011-02-03  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* gnus-start.el (gnus-get-unread-articles): Fix the call to methods
+	that have no groups.
+
+2011-02-03  Julien Danjou  <julien@danjou.info>
+
+	* gnus-draft.el: Remove progn around gnus-draft-setup.
+
+2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-read-active-for-groups): This function is never
+	called with a nil `infos', so clean that up.
+	(gnus-get-unread-articles): Request active files from primary/secondary
+	methods that have no groups (yet).
+
+2011-02-03  Julien Danjou  <julien@danjou.info>
+
+	* message.el (message-setup-1): Always generate References first.
+	(message-mail): Return the return value of message-setup, not always t.
+	(message-setup-1): Insert mail-header-separator with read-only and
+	intangible properties set.
+
+	* gnus.el (gnus-summary-line-format): Add missing semi-colon for
+	user-date in docstring.
+
+	* gnus-art.el (gnus-article-jump-to-part): Remove useless sit-for.
+
+	* gnus.el (gnus-summary-line-format): Mention &user-date format in
+	docstring.
+
+	* gnus.el (gnus-user-date-format-alist): Change default value. Use
+	defcustom, with type and group. Move from gnus-util.el. Rename to
+	gnus-summary-user-date-format-alist.
+
+2011-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* nnimap.el (gnus-fetch-headers): Declare.
+
+	* nnheader.el (gnus-range-add, gnus-remove-from-range): Autoload.
+
+2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-forward-make-body-digest-plain)
+	(message-followup, message-reply): Clean up things noted by Stefan.
+
+	* gnus-art.el (gnus-article-setup-buffer): Stop the date timer if
+	gnus-article-update-date-headers is nil.
+	(gnus-article-date-headers): Rip out the old -treat-date-* stuff, since
+	it didn't really work with defcustom.
+	(article-update-date-lapsed): Make sure the window start doesn't move,
+	either.
+
+2011-02-01  Julien Danjou  <julien@danjou.info>
+
+	* mm-uu.el (mm-uu-type-alist): Add support for git format-patch diff
+	format.
+
+	* mm-decode.el (mm-inline-media-tests): Do not check for diff-mode it's
+	standard in Emacs nowadays.
+
+2011-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-expand-name): Don't trust the return value of
+	bbdb-complete-name.
+	(message-check-news-header-syntax): Remove unused var `start'.
+	(message-idna-to-ascii-rhs-1): Remove unused vars `rhs' and `address'.
+	(message-inhibit-body-encoding): Move to before first use.
+	(mail-abbrev-mode-regexp, Expires, User-Agent, Lines, Distribution)
+	(To, References, In-Reply-To, Newsgroups, Subject, Path, From)
+	(Organization, Message-ID, Date, mh-previous-window-config):
+	Defvar the vars using dynamic scoping.
+
+2011-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-render-td): Only do colours at the final rendering.
+	Should be slightly faster.
+	(shr-insert-table): Fix up TD background colours when doing the
+	vertical padding.
+
+	* gnus-art.el (article-date-ut): Protect against articles with no Date
+	header.
+	(article-update-date-lapsed): Don't use current-column to find the
+	horizontal position.  It's fragile in the presence of \003 characters.
+
+	* gnus-start.el (gnus-read-active-file-1): Remove dead parameter infos.
+
+2011-01-31  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (article-transform-date): Rewrite to still work when
+	there are several rfc2822 parts.
+	(article-transform-date): Fix infinite recursion.
+	(article-date-ut): Replace infinitely many Date headers with a single
+	one when called interactively.
+
+	* nnimap.el (nnimap-wait-for-response): Wait for results in a more
+	secure manner.
+
+	* gnus-art.el (article-update-date-lapsed): Try to avoid having point
+	move around by not using save-window-excursion.  It seems to work...
+
+2011-01-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-make-date-line): Work for user-defined format.
+
+2011-01-31  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nntp.el (nntp-retrieve-group-data-early)
+	(nntp-finish-retrieve-group-infos): Implement the asynchronous data
+	fetching functions.
+
+	* gnus-start.el (gnus-read-active-for-groups): Read the active files
+	thoroughly for all backends that have no known groups.  This should
+	allow new nnml methods to retrieve mail.
+
+	* gnus-group.el (gnus-group-jump-to-group): Allow jumping to groups
+	that Gnus doesn't know exists again.
+
+	* gnus-art.el (gnus-article-date-lapsed-new-header): Removed.
+	(gnus-treat-date-ut): Ditto.
+	(gnus-article-update-date-header): Renamed.
+	(gnus-treat-date-local): Removed.
+	(gnus-treat-date-english): Removed.
+	(gnus-treat-date-lapsed): Removed.
+	(gnus-treat-date-combined-lapsed): Removed.
+	(gnus-treat-date-original): Removed.
+	(gnus-treat-date-iso8601): Removed.
+	(gnus-treat-date-user-defined): Removed.
+	(gnus-article-date-headers): New variable to control all the date
+	header options.
+	(article-date-ut): Rewrite to allow using the new way to format date
+	headers(s).
+
+2011-01-30  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnmail.el (nnmail-article-group): Check for a direct fancy split
+	method.
+	(nnmail-article-group): A better test for fanciness.
+
+	* nnimap.el (nnimap-request-head): Protect against not finding the
+	article by Message-ID.
+
+2011-01-29  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (article-update-date-lapsed): Try a better way to really
+	keep point at the "same place".
+
+2011-01-28  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-select-newsgroup): Don't try to alter the active
+	data if the group is unactivated.
+
+2011-01-28  Julien Danjou  <julien@danjou.info>
+
+	* gnus-win.el: Remove dead function gnus-window-configuration-element.
+	(gnus-all-windows-visible-p): Remove old compatibility code.
+	(gnus-window-top-edge): Add docstring.
+
+	* gnus-group.el (gnus-group-jump-to-group): Set must match to t.
+
 2011-01-28  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-int.el (gnus-request-marks): Call *-request-marks instead of the

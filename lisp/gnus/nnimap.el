@@ -519,15 +519,17 @@ textual parts.")
     (with-current-buffer (nnimap-buffer)
       (when (stringp article)
 	(setq article (nnimap-find-article-by-message-id group article)))
-      (nnimap-get-whole-article
-       article (format "UID FETCH %%d %s"
-		       (nnimap-header-parameters)))
-      (let ((buffer (current-buffer)))
-	(with-current-buffer (or to-buffer nntp-server-buffer)
-	  (erase-buffer)
-	  (insert-buffer-substring buffer)
-	  (nnheader-ms-strip-cr)
-	  (cons group article))))))
+      (if (null article)
+	  nil
+	(nnimap-get-whole-article
+	 article (format "UID FETCH %%d %s"
+			 (nnimap-header-parameters)))
+	(let ((buffer (current-buffer)))
+	  (with-current-buffer (or to-buffer nntp-server-buffer)
+	    (erase-buffer)
+	    (insert-buffer-substring buffer)
+	    (nnheader-ms-strip-cr)
+	    (cons group article)))))))
 
 (defun nnimap-get-whole-article (article &optional command)
   (let ((result
@@ -983,14 +985,19 @@ textual parts.")
 				 "\n"
 			       "\r\n"))
 	(let ((result (nnimap-get-response sequence)))
-	  (if (not (car result))
+	  (if (not (nnimap-ok-p result))
 	      (progn
-		(nnheader-message 7 "%s" (nnheader-get-report-string 'nnimap))
+		(nnheader-report 'nnimap "%s" result)
 		nil)
 	    (cons group
 		  (or (nnimap-find-uid-response "APPENDUID" (car result))
 		      (nnimap-find-article-by-message-id
 		       group message-id)))))))))
+
+(defun nnimap-ok-p (value)
+  (and (consp value)
+       (consp (car value))
+       (equal (caar value) "OK")))
 
 (defun nnimap-find-uid-response (name list)
   (let ((result (car (last (nnimap-find-response-element name list)))))
@@ -1471,6 +1478,9 @@ textual parts.")
   (setq nnimap-status-string "Read-only server")
   nil)
 
+(declare-function gnus-fetch-headers "gnus-sum"
+		  (articles &optional limit force-new dependencies))
+
 (deffoo nnimap-request-thread (header)
   (let* ((id (mail-header-id header))
 	 (refs (split-string
@@ -1587,17 +1597,14 @@ textual parts.")
 	  (goto-char (point-max))
 	  (while (and (setq openp (memq (process-status process)
 					'(open run)))
-		      (not (re-search-backward
-			    (format "^%d .*\n" sequence)
-			    (if nnimap-streaming
-				(max (point-min)
-				     (min
-				      (- (point) 500)
-				      (save-excursion
-					(forward-line -3)
-					(point))))
-			      (point-min))
-			    t)))
+		      (progn
+			;; Skip past any "*" lines that the server has
+			;; output.
+			(while (and (not (bobp))
+				    (progn
+				      (forward-line -1)
+				      (looking-at "\\*"))))
+			(not (looking-at (format "%d " sequence)))))
 	    (when messagep
 	      (nnheader-message 7 "nnimap read %dk" (/ (buffer-size) 1000)))
 	    (nnheader-accept-process-output process)

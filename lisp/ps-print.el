@@ -1479,7 +1479,7 @@ Please send all bug fixes and enhancements to
 
 
 ;; Load XEmacs/Emacs definitions
-(eval-and-compile (require 'ps-def))
+(require 'ps-def)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -6657,7 +6657,7 @@ If FACE is not a valid face name, use default face."
 ;; But autoload them here to make the separation invisible.
 
 ;;;### (autoloads (ps-mule-end-job ps-mule-begin-job ps-mule-initialize
-;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "84d550158bdd60da7af54df17b7a38f7")
+;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "14536f28e0dcaa956901bb59ad86a875")
 ;;; Generated autoloads from ps-mule.el
 
 (defvar ps-multibyte-buffer nil "\

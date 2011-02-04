@@ -34,11 +34,14 @@ AC_DEFUN([gl_EARLY],
   # Code from module getopt-gnu:
   # Code from module getopt-posix:
   # Code from module gettext-h:
+  # Code from module ignore-value:
   # Code from module include_next:
   # Code from module intprops:
   # Code from module mktime:
   # Code from module multiarch:
+  # Code from module stdbool:
   # Code from module stddef:
+  # Code from module strftime:
   # Code from module time:
   # Code from module time_r:
   # Code from module unistd:
@@ -74,6 +77,8 @@ AC_DEFUN([gl_INIT],
   # Code from module gettext-h:
   AC_SUBST([LIBINTL])
   AC_SUBST([LTLIBINTL])
+  # Code from module ignore-value:
+  AC_REQUIRE([AC_C_INLINE])
   # Code from module include_next:
   # Code from module intprops:
   # Code from module mktime:
@@ -81,8 +86,12 @@ AC_DEFUN([gl_INIT],
   gl_TIME_MODULE_INDICATOR([mktime])
   # Code from module multiarch:
   gl_MULTIARCH
+  # Code from module stdbool:
+  AM_STDBOOL_H
   # Code from module stddef:
   gl_STDDEF_H
+  # Code from module strftime:
+  gl_FUNC_GNU_STRFTIME
   # Code from module time:
   gl_HEADER_TIME_H
   # Code from module time_r:
@@ -242,10 +251,14 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/getopt1.c
   lib/getopt_int.h
   lib/gettext.h
+  lib/ignore-value.h
   lib/intprops.h
   lib/mktime-internal.h
   lib/mktime.c
+  lib/stdbool.in.h
   lib/stddef.in.h
+  lib/strftime.c
+  lib/strftime.h
   lib/time.in.h
   lib/time_r.c
   lib/unistd.in.h
@@ -257,9 +270,12 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/include_next.m4
   m4/mktime.m4
   m4/multiarch.m4
+  m4/stdbool.m4
   m4/stddef_h.m4
+  m4/strftime.m4
   m4/time_h.m4
   m4/time_r.m4
+  m4/tm_gmtoff.m4
   m4/unistd_h.m4
   m4/warn-on-use.m4
   m4/wchar_t.m4
