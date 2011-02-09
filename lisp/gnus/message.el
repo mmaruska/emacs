@@ -1814,6 +1814,7 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 
 (defvar	message-options nil
   "Some saved answers when sending message.")
+(make-local-variable 'message-options)
 
 (defvar message-send-mail-real-function nil
   "Internal send mail function.")
@@ -6411,15 +6412,15 @@ are not included."
          (funcall message-default-headers)
        message-default-headers))
     (or (bolp) (insert ?\n)))
-  (let ((message-forbidden-properties nil))
-    (insert (propertize (concat mail-header-separator "\n")
-			'read-only t 'rear-nonsticky t 'intangible t)))
+  (insert (concat mail-header-separator "\n"))
   (forward-line -1)
   ;; If a crash happens while replying, the auto-save file would *not* have a
   ;; `References:' header if `message-generate-headers-first' was nil.
   ;; Therefore, always generate it first.
   (let ((message-generate-headers-first
-         (append message-generate-headers-first '(References))))
+         (if (eq message-generate-headers-first t)
+             t
+           (append message-generate-headers-first '(References)))))
     (when (message-news-p)
       (when message-default-news-headers
         (insert message-default-news-headers)

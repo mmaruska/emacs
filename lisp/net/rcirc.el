@@ -2185,13 +2185,22 @@ With a prefix arg, prompt for new topic."
 
 (defun rcirc-cmd-ctcp (args &optional process target)
   (if (string-match "^\\([^ ]+\\)\\s-+\\(.+\\)$" args)
-      (let ((target (match-string 1 args))
-            (request (match-string 2 args)))
-        (rcirc-send-string process
-			   (format "PRIVMSG %s \C-a%s\C-a"
-				   target (upcase request))))
+      (let* ((target (match-string 1 args))
+             (request (upcase (match-string 2 args)))
+             (function (intern-soft (concat "rcirc-ctcp-sender-" request))))
+        (if (fboundp function) ;; use special function if available
+            (funcall function process target request)
+          (rcirc-send-string process
+                             (format "PRIVMSG %s :\C-a%s\C-a"
+                                     target request))))
     (rcirc-print process (rcirc-nick process) "ERROR" nil
                  "usage: /ctcp NICK REQUEST")))
+
+(defun rcirc-ctcp-sender-PING (process target request)
+  "Send a CTCP PING message to TARGET."
+  (let ((timestamp (format "%.0f" (float-time))))
+    (rcirc-send-string process
+                       (format "PRIVMSG %s :\C-aPING %s\C-a" target timestamp))))
 
 (defun rcirc-cmd-me (args &optional process target)
   (rcirc-send-string process (format "PRIVMSG %s :\C-aACTION %s\C-a"
@@ -2455,7 +2464,10 @@ keywords when no KEYWORD is given."
 				     (rcirc-elapsed-lines process sender channel)))
 				(when (and last-activity-lines
 					   (< last-activity-lines rcirc-omit-threshold))
-				  (rcirc-last-line process sender channel)))))
+                                  (rcirc-last-line process sender channel))))
+      ;; reset mode-line-process in case joining a channel with an
+      ;; already open buffer (after getting kicked e.g.)
+      (setq mode-line-process nil))
 
     (rcirc-print process sender "JOIN" channel "")
 
@@ -2588,6 +2600,20 @@ keywords when no KEYWORD is given."
 	  (setcdr rec away-message)
 	(setq rcirc-nick-away-alist (cons (cons nick away-message)
 					  rcirc-nick-away-alist))))))
+
+(defun rcirc-handler-317 (process sender args text)
+  "RPL_WHOISIDLE"
+  (let* ((nick (nth 1 args))
+         (idle-secs (string-to-number (nth 2 args)))
+         (idle-string
+          (if (< idle-secs most-positive-fixnum)
+              (format-seconds "%yy %dd %hh %mm %z%ss" idle-secs)
+            "a very long time"))
+         (signon-time (seconds-to-time (string-to-number (nth 3 args))))
+         (signon-string (format-time-string "%c" signon-time))
+         (message (format "%s idle for %s, signed on %s"
+                          nick idle-string signon-string)))
+    (rcirc-print process sender "317" nil message t)))
 
 (defun rcirc-handler-332 (process sender args text)
   "RPL_TOPIC"

@@ -1,3 +1,146 @@
+2011-02-09  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (rcirc-ctcp-sender-PING): Simplifying.
+
+	* net/rcirc.el (rcirc-cmd-ctcp): Use dedicated function when
+	available.
+	(rcirc-ctcp-sender-PING): New function.
+
+2011-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* obsolete/pc-select.el: Rename from emulation/pc-select.el (bug#7940).
+	Remove the mark/nomark handling, and activate shift-select-mode instead.
+
+	* obsolete/pc-mode.el: Rename from emulation/pc-mode.el.
+
+2011-02-07  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-logunits-quant): Add support for
+	non-logarithmic units.
+
+2011-02-07  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-after-copy-or-kill-hook): New hook for
+	extension-specific processing of killed text.
+	(allout-mode): Include new allout-after-copy-or-kill-hook among
+	mentioned hooks.
+	(allout-kill-line) (allout-kill-topic): Ensure that processing
+	after kill happens even if barf-if-buffer-read-only is raised.
+	Include new allout-after-copy-or-kill-hook among that subsequent
+	processing.
+	(allout-deannotate-hidden): Actually remove the annotation text
+	properties.
+
+	* allout.el (allout-listify-exposed): Copy text sans text properties.
+
+2011-02-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-list-activatable-names): Add optional argument
+	BUS.
+
+2011-02-07  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (rcirc-handler-317): New function (Bug#6507).
+
+2011-02-06  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-logunits-field-reference) Renamed from
+	`calc-default-field-reference-level'.
+	(calc-logunits-power-reference): Renamed from
+	`calc-default-power-reference-level'
+
+	* calc/calc-units.el (math-logunits-quant):  Renamed from
+	`math-logunits-level'
+	(math-logunits-plus):  Renamed from math-logcombine.
+	(calcFunc-luplus, calcFunc-luminus calc-luplus, calc-luminus): Remove.
+	(calcFunc-lufieldadd, calcFunc-lupoweradd, calcFunc-lufieldsub)
+	(calcFunc-lufieldsub,calc-logunits-add calc-logunits-sub):
+	New functions.
+	(calcFunc-fieldquant): Renamed from `calcFunc-fieldlevel'.
+	(calcFunc-powerquant): Renamed from `calcFunc-powerlevel'.
+	(calc-logunits-quantity): Renamed from `calc-level'.
+	(calcFunc-dbfieldlevel, calcFunc-dbpowerlevel, calcFunc-npfieldlevel)
+	(calcFunc-nppowerlevel,calc-logunits-dblevel, calc-logunits-nplevel)
+	(math-logunits-mul, calcFunc-lufieldmul, calcFunc-lupowermul)
+	(calc-logunits-mul, math-logunits-divide, calcFunc-lufielddiv)
+	(calcFunc-lupowerdiv,calc-logunits-divide,math-logunits-level):
+	New functions.
+
+	* calc/calc-help.el (calc-u-prefix-help): Removed "L" reference.
+	(calc-ul-prefix-help): Remove.
+	(calc-l-prefix-help): New function.
+	(calc-full-help): Add reference to `calc-l-prefix-help'.
+
+	* calc/calc-ext.el (calc-init-extensions): Update autoloads.
+
+	* calc/README: Mention logarithmic units.
+
+2011-02-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/emacsbug.el (report-emacs-bug-hook): Remove the check for
+	non-ASCII characters (Bug#7925).
+
+2011-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-macs.el (return-from): Fix doc typo.
+
+	* calendar/diary-lib.el (diary-font-lock-keywords):
+	Tweak diary-time-regexp match.  (Bug#7891)
+
+	* progmodes/f90.el (f90-find-tag-default): New function.  (Bug#7919)
+	(f90-mode): Use it for mode's `find-tag-default-function' property.
+
+	* ibuf-ext.el (ibuffer-filter-disable): Make it work.  (Bug#7969)
+
+	* faces.el (set-face-attribute): Doc fix.  (Bug#2659)
+
+2011-02-05  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (rcirc-handler-JOIN): Reset mode-line-process
+	(Bug#6386).
+
+2011-02-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-here-doc-open-re): Don't rely on the
+	font-lock-syntax-table remappings.
+	(sh-here-doc-markers, sh-here-doc-re): Remove.
+	(sh-font-lock-close-heredoc): Remove.
+	(sh-syntax-propertize-here-doc): New function.
+	(sh-font-lock-open-heredoc): Set the sh-here-doc-marker property
+	instead of the sh-here-doc-re.
+	(sh-font-lock-paren): Don't do anything in comments or strings.
+	Handle line continuations.  Accept a few more chars.
+	Don't rely on the font-lock-syntax-table remappings.
+	`esac' is not a valid pattern.
+	(sh-syntax-propertize-function): Handle here-docs differently, so we
+	don't bother syntax-propertizing the insides.
+
+	* progmodes/sh-script.el (sh-font-lock-paren, sh-kw, sh-prev-thing):
+	Handle new bashisms ";&" and ";;&" (bug#7947).
+
+2011-02-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-smb.el (tramp-smb-errors): Use `regexp-opt'.
+	Add "NT_STATUS_IO_TIMEOUT" and "NT_STATUS_NO_SUCH_USER".
+
+2011-02-05  Era Eriksson  <era+tramp@iki.fi>  (tiny change)
+
+	* net/tramp.el (tramp-postfix-method-format)
+	(tramp-postfix-method-regexp, tramp-prefix-domain-format)
+	(tramp-prefix-domain-regexp, tramp-postfix-user-format)
+	(tramp-postfix-user-regexp, tramp-prefix-port-format)
+	(tramp-prefix-port-regexp, tramp-postfix-host-format)
+	(tramp-postfix-host-regexp, tramp-handle-substitute-in-file-name):
+	Doc fix.
+
+2011-02-04  Sam Steingold  <sds@gnu.org>
+
+	* mouse.el (mouse-buffer-menu-mode-groups): Add a "GDB" group.
+
+2011-02-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* international/mule-util.el (with-coding-priority): Doc fix.
+
 2011-02-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* arc-mode.el (archive-mode-map): Fix a typo in last change.
