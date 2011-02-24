@@ -420,6 +420,10 @@ from being initialized."
 
 (defvar normal-top-level-add-subdirs-inode-list nil)
 
+(defconst debian-emacs-flavor 'emacs-snapshot
+  "A symbol representing the particular debian flavor of emacs running.
+Something like 'emacs20, 'xemacs20, etc.")
+
 (defvar no-blinking-cursor nil)
 
 (defvar pure-space-overflow nil
@@ -1361,7 +1365,13 @@ please check its value")
         ;; Sites should not disable the startup screen.
         ;; Only individuals should disable the startup screen.
         (let ((inhibit-startup-screen inhibit-startup-screen))
-	  (load site-run-file t t)))
+          (progn
+	  ;; Load all the debian package snippets.
+	  ;; It's in here because we want -q to kill it too.
+	  (if (load "debian-startup" t t nil)
+	      (debian-startup debian-emacs-flavor))
+	  ;; Now the normal site file...
+	  (load site-run-file t t nil))))
 
     ;; Load that user's init file, or the default one, or none.
     (startup--load-user-init-file
