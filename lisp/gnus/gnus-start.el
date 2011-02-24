@@ -380,13 +380,6 @@ disc."
   :group 'gnus-newsrc
   :type 'boolean)
 
-(defcustom gnus-use-backend-marks nil
-  "If non-nil, Gnus will store and retrieve marks from the backends.
-This means that marks will be stored both in .newsrc.eld and in
-the backend, and will slow operation down somewhat."
-  :group 'gnus-newsrc
-  :type 'boolean)
-
 (defcustom gnus-check-bogus-groups-hook nil
   "A hook run after removing bogus groups."
   :group 'gnus-start-server
@@ -871,6 +864,7 @@ prompt the user for the name of an NNTP server to use."
 			       (gnus-get-buffer-create
 				(file-name-nondirectory dribble-file)))
       (set (make-local-variable 'file-precious-flag) t)
+      (setq buffer-save-without-query t)
       (erase-buffer)
       (setq buffer-file-name dribble-file)
       (auto-save-mode t)
@@ -1509,7 +1503,7 @@ If SCAN, request a scan of that group as well."
       (gnus-activate-group (gnus-info-group info) nil t))
 
     ;; Allow backends to update marks,
-    (when gnus-use-backend-marks
+    (when gnus-propagate-marks
       (let ((method (inline (gnus-find-method-for-group
 			     (gnus-info-group info)))))
 	(when (gnus-check-backend-function 'request-marks (car method))
@@ -1682,7 +1676,20 @@ If SCAN, request a scan of that group as well."
 		(lambda (c1 c2)
 		  (< (gnus-method-rank (cadr c1) (car c1))
 		     (gnus-method-rank (cadr c2) (car c2))))))
-
+    ;; Go through the list of servers and possibly extend methods that
+    ;; aren't equal (and that need extension; i.e., they are async).
+    (let ((methods nil))
+      (dolist (elem type-cache)
+	(destructuring-bind (method method-type infos dummy) elem
+	  (let ((gnus-opened-servers methods))
+	    (when (and (gnus-similar-server-opened method)
+		       (gnus-check-backend-function
+			'retrieve-group-data-early (car method)))
+	      (setq method (gnus-server-extend-method
+			    (gnus-info-group (car infos))
+			    method))
+	      (setcar elem method))
+	    (push (list method 'ok) methods)))))
     ;; Start early async retrieval of data.
     (dolist (elem type-cache)
       (destructuring-bind (method method-type infos dummy) elem
@@ -1711,8 +1718,8 @@ If SCAN, request a scan of that group as well."
 			  gnus-secondary-select-methods))
       (when (and (not (assoc method type-cache))
 		 (gnus-check-backend-function 'request-list (car method)))
-       (with-current-buffer nntp-server-buffer
-         (gnus-read-active-file-1 method nil))))
+	(with-current-buffer nntp-server-buffer
+	  (gnus-read-active-file-1 method nil))))
 
     ;; Do the rest of the retrieval.
     (dolist (elem type-cache)
