@@ -310,6 +310,11 @@ usually do not have translators for other languages.\n\n")))
 	(insert "Repository revision: " emacs-repository-version "\n"))
     (if (stringp emacs-repository-branch)
 	(insert "Repository branch: " emacs-repository-branch "\n"))
+    (insert " (emacs-snapshot package, version "
+	    (substring (shell-command-to-string
+			"dpkg -s emacs-snapshot-common | grep ^Version:")
+		       9 -1)
+	    ")\n")
     (if (fboundp 'x-server-vendor)
 	(condition-case nil
             ;; This is used not only for X11 but also W32 and others.
