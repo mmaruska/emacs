@@ -291,7 +291,8 @@ If that doesn't give a function, return nil."
 (defun describe-copying ()
   "Display info on how you may redistribute copies of GNU Emacs."
   (interactive)
-  (view-help-file "COPYING"))
+  (view-file "/usr/share/common-licenses/GPL")
+  (goto-char (point-min)))
 
 (defun describe-gnu-project ()
   "Display info on the GNU project."
