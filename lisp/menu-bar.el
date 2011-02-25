@@ -1632,6 +1632,28 @@ key, a click, or a menu-item")))
   (info "elisp")
   (Info-index topic))
 
+(defun debian-emacs-changelog ()
+  "Display the Debian changelog file for this package."
+  (interactive)
+  (view-file "/usr/share/doc/emacs-snapshot-common/changelog.Debian.gz")
+  (goto-address))
+
+(defun debian-emacs-news ()
+  "Display the Debian NEWS file for this package."
+  (interactive)
+  (view-file "/usr/share/doc/emacs-snapshot-common/NEWS.Debian.gz")
+  (goto-address))
+
+(defun debian-emacs-readme ()
+  "Display the Debian README file for this package."
+  (interactive)
+  ;; Force opening of this file in outline mode, even if the other mode
+  ;; is present.
+  (let ((auto-mode-alist (cons '("debian/README.Debian$" . outline-mode)
+			       auto-mode-alist)))
+    (view-file "/usr/share/doc/emacs-snapshot-common/README.Debian")
+    (goto-address)))
+
 (defvar menu-bar-search-documentation-menu
   (let ((menu (make-sparse-keymap "Search Documentation")))
 
@@ -1727,7 +1749,7 @@ key, a click, or a menu-item")))
     (define-key menu [getting-new-versions]
       `(menu-item ,(purecopy "Getting New Versions") describe-distribution
                   :help ,(purecopy "How to get the latest version of Emacs")))
-    (define-key menu [sep2]
+    (define-key menu [sep3]
       menu-bar-separator)
     (define-key menu [external-packages]
       `(menu-item ,(purecopy "Finding Extra Packages") menu-bar-help-extra-packages
@@ -1744,6 +1766,17 @@ key, a click, or a menu-item")))
       `(menu-item ,(purecopy "Describe") ,menu-bar-describe-menu))
     (define-key menu [search-documentation]
       `(menu-item ,(purecopy "Search Documentation") ,menu-bar-search-documentation-menu))
+    (define-key menu [sep2]
+      menu-bar-separator)
+    (define-key menu [debian-emacs-changelog]
+      `(menu-item ,(purecopy "Debian ChangeLog") debian-emacs-changelog
+                  :help ,(purecopy "Display the Debian changelog")))
+    (define-key menu [debian-emacs-news]
+      `(menu-item ,(purecopy "Debian News") debian-emacs-news
+                  :help ,(purecopy "Display the NEWS.Debian file")))
+    (define-key menu [debian-emacs-readme]
+      `(menu-item ,(purecopy "Debian README") debian-emacs-readme
+                  :help ,(purecopy "Display the README.Debian file")))
     (define-key menu [sep1]
       menu-bar-separator)
     (define-key menu [emacs-psychotherapist]
