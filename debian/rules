@@ -248,8 +248,13 @@ get-orig-source:
 	git archive --format=tar --prefix=emacs-snapshot-$(upstream_ver)/ HEAD | xz -9 > ../emacs-snapshot_$(upstream_ver).orig.tar.xz
 .PHONY: get-orig-source
 
+debian/patches/series:
+	cd $(CURDIR)/debian/patches && rm -f * && git format-patch master..debian/patches > series
+
+.PHONY: debian/patches/series
+
 # we use PHONY because deleting patches won't cause rebuild otherwise.
-debian/README.Debian: debian/README.in debian/patches/*.diff
+debian/README.Debian: debian/README.in debian/patches/series
 	@(cat $<;							  \
 	  printf "* Additional features\n\n"; $(call patch_info,feature); \
 	  printf "* Bugfixes\n\n"; $(call patch_info,fix);		  \

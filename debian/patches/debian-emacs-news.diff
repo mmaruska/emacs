@@ -1,21 +1,0 @@
-** Mention Debian-specific changes in the Emacs NEWS file.
-   Provided by: Rob Browning <rlb@defaultvalue.org>
-
----
- etc/NEWS |    5 +++++
- 1 file changed, 5 insertions(+)
-
---- a/etc/NEWS
-+++ b/etc/NEWS
-@@ -22,6 +22,11 @@
- so we will look at it and add it to the manual.
- 
- 
-+* Debian specific changes to Emacs
-+
-+Please see /usr/share/doc/emacs-snapshot-common/README.Debian.
-+
-+
- * Installation Changes in Emacs 24.1
- 
- ** Configure links against libselinux if it is found.
