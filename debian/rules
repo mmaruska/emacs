@@ -248,7 +248,7 @@ MASTER = $(shell git show `git rev-list --merges master..HEAD | head -1`  | grep
 get-orig-source:
 	@echo Master is: $(MASTER)
 	@git --no-pager show --format=short $(MASTER)
-	git archive --format=tar --prefix=emacs-snapshot-$(upstream_ver)/ $$MASTER | xz -9 > ../emacs-snapshot_$(upstream_ver).orig.tar.xz
+	git archive --format=tar --prefix=emacs-snapshot-$(upstream_ver)/ $(MASTER) | xz -9 > ../emacs-snapshot_$(upstream_ver).orig.tar.xz
 .PHONY: get-orig-source
 
 debian/patches/series:
