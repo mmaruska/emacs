@@ -1,3 +1,121 @@
+2011-03-05  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* gnus.el (gnus-interactive): Use read-directory-name.
+
+	* gnus-uu.el (gnus-uu-decode-uu-and-save)
+	(gnus-uu-decode-unshar-and-save, gnus-uu-decode-save)
+	(gnus-uu-decode-binhex, gnus-uu-decode-yenc)
+	(gnus-uu-decode-save-view, gnus-uu-decode-postscript-and-save):
+	Likewise.
+
+	* gnus-group.el (gnus-group-make-directory-group): Likewise.
+
+2011-03-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-update-read-articles): Fix typo.
+
+	* gnus.el (gnus-valid-select-methods): Mark nnimap as a backend that
+	really have server-side marks.
+
+	* gnus-sum.el (gnus-propagate-marks): Change default back to nil again,
+	since most backends do not usefully have server-side marks.
+	(gnus-update-read-articles): Propagate marks to all backends that
+	really have server-side marks.
+
+2011-03-05  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* message.el (message-cite-reply-position, message-cite-style): New
+	variables.
+	(message-yank-original): Use the new citation styles.
+
+2011-03-04  Daiki Ueno  <ueno@unixuser.org>
+
+	* message.el (message-options): Revert the change that's a workaround
+	for XEmacs buffer-local issue; don't mark it buffer-local when running
+	under XEmacs.
+
+2011-03-03  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* nnimap.el (nnimap-parse-flags): Add a workaround for FETCH lines with
+	numbers too big to be `read'.
+
+2011-03-02  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* message.el (message-options): Make buffer-local two ways to attempt
+	to fix a XEmacs bug.
+
+2011-03-02  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (gnus-with-article-buffer): Fix buffer live check.
+
+2011-03-01  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (list-identifier): Add list-identifier as a parameter
+	group.
+	(article-hide-list-identifiers): Use list-identifier group parameter.
+
+2011-02-28  Julien Danjou  <julien@danjou.info>
+
+	* sieve.el (sieve-buffer-script-name): New local variable to store
+	sieve script name.
+	(sieve-edit-script): Store sieve script name.
+	(sieve-upload): Use sieve script name when uploading.
+	(sieve-upload): Use substitute-command-keys.
+	(sieve-edit-script): Use substitute-command-keys.
+	(sieve-refresh-scriptlist): Use substitute-command-keys.
+	(sieve-manage-mode-map): Define keymap properly.
+	(sieve-manage-mode): Do not set mode name manually, change mode-name to
+	(sieve-refresh-scriptlist): Use substitute-command-keys."Sieve-manage".
+	Remove commented code about cvs.
+	(sieve-manage-quit): New function.
+	(sieve-manage-mode-map): Bind 'q' to sieve-manage-quit.
+
+2011-02-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-import-other-newsrc-file): New function.
+
+2011-02-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-search): Cache empty result sets.
+
+	* auth-source.el (auth-source-save-behavior): New variable to replace
+	`auth-source-never-create'.
+	(auth-source-netrc-create): Use it.
+	(auth-source-never-save): Remove.
+
+2011-02-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-stream): Doc fix.
+	(nnimap-open-connection-1): Reverse the order of the ports to that the
+	prompted-for port is first.
+
+	* gnus-start.el (gnus-get-unread-articles): Don't clobber the async
+	retrieval by the no-group selection.
+
+	* gnus-demon.el (gnus-demon-init): run-with-timer should be called with
+	numerical parameters.
+
+2011-02-25  Julien Danjou  <julien@danjou.info>
+
+	* gnus-gravatar.el: Use gnus-with-article-buffer.
+
+	* gnus-art.el (gnus-with-article-buffer): Check that the
+	gnus-article-buffer is alive.
+
+2011-02-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-creation-prompts): New variable to manage
+	creation-time prompts.
+	(auth-source-search): Document it.
+	(auth-source-format-prompt): Add utility function.
+	(auth-source-netrc-create): Don't default the user name to
+	user-login-name.  Use `auth-source-creation-prompts' and some default
+	prompts for user, host, port, and password (the default generic prompt
+	remains ugly).
+	(auth-source-never-save): Add customizable option to never save info.
+	(auth-source-netrc-create): Use it and improve save prompts.  Fix help
+	mode excursion.
+
 2011-02-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* auth-source.el (auth-source-netrc-create): Use `read-char' with no
@@ -719,7 +837,7 @@
 
 	* shr.el: Revert change that made headings use different-sized faces.
 	The Emacs display engine isn't advanced enough that, for instance,
-	tables can comfortably use differntly-sized faces.
+	tables can comfortably use differently-sized faces.
 
 2011-01-25  Lars Ingebrigtsen  <larsi@gnus.org>
 
@@ -1771,7 +1889,7 @@
 
 2010-11-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* shr.el (shr-color-check): Protect against non-existant colour names.
+	* shr.el (shr-color-check): Protect against non-existent colour names.
 
 2010-11-24  Julien Danjou  <julien@danjou.info>
 
@@ -3085,7 +3203,7 @@
 	This makes nnimap work properly on Courier again.
 
 	* gnus.el (gnus-carpal): The carpal mode has been removed, but define
-	the variable for backwards compatability.
+	the variable for backwards compatibility.
 
 	* mm-decode.el (mm-save-part): If given a non-directory result, expand
 	the file name before using to avoid setting mm-default-directory to
