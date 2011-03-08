@@ -1,11 +1,83 @@
+2011-03-08  Arni Magnusson  <arnima@hafro.is>  (tiny change)
+
+	* textmodes/texinfo.el (texinfo-environments):
+	Add deftypecv, deftypeivar, deftypemethod, deftypeop, html.  (Bug#2783)
+
+2011-03-08  Glenn Morris  <rgm@gnu.org>
+
+	* cus-start.el (cursor-in-non-selected-windows):
+	Fix :set quoting oddness.  (Bug#8192)
+
+	* font-lock.el (lisp-font-lock-keywords-1): Don't highlight `)'
+	in some setf expressions.  (Bug#2159)
+
+2011-03-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (custom-available-themes): Return themes in
+	alphabetical order.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/cc-cmds.el (c-beginning-of-statement): Fix incorrect
+	application of patch from Alan Mackenzie (Bug#7595).
+
+2011-03-07  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (rcirc-connect): Fix PASS bug.
+
+2011-03-07  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc.el (vc-next-action): Add missing space to y-or-n-p prompt.
+	Give an explicit error if failed to make writable.  (Bug#6146)
+
+2011-03-07  Ed Reingold  <reingold@emr.cs.iit.edu>
+
+	* calendar/cal-hebrew.el (diary-hebrew-yahrzeit):
+	Add optional `after-sunset' argument.  (Bug#8190)
+
+2011-03-07  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
+
+	* play/morse.el (nato-alphabet, nato-region, denato-region):
+	New variable and functions.  (Bug#2288)
+	(morse-region, unmorse-region): Barf if read-only.
+
+2011-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/gud.el (gdb-script-syntax-propertize-function):
+	Don't change the syntax of a \n that closes a comment (bug#8169).
+
+2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package-x.el (package-archive-upload-base): Make it a
+	defcustom.
+	(package--update-file): Doc fix.  Accept relative file names.
+	(package--archive-contents-from-file): Remove the argument, since
+	it's necessarily always "archive-contents".
+	(package-maint-add-news-item): Pass relative file name args to
+	package--update-file.
+	(package-upload-buffer-internal): Prompt for a destination if
+	package-archive-upload-base is invalid.  Create the directory if
+	it does not exist.
+	(package-upload-buffer, package-upload-file): Doc fix.
+
+2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* isearch.el (isearch-mode-map): Bind C-y to isearch-yank-kill,
+	and move isearch-yank-line to M-s C-e (Bug#8183).
+
+2011-03-06  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Reindent.
+	(c-guess-basic-syntax): Move CASE 19 to a different place,
+	correctly to process template-args-cont lines.
+
 2011-03-06  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-ext.el (calc-init-extensions):
-	Rename calc-logunits-dblevel and calc-logunits-nplevel to
-	calc-dblevel and calc-nplevel, respectively.
-	Add keybindings for calc-spn, calc-midi and calc-freq.  Add
-	autoloads for calcFunc-spn, calcFunc-midi, calcFunc-freq,
-	calc-spn, calc-midi and calc-freq.
+	Rename calc-logunits-dblevel and calc-logunits-nplevel to calc-dblevel
+	and calc-nplevel, respectively.  Add keybindings for calc-spn,
+	calc-midi and calc-freq.  Add autoloads for calcFunc-spn,
+	calcFunc-midi, calcFunc-freq, calc-spn, calc-midi and calc-freq.
 
 	* calc/calc-units.el (calc-dblevel): Rename from
 	calc-logunits-dblevel.
