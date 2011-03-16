@@ -1,3 +1,180 @@
+2011-03-15  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-make-topic-prefix) (allout-rebullet-heading):
+	Invert the roles of character and string values for INSTEAD, so a
+	string is used for the more common case of a defaulting prompt.
+
+2011-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el (ruby-backward-sexp):
+	* progmodes/ebrowse.el (ebrowse-draw-file-member-info):
+	* play/gamegrid.el (gamegrid-make-face):
+	* play/bubbles.el (bubbles--grid-width, bubbles--grid-height)
+	(bubbles--colors, bubbles--shift-mode, bubbles--initialize-images):
+	* notifications.el (notifications-notify):
+	* net/xesam.el (xesam-search-engines):
+	* net/quickurl.el (quickurl-list-insert):
+	* vc/vc-hg.el (vc-hg-dir-printer): Fix use of case.
+
+2011-03-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): Update package subdirectory regexp.
+
+2011-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* allout.el (allout-abbreviate-flattened-numbering)
+	(allout-mode-deactivate-hook): Fix up obsolescence "date".
+
+	* subr.el (read-char-choice): Only show the cursor after the prompt,
+	not after the answer.
+
+2011-03-15  Kevin Ryde  <user42@zip.com.au>
+
+	* help-fns.el (variable-at-point): Skip leading quotes, if any
+	(bug#8253).
+
+2011-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-save-excursion): Change the
+	warning message.
+
+2011-03-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* shell.el (shell): When called interactively, offer to change the
+	shell file name on remote hosts.
+
+2011-03-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/ldap.el (ldap-search-internal): Add `auth-source-search'
+	integration for LDAP parameters.  The host, base, user or binddn,
+	and secret tokens can be specified in a netrc file, for instance.
+	This is optional because an `auth-source' parameter must be
+	specified in the search attributes.
+
+2011-03-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help.el (describe-mode): Link to the mode's definition (bug#8185).
+
+2011-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ebuff-menu.el (electric-buffer-menu-mode-map): Move initialization
+	into declaration.  Remove redundant and harmful binding.
+
+2011-03-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (file-ownership-preserved-p): Pass `integer' as an
+	explicit 2nd argument to `file-attributes'.  If the file's owner
+	is the Administrators group on Windows, and the current user is
+	Administrator, consider that a match.
+
+	* server.el (server-ensure-safe-dir): Consider server directory
+	safe on MS-Windows if its owner is the Administrators group while
+	the current Emacs user is Administrator.  Use `=' to compare
+	numerical UIDs, since they could be integers or floats.
+
+2011-03-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc/vc-bzr.el (vc-bzr-state): Handle bzr 2.3.0 (follow-up to bug#8170).
+
+2011-03-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.1.
+
+	* net/tramp-sh.el (tramp-methods): Exchange "%k" marker with options.
+
+	* net/trampver.el: Update release number.
+
+2011-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation--previous-directory): Fix up
+	various nil/dead-marker mismatches (bug#8014).
+	(compilation-directory-properties, compilation-error-properties):
+	Don't call it at a position past the one we're about to change.
+
+	* emacs-lisp/bytecomp.el (byte-compile-make-obsolete-variable):
+	Disable obsolescence warnings in the file that declares it.
+
+2011-03-11  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout-widgets.el (allout-widgets-tally): Initialize
+	allout-widgets-tally as a hash table rather than nil to prevent
+	mode-line redisplay warnings.
+	Also, clarify the module description and fix a comment typo.
+
+2011-03-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-fns.el (describe-variable): Don't complete keywords.
+	Suggested by Teodor Zlatanov <tzz@lifelogs.com>.
+
+2011-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-version-join): Impose a standard
+	string representation for pre/alpha/beta version lists.
+	(package-unpack-single): Standardize the directory name by passing
+	it through package-version-join.
+	(package-strip-rcs-id): Accept any version string that does not
+	signal an error in version-to-list.
+
+2011-03-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* simple.el (delete-trailing-whitespace): Return nil for the
+	benefit of `write-file-functions'.
+
+2011-03-10  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-hg.el (vc-hg-pull, vc-hg-merge-branch): Use vc-hg-program.
+
+	* vc/vc-git.el (vc-git-program): New option.
+	(vc-git-branches, vc-git-pull, vc-git-merge-branch, vc-git-command)
+	(vc-git--call): Use it.
+
+	* eshell/esh-util.el (eshell-condition-case): Doc fix.
+
+	* cus-edit.el (Custom-newline): If no button at point, look
+	for a subgroup button at start-of-line.  (Bug#2298)
+
+	* mail/rmail.el (rmail-msgend, rmail-msgbeg): Doc fixes.
+
+2011-03-10  Julien Danjou  <julien@danjou.info>
+
+	* avoid.el (mouse-avoidance-ignore-p): Do not move the cursor if
+	`cursor-type' is nil.
+
+2011-03-09  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-mode-map): Don't bind "C-_" to `calc-missing-key'.
+
+2011-03-09  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el Summary: Change so yank of distinctive-bullet items
+	preserves the existing header prefix, rebulleting it if necessary,
+	rather than replacing it.  This is necessary for proper operation
+	of cooperative addons like allout-widgets.
+	(allout-make-topic-prefix, allout-rebullet-heading): Change
+	SOLICIT arg to INSTEAD, and interpret additionally a string value
+	as alternate bullet to be used, instead of prompting the user for
+	a bullet character.
+
+2011-03-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band): Do
+	not use `tramp-file-name-port', because this returns also
+	`tramp-default-port'.
+
+2011-03-09  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (rcirc-handler-001): Remove useless
+	with-rcirc-process-buffer.
+	(rcirc-check-auth-status): Swap arguments to string-match.
+
+2011-03-09  Glenn Morris  <rgm@gnu.org>
+
+	* shell.el (shell-mode):
+	Set comint-input-ring-size from HISTSIZE.  (Bug#7889)
+
+	* progmodes/gdb-mi.el (gdb): Improve 2010-12-08 change.
+	Check for GDBHISTFILE, HISTSIZE, etc.  (Bug#7889)
+
 2011-03-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package.el (package-refresh-contents)
@@ -809,7 +986,7 @@
 2011-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* lisp/allout-widgets.el (allout-widgets-icons-light-subdir)
-	(allout-widgets-icons-dark-subdir): Track relocations of icons
+	(allout-widgets-icons-dark-subdir): Track relocations of icons.
 	* lisp/allout.el: Remove commentary about remove encryption
 	passphrase mnemonic support and verification.
 	(allout-encrypt-string): Recognize epg failure to decrypt gpg2
@@ -1186,10 +1363,9 @@
 
 	(allout-auto-activation-helper, allout-setup): New autoloads
 	implement new custom set procedure for allout-auto-activation.
-	Also, explicitly invoke
-	(allout-setup) after allout-auto-activation is custom-defined, to
-	effect the settings in emacs sessions besides the few where
-	allout-auto-activation customization is donea.
+	Also, explicitly invoke (allout-setup) after allout-auto-activation
+	is custom-defined, to affect the settings in emacs sessions besides
+	the few where allout-auto-activation customization is done.
 	(allout-auto-activation): Use allout-auto-activation-helper to
 	:set.  Revise the docstring.
 	(allout-init): Reduce functionality to just customizing

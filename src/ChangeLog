@@ -1,3 +1,364 @@
+2011-03-15  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* coding.c (detect_coding_iso_2022): Reorganize code to clarify
+	structure.
+
+2011-03-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lisp.h (VWindow_system, Qfile_name_history):
+	* keyboard.h (lispy_function_keys) [WINDOWSNT]:
+	* w32term.h (w32_system_caret_hwnd, w32_system_caret_height)
+	(w32_system_caret_x, w32_system_caret_y): Declare extern.
+
+	* w32select.c: Don't #include "keyboard.h".
+	(run_protected): Add extern declaration for waiting_for_input.
+
+	* w32.c (Qlocal, noninteractive1, inhibit_window_system):
+	* w32console.c (detect_input_pending, read_input_pending)
+	(encode_terminal_code):
+	* w32fns.c (quit_char, lispy_function_keys, Qtooltip)
+	(w32_system_caret_hwnd, w32_system_caret_height, w32_system_caret_x)
+	(w32_system_caret_y, Qfile_name_history):
+	* w32font.c (w32font_driver, QCantialias, QCotf, QClang):
+	* w32inevt.c (reinvoke_input_signal, lispy_function_keys):
+	* w32menu.c (Qmenu_bar, QCtoggle, QCradio, Qoverriding_local_map)
+	(Qoverriding_terminal_local_map, Qmenu_bar_update_hook):
+	* w32proc.c (Qlocal, report_file_error):
+	* w32term.c (Vwindow_system, updating_frame):
+	* w32uniscribe.c (initialized, uniscribe_font_driver):
+	Remove unneeded extern declarations.
+
+2011-03-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffer.c (Fmake_indirect_buffer): Fix incorrect assertions.
+
+2011-03-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffer.h (BUF_BEGV, BUF_BEGV_BYTE, BUF_ZV, BUF_ZV_BYTE, BUF_PT)
+	(BUF_PT_BYTE): Rewrite to handle indirect buffers (Bug#8219).
+	These macros can no longer be used for assignment.
+
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer): Assign
+	struct members directly, instead of using BUF_BEGV etc.
+	(record_buffer_markers, fetch_buffer_markers): New functions for
+	recording and fetching special buffer markers.
+	(set_buffer_internal_1, set_buffer_temp): Use them.
+
+	* lread.c (unreadchar): Use SET_BUF_PT_BOTH.
+
+	* insdel.c (adjust_point): Use SET_BUF_PT_BOTH.
+
+	* intervals.c (temp_set_point_both): Use SET_BUF_PT_BOTH.
+	(get_local_map): Use SET_BUF_BEGV_BOTH and SET_BUF_ZV_BOTH.
+
+	* xdisp.c (hscroll_window_tree):
+	(reconsider_clip_changes): Use PT instead of BUF_PT.
+
+2011-03-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/editfns.$(O)): Depend on
+	$(EMACS_ROOT)/lib/intprops.h.
+
+2011-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix more problems found by GCC 4.5.2's static checks.
+
+	* gtkutil.c (xg_get_pixbuf_from_pixmap): Add cast from char *
+	to unsigned char * to avoid compiler diagnostic.
+	(xg_free_frame_widgets): Make it clear that a local variable is
+	needed only if USE_GTK_TOOLTIP.
+	(gdk_window_get_screen): Make it clear that this macro is needed
+	only if USE_GTK_TOOLTIP.
+	(int_gtk_range_get_value): New function, which avoids a diagnostic
+	from gcc -Wbad-function-cast.
+	(xg_set_toolkit_scroll_bar_thumb): Use it.
+	(xg_tool_bar_callback, xg_tool_item_stale_p): Rewrite to avoid
+	diagnostic from gcc -Wbad-function-cast.
+	(get_utf8_string, xg_get_file_with_chooser):
+	Rename locals to avoid shadowing.
+	(create_dialog): Move locals to avoid shadowing.
+
+	* xgselect.c (xg_select): Remove unused var.
+
+	* image.c (four_corners_best): Mark locals as initialized.
+	(gif_load): Initialize transparent_p to zero (Bug#8238).
+	Mark another local as initialized.
+	(my_png_error, my_error_exit): Mark with NO_RETURN.
+
+	* image.c (clear_image_cache): Now static.
+	(DIM, HAVE_STDLIB_H_1): Remove unused macros.
+	(xpm_load): Redo to avoid "discards qualifiers" gcc warning.
+	(x_edge_detection): Remove unnecessary cast that
+	gcc -Wbad-function-cast diagnoses.
+	(gif_load): Fix pointer signedness.
+	(clear_image_cache, xbm_read_bitmap_data, x_detect_edges):
+	(jpeg_load, gif_load): Rename locals to avoid shadowing.
+
+2011-03-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve quality of tests for time stamp overflow.
+	For example, without this patch (encode-time 0 0 0 1 1
+	1152921504606846976) returns the obviously-bogus value (-948597
+	62170) on my RHEL 5.5 x86-64 host.  With the patch, it correctly
+	reports time overflow.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-03/msg00470.html>.
+	* deps.mk (editfns.o): Depend on ../lib/intprops.h.
+	* editfns.c: Include limits.h and intprops.h.
+	(TIME_T_MIN, TIME_T_MAX): New macros.
+	(time_overflow): Move earlier, to before first use.
+	(hi_time, lo_time): New functions, for an accurate test for
+	out-of-range times.
+	(Fcurrent_time, Fget_internal_run_time, make_time): Use them.
+	(Fget_internal_run_time): Don't assume time_t fits in int.
+	(make_time): Use list2 instead of Fcons twice.
+	(Fdecode_time): More accurate test for out-of-range times.
+	(check_tm_member): New function.
+	(Fencode_time): Use it, to test for out-of-range times.
+	(lisp_time_argument): Don't rely on undefined left-shift and
+	right-shift behavior when checking for time stamp overflow.
+
+	* editfns.c (time_overflow): New function, refactoring common code.
+	(Fformat_time_string, Fdecode_time, Fencode_time):
+	(Fcurrent_time_string): Use it.
+
+	Move 'make_time' to be next to its inverse 'lisp_time_argument'.
+	* dired.c (make_time): Move to ...
+	* editfns.c (make_time): ... here.
+	* systime.h: Note the move.
+
+2011-03-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* fringe.c (update_window_fringes): Remove unused variables.
+
+	* unexmacosx.c (copy_data_segment): Also copy __got section.
+	(Bug#8223)
+
+2011-03-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* termcap.c [MSDOS]: Include "msdos.h".
+	(find_capability, tgetnum, tgetflag, tgetstr, tputs, tgetent):
+	Constify `char *' arguments and their references according to
+	prototypes in tparam.h.
+
+	* deps.mk (termcap.o): Depend on tparam.h and msdos.h.
+
+	* msdos.c (XMenuAddPane): 3rd argument is `const char *' now.
+	Adapt all references accordingly.
+
+	* msdos.h (XMenuAddPane): 3rd argument is `const char *' now.
+
+2011-03-11  Tom Tromey  <tromey@redhat.com>
+
+	* buffer.c (syms_of_buffer): Remove obsolete comment.
+
+2011-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* termhooks.h (encode_terminal_code): Declare prototype.
+
+	* msdos.c (encode_terminal_code): Don't declare prototype.
+
+	* term.c (encode_terminal_code): Now external again, used by
+	w32console.c and msdos.c.
+
+	* makefile.w32-in ($(BLD)/term.$(O), ($(BLD)/tparam.$(O)): Depend
+	on $(SRC)/tparam.h, see revno 103623.
+
+2011-03-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some minor problems found by GCC 4.5.2's static checks.
+
+	* fringe.c (update_window_fringes): Mark locals as initialized
+	(Bug#8227).
+	(destroy_fringe_bitmap, init_fringe_bitmap): Now static.
+
+	* alloc.c (mark_fringe_data): Move decl from here ...
+	* lisp.h (mark_fringe_data) [HAVE_WINDOW_SYSTEM]: ... to here,
+	to check its interface.
+	(init_fringe_once): Do not declare unless HAVE_WINDOW_SYSTEM.
+
+	* fontset.c (free_realized_fontset): Now static.
+	(Fset_fontset_font): Rename local to avoid shadowing.
+	(fontset_font): Mark local as initialized.
+	(FONTSET_SPEC, FONTSET_REPERTORY, RFONT_DEF_REPERTORY): Remove; unused.
+
+	* xrdb.c: Include "xterm.h", to check x_load_resources's interface.
+
+	* xselect.c (x_disown_buffer_selections): Remove; not used.
+	(TRACE3) [!defined TRACE_SELECTION]: Remove; not used.
+	(x_own_selection, Fx_disown_selection_internal): Rename locals
+	to avoid shadowing.
+	(x_handle_dnd_message): Remove local to avoid shadowing.
+
+	* lisp.h (GCPRO1_VAR, UNGCPRO_VAR): New macros,
+	so that the caller can use some name other than gcpro1.
+	(GCPRO1, UNGCPRO): Reimplement in terms of the new macros.
+	* xfns.c (Fx_create_frame, x_create_tip_frame, Fx_show_tip):
+	(Fx_backspace_delete_keys_p):
+	Use them to avoid shadowing, and rename vars to avoid shadowing.
+	(x_decode_color, x_set_name, x_window): Now static.
+	(Fx_create_frame): Add braces to silence GCC warning.
+	(Fx_file_dialog, Fx_select_font): Fix pointer signedness.
+	(x_real_positions, xg_set_icon_from_xpm_data, x_create_tip_frame):
+	Remove unused locals.
+	(Fx_create_frame, x_create_tip_frame, Fx_show_tip):
+	(Fx_backspace_delete_keys_p): Rename locals to avoid shadowing.
+	Some of these renamings use the new GCPRO1_VAR and UNGCPRO_VAR
+	macros.
+
+	* xterm.h (x_mouse_leave): New decl.
+
+	* xterm.c (x_copy_dpy_color, x_focus_on_frame, x_unfocus_frame):
+	Remove unused functions.
+	(x_shift_glyphs_for_insert, XTflash, XTring_bell):
+	(x_calc_absolute_position): Now static.
+	(XTread_socket): Don't define label "out" unless it's used.
+	Don't declare local "event" unless it's used.
+	(x_iconify_frame, x_free_frame_resources): Don't declare locals
+	unless they are used.
+	(XEMBED_VERSION, xembed_set_info): Don't define unless needed.
+	(x_fatal_error_signal): Remove; not used.
+	(x_draw_image_foreground, redo_mouse_highlight, XTmouse_position):
+	(x_scroll_bar_report_motion, handle_one_xevent, x_draw_bar_cursor):
+	(x_error_catcher, x_connection_closed, x_error_handler):
+	(x_error_quitter, xembed_send_message, x_iconify_frame):
+	(my_log_handler): Rename locals to avoid shadowing.
+	(x_delete_glyphs, x_ins_del_lines): Mark with NO_RETURN.
+	(x_connection_closed): Tell GCC not to suggest NO_RETURN.
+
+	* xfaces.c (clear_face_cache, Fx_list_fonts, Fface_font): Rename
+	or move locals to avoid shadowing.
+	(tty_defined_color, merge_face_heights): Now static.
+	(free_realized_faces_for_fontset): Remove; not used.
+	(Fx_list_fonts): Mark variable that gcc -Wuninitialized
+	does not deduce is never used uninitialized.
+	(STRDUPA, LSTRDUPA, FONT_POINT_SIZE_QUANTUM): Remove; not used.
+	(LFACEP): Define only if XASSERTS, as it's not needed otherwise.
+
+	* terminal.c (store_terminal_param): Now static.
+
+	* xmenu.c (menu_highlight_callback): Now static.
+	(set_frame_menubar): Remove unused local.
+	(xmenu_show): Rename parameter to avoid shadowing.
+	(xmenu_show, xdialog_show, xmenu_show): Make local pointers "const"
+	since they might point to immutable storage.
+	(next_menubar_widget_id): Declare only if USE_X_TOOLKIT,
+	since it's unused otherwise.
+
+	* xdisp.c (produce_glyphless_glyph): Initialize lower_xoff.
+	Add a FIXME, since the code still doesn't look right.  (Bug#8215)
+	(Fcurrent_bidi_paragraph_direction): Simplify slightly; this
+	avoids a gcc -Wuninitialized diagnostic.
+	(display_line, BUILD_COMPOSITE_GLYPH_STRING, draw_glyphs):
+	(note_mouse_highlight): Mark variables that gcc -Wuninitialized
+	does not deduce are never used uninitialized.
+
+	* lisp.h (IF_LINT): New macro, copied from ../lib-src/emacsclient.c.
+
+	* xdisp.c (redisplay_window): Rename local to avoid shadowing.
+	* window.c (window_loop, size_window):
+	(run_window_configuration_change_hook, enlarge_window): Likewise.
+
+	* window.c (display_buffer): Now static.
+	(size_window): Mark variables that gcc -Wuninitialized
+	does not deduce are never used uninitialized.
+	* window.h (check_all_windows): New decl, to forestall
+	gcc -Wmissing-prototypes diagnostic.
+	* dispextern.h (bidi_dump_cached_states): Likewise.
+
+	* charset.h (CHECK_CHARSET_GET_CHARSET): Rename locals to avoid
+	shadowing.
+	* charset.c (map_charset_for_dump, Fchar_charset): Likewise.
+	Include <limits.h>.
+	(Fsort_charsets): Redo min/max calculation to shorten the code a bit
+	and to avoid gcc -Wuninitialized warning.
+	(load_charset_map): Mark variables that gcc -Wuninitialized
+	does not deduce are never used uninitialized.
+	(load_charset): Abort instead of using uninitialized var (Bug#8229).
+
+	* coding.c (coding_set_source, coding_set_destination):
+	Use "else { /* comment */ }" rather than "else /* comment */;"
+	for clarity, and to avoid gcc -Wempty-body warning.
+	(Fdefine_coding_system_internal): Don't redeclare 'i' inside
+	a block, when the outer 'i' will do.
+	(decode_coding_utf_8, decode_coding_utf_16, detect_coding_emacs_mule):
+	(emacs_mule_char, decode_coding_emacs_mule, detect_coding_iso_2022):
+	(decode_coding_iso_2022, decode_coding_sjis, decode_coding_big5):
+	(decode_coding_raw_text, decode_coding_charset, get_translation_table):
+	(Fdecode_sjis_char, Fdefine_coding_system_internal):
+	Rename locals to avoid shadowing.
+	* character.h (FETCH_STRING_CHAR_ADVANCE): Likewise.
+	* coding.c (emacs_mule_char, encode_invocation_designation):
+	Now static, since they're not used elsewhere.
+	(decode_coding_iso_2022): Add "default: abort ();" as a safety check.
+	(decode_coding_object, encode_coding_object, detect_coding_system):
+	(decode_coding_emacs_mule): Mark variables that gcc
+	-Wuninitialized does not deduce are never used uninitialized.
+	(detect_coding_iso_2022): Initialize a local variable that might
+	be used uninitialized.  Leave a FIXME because it's not clear that
+	this initialization is needed.  (Bug#8211)
+	(ISO_CODE_LF, ISO_CODE_CR, CODING_ISO_FLAG_EUC_TW_SHIFT):
+	(ONE_MORE_BYTE_NO_CHECK, UTF_BOM, UTF_16_INVALID_P):
+	(SHIFT_OUT_OK, ENCODE_CONTROL_SEQUENCE_INTRODUCER):
+	(ENCODE_DIRECTION_R2L, ENCODE_DIRECTION_L2R):
+	Remove unused macros.
+
+	* category.c (hash_get_category_set): Remove unused local var.
+	(copy_category_table): Now static, since it's not used elsewhere.
+	* character.c (string_count_byte8): Likewise.
+
+	* ccl.c (CCL_WRITE_STRING, CCL_ENCODE_CHAR, Fccl_execute_on_string):
+	(Fregister_code_conversion_map): Rename locals to avoid shadowing.
+
+	* chartab.c (copy_sub_char_table): Now static, since it's not used
+	elsewhere.
+	(sub_char_table_ref_and_range, char_table_ref_and_range):
+	Rename locals to avoid shadowing.
+	(ASET_RANGE, GET_SUB_CHAR_TABLE): Remove unused macros.
+
+	* bidi.c (bidi_check_type): Now static, since it's not used elsewhere.
+	(BIDI_BOB): Remove unused macro.
+
+	* cm.c (cmgoto): Mark variables that gcc -Wuninitialized does not
+	deduce are never used uninitialized.
+	* term.c (encode_terminal_code): Likewise.
+
+	* term.c (encode_terminal_code): Now static.  Remove unused local.
+
+	* tparam.h: New file.
+	* term.c, tparam.h: Include it.
+	* deps.mk (term.o, tparam.o): Depend on tparam.h.
+	* term.c (tputs, tgetent, tgetflag, tgetnum, tparam, tgetstr):
+	Move these decls to tparam.h, and make them agree with what
+	is actually in tparam.c.  The previous trick of using incompatible
+	decls in different modules does not conform to the C standard.
+	All callers of tparam changed to use tparam's actual API.
+	* tparam.c (tparam1, tparam, tgoto):
+	Use const pointers where appropriate.
+
+	* cm.c (calccost, cmgoto): Use const pointers where appropriate.
+	* cm.h (struct cm): Likewise.
+	* dispextern.h (do_line_insertion_deletion_costs): Likewise.
+	* scroll.c (ins_del_costs, do_line_insertion_deletion_costs): Likewise.
+	* term.c (tty_ins_del_lines, calculate_costs, struct fkey_table):
+	(term_get_fkeys_1, append_glyphless_glyph, produce_glyphless_glyph):
+	(turn_on_face, init_tty): Likewise.
+	* termchar.h (struct tty_display_info): Likewise.
+
+	* term.c (term_mouse_position): Rename local to avoid shadowing.
+
+	* alloc.c (mark_ttys): Move decl from here ...
+	* lisp.h (mark_ttys): ... to here, so that it's checked against defn.
+
+2011-03-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* .gdbinit (pwinx, xbuffer): Fix access to buffer name.
+
+2011-03-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* search.c (compile_pattern_1): Remove argument regp, unused since
+	revid:rms@gnu.org-19941211082627-3x1g1wyqkjmwloig.
+	(compile_pattern): Don't pass it.
+
 2011-03-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.h (DEFAULT_GDK_DISPLAY): New define.
@@ -62,7 +423,7 @@
 	text field.  After disabling it, set focus on the list control.
 	(Fx_file_dialog): If only_dir_p is non-nil, set the text of the File
 	Name text field to "Current Directory" if it does not already have
-	another value.	(Bug#8181)
+	another value.  (Bug#8181)
 
 2011-03-07  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
@@ -123,7 +484,7 @@
 	* xdisp.c (BUILD_GLYPHLESS_GLYPH_STRING): Omit unused local var.
 	(produce_glyphless_glyph): Make a pointer "const"
 	since it might point to immutable storage.
-	(update_window_cursor):  Now static, since it's not used elsewhere.
+	(update_window_cursor): Now static, since it's not used elsewhere.
 	(SKIP_GLYPHS): Removed unused macro.
 
 2011-03-06  Michael Shields  <shields@msrl.com>  (tiny change)

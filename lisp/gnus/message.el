@@ -3749,12 +3749,12 @@ prefix, and don't delete any headers."
 		(insert-before-markers ?\n)
 		(goto-char pt))))
 	  (case message-cite-reply-position
-	    ('above
+	    (above
 	     (message-goto-body)
 	     (insert body-text)
 	     (insert (if (bolp) "\n" "\n\n"))
 	     (message-goto-body))
-	    ('below
+	    (below
 	     (message-goto-signature)))
 	  ;; Add a `message-setup-very-last-hook' here?
 	  ;; Add `gnus-article-highlight-citation' here?
