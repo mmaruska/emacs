@@ -25,6 +25,7 @@ Build-Depends: libncurses5-dev,
                libmagickwand-dev,
                libxml2-dev,
                libgnutls-dev
+               autoconf (>= 2.65), automake (>= 1.11)
 Standards-Version: 3.9.1
 Homepage: http://www.gnu.org/software/emacs/
 Vcs-Browser: http://git.debian.org/?p=users/acid/emacs-snapshot.git
