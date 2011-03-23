@@ -704,7 +704,15 @@ scroll the window of possible completions."
         (when last
           (setcdr last nil)
           ;; Prefer shorter completions.
-          (setq all (sort all (lambda (c1 c2) (< (length c1) (length c2)))))
+          (setq all (sort all (lambda (c1 c2)
+                                (let ((s1 (get-text-property
+                                           0 :completion-cycle-penalty c1))
+                                      (s2 (get-text-property
+                                           0 :completion-cycle-penalty c2)))
+                                  (if (eq s1 s2)
+                                      (< (length c1) (length c2))
+                                    (< (or s1 (length c1))
+                                       (or s2 (length c2))))))))
           ;; Prefer recently used completions.
           (let ((hist (symbol-value minibuffer-history-variable)))
             (setq all (sort all (lambda (c1 c2)
@@ -1478,8 +1486,9 @@ except that it passes the file name through `substitute-in-file-name'."
                             'completion--file-name-table)
   "Internal subroutine for `read-file-name'.  Do not call this.")
 
-(defvar read-file-name-function nil
-  "If this is non-nil, `read-file-name' does its work by calling this function.")
+(defvar read-file-name-function 'read-file-name-default
+  "The function called by `read-file-name' to do its work.
+It should accept the same arguments as `read-file-name'.")
 
 (defcustom read-file-name-completion-ignore-case
   (if (memq system-type '(ms-dos windows-nt darwin cygwin))
@@ -1517,7 +1526,7 @@ such as making the current buffer visit no file in the case of
 (declare-function x-file-dialog "xfns.c"
                   (prompt dir &optional default-filename mustmatch only-dir-p))
 
-(defun read-file-name-defaults (&optional dir initial)
+(defun read-file-name--defaults (&optional dir initial)
   (let ((default
 	  (cond
 	   ;; With non-nil `initial', use `dir' as the first default.
@@ -1584,6 +1593,12 @@ treated as equivalent to nil.
 
 See also `read-file-name-completion-ignore-case'
 and `read-file-name-function'."
+  (funcall (or read-file-name-function #'read-file-name-default)
+           prompt dir default-filename mustmatch initial predicate))
+
+(defun read-file-name-default (prompt &optional dir default-filename mustmatch initial predicate)
+  "Default method for reading file names.
+See `read-file-name' for the meaning of the arguments."
   (unless dir (setq dir default-directory))
   (unless (file-name-absolute-p dir) (setq dir (expand-file-name dir)))
   (unless default-filename
@@ -1605,9 +1620,6 @@ and `read-file-name-function'."
                     (minibuffer--double-dollars dir)))
                  (initial (cons (minibuffer--double-dollars initial) 0)))))
 
-    (if read-file-name-function
-        (funcall read-file-name-function
-                 prompt dir default-filename mustmatch initial predicate)
       (let ((completion-ignore-case read-file-name-completion-ignore-case)
             (minibuffer-completing-file-name t)
             (pred (or predicate 'file-exists-p))
@@ -1643,7 +1655,7 @@ and `read-file-name-function'."
 				 (lambda ()
 				   (with-current-buffer
 				       (window-buffer (minibuffer-selected-window))
-				     (read-file-name-defaults dir initial)))))
+				   (read-file-name--defaults dir initial)))))
                         (completing-read prompt 'read-file-name-internal
                                          pred mustmatch insdef
                                          'file-name-history default-filename)))
@@ -1717,7 +1729,7 @@ and `read-file-name-function'."
                                 (if history-delete-duplicates
                                     (delete val1 file-name-history)
                                   file-name-history)))))))
-          val)))))
+	val))))
 
 (defun internal-complete-buffer-except (&optional buffer)
   "Perform completion on all buffers excluding BUFFER.

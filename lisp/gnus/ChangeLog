@@ -1,7 +1,119 @@
+2011-03-21  Julien Danjou  <julien@danjou.info>
+
+	* mm-view.el (mm-display-inline-fontify): Make mode optional, and call
+	normal-mode if not set. Set temp buffer unmodified to avoid kill-buffer
+	query.
+	(mm-inline-text): Render normal text with fontification whenever
+	possible.
+
+	* gnus-sum.el (gnus-summary-save-parts-1):
+	* gnus-art.el (gnus-article-browse-html-save-cid-content)
+	(gnus-article-browse-html-parts, gnus-mime-delete-part)
+	(gnus-mime-copy-part, gnus-mime-inline-part, gnus-insert-mime-button):
+	Use `mm-handle-filename'.
+
+	* mm-util.el (mm-handle-filename): New function, return the filename of
+	an handle.
+
+2011-03-18  Julien Danjou  <julien@danjou.info>
+
+	* gnus-util.el (gnus-buffer-live-p): Simplify gnus-buffer-live-p.
+	(gnus-buffer-live-p): Check that buffer is not nil.
+
+2011-03-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el: Require mouse, which the build bot seems to say is
+	needed.
+
+	* gravatar.el (gravatar-retrieve-synchronously): Use `url-retrieve' on
+	XEmacs, since it doesn't have url-retrieve-synchronously.
+
+2011-03-17  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* gnus-group.el (gnus-group-list-ticked): New function.
+	(gnus-group-make-menu-bar): Provide a menu entry for it.
+	(gnus-group-list-map): Provide a binding for it.
+
+2011-03-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-visit-file): New command.
+
+	* nnimap.el (nnimap-fetch-inbox): Rewrite slightly last patch.
+
+2011-03-17  Bjørn Mork  <bjorn@mork.no>
+
+	* nnimap.el (nnimap-fetch-inbox): Don't download bodies on ver4-capable
+	servers.
+
+2011-03-16  Julien Danjou  <julien@danjou.info>
+
+	* mm-uu.el (mm-uu-dissect-text-parts): Only dissect handle that are
+	inline.
+
+	* gnus-art.el (article-hide-list-identifiers): Use
+	gnus-group-get-list-identifiers.
+
+	* gnus-sum.el (gnus-group-get-list-identifiers): New function.
+	(gnus-summary-remove-list-identifiers): Use
+	gnus-group-get-list-identifiers to get regexp.
+	(gnus-select-newsgroup, gnus-summary-insert-subject)
+	(gnus-summary-insert-articles): Call
+	gnus-summary-remove-list-identifiers unconditionally.
+
+2011-03-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-articles-to-read): Revert back to old behaviour if
+	we're selecting a group with unread articles.
+
+	* nnimap.el (nnimap-open-connection-1): Allow `network-only', too.
+
+	* gssapi.el: New file separated out from imap.el to provide a general
+	Kerberos 5 connection facility for Emacs.
+
+	* message.el (message-elide-ellipsis): Document the format spec
+	ellipsis.
+
+2011-03-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-elide-region): Allow the ellipsis to say how many
+	lines were removed.
+
+2011-03-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-win.el (gnus-configure-frame): Protect against trying to restore
+	window configurations containing buffers that are now dead.
+
+	* nnimap.el (nnimap-parse-flags): Remove all MODSEQ entries before
+	parsing to avoid integer overflows.
+	(nnimap-parse-flags): Simplify the last change.
+	(nnimap-parse-flags): Store HIGHESTMODSEQ as a string, since it may be
+	too large for 32-bit Emacsen.
+
 2011-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* auth-source.el (auth-source-netrc-create):
 	* message.el (message-yank-original): Fix use of `case'.
+
+2011-03-15  Nelson Ferreira  <nelson.ferreira@ieee.org>  (tiny change)
+
+	* gnus-art.el (gnus-article-treat-body-boundary): Fix boundary width on
+	XEmacs, which was one character too wide.
+
+2011-03-09  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* gnus-sum.el (gnus-articles-to-read): Use gnus-large-newsgroup as
+	default number of articles to display.
+	(gnus-articles-to-read): Use pretty names for prompt.
+
+2011-03-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-int.el (gnus-open-server): Ditto.
+
+	* gnus-start.el (gnus-activate-group): Give a backtrace if
+	debug-on-quit is set and the user hits `C-g'.
+	(gnus-read-active-file): Ditto.
+
+	* gnus-group.el (gnus-group-read-ephemeral-group): Ditto.
 
 2011-03-15  Teodor Zlatanov  <tzz@lifelogs.com>
 

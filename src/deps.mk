@@ -65,7 +65,7 @@ coding.o: coding.c coding.h ccl.h buffer.h character.h charset.h composite.h \
    window.h dispextern.h msdos.h frame.h termhooks.h \
    lisp.h globals.h $(config_h)
 cm.o: cm.c frame.h cm.h termhooks.h termchar.h dispextern.h msdos.h \
-   lisp.h globals.h $(config_h)
+   tparam.h lisp.h globals.h $(config_h)
 cmds.o: cmds.c syntax.h buffer.h character.h commands.h window.h lisp.h \
    globals.h $(config_h) msdos.h dispextern.h keyboard.h keymap.h systime.h \
    coding.h frame.h composite.h
@@ -93,7 +93,7 @@ editfns.o: editfns.c window.h buffer.h systime.h $(INTERVALS_H) character.h \
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
    termhooks.h buffer.h atimer.h systime.h $(INTERVALS_H) lisp.h $(config_h) \
    globals.h ../lib/unistd.h window.h dispextern.h keyboard.h keymap.h \
-   frame.h coding.h gnutls.h msdos.h
+   frame.h coding.h gnutls.h msdos.h unexec.h
 fileio.o: fileio.c window.h buffer.h systime.h $(INTERVALS_H) character.h \
    coding.h msdos.h blockinput.h atimer.h lisp.h $(config_h) frame.h \
    commands.h globals.h ../lib/unistd.h
@@ -196,19 +196,18 @@ termcap.o: termcap.c lisp.h tparam.h msdos.h $(config_h)
 terminal.o: terminal.c frame.h termchar.h termhooks.h charset.h coding.h \
    keyboard.h lisp.h globals.h $(config_h) dispextern.h composite.h systime.h \
    msdos.h
-terminfo.o: terminfo.c lisp.h globals.h $(config_h)
+terminfo.o: terminfo.c tparam.h lisp.h globals.h $(config_h)
 tparam.o: tparam.c tparam.h lisp.h $(config_h)
 undo.o: undo.c buffer.h commands.h window.h dispextern.h msdos.h \
    lisp.h globals.h $(config_h)
-unexaix.o: unexaix.c lisp.h $(config_h)
-unexalpha.o: unexalpha.c $(config_h)
-unexcw.o: unexcw.c lisp.h $(config_h)
-unexcoff.o: unexcoff.c lisp.h $(config_h)
-unexelf.o: unexelf.c ../lib/unistd.h $(config_h)
-unexhp9k800.o: unexhp9k800.c $(config_h)
-unexmacosx.o: unexmacosx.c $(config_h)
-unexsol.o: unexsol.c lisp.h $(config_h)
-unexw32.o: unexw32.c $(config_h)
+unexaix.o: unexaix.c lisp.h unexec.h $(config_h)
+unexcw.o: unexcw.c lisp.h unexec.h $(config_h)
+unexcoff.o: unexcoff.c lisp.h unexec.h $(config_h)
+unexelf.o: unexelf.c unexec.h ../lib/unistd.h $(config_h)
+unexhp9k800.o: unexhp9k800.c unexec.h $(config_h)
+unexmacosx.o: unexmacosx.c unexec.h $(config_h)
+unexsol.o: unexsol.c lisp.h unexec.h $(config_h)
+unexw32.o: unexw32.c unexec.h $(config_h)
 w16select.o: w16select.c dispextern.h frame.h blockinput.h atimer.h systime.h \
    msdos.h buffer.h charset.h coding.h composite.h lisp.h $(config_h)
 widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h \

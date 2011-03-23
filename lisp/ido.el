@@ -1978,12 +1978,14 @@ If INITIAL is non-nil, it specifies the initial input string."
 	   (ido-completing-read t)
 	   (ido-require-match require-match)
 	   (ido-use-mycompletion-depth (1+ (minibuffer-depth)))
-	   (show-paren-mode nil))
+	   (show-paren-mode nil)
+	   ;; Postpone history adding till later
+	   (history-add-new-input nil))
 	;; prompt the user for the file name
 	(setq ido-exit nil)
 	(setq ido-final-text
 	      (catch 'ido
-		(completing-read
+		(completing-read-default
 		 (ido-make-prompt item prompt)
 		 '(("dummy" . 1)) nil nil ; table predicate require-match
 		 (prog1 ido-text-init (setq ido-text-init nil))	;initial-contents
@@ -2158,6 +2160,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 
 	 (t
 	  (setq done t))))))
+    (and history (add-to-history history ido-selected))
     ido-selected))
 
 (defun ido-edit-input ()
@@ -4740,13 +4743,13 @@ See `read-directory-name' for additional parameters."
 	  (concat ido-current-directory filename)))))
 
 ;;;###autoload
-(defun ido-completing-read (prompt choices &optional predicate require-match initial-input hist def)
+(defun ido-completing-read (prompt choices &optional predicate require-match initial-input hist def inherit-input-method)
   "Ido replacement for the built-in `completing-read'.
 Read a string in the minibuffer with ido-style completion.
 PROMPT is a string to prompt with; normally it ends in a colon and a space.
 CHOICES is a list of strings which are the possible completions.
-PREDICATE is currently ignored; it is included to be compatible
- with `completing-read'.
+PREDICATE and INHERIT-INPUT-METHOD is currently ignored; it is included
+ to be compatible with `completing-read'.
 If REQUIRE-MATCH is non-nil, the user is not allowed to exit unless
  the input is (or completes to) an element of CHOICES or is null.
  If the input is null, `ido-completing-read' returns DEF, or an empty

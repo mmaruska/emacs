@@ -1,3 +1,11 @@
+2011-03-22  Sebastian Hermida  <sebas00@gmail.com>
+
+	* themes/misterioso-theme.el: New file.
+
+2011-03-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document warning about _emacs.
+
 2011-03-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: `shell' prompts for the shell path name, when the default
@@ -20,15 +28,15 @@
 2011-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* etc/images/icons/allout-widgets/dark-bg,
-	etc/images/icons/allout-widgets/light-bg,
-	encrypted-locked.{xpm,png}, unlocked-encrypted.{xpm,png}:
+	* etc/images/icons/allout-widgets/light-bg,
+	* encrypted-locked.{xpm,png}, unlocked-encrypted.{xpm,png}:
 	Reorganize icon directories and files to reconcile against windows
 	short-filename clashes.
 
 2011-02-16  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* etc/images/icons/allout-widgets-dark-bg,
-	etc/images/icons/allout-widgets-light-bg: Icons for new
+	* etc/images/icons/allout-widgets-light-bg: Icons for new
 	allout-widgets.el.
 
 	* etc/images/icons/README: Include coypright and GPL 3 license for

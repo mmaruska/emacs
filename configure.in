@@ -229,7 +229,7 @@ AC_ARG_ENABLE(maintainer-mode,
                 [enable make rules and dependencies not useful (and sometimes
 		 confusing) to the casual installer])],
       USE_MAINTAINER_MODE=$enableval,
-      USE_MAINTAINER_MODE=no)
+      USE_MAINTAINER_MODE=yes)
 if test $USE_MAINTAINER_MODE = yes; then
   MAINT=
 else
@@ -1265,7 +1265,6 @@ if test $emacs_cv_struct_exception != yes; then
   AC_DEFINE(NO_MATHERR, 1, [Define to 1 if you don't have struct exception in math.h.])
 fi
 
-AC_CHECK_HEADERS(sys/socket.h)
 AC_CHECK_HEADERS(net/if.h, , , [AC_INCLUDES_DEFAULT
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
@@ -1360,7 +1359,7 @@ if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
       DEPFLAGS='-MMD -MF ${DEPDIR}/$*.d'
       ## In parallel builds, another make might create depdir between
       ## the first test and mkdir, so stick another test on the end.
-      ## Or use mkinstalldirs?  mkdir -p is not portable.
+      ## Or use install-sh -d?  mkdir -p is not portable.
       MKDEPDIR='test -d ${DEPDIR} || mkdir ${DEPDIR} || test -d ${DEPDIR}'
       deps_frag=autodeps.mk
    fi
@@ -2257,7 +2256,7 @@ if test "${HAVE_X11}" = "yes"; then
        dnl if -lfreetype is not specified.
        dnl The following is needed to set FREETYPE_LIBS.
        PKG_CHECK_MODULES(FREETYPE, freetype2, HAVE_FREETYPE=yes,
-			 HAVE_FREETYPE=no) 
+			 HAVE_FREETYPE=no)
 
        test "$HAVE_FREETYPE" = "no" && AC_MSG_ERROR(libxft requires libfreetype)
     fi
