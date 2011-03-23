@@ -463,7 +463,7 @@ clean: debian-clean
 	# Force configuration in order to prevent any problem
 	# that may have been happening during the previous
 	# build
-	CFLAGS="${CFLAGS}" ./configure ${emacs_confflags}
+	[ ! -f configure ] || CFLAGS="${CFLAGS}" ./configure ${emacs_confflags}
 	[ ! -f Makefile ] || $(MAKE) maintainer-clean
 
 	rm -f src/{gtk,nox}-emacs
