@@ -423,6 +423,7 @@ bootstrap-stamp:
 
 	# Emacs must be bootstrapped at least once in order to
 	# generate .elc files
+	./autogen.sh
 	CFLAGS="${CFLAGS}" ./configure ${emacs_confflags}
 	${build_cmd} bootstrap
 	${build_cmd} distclean
