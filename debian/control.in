@@ -24,7 +24,7 @@ Build-Depends: libncurses5-dev,
                libgpm-dev | libgpmg1-dev,
                libmagickwand-dev,
                libxml2-dev,
-               libgnutls-dev
+               libgnutls-dev,
                autoconf (>= 2.65), automake (>= 1.11)
 Standards-Version: 3.9.1
 Homepage: http://www.gnu.org/software/emacs/
