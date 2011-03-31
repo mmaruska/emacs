@@ -1,4 +1,114 @@
+2011-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* generic-x.el (etc-fstab-generic-mode): Add ext4, sysfs keywords.
+
+2011-03-30  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* progmodes/python.el (python-default-interpreter)
+	(python-python-command-args, python-jython-command-args)
+	(python-which-shell, python-which-args, python-which-bufname)
+	(python-file-queue, python-comint-output-filter-function)
+	(python-toggle-shells, python-shell): Remove obsolete defcustoms,
+	variables and functions.
+
+2011-03-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-table-dynamic): Optimize `boundaries'.
+	(completion-in-region-mode): New minor mode.
+	(completion-in-region): Use it.
+	(completion-in-region--data, completion-in-region-mode-map): New vars.
+	(completion-in-region--postch): New function.
+	(completion--capf-misbehave-funs, completion--capf-safe-funs):
+	New vars.
+	(completion--capf-wrapper): New function.
+	(completion-at-point): Use it to track well-behavedness of
+	hook functions.
+	(completion-help-at-point): New command.
+
+2011-03-30  Jason Merrill  <jason@redhat.com>  (tiny change)
+
+	* vc/add-log.el (add-change-log-entry): Don't use whitespace
+	syntax class to search for whitespace on a single line
+	(Message-ID: <4D938140.4030905@redhat.com>).
+
+2011-03-30  Leo Liu  <sdl.web@gmail.com>
+
+	* abbrev.el (abbrev-edit-save-to-file, abbrev-edit-save-buffer):
+	New commands.
+	(edit-abbrevs-map): Bind them here.
+	(write-abbrev-file): New optinal arg VERBOSE.  (Bug#5937)
+
+2011-03-29  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-hide-by-annotation, allout-flag-region):
+	Reduce possibility of overlay leakage by making them volatile.
+
+	* allout-widgets.el (allout-widgets-tally): Define as nil so the
+	hash is not shared between buffers.  Mode initialization is
+	responsible for giving it a useful starting value.
+	(allout-item-span): Reduce possibility of overlay leakage by
+	making them volatile.
+	(allout-widgets-count-buttons-in-region): Add diagnostic function
+	for tracking down button overlay leaks.
+
+2011-03-29  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-read-internal): Use the default history var
+	minibuffer-history if no HISTORY is specified.
+
+2011-03-28  Brian T. Sniffen  <bsniffen@akamai.com>  (tiny change)
+
+	* net/imap.el (imap-shell-open, imap-process-connection-type): Use
+	imap-process-connection-type for 'shell' streams as well as
+	Kerberos, SSL, other subprocesses.
+
+2011-03-28  Leo Liu  <sdl.web@gmail.com>
+
+	* abbrev.el (abbrev-table-empty-p): New function.
+	(prepare-abbrev-list-buffer): Place empty abbrev tables after
+	nonempty ones.  (Bug#5937)
+
+2011-03-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (all): Add boolean ns-auto-hide-menu-bar.
+
+2011-03-27  Leo Liu  <sdl.web@gmail.com>
+
+	* ansi-color.el (ansi-color-names-vector): Allow cons cell value
+	for foreground and background colors.
+	(ansi-color-make-color-map): Adapt.
+
+2011-03-25  Leo Liu  <sdl.web@gmail.com>
+
+	* midnight.el (midnight-time-float): Remove.  Note it calculates
+	the microsecond component incorrectly and seconds-to-time does the
+	same job.
+	Remove redundant (require 'timer).
+
+	* ido.el (ido-read-internal): Simplify with read-from-minibuffer.
+	(ido-completions): Remove unused arguments.  (Bug#8329)
+
+2011-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--flush-all-sorted-completions):
+	Remove itself from hook.
+	(completion-at-point): Let the functions perform the completion
+	immediately and return nil or t.
+	* comint.el (comint-dynamic-complete-functions): Now identical to
+	completion-at-point-functions.
+	(comint-dynamic-list-input-ring): Remove unused var `index'.
+	(comint--match-partial-filename, comint--unquote&expand-filename):
+	New funs, split from comint-match-partial-filename.
+	(comint-dynamic-complete): Use completion-at-point.
+	(comint-dynamic-complete-filename): Use comint--match-partial-filename.
+
+2011-03-24  Drew Adams  <drew.adams@oracle.com>
+
+	* thingatpt.el: Support `defun'.
+
 2011-03-23  Leo Liu  <sdl.web@gmail.com>
+
+	* abbrevlist.el: Move to obsolete/abbrevlist.el.
 
 	* help-mode.el (help-mode-finish): Tweak regexp.
 
@@ -46,8 +156,8 @@
 	(provide-theme): Ignore custom--inhibit-theme-enable.
 	(load-theme): Enable the theme explicitly if NO-ENABLE is non-nil.
 	(custom-enabling-themes): Delete variable.
-	(enable-theme): Accept only loaded themes as arguments.  Ignore
-	the special custom-enabled-themes variable.
+	(enable-theme): Accept only loaded themes as arguments.
+	Ignore the special custom-enabled-themes variable.
 	(custom-enabled-themes): Forbid themes from setting this.
 	Eliminate use of custom-enabling-themes.
 	(custom-push-theme): Quote "changed" custom var entry.
@@ -384,8 +494,8 @@
 
 2011-03-09  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band): Do
-	not use `tramp-file-name-port', because this returns also
+	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band):
+	Do not use `tramp-file-name-port', because this returns also
 	`tramp-default-port'.
 
 2011-03-09  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
@@ -414,8 +524,8 @@
 	* emacs-lisp/package.el (package-tar-file-info): Handle also
 	remote files.
 
-	* emacs-lisp/package-x.el (package-upload-buffer-internal): Use
-	`equal' for upload base check.
+	* emacs-lisp/package-x.el (package-upload-buffer-internal):
+	Use `equal' for upload base check.
 
 2011-03-08  Arni Magnusson  <arnima@hafro.is>  (tiny change)
 
@@ -744,9 +854,9 @@
 2011-03-03  Christian Ohler  <ohler@gnu.org>
 
 	* emacs-lisp/ert.el (ert--explain-equal): New function.
-	(ert--explain-equal-rec): Renamed from `ert--explain-not-equal'.
+	(ert--explain-equal-rec): Rename from `ert--explain-not-equal'.
 	All callers changed.
-	(ert--explain-equal-including-properties): Renamed from
+	(ert--explain-equal-including-properties): Rename from
 	`ert--explain-not-equal-including-properties'.  All callers
 	changed.
 
@@ -8269,8 +8379,8 @@
 
 	Sync with Tramp 2.1.19.
 
-	* net/tramp-gvfs.el (tramp-gvfs-handle-write-region): Protect
-	deleting tmpfile.
+	* net/tramp-gvfs.el (tramp-gvfs-handle-write-region):
+	Protect deleting tmpfile.
 	(tramp-gvfs-maybe-open-connection): Use `tramp-compat-funcall'.
 
 	* net/tramp.el (tramp-handle-expand-file-name)
@@ -10548,8 +10658,8 @@
 	* net/tramp-ftp.el (tramp-ftp-file-name-handler):
 	Use `delete-file' instead of `tramp-compat-delete-file'.
 
-	* net/tramp-gvfs.el (tramp-gvfs-handle-write-region): Use
-	`delete-file' instead of `tramp-compat-delete-file'.
+	* net/tramp-gvfs.el (tramp-gvfs-handle-write-region):
+	Use `delete-file' instead of `tramp-compat-delete-file'.
 
 	* net/tramp-imap.el (tramp-imap-do-copy-or-rename-file):
 	Use `delete-file' instead of `tramp-compat-delete-file'.

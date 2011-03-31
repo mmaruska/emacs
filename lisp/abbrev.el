@@ -65,7 +65,8 @@ abbreviation causes it to expand and be replaced by its expansion."
 
 (defvar edit-abbrevs-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-x\C-s" 'edit-abbrevs-redefine)
+    (define-key map "\C-x\C-s" 'abbrev-edit-save-buffer)
+    (define-key map "\C-x\C-w" 'abbrev-edit-save-to-file)
     (define-key map "\C-c\C-c" 'edit-abbrevs-redefine)
     map)
   "Keymap used in `edit-abbrevs'.")
@@ -123,8 +124,13 @@ Otherwise display all abbrevs."
       (if local
           (insert-abbrev-table-description
            (abbrev-table-name local-table) t)
-        (dolist (table abbrev-table-name-list)
-          (insert-abbrev-table-description table t)))
+        (let (empty-tables)
+	  (dolist (table abbrev-table-name-list)
+	    (if (abbrev-table-empty-p (symbol-value table))
+		(push table empty-tables)
+	      (insert-abbrev-table-description table t)))
+	  (dolist (table (nreverse empty-tables))
+	    (insert-abbrev-table-description table t))))
       (goto-char (point-min))
       (set-buffer-modified-p nil)
       (edit-abbrevs-mode)
@@ -211,13 +217,15 @@ Does not display any message."
 					;(interactive "fRead abbrev file: ")
   (read-abbrev-file file t))
 
-(defun write-abbrev-file (&optional file)
+(defun write-abbrev-file (&optional file verbose)
   "Write all user-level abbrev definitions to a file of Lisp code.
 This does not include system abbrevs; it includes only the abbrev tables
 listed in listed in `abbrev-table-name-list'.
 The file written can be loaded in another session to define the same abbrevs.
 The argument FILE is the file name to write.  If omitted or nil, the file
-specified in `abbrev-file-name' is used."
+specified in `abbrev-file-name' is used.
+If VERBOSE is non-nil, display a message indicating where abbrevs
+have been saved."
   (interactive
    (list
     (read-file-name "Write abbrev file: "
@@ -247,7 +255,25 @@ specified in `abbrev-file-name' is used."
 		'emacs-mule)))
       (goto-char (point-min))
       (insert (format ";;-*-coding: %s;-*-\n" coding-system-for-write))
-      (write-region nil nil file nil 0))))
+      (write-region nil nil file nil (and (not verbose) 0)))))
+
+(defun abbrev-edit-save-to-file (file)
+  "Save all user-level abbrev definitions in current buffer to FILE."
+  (interactive
+   (list (read-file-name "Save abbrevs to file: "
+			 (file-name-directory
+			  (expand-file-name abbrev-file-name))
+			 abbrev-file-name)))
+  (edit-abbrevs-redefine)
+  (write-abbrev-file file t))
+
+(defun abbrev-edit-save-buffer ()
+  "Save all user-level abbrev definitions in current buffer.
+The saved abbrevs are written to the file specified by
+`abbrev-file-name'."
+  (interactive)
+  (abbrev-edit-save-to-file abbrev-file-name))
+
 
 (defun add-mode-abbrev (arg)
   "Define mode-specific abbrev for last word(s) before point.
@@ -419,6 +445,19 @@ PROPS is a list of properties."
 (defun abbrev-table-p (object)
   (and (vectorp object)
        (numberp (abbrev-table-get object :abbrev-table-modiff))))
+
+(defun abbrev-table-empty-p (object &optional ignore-system)
+  "Return nil if there are no abbrev symbols in OBJECT.
+If IGNORE-SYSTEM is non-nil, system definitions are ignored."
+  (unless (abbrev-table-p object)
+    (error "Non abbrev table object"))
+  (not (catch 'some
+	 (mapatoms (lambda (abbrev)
+		     (unless (or (zerop (length (symbol-name abbrev)))
+				 (and ignore-system
+				      (abbrev-get abbrev :system)))
+		       (throw 'some t)))
+		   object))))
 
 (defvar global-abbrev-table (make-abbrev-table)
   "The abbrev table whose abbrevs affect all buffers.

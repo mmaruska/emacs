@@ -67,6 +67,9 @@ from load-path.  -Q now implies this.
 
 * Changes in Emacs 24.1
 
+** Completion in a non-minibuffer now tries to detect the end of completion
+and pops down the *Completions* buffer accordingly.
+
 ** emacsclient changes
 
 *** New emacsclient argument --parent-id ID can be used to open a
@@ -161,6 +164,9 @@ On character terminals these methods are used for characters that
 cannot be encoded by the `terminal-coding-system'.
 
 ** On graphical displays, the mode-line no longer ends in dashes.
+
+** On Nextstep/OSX, the menu bar can be hidden by customizing
+   ns-auto-hide-menu-bar.
 
 ** Basic SELinux support has been added.
 This requires Emacs to be linked with libselinux at build time.
@@ -744,6 +750,11 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 
 
 * Lisp changes in Emacs 24.1
+
+** pre/post-command-hook are not reset to nil upon error.
+Instead, the offending function is removed.
+
+** New low-level function run-hook-wrapped.
 
 ** byte-compile-disable-print-circle is obsolete.
 ** deferred-action-list and deferred-action-function are obsolete.
