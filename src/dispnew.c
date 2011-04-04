@@ -651,11 +651,16 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 	     of the window.  */
 	  if (!marginal_areas_changed_p
 	      && !header_line_changed_p
-	      && new_rows == 0
+	      && new_rows == 0  /* mmc: !!!!  I should just invalidate those! */
+/* mmc: let's try to not invalidate glyphs on lines which stay the same: */
+
+#if 1                           /* mmc! */
 	      && dim.width == matrix->matrix_w
+              && matrix->window_width == window_width
+#endif
 	      && matrix->window_left_col == WINDOW_LEFT_EDGE_COL (w)
 	      && matrix->window_top_line == WINDOW_TOP_EDGE_LINE (w)
-	      && matrix->window_width == window_width)
+	      )
 	    {
 	      /* Find the last row in the window.  */
 	      for (i = 0; i < matrix->nrows && matrix->rows[i].enabled_p; ++i)
