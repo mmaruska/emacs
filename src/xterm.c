@@ -742,13 +742,16 @@ x_after_update_window_line (struct glyph_row *desired_row)
     {
       int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
 
+#if 0      /* mmc: test! */
       BLOCK_INPUT;
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    0, y, width, height, False);
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+      /* mmc: converted from x_clear_area */
+      x_fill_frame_area_bg(f,
+		    0, y, width, height);
+      x_fill_frame_area_bg(f,
 		    FRAME_PIXEL_WIDTH (f) - width,
-		    y, width, height, False);
+		    y, width, height);
       UNBLOCK_INPUT;
+#endif
     }
 }
 
@@ -2959,6 +2962,20 @@ x_clear_area (Display *dpy, Window window, int x, int y, int width, int height, 
   XClearArea (dpy, window, x, y, width, height, exposures);
 }
 
+/* mmc:*/
+void
+x_fill_frame_area_bg (struct frame *f, int x, int y, int width, int height)
+{
+  xassert (width > 0 && height > 0);
+  if (f && (f->output_data.x) && f->output_data.x->reverse_gc)
+    XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                    f->output_data.x->reverse_gc, x, y, width, height);
+  else {
+    fprintf(stderr, "%s: no frame given, or the frame does "
+            "not have reverse_gc -> XClearArea cannot be emulated\n",
+            __FUNCTION__);
+  }
+}
 
 /* Clear an entire frame.  */
 
@@ -4967,9 +4984,9 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
        for the case that a window has been split horizontally.  In
        this case, no clear_frame is generated to reduce flickering.  */
     if (width > 0 && height > 0)
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    left, top, width,
-		    window_box_height (w), False);
+      x_fill_frame_area_bg(f,
+                           left, top, width,
+                           window_box_height (w));
 
     window = XCreateWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			    /* Position and size of scroll bar.  */
@@ -7426,8 +7443,12 @@ x_define_frame_cursor (struct frame *f, Cursor cursor)
 static void
 x_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 {
+#if 1				/* mmc: */
+  x_fill_frame_area_bg(f,x, y, width, height);
+#else
   x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		x, y, width, height, False);
+#endif
 #ifdef USE_GTK
   /* Must queue a redraw, because scroll bars might have been cleared.  */
   if (FRAME_GTK_WIDGET (f))
