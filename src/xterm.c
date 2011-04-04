@@ -6406,13 +6406,24 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
              But x_make_frame_invisible clears both
              the visible flag and the iconified flag;
              and that way, we know the window is not iconified now.  */
-          if (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f))
+
+          if (
+#if 1                           /* mmc:  0 -> unmapped frames are not considered iconified,
+                                   and I get: This is the last frame ...  */
+            FRAME_VISIBLE_P (f) ||
+#endif
+            FRAME_ICONIFIED_P (f))
             {
+#ifdef DEBUG_X_BG
+              fprintf(stderr, "setting async_iconified b/c %s\n", FRAME_ICONIFIED_P (f)?"iconified!":"visible");
+#endif
               f->async_iconified = 1;
 
               inev.ie.kind = ICONIFY_EVENT;
               XSETFRAME (inev.ie.frame_or_window, f);
             }
+          else {
+          }
         }
       goto OTHER;
 
