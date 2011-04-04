@@ -10547,7 +10547,7 @@ clear_garbaged_frames (void)
 	      f->garbaged = 0;
 	      f->resized_p = 0;
 #ifdef DEBUG_DISP
-              fprintf(stderr, "%s: garbaged, bug not visible!\n", __FUNCTION__);
+              fprintf(stderr, "%s: garbaged, but not visible!\n", __FUNCTION__);
 #endif
 	    }
 	}
