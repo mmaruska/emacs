@@ -66,12 +66,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    structures.  Each row in such a matrix corresponds to a line on the
    display, and each glyph in a row corresponds to a column displaying
    a character, an image, or what else.  This matrix is called the
-   `current glyph matrix' or `current matrix' in redisplay
+   `current_glyph_matrix' or `current_matrix' in redisplay
    terminology.
 
    For buffer parts that have been changed since the last update, a
    second glyph matrix is constructed, the so called `desired glyph
-   matrix' or short `desired matrix'.  Current and desired matrix are
+   matrix' or short `desired_matrix'.  Current and desired matrix are
    then compared to find a cheap way to update the display, e.g. by
    reusing part of the display by scrolling lines.
 
@@ -129,14 +129,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    argument.
 
    Iteration over things to be displayed is then simple.  It is
-   started by initializing an iterator with a call to init_iterator,
+   started by initializing an iterator with a call to `init_iterator',
    passing it the buffer position where to start iteration.  For
    iteration over strings, pass -1 as the position to init_iterator,
    and call reseat_to_string when the string is ready, to initialize
    the iterator for that string.  Thereafter, calls to
-   get_next_display_element fill the iterator structure with relevant
+   `get_next_display_element' fill the iterator structure with relevant
    information about the next thing to display.  Calls to
-   set_iterator_to_next move the iterator to the next thing.
+   `set_iterator_to_next' move the iterator to the next thing.
 
    Besides this, an iterator also contains information about the
    display environment in which glyphs for display elements are to be
