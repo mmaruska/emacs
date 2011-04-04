@@ -12842,6 +12842,7 @@ redisplay_internal (void)
 	FRAME_SAMPLE_VISIBILITY (f);
 	if (FRAME_VISIBLE_P (f))
 	  ++number_of_visible_frames;
+        /* mmc: Why? */
 	clear_desired_matrices (f);
       }
   }
@@ -18966,6 +18967,7 @@ display_line (struct it *it)
   if (MATRIX_ROW_VPOS (row, it->w->desired_matrix)
       >= it->w->desired_matrix->nrows)
     {
+      /* mmc?  We want to put the row into desired_matrix, but there is no space for it */
       it->w->nrows_scale_factor++;
       fonts_changed_p = 1;
       return 0;
