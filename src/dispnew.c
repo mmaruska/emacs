@@ -686,6 +686,17 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 	    }
 	  else
 	    {
+#ifdef DEBUG_DISP
+              fprintf(stderr, "%s:2 invalidate all rows: %d\n", __FUNCTION__, matrix->nrows);
+#endif
+#if MMC_DEBUG
+              fprintf(stderr, "%s:2 invalidate all rows: %d %s%s%s%s%s\n", __FUNCTION__, matrix->nrows,
+                      marginal_areas_changed_p?"marginal_areas_changed_p":"",
+                      header_line_changed_p?"header_line_changed_p":"",
+                      new_rows?"new_rows":"",
+                      (dim.width == matrix->matrix_w)?"":"width",
+                      (matrix->window_width == window_width)?"":"window width");
+#endif
 	      for (i = 0; i < matrix->nrows; ++i)
 		matrix->rows[i].enabled_p = 0; /* mmc: So this invalidates! */
 	    }
@@ -3840,6 +3851,15 @@ update_text_area (struct window *w, int vpos)
 	  && !(current_row->mode_line_p && vpos > 0))
       || current_row->x != desired_row->x)
     {
+#if 0
+      if (current_row->enabled_p)
+        fprintf(stderr, "%s changed %s%s%s%s -> redraw the whole line!\n", __FUNCTION__,
+              current_row->enabled_p?"":"!enabled",
+              (desired_row->y != current_row->y)?"y":"",
+              (current_row->x != desired_row->x)?"x":"",
+              (desired_row->visible_height != current_row->visible_height)?"visible_h":""
+          ); /* mmc! */
+#endif
       rif->cursor_to (vpos, 0, desired_row->y, desired_row->x);
 
       if (desired_row->used[TEXT_AREA])
@@ -4607,6 +4627,13 @@ scrolling_window (struct window *w, int header_line_p)
 	if (r->current_y != r->desired_y)
 	  {
 	    rif->clear_window_mouse_face (w);
+#ifdef DEBUG_DISP
+            fprintf(stderr, "scrolling run: %d: %d x %d ->  %d\n",
+                    r->current_vpos,
+                    r->current_y, r->height,
+                    r->desired_y);
+#endif
+            /* mmc!  `x_scroll_run' */
 	    rif->scroll_run_hook (w, r);
 	  }
 
