@@ -10554,6 +10554,9 @@ clear_garbaged_frames (void)
               /* mmc:  this either segfaults! or does not help! */
               update_frame (f, 0, 0);
 #endif
+	    }
+          else if (FRAME_GARBAGED_P (f))
+            {
 #ifdef DEBUG_DISP
               fprintf(stderr, "%s: garbaged, but not visible!\n", __FUNCTION__);
 #endif
