@@ -3052,7 +3052,7 @@ redraw_frame (struct frame *f)
      its redisplay done.  */
   mark_window_display_accurate (FRAME_ROOT_WINDOW (f), 0);
   set_window_update_flags (XWINDOW (FRAME_ROOT_WINDOW (f)), 1);
-  f->garbaged = 0;
+  f->garbaged = 1;              /* mmc: why do I do this? */
 }
 
 DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 0, 1, 0,
