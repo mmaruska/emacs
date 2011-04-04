@@ -6348,6 +6348,15 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
              (x_dispatch_event), for example when a dialog is up.  */
           if (! f->async_iconified)
             SET_FRAME_GARBAGED (f);
+          else {
+            /* mmc: see above: if emacs mapped the frame/window,
+               it was VISIBLE_P, so if WM unmaps it, we mark it as
+               async_iconified. This simple fact means the frame *is*
+               not saved!.
+            */
+             SET_FRAME_GARBAGED (f);
+          }
+
 
           /* Check if fullscreen was specified before we where mapped the
              first time, i.e. from the command line. */
