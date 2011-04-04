@@ -687,7 +687,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 	  else
 	    {
 	      for (i = 0; i < matrix->nrows; ++i)
-		matrix->rows[i].enabled_p = 0;
+		matrix->rows[i].enabled_p = 0; /* mmc: So this invalidates! */
 	    }
 	}
       else if (matrix == w->desired_matrix)
@@ -822,7 +822,7 @@ enable_glyph_matrix_rows (struct glyph_matrix *matrix, int start, int end, int e
 
    Resets update hints to defaults value.  The only update hint
    currently present is the flag MATRIX->no_scrolling_p.  */
-
+/* mmc: seems a too heavy tool: I prefer more fine-grained control! */
 void
 clear_glyph_matrix (struct glyph_matrix *matrix)
 {
@@ -5751,18 +5751,19 @@ do_pending_window_change (int safe)
 
       delayed_size_change = 0;
 
+      /* mmc: do we read events and possibly set delayed_size_change back to 1? */
       FOR_EACH_FRAME (tail, frame)
 	{
 	  struct frame *f = XFRAME (frame);
 
 	  if (f->new_text_lines != 0 || f->new_text_cols != 0)
 	    change_frame_size (f, f->new_text_lines, f->new_text_cols,
-			       0, 0, safe);
+			       0, 0, safe); /* mmc: Not delay! */
 	}
     }
 }
 
-
+/* mmc: from `ConfigureNotify':  */
 /* Change the frame height and/or width.  Values may be given as zero to
    indicate no change is to take place.
 
@@ -5804,7 +5805,7 @@ change_frame_size_1 (register struct frame *f, int newheight, int newwidth, int 
     {
       f->new_text_lines = newheight;
       f->new_text_cols = newwidth;
-      delayed_size_change = 1;
+      delayed_size_change = 1;  /* mmc: when noticed? */
       return;
     }
 

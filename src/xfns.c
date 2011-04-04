@@ -1340,7 +1340,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
      below the menu bar.  */
   if (FRAME_X_WINDOW (f) && FRAME_TOOL_BAR_LINES (f) == 0)
     {
-      clear_frame (f);
+      clear_frame (f); /* mmc: -> x_clear_frame. But i removed XClearWindow there! */
       clear_current_matrices (f);
     }
 
