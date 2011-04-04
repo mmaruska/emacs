@@ -683,7 +683,40 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 #endif
 	      while (i < matrix->nrows)
 		matrix->rows[i++].enabled_p = 0;
+
+#if 0
+/* Does this cause C-s hide glyphs?  NO!*/
+              /* mmc:   difference?
+               * matrix_w   ... in columns and rows
+               * window_width   ...  window_box
+               * */
+              if ((dim.width > matrix->matrix_w) || (window_width > matrix->window_width ))
+                {
+                  fprintf(stderr, "%s I should mark glyphs as Undefined %d columns  %d pixels\n", __FUNCTION__,
+                          dim.width - matrix->matrix_w,
+                          window_width - matrix->window_width); /* mmc */
+                }
+#if 0                           /* mmc: dunno yet! */
+              {
+                /*  */
+                struct glyph_row *row;
+                for (i = 0; i < matrix->nrows; ++i)
+                  {
+                    /* newly visible glyphs! */
+                    row = matrix->rows[i];
+
+                    /* we have to set used TEXT_AREA ...! */
+                    /* I want to change this glyph: */
+                    row->glyphs[TEXT_AREA] + dim.width - left - right
+                    row->used[TEXT_AREA] = /* change it? */
+                      /* - left - right; */
 	    }
+              }
+#endif
+#endif  /* C-s hides glyphs? */
+
+            }
+
 	  else
 	    {
 #ifdef DEBUG_DISP
