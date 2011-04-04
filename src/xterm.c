@@ -6996,10 +6996,17 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
               || event.xconfigure.height != FRAME_PIXEL_HEIGHT (f))
             {
               change_frame_size (f, rows, columns, 0, 1, 0);
+#ifdef DEBUG_EVENTS
+              fprintf(stderr, "ConfigureNotify -> change_frame_size & SET_FRAME_GARBAGED\n");
+#endif
+              change_frame_size (f, rows, columns, 0, 1, 0); /* delay! */
+#if 0 /* mmc!       is this enough? i think the core is in invalidate_window_matrices ... in dispnew.c*/
               SET_FRAME_GARBAGED (f);
+#else
 #if MMC_DEBUG
               fprintf(stderr, "%s  mmc: decided to ignore SET_FRAME_GARBAGED just b/c of ConfigureNotify!\n",
                       __FUNCTION__);
+#endif
 #endif
               cancel_mouse_face (f);
             }
