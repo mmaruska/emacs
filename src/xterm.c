@@ -5133,7 +5133,7 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end, int rebuild
        below top positions, to make sure the handle is always at least
        that many pixels tall.  */
     end += VERTICAL_SCROLL_BAR_MIN_HANDLE;
-
+#if 0
     /* Draw the empty space above the handle.  Note that we can't clear
        zero-height areas; that means "clear to end of window."  */
     if (0 < start)
@@ -5143,11 +5143,23 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end, int rebuild
 		    VERTICAL_SCROLL_BAR_TOP_BORDER,
 		    inside_width, start,
 		    False);
+#endif
+    /* mmc: I changed the order: First i draw the colored handle, and then the
+     *  differently (but equally) colored top & bottom parts. */
+
 
     /* Change to proper foreground color if one is specified.  */
+#if 0
     if (f->output_data.x->scroll_bar_foreground_pixel != -1)
       XSetForeground (FRAME_X_DISPLAY (f), gc,
 		      f->output_data.x->scroll_bar_foreground_pixel);
+#else
+    XSetForeground (FRAME_X_DISPLAY (f), gc,
+                    (f->output_data.x->scroll_bar_foreground_pixel != -1)?
+                    f->output_data.x->scroll_bar_foreground_pixel:
+                    WhitePixel(FRAME_X_DISPLAY (f),  DefaultScreen(FRAME_X_DISPLAY (f)))
+      );
+#endif
 
     /* Draw the handle itself.  */
     XFillRectangle (FRAME_X_DISPLAY (f), w, gc,
@@ -5161,15 +5173,74 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end, int rebuild
       XSetForeground (FRAME_X_DISPLAY (f), gc,
 		      FRAME_FOREGROUND_PIXEL (f));
 
+    /* Draw the empty space above the handle.  Note that we can't clear
+       zero-height areas; that means "clear to end of window."  */
+    if (0 < start){
+
+      /* mmc: */
+#if 1
+      XFillRectangle(FRAME_X_DISPLAY (f), w,
+                     gc,
+                     VERTICAL_SCROLL_BAR_LEFT_BORDER,
+                     VERTICAL_SCROLL_BAR_TOP_BORDER,
+                     inside_width, start);
+#else
+      x_clear_area (FRAME_X_DISPLAY (f), w,
+		    /* x, y, width, height, and exposures.  */
+		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
+		    VERTICAL_SCROLL_BAR_TOP_BORDER,
+		    inside_width, start,
+		    False);
+#endif
+    }
+
     /* Draw the empty space below the handle.  Note that we can't
        clear zero-height areas; that means "clear to end of window." */
-    if (end < inside_height)
+    if (end < inside_height) {
+
+#if 1
+      XFillRectangle(FRAME_X_DISPLAY (f), w,
+                     gc,
+                     VERTICAL_SCROLL_BAR_LEFT_BORDER,
+                     VERTICAL_SCROLL_BAR_TOP_BORDER + end,
+                     inside_width, inside_height - end);
+#else
       x_clear_area (FRAME_X_DISPLAY (f), w,
 		    /* x, y, width, height, and exposures.  */
 		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
 		    VERTICAL_SCROLL_BAR_TOP_BORDER + end,
 		    inside_width, inside_height - end,
 		    False);
+#endif
+    }
+
+
+    /* mmc: the borders of the scrollbar  */
+    XSetForeground (FRAME_X_DISPLAY (f), gc,
+                    f->output_data.x->background_pixel);
+
+    XFillRectangle (FRAME_X_DISPLAY (f), w, f->output_data.x->reverse_gc, /* mmc! */
+		    /* x, y, width, height */
+		    0, 0,
+		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
+                    inside_height);
+
+    XFillRectangle (FRAME_X_DISPLAY (f), w, gc, /* mmc! */
+		    /* x, y, width, height */
+		    VERTICAL_SCROLL_BAR_LEFT_BORDER + inside_width,
+                    0,
+                    VERTICAL_SCROLL_BAR_LEFT_BORDER + 10, /* i suppose it's symetric */
+                    inside_height);
+
+
+
+
+
+
+    /* Restore the foreground color of the GC if we changed it above.  */
+    if (f->output_data.x->scroll_bar_foreground_pixel != -1)
+      XSetForeground (FRAME_X_DISPLAY (f), gc,
+		      f->output_data.x->foreground_pixel);
 
   }
 
