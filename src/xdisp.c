@@ -10528,7 +10528,11 @@ clear_garbaged_frames (void)
 		  Fredraw_frame (frame);
 		  f->force_flush_display_p = 1;
 		}
-	      clear_current_matrices (f);
+              else
+                {
+                  /* mmc: Fredraw_frame calls this already! unless when no glyphs.  */
+                  clear_current_matrices (f);
+                };
 	      changed_count++;
 	      f->garbaged = 0;
 	      f->resized_p = 0;
