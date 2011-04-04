@@ -418,9 +418,9 @@ margin_glyphs_to_reserve (struct window *w, int total_glyphs, Lisp_Object margin
 
   if (NUMBERP (margin))
     {
-      int width = XFASTINT (w->total_cols);
+      int width = XFASTINT (w->total_cols); /* mmc: In pixels? */
       double d = max (0, XFLOATINT (margin));
-      d = min (width / 2 - 1, d);
+      d = min (width / 2 - 1, d); /* at least 1 char not in the 2 margins */
       n = (int) ((double) total_glyphs / width * d);
     }
   else
@@ -515,10 +515,12 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
     {
       int old_alloc = matrix->rows_allocated;
       new_rows = dim.height - matrix->rows_allocated;
+      /* mmc: New rows:  */
       matrix->rows = xpalloc (matrix->rows, &matrix->rows_allocated,
 			      new_rows, INT_MAX, sizeof *matrix->rows);
       memset (matrix->rows + old_alloc, 0,
 	      (matrix->rows_allocated - old_alloc) * sizeof *matrix->rows);
+
     }
   else
     new_rows = 0;
@@ -591,7 +593,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
           fprintf(stderr, "%s: allocating space in rows.\n", __FUNCTION__);
 #endif
 	  while (row < end)
-	    {
+	    {                   /* mmc: LEFT_MARGIN_AREA points to the whole line??  */
 	      row->glyphs[LEFT_MARGIN_AREA]
 		= xnrealloc (row->glyphs[LEFT_MARGIN_AREA],
 			     dim.width, sizeof (struct glyph));
@@ -600,6 +602,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 	      if (row == matrix->rows + dim.height - 1
 		  || (row == matrix->rows && matrix->header_line_p))
 		{
+                  /* mmc: Shifts ? */
 		  row->glyphs[TEXT_AREA]
 		    = row->glyphs[LEFT_MARGIN_AREA];
 		  row->glyphs[RIGHT_MARGIN_AREA]
@@ -609,6 +612,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 		}
 	      else
 		{
+                  /* mmc: regular line:  update the pointers to areas: */
 		  row->glyphs[TEXT_AREA]
 		    = row->glyphs[LEFT_MARGIN_AREA] + left;
 		  row->glyphs[RIGHT_MARGIN_AREA]
@@ -621,10 +625,12 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 	}
 
       xassert (left >= 0 && right >= 0);
+      /* mmc:  ?? */
       matrix->left_margin_glyphs = left;
       matrix->right_margin_glyphs = right;
     }
 
+  /* mmc: ??? */
   /* Number of rows to be used by MATRIX.  */
   matrix->nrows = dim.height;
   xassert (matrix->nrows >= 0);
@@ -968,7 +974,7 @@ clear_glyph_row (struct glyph_row *row)
   p[LAST_AREA] = row->glyphs[LAST_AREA];
 
   /* Clear.  */
-  *row = null_row;
+  *row = null_row;              /* mmc: why not memcpy? */
 
   /* Restore pointers.  */
   row->glyphs[LEFT_MARGIN_AREA] = p[LEFT_MARGIN_AREA];
@@ -1152,6 +1158,7 @@ copy_row_except_pointers (struct glyph_row *to, struct glyph_row *from)
 
 static inline void
 assign_row (struct glyph_row *to, struct glyph_row *from)
+/* mmc:  very nice idea! */
 {
   swap_glyph_pointers (to, from);
   copy_row_except_pointers (to, from);
@@ -1868,6 +1875,7 @@ allocate_matrices_for_window_redisplay (struct window *w)
 {
   while (w)
     {
+      /* mmc: recursion: */
       if (!NILP (w->vchild))
 	allocate_matrices_for_window_redisplay (XWINDOW (w->vchild));
       else if (!NILP (w->hchild))
@@ -1886,6 +1894,7 @@ allocate_matrices_for_window_redisplay (struct window *w)
 
 	  dim.width = required_matrix_width (w);
 	  dim.height = required_matrix_height (w);
+          /* mmc:  */
 	  adjust_glyph_matrix (w, w->desired_matrix, 0, 0, dim);
 	  adjust_glyph_matrix (w, w->current_matrix, 0, 0, dim);
 	}
@@ -2221,6 +2230,7 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
   /* Allocate/ reallocate matrices of the dummy window used to display
      the menu bar under X when no X toolkit support is available.  */
 #if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
+  /* mmc: my case -- xlib only! */
   {
     /* Allocate a dummy window if not already done.  */
     struct window *w;
@@ -3176,14 +3186,23 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
   if (FRAME_MSDOS_P (f))
     FRAME_TERMINAL (f)->set_terminal_modes_hook (FRAME_TERMINAL (f));
 #endif
+
+  /* mmc: This does nothing X-wise! */
   clear_frame (f);
+  /* mmc: this happens on resize!  .... and it fills the window w/ background color !!*/
+  /* mmc: -> x_clear_frame. But i removed XClearWindow there! */
+
+  /* mmc: So I want to relax this. clear only the new space!  */
   clear_current_matrices (f);
+
   update_end (f);
   if (FRAME_TERMCAP_P (f))
     fflush (FRAME_TTY (f)->output);
+  /* mmc: why only 1? */
   windows_or_buffers_changed++;
   /* Mark all windows as inaccurate, so that every window will have
      its redisplay done.  */
+  /* mmc: what's the diff between inaccurate & update_flag ?? */
   mark_window_display_accurate (FRAME_ROOT_WINDOW (f), 0);
   set_window_update_flags (XWINDOW (FRAME_ROOT_WINDOW (f)), 1);
   f->garbaged = 0;
@@ -3753,7 +3772,7 @@ update_window (struct window *w, int force_p)
   add_window_display_history (w, w->current_matrix->method, paused_p);
 #endif
 
-  clear_glyph_matrix (desired_matrix);
+  clear_glyph_matrix (desired_matrix); /* mmc: why? */
 
   return paused_p;
 }
@@ -4337,15 +4356,16 @@ scrolling_window (struct window *w, int header_line_p)
 	  && c->y == d->y
 	  && MATRIX_ROW_BOTTOM_Y (c) <= yb
 	  && MATRIX_ROW_BOTTOM_Y (d) <= yb
-	  && row_equal_p (c, d, 1))
+	  && row_equal_p (c, d, 1))/* mmc: our operator */
 	{
 	  assign_row (c, d);
-	  d->enabled_p = 0;
+	  d->enabled_p = 0;     /* mmc: why? invalidate the `desired', and thus also `current'? no! */
 	}
       else
 	break;
     }
 
+  /* mmc: But this does not iterate over all rows! */
   /* Give up if some rows in the desired matrix are not enabled.  */
   if (!MATRIX_ROW (desired_matrix, i)->enabled_p)
     return -1;
@@ -4360,6 +4380,7 @@ scrolling_window (struct window *w, int header_line_p)
     {
       int bottom;
 
+      /* mmc: Again this casual check! */
       if (!MATRIX_ROW (desired_matrix, i)->enabled_p)
 	return 0;
       bottom = MATRIX_ROW_BOTTOM_Y (MATRIX_ROW (desired_matrix, i));
@@ -4427,6 +4448,7 @@ scrolling_window (struct window *w, int header_line_p)
       memory_full (SIZE_MAX);
   }
 
+  /* mmc:  */
   /* Reallocate vectors, tables etc. if necessary.  */
 
   if (current_matrix->nrows > old_lines_size)
@@ -4446,10 +4468,13 @@ scrolling_window (struct window *w, int header_line_p)
       ptrdiff_t size = next_almost_prime (3 * n);
       row_table = xnrealloc (row_table, size, sizeof *row_table);
       row_table_size = size;
+      /* really  *row_table? Why? pointers at itself? */
+      /* mmc: these are just pointers? */
       memset (row_table, 0, size * sizeof *row_table);
     }
 
   if (n > row_entry_pool_size)
+    /* mmc: again, just pointers! */
     row_entry_pool = xpalloc (row_entry_pool, &row_entry_pool_size,
 			      n - row_entry_pool_size,
 			      -1, sizeof *row_entry_pool);
@@ -4497,11 +4522,11 @@ scrolling_window (struct window *w, int header_line_p)
       {
 	int p, q;
 	int new_line = old_lines[i]->new_line_number;
-	struct run *run = run_pool + run_idx++;
+	struct run *run = run_pool + run_idx++; /* mmc: allocates new run from the pool */
 
 	/* Record move.  */
 	run->current_vpos = i;
-	run->current_y = MATRIX_ROW (current_matrix, i)->y;
+	run->current_y = MATRIX_ROW (current_matrix, i)->y; /* mmc: */
 	run->desired_vpos = new_line;
 	run->desired_y = MATRIX_ROW (desired_matrix, new_line)->y;
 	run->nrows = 1;
@@ -4653,7 +4678,8 @@ scrolling_window (struct window *w, int header_line_p)
 	    to = MATRIX_ROW (current_matrix, r->desired_vpos + j);
 	    from = MATRIX_ROW (desired_matrix, r->desired_vpos + j);
 	    to_overlapped_p = to->overlapped_p;
-	    from->redraw_fringe_bitmaps_p = from->fringe_bitmap_periodic_p;
+
+            /* mmc: This is clear: */
 	    assign_row (to, from);
 	    /* The above `assign_row' actually does swap, so if we had
 	       an overlap in the copy destination of two runs, then
@@ -5818,7 +5844,6 @@ change_frame_size_1 (register struct frame *f, int newheight, int newwidth, int 
   if (newheight != FRAME_LINES (f))
     {
       resize_frame_windows (f, newheight, 0);
-
       /* MSDOS frames cannot PRETEND, as they change frame size by
 	 manipulating video hardware.  */
       if ((FRAME_TERMCAP_P (f) && !pretend) || FRAME_MSDOS_P (f))
