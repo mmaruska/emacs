@@ -3254,7 +3254,7 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
   /* mmc: what's the diff between inaccurate & update_flag ?? */
   mark_window_display_accurate (FRAME_ROOT_WINDOW (f), 0);
   set_window_update_flags (XWINDOW (FRAME_ROOT_WINDOW (f)), 1);
-  f->garbaged = 0;
+  f->garbaged = 1;              /* mmc: why do I do this? */
   return Qnil;
 }
 
