@@ -3235,7 +3235,6 @@ DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
   return Qnil;
 }
 
-
 
 /***********************************************************************
 			     Frame Update
