@@ -4017,9 +4017,17 @@ update_text_area (struct window *w, int vpos)
 
 	      /* Find the next glyph that's equal again.  */
 	      while (i < stop
-		     && (skip_first_p
+		     && (skip_first_p /* mmc:??? */
+#if 1                                 /* c-s ?  No!*/
 			 || !GLYPH_EQUAL_P (desired_glyph, current_glyph))
-		     && x == current_x)
+                     /* mmc: x != current_x seems better! */
+		     && x == current_x
+#else
+                     || !(GLYPH_EQUAL_P (desired_glyph, current_glyph)
+                          /* mmc: x != current_x seems better! */
+                          && x == current_x))
+#endif
+                )
 		{
 		  x += desired_glyph->pixel_width;
 		  current_x += current_glyph->pixel_width;
