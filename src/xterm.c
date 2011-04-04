@@ -4086,6 +4086,19 @@ x_clear_area (struct frame *f, int x, int y, int width, int height)
 #endif
 }
 
+void
+x_fill_frame_area_bg (struct frame *f, int x, int y, int width, int height)
+{
+  eassert (width > 0 && height > 0);
+  if (f && (f->output_data.x) && f->output_data.x->reverse_gc)
+    XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		    f->output_data.x->reverse_gc, x, y, width, height);
+  else {
+    fprintf(stderr, "%s: no frame given, or the frame does "
+	    "not have reverse_gc -> XClearArea cannot be emulated\n",
+	    __FUNCTION__);
+  }
+}
 
 /* Clear an entire frame.  */
 
