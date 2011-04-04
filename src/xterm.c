@@ -7272,6 +7272,8 @@ x_dispatch_event (XEvent *event, Display *display)
 #endif
 
 
+/* mmc: hack! */
+extern void clear_garbaged_frames (void); /* P_ */
 /* Read events coming from the X server.
    This routine is called by the SIGIO handler only if SYNC_INPUT is
    not defined.
