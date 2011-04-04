@@ -34,7 +34,8 @@ EMACS = ${abs_top_builddir}/src/emacs
 
 # Command line flags for Emacs.
 
-EMACSOPT = -batch --no-site-file --no-site-lisp
+EMACSOPT = -batch --no-site-file
+# mmc: --no-site-lisp
 
 # Extra flags to pass to the byte compiler
 BYTE_COMPILE_EXTRA_FLAGS =
