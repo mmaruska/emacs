@@ -1284,6 +1284,9 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   int delta, nlines, root_height;
   Lisp_Object root_window;
 
+#if MMC_DEBUG
+  fprintf(stderr, "%s:\n", __FUNCTION__); /* mmc! */
+#endif
   /* Treat tool bars like menu bars.  */
   if (FRAME_MINIBUF_ONLY_P (f))
     return;

@@ -2959,7 +2959,15 @@ void
 x_clear_area (Display *dpy, Window window, int x, int y, int width, int height, int exposures)
 {
   xassert (width > 0 && height > 0);
+#if 0
+  /* mmc: I need a GC with the fg color  that of BG (of the window)!
+   * Why useless?  b/c I convnert all calls into here  into `x_fill_frame_area_bg'.
+   */
+  fprintf(stderr, "%s: XClearArea is useless: %d %d  (@ %d %d)\n", __FUNCTION__,
+          width, height, x, y);
+#else
   XClearArea (dpy, window, x, y, width, height, exposures);
+#endif
 }
 
 /* mmc:*/
@@ -3306,6 +3314,9 @@ x_scroll_run (struct window *w, struct run *run)
   struct frame *f = XFRAME (w->frame);
   int x, y, width, height, from_y, to_y, bottom_y;
 
+#if MMC_DEBUG
+  fprintf(stderr, "%s: mmc................\n", __FUNCTION__);
+#endif
   /* Get frame-relative bounding box of the text display area of W,
      without mode lines.  Include in this box the left and right
      fringe of W.  */
