@@ -792,7 +792,9 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       BLOCK_INPUT;
       XSetBackground (dpy, x->normal_gc, bg);
       XSetForeground (dpy, x->reverse_gc, bg);
+#if 0      /* mmc: */
       XSetWindowBackground (dpy, FRAME_X_WINDOW (f), bg);
+#endif
       XSetForeground (dpy, x->cursor_gc, bg);
 
 #ifdef USE_GTK
@@ -2653,14 +2655,18 @@ x_window (struct frame *f)
   XSetWindowAttributes attributes;
   unsigned long attribute_mask;
 
+#if 0
   attributes.background_pixel = FRAME_BACKGROUND_PIXEL (f);
+#else
+  attributes.background_pixmap = None;
+#endif
   attributes.border_pixel = f->output_data.x->border_pixel;
   attributes.bit_gravity = StaticGravity;
   attributes.backing_store = NotUseful;
   attributes.save_under = True;
   attributes.event_mask = STANDARD_EVENT_SET;
   attributes.colormap = FRAME_X_COLORMAP (f);
-  attribute_mask = (CWBackPixel | CWBorderPixel | CWBitGravity | CWEventMask
+  attribute_mask = (CWBackPixmap | CWBorderPixel | CWBitGravity | CWEventMask
 		    | CWColormap);
 
   BLOCK_INPUT;
