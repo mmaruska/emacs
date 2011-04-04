@@ -10540,7 +10540,7 @@ clear_garbaged_frames (void)
                   fprintf(stderr, "%s: resized & garbaged & visible!\n", __FUNCTION__);
 #endif
 		  Fredraw_frame (frame);
-		  f->force_flush_display_p = 1;
+		  f->force_flush_display_p = 1; /* mmc! ???  */
 		}
               else
                 {
