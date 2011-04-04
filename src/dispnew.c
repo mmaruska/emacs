@@ -5686,7 +5686,6 @@ change_frame_size_1 (struct frame *f, int newheight, int newwidth,
 
   adjust_glyphs (f);
   calculate_costs (f);
-  SET_FRAME_GARBAGED (f);
   f->resized_p = 1;
 
   unblock_input ();
