@@ -1357,8 +1357,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
       if (height > 0 && width > 0)
 	{
           BLOCK_INPUT;
-          x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-                        0, y, width, height, False);
+          /* x_fill_frame_area_bg (f, 0, y, width, height); */
           UNBLOCK_INPUT;
         }
 
