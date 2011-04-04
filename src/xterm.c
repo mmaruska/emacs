@@ -6899,6 +6899,11 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
         /* mmc: is this enough?
            I think the core is in invalidate_window_matrices ... in dispnew.c */
               SET_FRAME_GARBAGED (f);
+#if MMC_DEBUG
+              fprintf(stderr, "%s  mmc: decided to ignore "
+                      "SET_FRAME_GARBAGED just b/c of ConfigureNotify!\n",
+                      __FUNCTION__);
+#endif
 #endif
               cancel_mouse_face (f);
             }
@@ -7106,6 +7111,9 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
  done:
   if (inev.ie.kind != NO_EVENT)
     {
+#ifdef DEBUG_EVENTS
+      fprintf(stderr, "%s -> kbd_buffer_store_event_hold\n", __FUNCTION__);
+#endif
       kbd_buffer_store_event_hold (&inev.ie, hold_quit);
       count++;
     }
@@ -8915,6 +8923,9 @@ x_set_window_size_1 (struct frame *f, int change_gravity, int cols, int rows)
      receive in the ConfigureNotify event; if we get what we asked
      for, then the event won't cause the screen to become garbaged, so
      we have to make sure to do it here.  */
+#if MMC_DEBUG
+  fprintf(stderr, "%s -> SET_FRAME_GARBAGED\n", __FUNCTION__);
+#endif
   SET_FRAME_GARBAGED (f);
 
   /* Now, strictly speaking, we can't be sure that this is accurate,
@@ -9303,6 +9314,10 @@ x_make_frame_visible (struct frame *f)
 
 	/* See if a MapNotify event has been processed.  */
 	FRAME_SAMPLE_VISIBILITY (f);
+#if 0
+        if (f->visible)
+          fprintf (stderr, "%s FRAME_SAMPLE_VISIBILITY\n", __FUNCTION__);
+#endif
       }
 
     /* 2000-09-28: In
