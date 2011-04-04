@@ -471,6 +471,9 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
   int left = -1, right = -1;
   int window_width = -1, window_height = -1;
 
+#if 0
+  fprintf(stderr, "%s: @ %d, %d:  %dx%d\n", __FUNCTION__, x, y, dim.width,dim.height );
+#endif
   /* See if W had a header line that has disappeared now, or vice versa.
      Get W's size.  */
   if (w)
@@ -493,7 +496,9 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
       xassert (left >= 0 && right >= 0);
       marginal_areas_changed_p = (left != matrix->left_margin_glyphs
 				  || right != matrix->right_margin_glyphs);
-
+#if 0
+      fprintf(stderr, "%s: this is a window matrix for Window-based redisplay\n", __FUNCTION__);
+#endif
       if (!marginal_areas_changed_p
 	  && !fonts_changed_p
 	  && !header_line_changed_p
@@ -582,6 +587,9 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 	  struct glyph_row *row = matrix->rows;
 	  struct glyph_row *end = row + matrix->rows_allocated;
 
+#ifdef DEBUG_DISP
+          fprintf(stderr, "%s: allocating space in rows.\n", __FUNCTION__);
+#endif
 	  while (row < end)
 	    {
 	      row->glyphs[LEFT_MARGIN_AREA]
@@ -656,7 +664,12 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 	      if (INTEGERP (w->window_end_vpos)
 		  && XFASTINT (w->window_end_vpos) >= i)
 		w->window_end_valid = Qnil;
-
+#ifdef DEBUG_DISP
+              fprintf(stderr, "%s: invalidate new rows? %d %d\n", __FUNCTION__, i, matrix->nrows);
+#endif
+#if MMC_DEBUG
+              fprintf(stderr, "%s 1-> enabled = 0 on %d rows\n", __FUNCTION__, matrix->nrows - i); /* mmc */
+#endif
 	      while (i < matrix->nrows)
 		matrix->rows[i++].enabled_p = 0;
 	    }
@@ -672,6 +685,9 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 	     redisplay expects this is the case when it runs, so it
 	     had better be the case when we adjust matrices between
 	     redisplays.  */
+#if MMC_DEBUG
+          fprintf(stderr, "%s -> 3 enabled = 0\n", __FUNCTION__); /* mmc */
+#endif
 	  for (i = 0; i < matrix->nrows; ++i)
 	    matrix->rows[i].enabled_p = 0;
 	}
@@ -847,6 +863,11 @@ shift_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int start, in
 void
 clear_current_matrices (register struct frame *f)
 {
+#if MMC_DEBUG
+#define color_reset "\x1b[0m"
+#define serial_color  "\x1b[01;33m"
+  fprintf(stderr, "%s%s%s\n", serial_color, __FUNCTION__, color_reset);
+#endif
   /* Clear frame current matrix, if we have one.  */
   if (f->current_matrix)
     clear_glyph_matrix (f->current_matrix);
@@ -872,6 +893,7 @@ clear_current_matrices (register struct frame *f)
 void
 clear_desired_matrices (register struct frame *f)
 {
+  /* fprintf(stderr, "%s:\n", __FUNCTION__); /* mmc! */
   if (f->desired_matrix)
     clear_glyph_matrix (f->desired_matrix);
 
@@ -2840,7 +2862,9 @@ mirrored_line_dance (struct glyph_matrix *matrix, int unchanged_at_top, int nlin
       xassert (unchanged_at_top + copy_from[i] < matrix->nrows);
       new_rows[i] = old_rows[copy_from[i]];
       new_rows[i].enabled_p = enabled_before_p;
-
+#if MMC_DEBUG
+      fprintf(stderr, "%s -> enabled = 0\n", __FUNCTION__); /* mmc */
+#endif
       /* RETAINED_P is zero for empty lines.  */
       if (!retained_p[copy_from[i]])
 	new_rows[i].enabled_p = 0;
@@ -3241,6 +3265,9 @@ update_frame (struct frame *f, int force_p, int inhibit_hairy_id_p)
 
   if (FRAME_WINDOW_P (f))
     {
+#ifdef DEBUG_DISP
+      fprintf(stderr, "%s!\n", __FUNCTION__);
+#endif
       /* We are working on window matrix basis.  All windows whose
 	 flag must_be_updated_p is set have to be updated.  */
 
@@ -6058,6 +6085,9 @@ sit_for (Lisp_Object timeout, int reading, int do_display)
 
 #ifdef SIGIO
   gobble_input (0);
+#endif
+#ifdef DEBUG_DISP               /* mmc: ? */
+  fprintf(stderr, "%s: wait_reading_process_output\n", __FUNCTION__);
 #endif
 
   wait_reading_process_output (sec, usec, reading ? -1 : 1, do_display,

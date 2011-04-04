@@ -2502,6 +2502,9 @@ init_iterator (struct it *it, struct window *w,
   int highlight_region_p;
   enum face_id remapped_base_face_id = base_face_id;
 
+#if 0
+  fprintf(stderr, "%s:\n", __FUNCTION__);
+#endif
   /* Some precondition checks.  */
   xassert (w != NULL && it != NULL);
   xassert (charpos < 0 || (charpos >= BUF_BEG (current_buffer)
@@ -10524,8 +10527,18 @@ clear_garbaged_frames (void)
 
 	  if (FRAME_VISIBLE_P (f) && FRAME_GARBAGED_P (f))
 	    {
+#if MMC_DEBUG
+              fprintf(stderr, "%s:\n", __FUNCTION__); /* mmc! */
+#endif
+#ifdef DEBUG_DISP
+              /* name of the frame? */
+              fprintf(stderr, "%s: %s garbaged & visible!\n", __FUNCTION__, f->namebuf);
+#endif
 	      if (f->resized_p)
 		{
+#ifdef DEBUG_DISP
+                  fprintf(stderr, "%s: resized & garbaged & visible!\n", __FUNCTION__);
+#endif
 		  Fredraw_frame (frame);
 		  f->force_flush_display_p = 1;
 		}
@@ -10533,6 +10546,9 @@ clear_garbaged_frames (void)
 	      changed_count++;
 	      f->garbaged = 0;
 	      f->resized_p = 0;
+#ifdef DEBUG_DISP
+              fprintf(stderr, "%s: garbaged, bug not visible!\n", __FUNCTION__);
+#endif
 	    }
 	}
 
@@ -12726,7 +12742,11 @@ redisplay_internal (void)
 
   /* I don't think this happens but let's be paranoid.  */
   if (redisplaying_p)
+    {
+      fprintf(stderr, "%s nested!!\n",__FUNCTION__);
+      /* mmc: I would like to see it! */
     return;
+    }
 
   /* Record a function that resets redisplaying_p to its old value
      when we leave this function.  */
@@ -12736,6 +12756,9 @@ redisplay_internal (void)
   ++redisplaying_p;
   specbind (Qinhibit_free_realized_faces, Qnil);
 
+#ifdef DEBUG_DISP
+  fprintf(stderr, "%s %d!\n",__FUNCTION__, redisplaying_p);
+#endif
   {
     Lisp_Object tail, frame;
 
@@ -13150,6 +13173,7 @@ redisplay_internal (void)
 
     cancel:
       /* Text changed drastically or point moved off of line.  */
+      fprintf(stderr, "%s -> SET_MATRIX_ROW_ENABLED_P\n", __FUNCTION__);
       SET_MATRIX_ROW_ENABLED_P (w->desired_matrix, this_line_vpos, 0);
     }
 
@@ -16108,6 +16132,9 @@ try_window_reusing_current_matrix (struct window *w)
   struct glyph_row *start_row;
   int start_vpos, min_y, max_y;
 
+#if MMC_DEBUG
+  fprintf(stderr, "%s: mmc\n", __FUNCTION__);
+#endif
 #if GLYPH_DEBUG
   if (inhibit_try_window_reusing)
     return 0;
@@ -16892,7 +16919,9 @@ try_window_id (struct window *w)
   if (inhibit_try_window_id)
     return 0;
 #endif
-
+#if DEBUG
+  fprintf(stderr, "%s: mmc\n", __FUNCTION__);
+#endif
   /* This is handy for debugging.  */
 #if 0
 #define GIVE_UP(X)						\
@@ -27641,6 +27670,10 @@ expose_area (struct window *w, struct glyph_row *row, XRectangle *r,
 
   if (area == TEXT_AREA && row->fill_line_p)
     /* If row extends face to end of line write the whole line.  */
+    /* mmc: I would insist on the rectangle! */ {
+#if DEBUG
+    fprintf(stderr, "%s: mmc  should draw only the intersection w/ rectangle!\n", __FUNCTION__);
+#endif
     draw_glyphs (w, 0, row, area,
 		 0, row->used[area],
 		 DRAW_NORMAL_TEXT, 0);
@@ -27860,6 +27893,10 @@ expose_window (struct window *w, XRectangle *fr)
      later.  */
   if (w == updated_window)
     {
+      /* mmc: This seems too much! */
+#if MMC_DEBUG
+      fprintf(stderr, "%s: setting frame Garbaged just b/c we expose window while we draw it!??!\n",__FUNCTION__);
+#endif
       SET_FRAME_GARBAGED (f);
       return 0;
     }
@@ -28021,10 +28058,16 @@ expose_frame (struct frame *f, int x, int y, int w, int h)
   int mouse_face_overwritten_p = 0;
 
   TRACE ((stderr, "expose_frame "));
+#if 0
+  fprintf(stderr, "%s3: %d %d %d %d!\n",__FUNCTION__, x, y, w, h);
+#endif
 
   /* No need to redraw if frame will be redrawn soon.  */
   if (FRAME_GARBAGED_P (f))
     {
+#ifdef DEBUG_DISP
+      fprintf(stderr, "%s:Frame is garbaged -> will be redrawn soon, not handling now!!\n",__FUNCTION__);
+#endif
       TRACE ((stderr, " garbaged\n"));
       return;
     }
