@@ -3047,7 +3047,10 @@ x_clear_frame (struct frame *f)
      follow an explicit cursor_to.  */
   block_input ();
 
-  XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+  /* The following calls have been commented out because they do not
+     seem to accomplish anything, apart from causing flickering during
+     window resize.  */
+  /* XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f)); */
 
   /* We have to clear the scroll bars.  If we have changed colors or
      something like that, then they should be notified.  */
