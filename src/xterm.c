@@ -6306,15 +6306,26 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 #endif
           if (f->async_visible == 0)
             {
+              /* mmc:  we have requested UnMap!*/
+#ifdef DEBUG_EVENTS
+              fprintf(stderr, "Expose event: frame is NOT async_visible\n");
+#endif
               f->async_visible = 1;
               f->async_iconified = 0;
               f->output_data.x->has_been_visible = 1;
               SET_FRAME_GARBAGED (f);
             }
           else
+            {
+#ifdef DEBUG_EVENTS
+              /* mmc: */
+              fprintf(stderr, "Expose event: frame IS  async_visible\n");
+#endif
             expose_frame (f,
 			  event.xexpose.x, event.xexpose.y,
                           event.xexpose.width, event.xexpose.height);
+        }
+
         }
       else
         {
