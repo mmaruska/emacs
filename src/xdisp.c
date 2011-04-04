@@ -28123,8 +28123,20 @@ expose_frame (struct frame *f, int x, int y, int w, int h)
   mouse_face_overwritten_p = expose_window_tree (XWINDOW (f->root_window), &r);
 
   if (WINDOWP (f->tool_bar_window))
+    {
     mouse_face_overwritten_p
       |= expose_window (XWINDOW (f->tool_bar_window), &r);
+      {
+        /* mmc: the above code leaked 1 pixel high strip ! */
+        struct window *w = XWINDOW(f->tool_bar_window);
+        FRAME_RIF (f)->clear_frame_area(f,
+                                        WINDOW_LEFT_EDGE_X(w),
+                                        WINDOW_BOTTOM_EDGE_Y(w) - 1, /* WINDOW_TOP_EDGE_Y */
+                                        /* +  */
+                                        FRAME_PIXEL_WIDTH(f),
+                                        1);
+      }
+    }
 
 #ifdef HAVE_X_WINDOWS
 #ifndef MSDOS
