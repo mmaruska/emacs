@@ -10089,6 +10089,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #else /* not USE_X_TOOLKIT */
   XSetLocaleModifiers ("");
   dpy = XOpenDisplay (SSDATA (display_name));
+  /* mmc: */
+  /* _Xdebug=1; */
 #endif /* not USE_X_TOOLKIT */
 #endif /* not USE_GTK*/
 
@@ -10472,7 +10474,12 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     if (STRINGP (value)
 	&& (!strcmp (SSDATA (value), "true")
 	    || !strcmp (SSDATA (value), "on")))
-      XSynchronize (dpyinfo->display, True);
+            {
+                    fprintf(stderr, "%s: mmc XSYNCHRONIZE\n", __FUNCTION__);
+                    exit(-1);
+                    XSynchronize (dpyinfo->display, True);
+            }
+
   }
 
   {
