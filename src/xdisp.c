@@ -28064,6 +28064,62 @@ expose_frame (struct frame *f, int x, int y, int w, int h)
   if (WINDOWP (f->menu_bar_window))
     mouse_face_overwritten_p
       |= expose_window (XWINDOW (f->menu_bar_window), &r);
+
+  /* mmc: along the emacs window borders, there are areas not handled by the window drawing.
+   * Here i take care for when they are exposed. */
+  /* mmc: only 3 of them? */
+  {
+    XRectangle border;
+    XRectangle intersection;
+    border.x = 0;
+    border.y = 0;
+    border.width = FRAME_INTERNAL_BORDER_WIDTH(f);
+    border.height = FRAME_PIXEL_HEIGHT(f);
+
+    if (x_intersect_rectangles(&border, &r, &intersection))
+      FRAME_RIF (f)->clear_frame_area(f,
+                                      intersection.x,
+                                      intersection.y,
+                                      intersection.width,
+                                      intersection.height);
+    /* 0,0, FRAME_INTERNAL_BORDER_WIDTH(f),FRAME_PIXEL_HEIGHT(f));*/
+  }
+
+  {
+    XRectangle border;
+    XRectangle intersection;
+    border.x = 0;
+    border.y = 0;
+    border.width = FRAME_PIXEL_WIDTH(f);
+    border.height = FRAME_INTERNAL_BORDER_WIDTH(f);
+
+    if (x_intersect_rectangles(&border, &r, &intersection))
+      FRAME_RIF (f)->clear_frame_area(f,
+                            intersection.x,
+                            intersection.y,
+                            intersection.width,
+                            intersection.height);
+    /* 0,0, FRAME_INTERNAL_BORDER_WIDTH(f),FRAME_PIXEL_HEIGHT(f));*/
+  }
+
+  {
+    XRectangle border;
+    XRectangle intersection;
+    border.x = 0;
+    border.y = FRAME_PIXEL_HEIGHT(f) - FRAME_INTERNAL_BORDER_WIDTH(f);
+    border.width = FRAME_PIXEL_WIDTH(f);
+    border.height = FRAME_INTERNAL_BORDER_WIDTH(f);
+
+    if (x_intersect_rectangles(&border, &r, &intersection))
+      FRAME_RIF (f)->clear_frame_area(f,
+                            intersection.x,
+                            intersection.y,
+                            intersection.width,
+                            intersection.height);
+    /* 0,0, FRAME_INTERNAL_BORDER_WIDTH(f),FRAME_PIXEL_HEIGHT(f));*/
+  }
+
+
 #endif /* not USE_X_TOOLKIT */
 #endif
 #endif
