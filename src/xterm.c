@@ -3535,17 +3535,40 @@ x_detect_focus_change (struct x_display_info *dpyinfo, XEvent *event, struct inp
         struct frame *focus_frame = dpyinfo->x_focus_event_frame; /* mmc: This is the trace of FocusIn/Out events. */
         int focus_state
           = focus_frame ? focus_frame->output_data.x->focus_state : 0;
-        if (event->xcrossing.detail != NotifyInferior
-            && event->xcrossing.focus
-            && ! (focus_state & FOCUS_EXPLICIT))
+                                /* mmc: is this Emacs implementing auto-raise? */
+        if (event->xcrossing.detail != NotifyInferior /* ?? */
+            && event->xcrossing.focus                 /* The window is the focused one! */
+            && focus_frame                            /* <- mmc! */
+            && ! (focus_state & FOCUS_EXPLICIT)) /* ?? */
+          {
+            if (!focus_frame)
+              fprintf(stderr, "%s: seems bug!\n", __FUNCTION__);
+            else
+              fprintf(stderr, "%s: we have a frame!\n", __FUNCTION__);
           x_focus_changed ((event->type == EnterNotify ? FocusIn : FocusOut),
 			   FOCUS_IMPLICIT,
 			   dpyinfo, frame, bufp);
+      }
+
       }
       break;
 
     case FocusIn:
     case FocusOut:
+      /* mmc: NotifyPointer means the mouse is over an emacs X window while the focus is changed. That
+       * does NOT indicate we changed focus to it!
+       * Example: Mouse is over the Ediff control panel, while we change
+       */
+      if (event->xfocus.detail == NotifyPointer)
+        {
+#ifdef DEBUG_EVENTS
+          fprintf(stderr, "%s: NotifyPointer -- skipping x_focus_changed !\n", __FUNCTION__);
+#endif
+        }
+
+      /* I would do it only if the 2 X frames are associated. We focus A, and raise B which is related to A. */
+      else
+        /* mmc: I'm testing this! */
       x_focus_changed (event->type,
 		       (event->xfocus.detail == NotifyPointer ?
 			FOCUS_IMPLICIT : FOCUS_EXPLICIT),
