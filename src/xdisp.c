@@ -971,12 +971,12 @@ window_text_bottom_y (struct window *w)
 int
 window_box_width (struct window *w, int area)
 {
-  int cols = XFASTINT (w->total_cols);
+  int cols = XFASTINT (w->total_cols); /* mmc: glyph units? */
   int pixels = 0;
 
-  if (!w->pseudo_window_p)
+  if (!w->pseudo_window_p)      /* mmc: not menu bar windows of frames */
     {
-      cols -= WINDOW_SCROLL_BAR_COLS (w);
+      cols -= WINDOW_SCROLL_BAR_COLS (w); /* mmc: But this is in pixels, I hope! */
 
       if (area == TEXT_AREA)
 	{
@@ -1141,7 +1141,7 @@ window_box (struct window *w, int area, int *box_x, int *box_y,
     *box_x = window_box_left (w, area);
   if (box_y)
     {
-      *box_y = WINDOW_TOP_EDGE_Y (w);
+      *box_y = WINDOW_TOP_EDGE_Y (w); /* mmc: The area arrives to the top, unless HEADER lin. */
       if (WINDOW_WANTS_HEADER_LINE_P (w))
 	*box_y += CURRENT_HEADER_LINE_HEIGHT (w);
     }
@@ -1183,11 +1183,11 @@ line_bottom_y (struct it *it)
 
   if (line_height == 0)
     {
-      if (last_height)
+      if (last_height)          /* mmc: Global */
 	line_height = last_height;
-      else if (IT_CHARPOS (*it) < ZV)
+      else if (IT_CHARPOS (*it) < ZV) /* ZV is the last position in buffer?  (current_buffer->zv) */
 	{
-	  move_it_by_lines (it, 1);
+	  move_it_by_lines (it, 1); /* mmc: ?? */
 	  line_height = (it->max_ascent || it->max_descent
 			 ? it->max_ascent + it->max_descent
 			 : last_height);
@@ -2545,7 +2545,7 @@ init_iterator (struct it *it, struct window *w,
   it->bidi_it.string.bufpos = 0;
 
   /* The window in which we iterate over current_buffer:  */
-  XSETWINDOW (it->window, w);
+  XSETWINDOW (it->window, w);   /* mmc: ?? */
   it->w = w;
   it->f = XFRAME (w->frame);
 
@@ -2817,13 +2817,14 @@ start_display (struct it *it, struct window *w, struct text_pos pos)
   /* Don't reseat to previous visible line start if current start
      position is in a string or image.  */
   if (it->method == GET_FROM_BUFFER && it->line_wrap != TRUNCATE)
+          /* 0 = from_buffer.  also possible From string (elipsis) */
     {
       int start_at_line_beg_p;
       int first_y = it->current_y;
 
       /* If window start is not at a line start, skip forward to POS to
 	 get the correct continuation lines width.  */
-      start_at_line_beg_p = (CHARPOS (pos) == BEGV
+      start_at_line_beg_p = (CHARPOS (pos) == BEGV  /* mmc: (current_buffer->begv) */
 			     || FETCH_BYTE (BYTEPOS (pos) - 1) == '\n');
       if (!start_at_line_beg_p)
 	{
@@ -6426,7 +6427,7 @@ get_next_display_element (struct it *it)
 	 count the recursion depth of this function and signal an
 	 error when a certain maximum depth is reached.)  Is it worth
 	 it?  */
-      if (success_p && it->dpvec == NULL)
+      if (success_p && it->dpvec == NULL) /* mmc: load the dpvec! */
 	{
 	  Lisp_Object dv;
 	  struct charset *unibyte = CHARSET_FROM_ID (charset_unibyte);
@@ -27643,15 +27644,14 @@ expose_area (struct window *w, struct glyph_row *row, XRectangle *r,
     draw_glyphs (w, 0, row, area,
 		 0, row->used[area],
 		 DRAW_NORMAL_TEXT, 0);
-  else
-    {
+  } else {
       /* Set START_X to the window-relative start position for drawing glyphs of
 	 AREA.  The first glyph of the text area can be partially visible.
 	 The first glyphs of other areas cannot.  */
       start_x = window_box_left_offset (w, area);
       x = start_x;
       if (area == TEXT_AREA)
-	x += row->x;
+	x += row->x;            /* start of the row relative to start of the emacs window*/
 
       /* Find the first glyph that must be redrawn.  */
       while (first < end
@@ -27904,7 +27904,7 @@ expose_window (struct window *w, XRectangle *fr)
       /* Update lines intersecting rectangle R.  */
       first_overlapping_row = last_overlapping_row = NULL;
       for (row = w->current_matrix->rows;
-	   row->enabled_p;
+	   row->enabled_p;      /* mmc: This ends !!   b/c we have to regenerate ALL?*/
 	   ++row)
 	{
 	  int y0 = row->y;
@@ -27952,7 +27952,7 @@ expose_window (struct window *w, XRectangle *fr)
 	      row->enabled_p)
 	  && row->y < r.y + r.height)
 	{
-	  if (expose_line (w, row, &r))
+	  if (expose_line (w, row, &r)) /* mmc:! */
 	    mouse_face_overwritten_p = 1;
 	}
 
@@ -27988,7 +27988,9 @@ expose_window_tree (struct window *w, XRectangle *r)
   struct frame *f = XFRAME (w->frame);
   int mouse_face_overwritten_p = 0;
 
-  while (w && !FRAME_GARBAGED_P (f))
+  /* mmc: Does this work?  expose_window only if no children??
+   * Also why not limit to intersection w/ rectangle R? */
+  while (w && !FRAME_GARBAGED_P (f)) /* mmc: not when mapped! */
     {
       if (!NILP (w->hchild))
 	mouse_face_overwritten_p
@@ -27997,7 +27999,7 @@ expose_window_tree (struct window *w, XRectangle *r)
 	mouse_face_overwritten_p
 	  |= expose_window_tree (XWINDOW (w->vchild), r);
       else
-	mouse_face_overwritten_p |= expose_window (w, r);
+	mouse_face_overwritten_p |= expose_window (w, r); /* mmc: only here! */
 
       w = NILP (w->next) ? NULL : XWINDOW (w->next);
     }
@@ -28052,6 +28054,7 @@ expose_frame (struct frame *f, int x, int y, int w, int h)
     }
 
   TRACE ((stderr, "(%d, %d, %d, %d)\n", r.x, r.y, r.width, r.height));
+  /* mmc: Here we go: */
   mouse_face_overwritten_p = expose_window_tree (XWINDOW (f->root_window), &r);
 
   if (WINDOWP (f->tool_bar_window))
@@ -28081,6 +28084,7 @@ expose_frame (struct frame *f, int x, int y, int w, int h)
   /* Included in Windows version because Windows most likely does not
      do the right thing if any third party tool offers
      focus-follows-mouse with delayed raise.  --jason 2001-10-12  */
+  /* mmc: I disagree! Let's see 23 lug 06*/
   if (mouse_face_overwritten_p && !FRAME_GARBAGED_P (f))
     {
       Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
