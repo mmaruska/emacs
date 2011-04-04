@@ -4972,13 +4972,14 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
     a.background_pixel = f->output_data.x->scroll_bar_background_pixel;
     if (a.background_pixel == -1)
       a.background_pixel = FRAME_BACKGROUND_PIXEL (f);
+    a.background_pixmap = None;
 
     a.event_mask = (ButtonPressMask | ButtonReleaseMask
 		    | ButtonMotionMask | PointerMotionHintMask
 		    | ExposureMask);
     a.cursor = FRAME_X_DISPLAY_INFO (f)->vertical_scroll_bar_cursor;
 
-    mask = (CWBackPixel | CWEventMask | CWCursor);
+    mask = (CWBackPixmap | CWEventMask | CWCursor);
 
     /* Clear the area of W that will serve as a scroll bar.  This is
        for the case that a window has been split horizontally.  In
