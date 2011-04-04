@@ -1325,14 +1325,15 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
       int width = FRAME_PIXEL_WIDTH (f);
       int y = (FRAME_MENU_BAR_LINES (f) + nlines) * FRAME_LINE_HEIGHT (f);
 
+#if 0
       /* height can be zero here. */
       if (height > 0 && width > 0)
 	{
           block_input ();
-          x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-                        0, y, width, height, False);
+          /* x_fill_frame_area_bg (f, 0, y, width, height); */
           unblock_input ();
         }
+#endif
 
       if (WINDOWP (f->tool_bar_window))
 	clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
