@@ -3442,15 +3442,15 @@ x_new_focus_frame (struct x_display_info *dpyinfo, struct frame *frame)
       dpyinfo->x_focus_frame = frame;
 
       if (old_focus && old_focus->auto_lower)
-	x_lower_frame (old_focus);
+	x_lower_frame (old_focus); /* mmc: This is done immediately */
 
       if (dpyinfo->x_focus_frame && dpyinfo->x_focus_frame->auto_raise)
-	pending_autoraise_frame = dpyinfo->x_focus_frame;
+	pending_autoraise_frame = dpyinfo->x_focus_frame; /* mmc: This is postponed */
       else
 	pending_autoraise_frame = 0;
     }
 
-  x_frame_rehighlight (dpyinfo);
+  x_frame_rehighlight (dpyinfo); /* mmc: no idea about this  */
 }
 
 /* Handle FocusIn and FocusOut state changes for FRAME.
@@ -3464,7 +3464,7 @@ x_focus_changed (int type, int state, struct x_display_info *dpyinfo, struct fra
     {
       if (dpyinfo->x_focus_event_frame != frame)
         {
-          x_new_focus_frame (dpyinfo, frame);
+          x_new_focus_frame (dpyinfo, frame); /* mmc: pending auto-raise */
           dpyinfo->x_focus_event_frame = frame;
 
           /* Don't stop displaying the initial startup message
@@ -3492,7 +3492,7 @@ x_focus_changed (int type, int state, struct x_display_info *dpyinfo, struct fra
       if (dpyinfo->x_focus_event_frame == frame)
         {
           dpyinfo->x_focus_event_frame = 0;
-          x_new_focus_frame (dpyinfo, 0);
+          x_new_focus_frame (dpyinfo, 0); /* mmc: pending auto-raise */
         }
 
 #ifdef HAVE_X_I18N
@@ -3523,10 +3523,9 @@ x_detect_focus_change (struct x_display_info *dpyinfo, XEvent *event, struct inp
     case EnterNotify:
     case LeaveNotify:
       {
-        struct frame *focus_frame = dpyinfo->x_focus_event_frame;
+        struct frame *focus_frame = dpyinfo->x_focus_event_frame; /* mmc: This is the trace of FocusIn/Out events. */
         int focus_state
           = focus_frame ? focus_frame->output_data.x->focus_state : 0;
-
         if (event->xcrossing.detail != NotifyInferior
             && event->xcrossing.focus
             && ! (focus_state & FOCUS_EXPLICIT))
@@ -6287,6 +6286,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
           f->async_visible = 0;
           /* We can't distinguish, from the event, whether the window
              has become iconified or invisible.  So assume, if it
+             (mmc: what's the differentce between icon-ed & invisible?)
              was previously visible, than now it is iconified.
              But x_make_frame_invisible clears both
              the visible flag and the iconified flag;
@@ -6315,7 +6315,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
         {
           /* wait_reading_process_output will notice this and update
              the frame's display structures.
-             If we where iconified, we should not set garbaged,
+             If we were iconified, we should not set garbaged,
              because that stops redrawing on Expose events.  This looks
              bad if we are called from a recursive event loop
              (x_dispatch_event), for example when a dialog is up.  */
@@ -7101,7 +7101,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 }
 
 #if defined USE_GTK || defined USE_X_TOOLKIT
-
+/* mmc: only from GDK event loop!? No, also from Menu for Xt version! */
 /* Handles the XEvent EVENT on display DISPLAY.
    This is used for event loops outside the normal event handling,
    i.e. looping while a popup menu or a dialog is posted.
@@ -8712,6 +8712,7 @@ x_check_fullscreen (struct frame *f)
     }
 }
 
+/* mmc: ! */
 /* This function is called by x_set_offset to determine whether the window
    manager interfered with the positioning of the frame.  Type A window
    managers position the surrounding window manager decorations a small
@@ -8758,7 +8759,7 @@ x_check_expected_move (struct frame *f, int expected_left, int expected_top)
       FRAME_X_DISPLAY_INFO (f)->wm_type = X_WMTYPE_B;
 }
 
-
+/* mmc: Is this about WM redirecting the Move elsewhere? */
 /* Wait for XGetGeometry to return up-to-date position information for a
    recently-moved frame.  Call this immediately after calling XMoveWindow.
    If FUZZY is non-zero, then LEFT and TOP are just estimates of where the
@@ -9006,7 +9007,7 @@ void
 x_raise_frame (struct frame *f)
 {
   BLOCK_INPUT;
-  if (f->async_visible)
+  if (f->async_visible)         /* mmc: we have requested to Map (?) */
     XRaiseWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
 
   XFlush (FRAME_X_DISPLAY (f));
@@ -9373,9 +9374,9 @@ x_iconify_frame (struct frame *f)
 
       gtk_window_iconify (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
       f->iconified = 1;
-      f->visible = 1;
+      f->visible = 1;           /* mmc: ?? will it be set asynchronously? */
       f->async_iconified = 1;
-      f->async_visible = 0;
+      f->async_visible = 0;     /* mmc: hm. playing for safety? */
       UNBLOCK_INPUT;
       return;
     }
@@ -9429,6 +9430,7 @@ x_iconify_frame (struct frame *f)
 
   /* X11R4: send a ClientMessage to the window manager using the
      WM_CHANGE_STATE type.  */
+  /* mmc: use XIconifyWindow! */
   {
     XEvent msg;
 
@@ -9460,7 +9462,7 @@ x_iconify_frame (struct frame *f)
     }
 
   f->async_iconified = 1;
-  f->async_visible = 0;
+  f->async_visible = 0;         /* mmc: ok! */
 
   XFlush (FRAME_X_DISPLAY (f));
   UNBLOCK_INPUT;
