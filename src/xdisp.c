@@ -28092,8 +28092,14 @@ expose_frame (struct frame *f, int x, int y, int w, int h)
 	{
 	  int mouse_x = hlinfo->mouse_face_mouse_x;
 	  int mouse_y = hlinfo->mouse_face_mouse_y;
+#if 0
 	  clear_mouse_face (hlinfo);
 	  note_mouse_highlight (f, mouse_x, mouse_y);
+#else
+#if MMC_DEBUG
+          fprintf(stderr, "%s: skipping mouse hightlight!\n",__FUNCTION__);
+#endif
+#endif
 	}
     }
 }
