@@ -4097,6 +4097,11 @@ update_text_area (struct window *w, int vpos)
 	  rif->clear_end_of_line (xlim);
 	  changed_p = 1;
 	}
+
+#if 0 /* mmc: This is buggy: C-s -> glyphs after match hide! */
+      /* mmc: Clear newly exposed columns... */
+      rif->clear_end_of_line (-1);
+#endif
     }
 
   return changed_p;
