@@ -5912,7 +5912,10 @@ change_frame_size_1 (register struct frame *f, int newheight, int newwidth, int 
 
   adjust_glyphs (f);
   calculate_costs (f);
+  /* mmc: ? */
+#if 0
   SET_FRAME_GARBAGED (f);
+#endif
   f->resized_p = 1;
 
   UNBLOCK_INPUT;
