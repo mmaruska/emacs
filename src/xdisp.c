@@ -10555,6 +10555,10 @@ clear_garbaged_frames (void)
 	      changed_count++;
 	      f->garbaged = 0;
 	      f->resized_p = 0;
+#if 0
+              /* mmc:  this either segfaults! or does not help! */
+              update_frame (f, 0, 0);
+#endif
 #ifdef DEBUG_DISP
               fprintf(stderr, "%s: garbaged, but not visible!\n", __FUNCTION__);
 #endif
