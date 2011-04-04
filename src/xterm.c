@@ -4114,7 +4114,10 @@ x_clear_frame (struct frame *f)
   block_input ();
 
   font_drop_xrender_surfaces (f);
-  x_clear_window (f);
+  /* The following calls have been commented out because they do not
+     seem to accomplish anything, apart from causing flickering during
+     window resize.  */
+  /*   x_clear_window (f); */
 
   /* We have to clear the scroll bars.  If we have changed colors or
      something like that, then they should be notified.  */
