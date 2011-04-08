@@ -1017,6 +1017,10 @@ struct Lisp_Symbol
      enum symbol_interned.  */
   unsigned interned : 2;
 
+  /* Non-zero means that this variable has been explicitly declared
+     special (with `defvar' etc), and shouldn't be lexically bound.  */
+  unsigned declared_special : 1;
+
   /* The symbol's name, as a Lisp string.
 
      The name "xname" is used to intentionally break code referring to
@@ -2623,8 +2627,8 @@ extern void restore_message (void);
 extern Lisp_Object current_message (void);
 extern void set_message (const char *s, Lisp_Object, EMACS_INT, int);
 extern void clear_message (int, int);
-extern void message (const char *, ...);
-extern void message_nolog (const char *, ...);
+extern void message (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
+extern void message_nolog (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 extern void message1 (const char *);
 extern void message1_nolog (const char *);
 extern void message2 (const char *, EMACS_INT, int);
@@ -2814,7 +2818,7 @@ extern void syms_of_lread (void);
 
 /* Defined in eval.c.  */
 extern Lisp_Object Qautoload, Qexit, Qinteractive, Qcommandp, Qdefun, Qmacro;
-extern Lisp_Object Qinhibit_quit;
+extern Lisp_Object Qinhibit_quit, Qclosure;
 extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vsignaling_function;
 extern int handling_signal;
@@ -2844,7 +2848,9 @@ extern void xsignal2 (Lisp_Object, Lisp_Object, Lisp_Object) NO_RETURN;
 extern void xsignal3 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object) NO_RETURN;
 extern void signal_error (const char *, Lisp_Object) NO_RETURN;
 EXFUN (Fcommandp, 2);
-EXFUN (Feval, 1);
+EXFUN (Ffunctionp, 1);
+EXFUN (Feval, 2);
+extern Lisp_Object eval_sub (Lisp_Object form);
 EXFUN (Fapply, MANY);
 EXFUN (Ffuncall, MANY);
 EXFUN (Fbacktrace, 0);
@@ -3264,6 +3270,8 @@ extern struct byte_stack *byte_stack_list;
 extern void mark_byte_stack (void);
 #endif
 extern void unmark_byte_stack (void);
+extern Lisp_Object exec_byte_code (Lisp_Object, Lisp_Object, Lisp_Object,
+				   Lisp_Object, int, Lisp_Object *);
 
 /* Defined in macros.c */
 extern Lisp_Object Qexecute_kbd_macro;
@@ -3340,6 +3348,8 @@ extern int emacs_open (const char *, int, int);
 extern int emacs_close (int);
 extern int emacs_read (int, char *, unsigned int);
 extern int emacs_write (int, const char *, unsigned int);
+enum { READLINK_BUFSIZE = 1024 };
+extern char *emacs_readlink (const char *, char [READLINK_BUFSIZE]);
 #ifndef HAVE_MEMSET
 extern void *memset (void *, int, size_t);
 #endif
@@ -3384,7 +3394,8 @@ extern Lisp_Object directory_files_internal (Lisp_Object, Lisp_Object,
 extern int *char_ins_del_vector;
 extern void mark_ttys (void);
 extern void syms_of_term (void);
-extern void fatal (const char *msgid, ...) NO_RETURN;
+extern void fatal (const char *msgid, ...)
+  NO_RETURN ATTRIBUTE_FORMAT_PRINTF (1, 2);
 
 /* Defined in terminal.c */
 EXFUN (Fframe_terminal, 1);

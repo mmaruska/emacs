@@ -2100,10 +2100,8 @@ the file contents into it using `insert-file-contents-literally'."
   	  (confirm-nonexistent-file-or-buffer))))
   (switch-to-buffer (find-file-noselect filename nil t)))
 
-(defvar after-find-file-from-revert-buffer nil)
-
 (defun after-find-file (&optional error warn noauto
-				  after-find-file-from-revert-buffer
+				  _after-find-file-from-revert-buffer
 				  nomodes)
   "Called after finding a file and by the default revert function.
 Sets buffer mode, parses local variables.
@@ -2111,8 +2109,8 @@ Optional args ERROR, WARN, and NOAUTO: ERROR non-nil means there was an
 error in reading the file.  WARN non-nil means warn if there
 exists an auto-save file more recent than the visited file.
 NOAUTO means don't mess with auto-save mode.
-Fourth arg AFTER-FIND-FILE-FROM-REVERT-BUFFER non-nil
- means this call was from `revert-buffer'.
+Fourth arg AFTER-FIND-FILE-FROM-REVERT-BUFFER is ignored
+\(see `revert-buffer-in-progress-p' for similar functionality).
 Fifth arg NOMODES non-nil means don't alter the file's modes.
 Finishes by calling the functions in `find-file-hook'
 unless NOMODES is non-nil."
@@ -2869,18 +2867,19 @@ asking you for confirmation."
 ;;
 ;; For variables defined in the C source code the declaration should go here:
 
-(mapc (lambda (pair)
-	(put (car pair) 'safe-local-variable (cdr pair)))
-      '((buffer-read-only        . booleanp)   ;; C source code
-	(default-directory       . stringp)    ;; C source code
-	(fill-column             . integerp)   ;; C source code
-	(indent-tabs-mode        . booleanp)   ;; C source code
-	(left-margin             . integerp)   ;; C source code
-	(no-update-autoloads     . booleanp)
-	(tab-width               . integerp)   ;; C source code
-	(truncate-lines          . booleanp)   ;; C source code
-	(word-wrap               . booleanp) ;; C source code
-	(bidi-display-reordering . booleanp))) ;; C source code
+(dolist (pair
+	 '((buffer-read-only        . booleanp)	;; C source code
+	   (default-directory       . stringp)	;; C source code
+	   (fill-column             . integerp)	;; C source code
+	   (indent-tabs-mode        . booleanp)	;; C source code
+	   (left-margin             . integerp)	;; C source code
+	   (no-update-autoloads     . booleanp)
+	   (lexical-binding	 . booleanp)	  ;; C source code
+	   (tab-width               . integerp)	  ;; C source code
+	   (truncate-lines          . booleanp)	  ;; C source code
+	   (word-wrap               . booleanp)	  ;; C source code
+	   (bidi-display-reordering . booleanp))) ;; C source code
+  (put (car pair) 'safe-local-variable (cdr pair)))
 
 (put 'bidi-paragraph-direction 'safe-local-variable
      (lambda (v) (memq v '(nil right-to-left left-to-right))))
@@ -4606,6 +4605,9 @@ You can answer `y' to save, `n' not to save, `C-r' to look at the
 buffer in question with `view-buffer' before deciding or `d' to
 view the differences using `diff-buffer-with-file'.
 
+This command first saves any buffers where `buffer-save-without-query' is
+non-nil, without asking.
+
 Optional argument (the prefix) non-nil means save all with no questions.
 Optional second argument PRED determines which buffers are considered:
 If PRED is nil, all the file-visiting buffers are considered.
@@ -5000,6 +5002,10 @@ hook functions.
 If `revert-buffer-function' is used to override the normal revert
 mechanism, this hook is not used.")
 
+(defvar revert-buffer-in-progress-p nil
+  "Non-nil if a `revert-buffer' operation is in progress, nil otherwise.
+This is true even if a `revert-buffer-function' is being used.")
+
 (defvar revert-buffer-internal-hook)
 
 (defun revert-buffer (&optional ignore-auto noconfirm preserve-modes)
@@ -5042,10 +5048,12 @@ non-nil, it is called instead of rereading visited file contents."
   ;; interface, but leaving the programmatic interface the same.
   (interactive (list (not current-prefix-arg)))
   (if revert-buffer-function
-      (funcall revert-buffer-function ignore-auto noconfirm)
+      (let ((revert-buffer-in-progress-p t))
+        (funcall revert-buffer-function ignore-auto noconfirm))
     (with-current-buffer (or (buffer-base-buffer (current-buffer))
 			     (current-buffer))
-      (let* ((auto-save-p (and (not ignore-auto)
+      (let* ((revert-buffer-in-progress-p t)
+             (auto-save-p (and (not ignore-auto)
 			       (recent-auto-save-p)
 			       buffer-auto-save-file-name
 			       (file-readable-p buffer-auto-save-file-name)
@@ -5136,7 +5144,7 @@ non-nil, it is called instead of rereading visited file contents."
 		 ;; have changed the truename.
 		 (setq buffer-file-truename
 		       (abbreviate-file-name (file-truename buffer-file-name)))
-		 (after-find-file nil nil t t preserve-modes)
+		 (after-find-file nil nil t nil preserve-modes)
 		 ;; Run after-revert-hook as it was before we reverted.
 		 (setq-default revert-buffer-internal-hook global-hook)
 		 (if local-hook
@@ -6138,8 +6146,8 @@ With prefix ARG, silently save all file-visiting buffers, then kill."
 		    (setq active t))
 	       (setq processes (cdr processes)))
 	     (or (not active)
-		 (list-processes t)
-		 (yes-or-no-p "Active processes exist; kill them and exit anyway? "))))
+		 (progn (list-processes t)
+			(yes-or-no-p "Active processes exist; kill them and exit anyway? ")))))
        ;; Query the user for other things, perhaps.
        (run-hook-with-args-until-failure 'kill-emacs-query-functions)
        (or (null confirm-kill-emacs)

@@ -1134,7 +1134,7 @@ command_loop_2 (Lisp_Object ignore)
 static Lisp_Object
 top_level_2 (void)
 {
-  return Feval (Vtop_level);
+  return Feval (Vtop_level, Qnil);
 }
 
 Lisp_Object
@@ -1870,7 +1870,8 @@ safe_run_hook_funcall (size_t nargs, Lisp_Object *args)
   else
     Vinhibit_quit = Fcons (Vinhibit_quit, args[0]);
 
-  return internal_condition_case (safe_run_hooks_1, Qt, safe_run_hooks_error);
+  internal_condition_case (safe_run_hooks_1, Qt, safe_run_hooks_error);
+  return Qnil;
 }
 
 /* If we get an error while running the hook, cause the hook variable
@@ -3095,7 +3096,7 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
 		 help_form_saved_window_configs);
       record_unwind_protect (read_char_help_form_unwind, Qnil);
 
-      tem0 = Feval (Vhelp_form);
+      tem0 = Feval (Vhelp_form, Qnil);
       if (STRINGP (tem0))
 	internal_with_output_to_temp_buffer ("*Help*", print_help, tem0);
 
@@ -4233,7 +4234,8 @@ static EMACS_TIME
 timer_check_2 (void)
 {
   EMACS_TIME nexttime;
-  EMACS_TIME now, idleness_now;
+  EMACS_TIME now;
+  EMACS_TIME idleness_now IF_LINT (= {0});
   Lisp_Object timers, idle_timers, chosen_timer;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
@@ -4270,10 +4272,12 @@ timer_check_2 (void)
       Lisp_Object *vector;
       Lisp_Object timer = Qnil, idle_timer = Qnil;
       EMACS_TIME timer_time, idle_timer_time;
-      EMACS_TIME difference, timer_difference, idle_timer_difference;
+      EMACS_TIME difference;
+      EMACS_TIME timer_difference IF_LINT (= {0});
+      EMACS_TIME idle_timer_difference IF_LINT (= {0});
 
       /* Skip past invalid timers and timers already handled.  */
-      if (!NILP (timers))
+      if (CONSP (timers))
 	{
 	  timer = XCAR (timers);
 	  if (!VECTORP (timer) || XVECTOR (timer)->size != 8)
@@ -4291,7 +4295,7 @@ timer_check_2 (void)
 	      continue;
 	    }
 	}
-      if (!NILP (idle_timers))
+      if (CONSP (idle_timers))
 	{
 	  timer = XCAR (idle_timers);
 	  if (!VECTORP (timer) || XVECTOR (timer)->size != 8)
@@ -4314,7 +4318,7 @@ timer_check_2 (void)
 	 based on the next ordinary timer.
 	 TIMER_DIFFERENCE is the distance in time from NOW to when
 	 this timer becomes ripe (negative if it's already ripe).  */
-      if (!NILP (timers))
+      if (CONSP (timers))
 	{
 	  timer = XCAR (timers);
 	  vector = XVECTOR (timer)->contents;
@@ -4326,7 +4330,7 @@ timer_check_2 (void)
 
       /* Set IDLE_TIMER, IDLE_TIMER_TIME and IDLE_TIMER_DIFFERENCE
 	 based on the next idle timer.  */
-      if (!NILP (idle_timers))
+      if (CONSP (idle_timers))
 	{
 	  idle_timer = XCAR (idle_timers);
 	  vector = XVECTOR (idle_timer)->contents;
@@ -4340,7 +4344,7 @@ timer_check_2 (void)
 	 and set CHOSEN_TIMER, VECTOR and DIFFERENCE accordingly.
 	 Also step down the list where we found that timer.  */
 
-      if (! NILP (timers) && ! NILP (idle_timers))
+      if (CONSP (timers) && CONSP (idle_timers))
 	{
 	  EMACS_TIME temp;
 	  EMACS_SUB_TIME (temp, timer_difference, idle_timer_difference);
@@ -4357,7 +4361,7 @@ timer_check_2 (void)
 	      difference = idle_timer_difference;
 	    }
 	}
-      else if (! NILP (timers))
+      else if (CONSP (timers))
 	{
 	  chosen_timer = timer;
 	  timers = XCDR (timers);
@@ -7357,8 +7361,6 @@ menu_bar_items (Lisp_Object old)
 
   Lisp_Object def, tail;
 
-  Lisp_Object result;
-
   int mapno;
   Lisp_Object oquit;
 
@@ -7418,8 +7420,6 @@ menu_bar_items (Lisp_Object old)
   }
 
   /* Look up in each map the dummy prefix key `menu-bar'.  */
-
-  result = Qnil;
 
   for (mapno = nmaps - 1; mapno >= 0; mapno--)
     if (!NILP (maps[mapno]))
@@ -7571,6 +7571,12 @@ menu_item_eval_property_1 (Lisp_Object arg)
   return Qnil;
 }
 
+static Lisp_Object
+eval_dyn (Lisp_Object form)
+{
+  return Feval (form, Qnil);
+}
+
 /* Evaluate an expression and return the result (or nil if something
    went wrong).  Used to evaluate dynamic parts of menu items.  */
 Lisp_Object
@@ -7579,7 +7585,7 @@ menu_item_eval_property (Lisp_Object sexpr)
   int count = SPECPDL_INDEX ();
   Lisp_Object val;
   specbind (Qinhibit_redisplay, Qt);
-  val = internal_condition_case_1 (Feval, sexpr, Qerror,
+  val = internal_condition_case_1 (eval_dyn, sexpr, Qerror,
 				   menu_item_eval_property_1);
   return unbind_to (count, val);
 }
@@ -8488,7 +8494,6 @@ read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
       int notfirst = 0;
       int i = nlength;
       Lisp_Object obj;
-      int ch;
       Lisp_Object orig_defn_macro;
 
       /* Loop over elements of map.  */
@@ -8658,8 +8663,6 @@ read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
 	return obj;
       else if (XINT (obj) == -2)
         return obj;
-      else
-	ch = XINT (obj);
 
       if (! EQ (obj, menu_prompt_more_char)
 	  && (!INTEGERP (menu_prompt_more_char)

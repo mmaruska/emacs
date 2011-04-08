@@ -831,9 +831,7 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 
 	case IMAGE_FUNCTION_VALUE:
 	  value = indirect_function (value);
-	  if (SUBRP (value)
-	      || COMPILEDP (value)
-	      || (CONSP (value) && EQ (XCAR (value), Qlambda)))
+	  if (!NILP (Ffunctionp (value)))
 	    break;
 	  return 0;
 
@@ -1710,7 +1708,6 @@ postprocess_image (struct frame *f, struct image *img)
 int
 lookup_image (struct frame *f, Lisp_Object spec)
 {
-  struct image_cache *c;
   struct image *img;
   unsigned hash;
   EMACS_TIME now;
@@ -1719,8 +1716,6 @@ lookup_image (struct frame *f, Lisp_Object spec)
      specification.  */
   xassert (FRAME_WINDOW_P (f));
   xassert (valid_image_p (spec));
-
-  c = FRAME_IMAGE_CACHE (f);
 
   /* Look up SPEC in the hash table of the image cache.  */
   hash = sxhash (spec, 0);
@@ -2880,6 +2875,7 @@ xbm_load (struct frame *f, struct image *img)
       /* Parse the image specification.  */
       memcpy (fmt, xbm_format, sizeof fmt);
       parsed_p = parse_image_spec (img->spec, fmt, XBM_LAST, Qxbm);
+      (void) parsed_p;
       xassert (parsed_p);
 
       /* Get specified width, and height.  */
@@ -6718,6 +6714,8 @@ tiff_size_of_memory (thandle_t data)
 }
 
 
+static void tiff_error_handler (const char *, const char *, va_list)
+  ATTRIBUTE_FORMAT_PRINTF (2, 0);
 static void
 tiff_error_handler (const char *title, const char *format, va_list ap)
 {
@@ -6730,6 +6728,8 @@ tiff_error_handler (const char *title, const char *format, va_list ap)
 }
 
 
+static void tiff_warning_handler (const char *, const char *, va_list)
+  ATTRIBUTE_FORMAT_PRINTF (2, 0);
 static void
 tiff_warning_handler (const char *title, const char *format, va_list ap)
 {
@@ -6761,8 +6761,8 @@ tiff_load (struct frame *f, struct image *img)
   specified_file = image_spec_value (img->spec, QCfile, NULL);
   specified_data = image_spec_value (img->spec, QCdata, NULL);
 
-  fn_TIFFSetErrorHandler (tiff_error_handler);
-  fn_TIFFSetWarningHandler (tiff_warning_handler);
+  fn_TIFFSetErrorHandler ((TIFFErrorHandler) tiff_error_handler);
+  fn_TIFFSetWarningHandler ((TIFFErrorHandler) tiff_warning_handler);
 
   if (NILP (specified_data))
     {

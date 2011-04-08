@@ -229,7 +229,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
 			     Lisp_Object defalt,
 			     int allow_props, int inherit_input_method)
 {
-  int size, len;
+  size_t size, len;
   char *line, *s;
   Lisp_Object val;
 
@@ -244,6 +244,8 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
 	 && (len = strlen (line),
 	     len == size - 1 && line[len - 1] != '\n'))
     {
+      if ((size_t) -1 / 2 < size)
+	memory_full ();
       size *= 2;
       line = (char *) xrealloc (line, size);
     }
@@ -971,7 +973,8 @@ Such arguments are used as in `read-from-minibuffer'.)  */)
 {
   return Feval (read_minibuf (Vread_expression_map, initial_contents,
 			      prompt, Qnil, 1, Qread_expression_history,
-			      make_number (0), Qnil, 0, 0));
+			      make_number (0), Qnil, 0, 0),
+		Qnil);
 }
 
 /* Functions that use the minibuffer to read various things. */

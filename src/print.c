@@ -521,6 +521,7 @@ temp_output_buffer_setup (const char *bufname)
   specbind (Qstandard_output, buf);
 }
 
+/* FIXME: Use Lisp's with-output-to-temp-buffer instead!  */
 Lisp_Object
 internal_with_output_to_temp_buffer (const char *bufname, Lisp_Object (*function) (Lisp_Object), Lisp_Object args)
 {
@@ -542,60 +543,6 @@ internal_with_output_to_temp_buffer (const char *bufname, Lisp_Object (*function
 
   return unbind_to (count, val);
 }
-
-DEFUN ("with-output-to-temp-buffer",
-       Fwith_output_to_temp_buffer, Swith_output_to_temp_buffer,
-       1, UNEVALLED, 0,
-       doc: /* Bind `standard-output' to buffer BUFNAME, eval BODY, then show that buffer.
-
-This construct makes buffer BUFNAME empty before running BODY.
-It does not make the buffer current for BODY.
-Instead it binds `standard-output' to that buffer, so that output
-generated with `prin1' and similar functions in BODY goes into
-the buffer.
-
-At the end of BODY, this marks buffer BUFNAME unmodifed and displays
-it in a window, but does not select it.  The normal way to do this is
-by calling `display-buffer', then running `temp-buffer-show-hook'.
-However, if `temp-buffer-show-function' is non-nil, it calls that
-function instead (and does not run `temp-buffer-show-hook').  The
-function gets one argument, the buffer to display.
-
-The return value of `with-output-to-temp-buffer' is the value of the
-last form in BODY.  If BODY does not finish normally, the buffer
-BUFNAME is not displayed.
-
-This runs the hook `temp-buffer-setup-hook' before BODY,
-with the buffer BUFNAME temporarily current.  It runs the hook
-`temp-buffer-show-hook' after displaying buffer BUFNAME, with that
-buffer temporarily current, and the window that was used to display it
-temporarily selected.  But it doesn't run `temp-buffer-show-hook'
-if it uses `temp-buffer-show-function'.
-
-usage: (with-output-to-temp-buffer BUFNAME BODY...)  */)
-  (Lisp_Object args)
-{
-  struct gcpro gcpro1;
-  Lisp_Object name;
-  int count = SPECPDL_INDEX ();
-  Lisp_Object buf, val;
-
-  GCPRO1(args);
-  name = Feval (Fcar (args));
-  CHECK_STRING (name);
-  temp_output_buffer_setup (SSDATA (name));
-  buf = Vstandard_output;
-  UNGCPRO;
-
-  val = Fprogn (XCDR (args));
-
-  GCPRO1 (val);
-  temp_output_buffer_show (buf);
-  UNGCPRO;
-
-  return unbind_to (count, val);
-}
-
 
 static void print (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag);
 static void print_preprocess (Lisp_Object obj);
@@ -982,7 +929,7 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
   else
     write_string_1 ("peculiar error", -1, stream);
 
-  for (i = 0; CONSP (tail); tail = XCDR (tail), i++)
+  for (i = 0; CONSP (tail); tail = XCDR (tail), i = 1)
     {
       Lisp_Object obj;
 
@@ -1460,7 +1407,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	print_string (obj, printcharfun);
       else
 	{
-	  register EMACS_INT i, i_byte;
+	  register EMACS_INT i_byte;
 	  struct gcpro gcpro1;
 	  unsigned char *str;
 	  EMACS_INT size_byte;
@@ -1484,7 +1431,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  str = SDATA (obj);
 	  size_byte = SBYTES (obj);
 
-	  for (i = 0, i_byte = 0; i_byte < size_byte;)
+	  for (i_byte = 0; i_byte < size_byte;)
 	    {
 	      /* Here, we must convert each multi-byte form to the
 		 corresponding character code before handing it to PRINTCHAR.  */
@@ -2289,6 +2236,4 @@ priorities.  */);
 
   print_prune_charset_plist = Qnil;
   staticpro (&print_prune_charset_plist);
-
-  defsubr (&Swith_output_to_temp_buffer);
 }

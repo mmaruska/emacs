@@ -4047,7 +4047,6 @@ If there are no overlay boundaries from (point-min) to POS,
 the value is (point-min).  */)
   (Lisp_Object pos)
 {
-  int noverlays;
   EMACS_INT prevpos;
   Lisp_Object *overlay_vec;
   int len;
@@ -4065,8 +4064,8 @@ the value is (point-min).  */)
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.
      prevpos gets the position of the previous change.  */
-  noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len,
-			   (EMACS_INT *) 0, &prevpos, 1);
+  overlays_at (XINT (pos), 1, &overlay_vec, &len,
+	       (EMACS_INT *) 0, &prevpos, 1);
 
   xfree (overlay_vec);
   return make_number (prevpos);
@@ -5240,6 +5239,7 @@ defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, const char *namestring,
   bo_fwd->type = Lisp_Fwd_Buffer_Obj;
   bo_fwd->offset = offset;
   bo_fwd->slottype = type;
+  sym->declared_special = 1;
   sym->redirect = SYMBOL_FORWARDED;
   {
     /* I tried to do the job without a cast, but it seems impossible.
