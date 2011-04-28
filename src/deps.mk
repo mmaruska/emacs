@@ -44,7 +44,8 @@ buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
    $(INTERVALS_H) blockinput.h atimer.h systime.h character.h ../lib/unistd.h \
    indent.h keyboard.h coding.h keymap.h frame.h lisp.h globals.h $(config_h)
 callint.o: callint.c window.h commands.h buffer.h keymap.h globals.h msdos.h \
-   keyboard.h dispextern.h systime.h coding.h composite.h lisp.h $(config_h)
+   keyboard.h dispextern.h systime.h coding.h composite.h lisp.h \
+   character.h $(config_h)
 callproc.o: callproc.c epaths.h buffer.h commands.h lisp.h $(config_h) \
    process.h systty.h syssignal.h character.h coding.h ccl.h msdos.h \
    composite.h w32.h blockinput.h atimer.h systime.h frame.h termhooks.h \

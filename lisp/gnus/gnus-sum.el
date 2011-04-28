@@ -1128,9 +1128,9 @@ which it may alter in any way."
   'mail-decode-encoded-address-string
   "Function used to decode addresses with encoded words.")
 
-(defcustom gnus-extra-headers '(To Newsgroups)
+(defcustom gnus-extra-headers '(To Cc Keywords Gcc Newsgroups)
   "*Extra headers to parse."
-  :version "21.1"
+  :version "24.1"                       ; added Cc Keywords Gcc
   :group 'gnus-summary
   :type '(repeat symbol))
 
@@ -7035,7 +7035,7 @@ displayed, no centering will be performed."
 
 (defun gnus-summary-select-article-buffer ()
   "Reconfigure windows to show the article buffer.
-If `gnus-widen-article-buffer' is set, show only the article
+If `gnus-widen-article-window' is set, show only the article
 buffer."
   (interactive)
   (if (not (gnus-buffer-live-p gnus-article-buffer))

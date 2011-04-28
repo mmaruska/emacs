@@ -46,7 +46,8 @@
 (require 'starttls)
 
 (declare-function gnutls-negotiate "gnutls"
-		  (proc type &optional priority-string trustfiles keyfiles))
+                  (proc type host &optional priority-string trustfiles keyfiles
+                        verify-flags verify-error verify-hostname-error))
 
 ;;;###autoload
 (defun open-network-stream (name buffer host service &rest parameters)
@@ -171,9 +172,11 @@ values:
 	 (resulting-type 'plain)
 	 starttls-command)
 
-    ;; If we have STARTTLS support, try to upgrade the connection.
+    ;; If we have built-in STARTTLS support, try to upgrade the
+    ;; connection.
     (when (and (or (fboundp 'open-gnutls-stream)
-		   (executable-find "gnutls-cli"))
+		   (and require-tls
+			(executable-find "gnutls-cli")))
 	       capabilities success-string starttls-function
 	       (setq starttls-command
 		     (funcall starttls-function capabilities)))
@@ -195,7 +198,7 @@ values:
 			  (network-stream-command stream starttls-command eoc))
 	;; The server said it was OK to begin STARTTLS negotiations.
 	(if (fboundp 'open-gnutls-stream)
-	    (gnutls-negotiate stream nil)
+	    (gnutls-negotiate stream nil host)
 	  (unless (starttls-negotiate stream)
 	    (delete-process stream)))
 	(if (memq (process-status stream) '(open run))

@@ -1,3 +1,174 @@
+2011-04-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-ignore-group-p): Don't call
+	`gnus-parameter-registry-ignore' if the *Group* buffer doesn't exist.
+
+2011-04-23  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-sum.el (gnus-extra-headers): Bump :version.
+
+2011-04-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-sup): New function.
+	(shr-tag-sub): Ditto.
+
+2011-04-22  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-ignore-group-p): Test specifically
+	for the case where `gnus-registry-ignored-groups' is a list of lists,
+	and don't call `gnus-parameter-registry-ignore' otherwise.
+
+2011-04-21  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnimap.el (nnimap-user): New backend variable.
+	(nnimap-open-connection-1): Use it.
+	(nnimap-credentials): Accept user parameter so it's explicit what user
+	name is desired.
+
+	* gnus-sum.el (gnus-extra-headers): Add Keywords, Cc, and Gcc to
+	default.
+
+	* gnus.el (gnus-registry-ignored-groups): Provide default in gnus.el,
+	not gnus-registry.el.
+
+	* gnus-registry.el: Mention in comments how to modify
+	`gnus-extra-headers' for proper recipient tracking and that it may
+	already have To and Cc recently, which it does as of this commit.
+	(gnus-registry-ignored-groups): Remove defcustom.
+	Explain why in comments.
+	(gnus-registry-action): Fix data-header reference to use the extra
+	headers.  Explain in package commentary how to add To and Cc headers to
+	the gnus-extra-headers.
+	(gnus-registry-ignored-groups): Adjust defaults to match the parameter.
+	(gnus-registry-ignore-group-p): Adjust to take either a group/topic
+	parameter list or a string list in `gnus-registry-ignored-groups'.  Fix
+	logic error.
+
+2011-04-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-expand-url): Protect against null urls.
+
+2011-04-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-base): New binding.
+	(shr-tag-base): Keep track of <base>.
+	(shr-expand-url): New function used throughout.
+
+2011-04-20  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el
+	(gnus-registry--split-fancy-with-parent-internal): Fix loop bugs.
+	(gnus-registry-ignored-groups): New variable.
+	(gnus-registry-ignore-group-p): Use it.
+	(gnus-registry-handle-action): Use `gnus-registry-ignore-group-p' and
+	set the destination group to nil (same as delete) if it's ignored.
+
+2011-04-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-registry.el (gnus-registry-action)
+	(gnus-registry-fetch-header-fast):
+	Don't use mail-header that looks an internal function of mailheader.el.
+
+2011-04-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-registry.el: Eliminate cl functions.
+	(gnus-registry-sort-addresses): New function that replaces mapcan.
+	(gnus-registry-action, gnus-registry-spool-action)
+	(gnus-registry-split-fancy-with-parent)
+	(gnus-registry-fetch-recipients-fast): Use it.
+	(gnus-registry-import-eld): Replace delete* with dolist + delq.
+
+	* registry.el (initialize-instance, registry-lookup)
+	(registry-lookup-breaks-before-lexbind, registry-lookup-secondary)
+	(registry-lookup-secondary-value, registry-search, registry-delete)
+	(registry-insert, registry-reindex, registry-size, registry-prune):
+	Use eval-and-compile.
+
+2011-04-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el (registry-reindex): New method to recreate the secondary
+	registry indices.
+
+	* gnus-registry.el (gnus-registry-fixup-registry): Use it if the
+	tracked field changes.
+	(gnus-registry-unfollowed-addresses, gnus-registry-track-extra)
+	(gnus-registry-action, gnus-registry-spool-action)
+	(gnus-registry-handle-action)
+	(gnus-registry--split-fancy-with-parent-internal)
+	(gnus-registry-split-fancy-with-parent)
+	(gnus-registry-register-message-ids): Add recipient tracking on spool,
+	move, and delete actions, and for fancy splitting with parent.
+	(gnus-registry-extract-addresses)
+	(gnus-registry-fetch-recipients-fast)
+	(gnus-registry-fetch-header-fast): Convenience functions.
+	(gnus-registry-misc-test): ERT test of
+	`gnus-registry-extract-addresses'.
+
+2011-04-15  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry--split-fancy-with-parent-internal):
+	Track by subject first, then sender.
+
+2011-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-bogus-system-names): Replace ^...$ => \`...\'.
+
+	* gnus.el (gnus-splash-svg-color-symbols): Don't use insert-file from
+	Lisp.
+
+	* gnus-draft.el (gnus-draft-setup): New arg `dont-pop'.
+	(gnus-draft-send): Use it to avoid popping
+	up frames from gnus-group-send-queue.
+
+2011-04-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el: Updated gnus-registry docs.
+
+2011-04-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry--split-fancy-with-parent-internal):
+	Fix logic bug.
+	(gnus-registry-post-process-groups): Fix logging of no results and
+	quote sender and subject.
+
+2011-04-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-get-unread-articles): Slight cleanup.
+	(gnus-read-active-for-groups): Don't try to finish getting stuff where
+	we had no early-data returned.
+	(gnus-get-unread-articles): Add a sanity check so that we don't issue
+	two async commands to the same server at the same time.
+
+2011-04-12  Stig Sandbeck Mathisen  <ssm@fnord.no>  (tiny change)
+
+	* gnus-sum.el (gnus-summary-select-article-buffer): Doc fix.
+
+2011-04-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-registry.el (gnus-registry-remake-db): Put the warning on a
+	"warning" level.
+
+	* mm-url.el (mm-url-package-name): Removed to ease third-party reuse.
+	(mm-url-insert-file-contents): Don't set the package names.
+
+2011-04-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-action): Remove properties and
+	simplify subject in `gnus-registry-handle-action'.
+	(gnus-registry-spool-action): Get subject and sender from message if
+	they are not passed in.
+	(gnus-registry-handle-action): Remove properties and simplify subject
+	consistently.
+
+2011-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* registry.el: Require CL before using defmacro*.
+
+2011-04-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-treat-date): Assume that
+	gnus-article-date-headers may be a group parameter.
+
 2011-04-07  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-registry.el (gnus-registry-handle-action): More debugging.

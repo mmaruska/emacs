@@ -50,10 +50,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
-Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_configuration_p;
-Lisp_Object Qdisplay_buffer;
-Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
-Lisp_Object Qwindow_size_fixed;
+Lisp_Object Qwindowp, Qwindow_live_p;
+static Lisp_Object Qwindow_configuration_p;
+static Lisp_Object Qdisplay_buffer;
+static Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
+static Lisp_Object Qwindow_size_fixed;
 
 static int displayed_window_lines (struct window *);
 static struct window *decode_window (Lisp_Object);
@@ -116,7 +117,7 @@ Lisp_Object minibuf_selected_window;
 
 /* Hook run at end of temp_output_buffer_show.  */
 
-Lisp_Object Qtemp_buffer_show_hook;
+static Lisp_Object Qtemp_buffer_show_hook;
 
 /* Incremented for each window created.  */
 
@@ -131,7 +132,7 @@ static int window_initialized;
 static Lisp_Object Qwindow_configuration_change_hook;
 /* Incremented by 1 whenever a window is deleted.  */
 
-int window_deletion_count;
+static int window_deletion_count;
 
 /* Used by the function window_scroll_pixel_based */
 
@@ -235,7 +236,8 @@ used by that frame.  */)
   return FRAME_MINIBUF_WINDOW (XFRAME (frame));
 }
 
-DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p, Swindow_minibuffer_p, 0, 1, 0,
+DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p,
+       Swindow_minibuffer_p, 0, 1, 0,
        doc: /* Return non-nil if WINDOW is a minibuffer window.
 WINDOW defaults to the selected window.  */)
   (Lisp_Object window)
@@ -2336,6 +2338,7 @@ window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frame
 
 /* Used for debugging.  Abort if any window has a dead buffer.  */
 
+extern void check_all_windows (void) EXTERNALLY_VISIBLE;
 void
 check_all_windows (void)
 {
@@ -3275,8 +3278,12 @@ change_window_heights (Lisp_Object window, int n)
 
 int window_select_count;
 
-EXFUN (Fset_window_fringes, 4);
-EXFUN (Fset_window_scroll_bars, 4);
+static Lisp_Object Fset_window_margins (Lisp_Object, Lisp_Object, Lisp_Object);
+static Lisp_Object Fset_window_fringes (Lisp_Object, Lisp_Object, Lisp_Object,
+					Lisp_Object);
+static Lisp_Object Fset_window_scroll_bars (Lisp_Object, Lisp_Object,
+					    Lisp_Object, Lisp_Object);
+static Lisp_Object Fset_window_vscroll (Lisp_Object, Lisp_Object, Lisp_Object);
 
 static void
 run_funs (Lisp_Object funs)
@@ -3664,9 +3671,6 @@ temp_output_buffer_show (register Lisp_Object buf)
   BEGV = BEG;
   ZV = Z;
   SET_PT (BEG);
-#if 0  /* rms: there should be no reason for this.  */
-  XBUFFER (buf)->prevent_redisplay_optimizations_p = 1;
-#endif
   set_buffer_internal (old);
 
   if (!NILP (Vtemp_buffer_show_function))
@@ -3804,7 +3808,7 @@ See Info node `(elisp)Splitting Windows' for more details and examples.  */)
 	error ("Window height %d too small (after splitting)", size_int);
       if (size_int + window_safe_height > XFASTINT (o->total_lines))
 	error ("Window height %d too small (after splitting)",
-	       XFASTINT (o->total_lines) - size_int);
+	       (int) (XFASTINT (o->total_lines) - size_int));
       if (NILP (o->parent)
 	  || NILP (XWINDOW (o->parent)->vchild))
 	{
@@ -3821,7 +3825,7 @@ See Info node `(elisp)Splitting Windows' for more details and examples.  */)
 	error ("Window width %d too small (after splitting)", size_int);
       if (size_int + window_safe_width > XFASTINT (o->total_cols))
 	error ("Window width %d too small (after splitting)",
-	       XFASTINT (o->total_cols) - size_int);
+	       (int) (XFASTINT (o->total_cols) - size_int));
       if (NILP (o->parent)
 	  || NILP (XWINDOW (o->parent)->hchild))
 	{
@@ -5790,8 +5794,7 @@ zero means top of window, negative means relative to bottom of window.  */)
 
 struct save_window_data
   {
-    EMACS_UINT size;
-    struct Lisp_Vector *next_from_Lisp_Vector_struct;
+    struct vectorlike_header header;
     Lisp_Object selected_frame;
     Lisp_Object current_window;
     Lisp_Object current_buffer;
@@ -5813,10 +5816,7 @@ struct save_window_data
 /* This is saved as a Lisp_Vector  */
 struct saved_window
 {
-  /* these first two must agree with struct Lisp_Vector in lisp.h */
-  EMACS_UINT size;
-  struct Lisp_Vector *next_from_Lisp_Vector_struct;
-
+  struct vectorlike_header header;
   Lisp_Object window;
   Lisp_Object buffer, start, pointm, mark;
   Lisp_Object left_col, top_line, total_cols, total_lines;
@@ -5997,7 +5997,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	 dead.  */
       delete_all_subwindows (XWINDOW (FRAME_ROOT_WINDOW (f)));
 
-      for (k = 0; k < saved_windows->size; k++)
+      for (k = 0; k < saved_windows->header.size; k++)
 	{
 	  p = SAVED_WINDOW_N (saved_windows, k);
 	  w = XWINDOW (p->window);
@@ -6610,8 +6610,8 @@ Value is a list of the form (LEFT-WIDTH RIGHT-WIDTH OUTSIDE-MARGINS).  */)
 			    Scroll bars
  ***********************************************************************/
 
-DEFUN ("set-window-scroll-bars", Fset_window_scroll_bars, Sset_window_scroll_bars,
-       2, 4, 0,
+DEFUN ("set-window-scroll-bars", Fset_window_scroll_bars,
+       Sset_window_scroll_bars, 2, 4, 0,
        doc: /* Set width and type of scroll bars of window WINDOW.
 If window is nil, set scroll bars of the currently selected window.
 Second parameter WIDTH specifies the pixel width for the scroll bar;
@@ -6880,10 +6880,10 @@ compare_window_configurations (Lisp_Object c1, Lisp_Object c2, int ignore_positi
     return 0;
 
   /* Verify that the two confis have the same number of windows.  */
-  if (sw1->size != sw2->size)
+  if (sw1->header.size != sw2->header.size)
     return 0;
 
-  for (i = 0; i < sw1->size; i++)
+  for (i = 0; i < sw1->header.size; i++)
     {
       struct saved_window *p1, *p2;
       int w1_is_current, w2_is_current;

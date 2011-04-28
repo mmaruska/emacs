@@ -118,6 +118,12 @@ struct utimbuf {
 #endif
 #endif
 
+static int emacs_get_tty (int, struct emacs_tty *);
+static int emacs_set_tty (int, struct emacs_tty *, int);
+#if defined TIOCNOTTY || defined USG5 || defined CYGWIN
+static void croak (char *) NO_RETURN;
+#endif
+
 /* Declare here, including term.h is problematic on some systems.  */
 extern void tputs (const char *, int, int (*)(int));
 
@@ -126,12 +132,6 @@ static const int baud_convert[] =
     0, 50, 75, 110, 135, 150, 200, 300, 600, 1200,
     1800, 2400, 4800, 9600, 19200, 38400
   };
-
-void croak (char *) NO_RETURN;
-
-/* Temporary used by `sigblock' when defined in terms of signprocmask.  */
-
-SIGMASKTYPE sigprocmask_set;
 
 
 #if !defined (HAVE_GET_CURRENT_DIR_NAME) || defined (BROKEN_GET_CURRENT_DIR_NAME)
@@ -291,8 +291,9 @@ init_baud_rate (int fd)
 
 
 
-int wait_debugging;   /* Set nonzero to make following function work under dbx
-			 (at least for bsd).  */
+/* Set nonzero to make following function work under dbx
+   (at least for bsd).  */
+int wait_debugging EXTERNALLY_VISIBLE;
 
 #ifndef MSDOS
 /* Wait for subprocess with process id `pid' to terminate and
@@ -303,7 +304,7 @@ wait_for_termination (int pid)
 {
   while (1)
     {
-#if defined (BSD_SYSTEM) || defined (HPUX)
+#if (defined (BSD_SYSTEM) || defined (HPUX)) && !defined(__GNU__)
       /* Note that kill returns -1 even if the process is just a zombie now.
 	 But inevitably a SIGCHLD interrupt should be generated
 	 and child_sig will do wait3 and make the process go away. */
@@ -650,7 +651,7 @@ unrequest_sigio (void)
 #else
 #ifdef F_SETFL
 
-int old_fcntl_flags[MAXDESC];
+static int old_fcntl_flags[MAXDESC];
 
 void
 init_sigio (int fd)
@@ -809,7 +810,7 @@ emacs_set_tty (int fd, struct emacs_tty *settings, int flushp)
 
 
 #ifdef F_SETOWN
-int old_fcntl_owner[MAXDESC];
+static int old_fcntl_owner[MAXDESC];
 #endif /* F_SETOWN */
 
 /* This may also be defined in stdio,
@@ -1451,7 +1452,7 @@ init_system_name (void)
 /* POSIX signals support - DJB */
 /* Anyone with POSIX signals should have ANSI C declarations */
 
-sigset_t empty_mask, full_mask;
+sigset_t empty_mask;
 
 #ifndef WINDOWSNT
 
@@ -1540,7 +1541,6 @@ void
 init_signals (void)
 {
   sigemptyset (&empty_mask);
-  sigfillset (&full_mask);
 
 #if !defined HAVE_STRSIGNAL && !HAVE_DECL_SYS_SIGLIST
   if (! initialized)
@@ -1825,10 +1825,27 @@ emacs_close (int fd)
   return rtnval;
 }
 
-int
-emacs_read (int fildes, char *buf, unsigned int nbyte)
+/* Maximum number of bytes to read or write in a single system call.
+   This works around a serious bug in Linux kernels before 2.6.16; see
+   <https://bugzilla.redhat.com/show_bug.cgi?format=multiple&id=612839>.
+   It's likely to work around similar bugs in other operating systems, so do it
+   on all platforms.  Round INT_MAX down to a page size, with the conservative
+   assumption that page sizes are at most 2**18 bytes (any kernel with a
+   page size larger than that shouldn't have the bug).  */
+#ifndef MAX_RW_COUNT
+#define MAX_RW_COUNT (INT_MAX >> 18 << 18)
+#endif
+
+/* Read from FILEDESC to a buffer BUF with size NBYTE, retrying if interrupted.
+   Return the number of bytes read, which might be less than NBYTE.
+   On error, set errno and return -1.  */
+EMACS_INT
+emacs_read (int fildes, char *buf, EMACS_INT nbyte)
 {
-  register int rtnval;
+  register ssize_t rtnval;
+
+  /* There is no need to check against MAX_RW_COUNT, since no caller ever
+     passes a size that large to emacs_read.  */
 
   while ((rtnval = read (fildes, buf, nbyte)) == -1
 	 && (errno == EINTR))
@@ -1836,18 +1853,22 @@ emacs_read (int fildes, char *buf, unsigned int nbyte)
   return (rtnval);
 }
 
-int
-emacs_write (int fildes, const char *buf, unsigned int nbyte)
+/* Write to FILEDES from a buffer BUF with size NBYTE, retrying if interrupted
+   or if a partial write occurs.  Return the number of bytes written, setting
+   errno if this is less than NBYTE.  */
+EMACS_INT
+emacs_write (int fildes, const char *buf, EMACS_INT nbyte)
 {
-  register int rtnval, bytes_written;
+  ssize_t rtnval;
+  EMACS_INT bytes_written;
 
   bytes_written = 0;
 
   while (nbyte > 0)
     {
-      rtnval = write (fildes, buf, nbyte);
+      rtnval = write (fildes, buf, min (nbyte, MAX_RW_COUNT));
 
-      if (rtnval == -1)
+      if (rtnval < 0)
 	{
 	  if (errno == EINTR)
 	    {
@@ -1859,13 +1880,14 @@ emacs_write (int fildes, const char *buf, unsigned int nbyte)
 	      continue;
 	    }
 	  else
-	    return (bytes_written ? bytes_written : -1);
+	    break;
 	}
 
       buf += rtnval;
       nbyte -= rtnval;
       bytes_written += rtnval;
     }
+
   return (bytes_written);
 }
 
@@ -2361,7 +2383,8 @@ serial_configure (struct Lisp_Process *p,
   CHECK_NUMBER (tem);
   err = cfsetspeed (&attr, XINT (tem));
   if (err != 0)
-    error ("cfsetspeed(%d) failed: %s", XINT (tem), emacs_strerror (errno));
+    error ("cfsetspeed(%"pI"d) failed: %s", XINT (tem),
+	   emacs_strerror (errno));
   childp2 = Fplist_put (childp2, QCspeed, tem);
 
   /* Configure bytesize.  */
@@ -2943,6 +2966,8 @@ system_process_attributes (Lisp_Object pid)
 
 #if PROCFS_FILE_OFFSET_BITS_HACK ==  1
 #define _FILE_OFFSET_BITS 64
+#ifdef _FILE_OFFSET_BITS /* Avoid unused-macro warnings.  */
+#endif
 #endif /* PROCFS_FILE_OFFSET_BITS_HACK ==  1 */
 
 Lisp_Object

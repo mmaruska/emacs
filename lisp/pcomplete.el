@@ -348,6 +348,16 @@ modified to be an empty string, or the desired separation string."
 (defvar pcomplete-show-list nil)
 (defvar pcomplete-expand-only-p nil)
 
+;; for the sake of the bye-compiler, when compiling other files that
+;; contain completion functions
+(defvar pcomplete-args nil)
+(defvar pcomplete-begins nil)
+(defvar pcomplete-last nil)
+(defvar pcomplete-index nil)
+(defvar pcomplete-stub nil)
+(defvar pcomplete-seen nil)
+(defvar pcomplete-norm-func nil)
+
 ;;; User Functions:
 
 ;;; Alternative front-end using the standard completion facilities.
@@ -439,7 +449,7 @@ in the same way as TABLE completes strings of the form (concat S2 S)."
                               (if (string-match re c)
                                   (substring c (match-end 0))))
                             res))))))))))
-        
+
 ;; I don't think such commands are usable before first setting up buffer-local
 ;; variables to parse args, so there's no point autoloading it.
 ;; ;;;###autoload
@@ -468,7 +478,7 @@ Same as `pcomplete' but using the standard completion UI."
            ;; pcomplete-parse-arguments-function does, that connection
            ;; might not be that close.  E.g. in eshell,
            ;; pcomplete-parse-arguments-function expands envvars.
-           ;; 
+           ;;
            ;; Since we use minibuffer-complete, which doesn't know
            ;; pcomplete-stub and works from the buffer's text instead,
            ;; we need to trick minibuffer-complete, into using
@@ -512,23 +522,24 @@ Same as `pcomplete' but using the standard completion UI."
                                        (directory-file-name f)))
                             pcomplete-seen))
               (lambda (f)
-                (not (member
-                      (funcall pcomplete-norm-func
-                               (directory-file-name f))
-                      pcomplete-seen))))))
-
-      (list
-       beg (point)
-       ;; Add a space at the end of completion.  Use a terminator-regexp
-       ;; that never matches since the terminator cannot appear
-       ;; within the completion field anyway.
-       (if (zerop (length pcomplete-termination-string))
-           table
-         (apply-partially 'completion-table-with-terminator
-                          (cons pcomplete-termination-string
-                                "\\`a\\`")
-                          table))
-       :predicate pred))))
+                (not (when pcomplete-seen
+                       (member
+                        (funcall pcomplete-norm-func
+                                 (directory-file-name f))
+                        pcomplete-seen)))))))
+      (unless (zerop (length pcomplete-termination-string))
+        ;; Add a space at the end of completion.  Use a terminator-regexp
+        ;; that never matches since the terminator cannot appear
+        ;; within the completion field anyway.
+        (setq table
+              (apply-partially #'completion-table-with-terminator
+                               (cons pcomplete-termination-string
+                                     "\\`a\\`")
+                               table)))
+      (when pcomplete-ignore-case
+        (setq table
+              (apply-partially #'completion-table-case-fold table)))
+      (list beg (point) table :predicate pred))))
 
  ;; I don't think such commands are usable before first setting up buffer-local
  ;; variables to parse args, so there's no point autoloading it.
@@ -647,17 +658,6 @@ This will modify the current buffer."
 ;;; Internal Functions:
 
 ;; argument handling
-
-;; for the sake of the bye-compiler, when compiling other files that
-;; contain completion functions
-(defvar pcomplete-args nil)
-(defvar pcomplete-begins nil)
-(defvar pcomplete-last nil)
-(defvar pcomplete-index nil)
-(defvar pcomplete-stub nil)
-(defvar pcomplete-seen nil)
-(defvar pcomplete-norm-func nil)
-
 (defun pcomplete-arg (&optional index offset)
   "Return the textual content of the INDEXth argument.
 INDEX is based from the current processing position.  If INDEX is
@@ -782,7 +782,9 @@ this is `comint-dynamic-complete-functions'."
   (set (make-local-variable completef-sym)
        (copy-sequence (symbol-value completef-sym)))
   (let* ((funs (symbol-value completef-sym))
-	 (elem (or (memq 'shell-dynamic-complete-filename funs)
+	 (elem (or (memq 'comint-filename-completion funs)
+                   (memq 'shell-filename-completion funs)
+                   (memq 'shell-dynamic-complete-filename funs)
 		   (memq 'comint-dynamic-complete-filename funs))))
     (if elem
 	(setcar elem 'pcomplete)
@@ -995,13 +997,14 @@ component, `default-directory' is used as the basis for completion."
 	   (pcomplete-next-arg)
 	   (funcall sym)))))))
 
-(defun pcomplete-opt (options &optional prefix no-ganging args-follow)
+(defun pcomplete-opt (options &optional prefix _no-ganging _args-follow)
   "Complete a set of OPTIONS, each beginning with PREFIX (?- by default).
 PREFIX may be t, in which case no PREFIX character is necessary.
 If NO-GANGING is non-nil, each option is separate (-xy is not allowed).
 If ARGS-FOLLOW is non-nil, then options which take arguments may have
 the argument appear after a ganged set of options.  This is how tar
-behaves, for example."
+behaves, for example.
+Arguments NO-GANGING and ARGS-FOLLOW are currently ignored."
   (if (and (= pcomplete-index pcomplete-last)
 	   (string= (pcomplete-arg) "-"))
       (let ((len (length options))
@@ -1248,11 +1251,12 @@ extra checking, and munging of the COMPLETIONS list."
       (setq completions
             (apply-partially 'completion-table-with-predicate
                              completions
-                             (lambda (f)
-                               (not (member
-                                     (funcall pcomplete-norm-func
-                                              (directory-file-name f))
-                                     pcomplete-seen)))
+                             (when pcomplete-seen
+                               (lambda (f)
+                                 (not (member
+                                       (funcall pcomplete-norm-func
+                                                (directory-file-name f))
+                                       pcomplete-seen))))
                              'strict)))
     ;; OK, we've got a list of completions.
     (if pcomplete-show-list

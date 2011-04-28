@@ -102,7 +102,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef USE_X_TOOLKIT
 #if !defined(NO_EDITRES)
 #define HACK_EDITRES
-extern void _XEditResCheckMessages ();
+extern void _XEditResCheckMessages (Widget, XtPointer, XEvent *, Boolean *);
 #endif /* not NO_EDITRES */
 
 /* Include toolkit specific headers for the scroll bar widget.  */
@@ -187,11 +187,11 @@ static struct {
 /* The application context for Xt use.  */
 XtAppContext Xt_app_con;
 static String Xt_default_resources[] = {0};
-#endif /* USE_X_TOOLKIT */
 
 /* Non-zero means user is interacting with a toolkit scroll bar.  */
 
 static int toolkit_scroll_bar_interaction;
+#endif /* USE_X_TOOLKIT */
 
 /* Non-zero timeout value means ignore next mouse click if it arrives
    before that timeout elapses (i.e. as part of the same sequence of
@@ -306,6 +306,8 @@ enum xembed_message
 
 static int x_alloc_nearest_color_1 (Display *, Colormap, XColor *);
 static void x_set_window_size_1 (struct frame *, int, int, int);
+static void x_raise_frame (struct frame *);
+static void x_lower_frame (struct frame *);
 static const XColor *x_color_cells (Display *, int *);
 static void x_update_window_end (struct window *, int, int);
 
@@ -347,9 +349,15 @@ static void x_check_expected_move (struct frame *, int, int);
 static void x_sync_with_move (struct frame *, int, int, int);
 static int handle_one_xevent (struct x_display_info *, XEvent *,
                               int *, struct input_event *);
+#ifdef USE_GTK
+static int x_dispatch_event (XEvent *, Display *);
+#endif
 /* Don't declare this NO_RETURN because we want no
    interference with debugging failing X calls.  */
 static void x_connection_closed (Display *, const char *);
+static void x_wm_set_window_state (struct frame *, int);
+static void x_wm_set_icon_pixmap (struct frame *, int);
+static void x_initialize (void);
 
 
 /* Flush display of frame F, or of all frames if F is null.  */
@@ -1440,19 +1448,6 @@ x_frame_of_widget (Widget widget)
       return f;
 
   abort ();
-}
-
-
-/* Allocate the color COLOR->pixel on the screen and display of
-   widget WIDGET in colormap CMAP.  If an exact match cannot be
-   allocated, try the nearest color available.  Value is non-zero
-   if successful.  This is called from lwlib.  */
-
-int
-x_alloc_nearest_color_for_widget (Widget widget, Colormap cmap, XColor *color)
-{
-  struct frame *f = x_frame_of_widget (widget);
-  return x_alloc_nearest_color (f, cmap, color);
 }
 
 
@@ -2929,9 +2924,8 @@ x_clear_frame (struct frame *f)
      follow an explicit cursor_to.  */
   BLOCK_INPUT;
 
-  /* The following calls have been commented out because they do not
-     seem to accomplish anything, apart from causing flickering during
-     window resize.  */
+  /* The following call is commented out because it does not seem to accomplish
+     anything, apart from causing flickering during window resize.  */
   /* XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f)); */
 
   /* We have to clear the scroll bars.  If we have changed colors or
@@ -3451,6 +3445,7 @@ x_detect_focus_change (struct x_display_info *dpyinfo, XEvent *event, struct inp
 }
 
 
+#if defined HAVE_MENUS && !defined USE_X_TOOLKIT && !defined USE_GTK
 /* Handle an event saying the mouse has moved out of an Emacs frame.  */
 
 void
@@ -3458,6 +3453,7 @@ x_mouse_leave (struct x_display_info *dpyinfo)
 {
   x_new_focus_frame (dpyinfo, dpyinfo->x_focus_event_frame);
 }
+#endif
 
 /* The focus has changed, or we have redirected a frame's focus to
    another frame (this happens when a frame uses a surrogate
@@ -4045,7 +4041,7 @@ x_window_to_scroll_bar (Display *display, Window window_id)
 	  return XSCROLL_BAR (bar);
     }
 
-  return 0;
+  return NULL;
 }
 
 
@@ -4221,8 +4217,8 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
   ev->data.l[4] = (long) whole;
 
   /* Make Xt timeouts work while the scroll bar is active.  */
-  toolkit_scroll_bar_interaction = 1;
 #ifdef USE_X_TOOLKIT
+  toolkit_scroll_bar_interaction = 1;
   x_activate_timeout_atimer ();
 #endif
 
@@ -4535,7 +4531,7 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
   Widget widget;
   Arg av[20];
   int ac = 0;
-  char *scroll_bar_name = SCROLL_BAR_NAME;
+  char const *scroll_bar_name = SCROLL_BAR_NAME;
   unsigned long pixel;
 
   BLOCK_INPUT;
@@ -4687,8 +4683,8 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
 			   f->output_data.x->edit_widget, av, ac);
 
   {
-    char *initial = "";
-    char *val = initial;
+    char const *initial = "";
+    char const *val = initial;
     XtVaGetValues (widget, XtNscrollVCursor, (XtPointer) &val,
 #ifdef XtNarrowScrollbars
 		   XtNarrowScrollbars, (XtPointer) &xaw3d_arrow_scroll,
@@ -5659,7 +5655,7 @@ static short temp_buffer[100];
 /* Set this to nonzero to fake an "X I/O error"
    on a particular display.  */
 
-struct x_display_info *XTread_socket_fake_io_error;
+static struct x_display_info *XTread_socket_fake_io_error;
 
 /* When we find no input here, we occasionally do a no-op command
    to verify that the X server is still running and we can still talk with it.
@@ -5668,6 +5664,7 @@ struct x_display_info *XTread_socket_fake_io_error;
 
 static struct x_display_info *next_noop_dpyinfo;
 
+#if defined USE_X_TOOLKIT || defined USE_GTK
 #define SET_SAVED_BUTTON_EVENT                                          \
      do									\
        {								\
@@ -5679,6 +5676,7 @@ static struct x_display_info *next_noop_dpyinfo;
 	 XSETFRAME (inev.ie.frame_or_window, f);			\
        }								\
      while (0)
+#endif
 
 enum
 {
@@ -5764,8 +5762,8 @@ event_handler_gdk (GdkXEvent *gxev, GdkEvent *ev, gpointer data)
 #endif /* USE_GTK */
 
 
-static void xembed_send_message (struct frame *f, Time time,
-                                 enum xembed_message message,
+static void xembed_send_message (struct frame *f, Time,
+                                 enum xembed_message,
                                  long detail, long data1, long data2);
 
 /* Handles the XEvent EVENT on display DPYINFO.
@@ -6008,7 +6006,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
         goto OTHER;
 #endif /* USE_X_TOOLKIT */
       {
-        XSelectionClearEvent *eventp = (XSelectionClearEvent *) &event;
+        XSelectionClearEvent *eventp = &(event.xselectionclear);
 
         inev.ie.kind = SELECTION_CLEAR_EVENT;
         SELECTION_EVENT_DISPLAY (&inev.sie) = eventp->display;
@@ -6025,8 +6023,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
         goto OTHER;
 #endif /* USE_X_TOOLKIT */
       {
-          XSelectionRequestEvent *eventp
-            = (XSelectionRequestEvent *) &event;
+	  XSelectionRequestEvent *eventp = &(event.xselectionrequest);
 
           inev.ie.kind = SELECTION_REQUEST_EVENT;
           SELECTION_EVENT_DISPLAY (&inev.sie) = eventp->display;
@@ -6979,6 +6976,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
   return count;
 }
 
+#if defined USE_GTK || defined USE_X_TOOLKIT
 
 /* Handles the XEvent EVENT on display DISPLAY.
    This is used for event loops outside the normal event handling,
@@ -6998,6 +6996,7 @@ x_dispatch_event (XEvent *event, Display *display)
 
   return finish;
 }
+#endif
 
 
 /* Read events coming from the X server.
@@ -7539,8 +7538,6 @@ x_error_catcher (Display *display, XErrorEvent *event)
    occurred since the last call to x_catch_errors or x_check_errors.
 
    Calling x_uncatch_errors resumes the normal error handling.  */
-
-void x_check_errors (Display *dpy, const char *format);
 
 void
 x_catch_errors (Display *dpy)
@@ -8873,7 +8870,7 @@ x_raise_frame (struct frame *f)
 
 /* Lower frame F.  */
 
-void
+static void
 x_lower_frame (struct frame *f)
 {
   if (f->async_visible)
@@ -9435,7 +9432,7 @@ x_free_frame_resources (struct frame *f)
 
 /* Destroy the X window of frame F.  */
 
-void
+static void
 x_destroy_window (struct frame *f)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
@@ -9559,7 +9556,7 @@ x_wm_set_size_hint (struct frame *f, long flags, int user_position)
 
 /* Used for IconicState or NormalState */
 
-void
+static void
 x_wm_set_window_state (struct frame *f, int state)
 {
 #ifdef USE_X_TOOLKIT
@@ -9577,7 +9574,7 @@ x_wm_set_window_state (struct frame *f, int state)
 #endif /* not USE_X_TOOLKIT */
 }
 
-void
+static void
 x_wm_set_icon_pixmap (struct frame *f, int pixmap_id)
 {
   Pixmap icon_pixmap, icon_mask;
@@ -10273,10 +10270,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
 #ifdef USE_LUCID
   {
-    Display *dpy = dpyinfo->display;
     XrmValue d, fr, to;
     Font font;
 
+    dpy = dpyinfo->display;
     d.addr = (XPointer)&dpy;
     d.size = sizeof (Display *);
     fr.addr = XtDefaultFont;
@@ -10341,7 +10338,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 /* Get rid of display DPYINFO, deleting all frames on it,
    and without sending any more commands to the X server.  */
 
-void
+static void
 x_delete_display (struct x_display_info *dpyinfo)
 {
   struct terminal *t;
