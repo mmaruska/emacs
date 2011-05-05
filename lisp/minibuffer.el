@@ -558,6 +558,10 @@ candidates than this number."
 (defvar completion-fail-discreetly nil
   "If non-nil, stay quiet when there  is no match.")
 
+(defun completion--message (msg)
+  (if completion-show-inline-help
+      (minibuffer-message msg)))
+
 (defun completion--do-completion (&optional try-completion-function)
   "Do the completion and return a summary of what happened.
 M = completion was performed, the text was Modified.
@@ -585,9 +589,9 @@ E = after completion we now have an Exact match.
     (cond
      ((null comp)
       (minibuffer-hide-completions)
-      (when (and (not completion-fail-discreetly) completion-show-inline-help)
+      (unless completion-fail-discreetly
 	(ding)
-	(minibuffer-message "No match"))
+	(completion--message "No match"))
       (minibuffer--bitset nil nil nil))
      ((eq t comp)
       (minibuffer-hide-completions)
@@ -657,15 +661,13 @@ E = after completion we now have an Exact match.
               (minibuffer-hide-completions))
              ;; Show the completion table, if requested.
              ((not exact)
-	      (if (cond (icomplete-mode t)
-			((null completion-show-inline-help) t)
-			((eq completion-auto-help 'lazy)
-			 (eq this-command last-command))
-			(t completion-auto-help))
+	      (if (case completion-auto-help
+                    (lazy (eq this-command last-command))
+                    (t completion-auto-help))
                   (minibuffer-completion-help)
-                (minibuffer-message "Next char not unique")))
+                (completion--message "Next char not unique")))
              ;; If the last exact completion and this one were the same, it
-             ;; means we've already given a "Next char not unique" message
+             ;; means we've already given a "Complete, but not unique" message
              ;; and the user's hit TAB again, so now we give him help.
              ((eq this-command last-command)
               (if completion-auto-help (minibuffer-completion-help))))
@@ -703,11 +705,9 @@ scroll the window of possible completions."
     t)
    (t (case (completion--do-completion)
         (#b000 nil)
-        (#b001 (if completion-show-inline-help
-		   (minibuffer-message "Sole completion"))
+        (#b001 (completion--message "Sole completion")
                t)
-        (#b011 (if completion-show-inline-help
-		   (minibuffer-message "Complete, but not unique"))
+        (#b011 (completion--message "Complete, but not unique")
                t)
         (t     t)))))
 
@@ -765,9 +765,8 @@ Repeated uses step through the possible completions."
          (end (field-end))
          (all (completion-all-sorted-completions)))
     (if (not (consp all))
-	(if completion-show-inline-help
-	    (minibuffer-message
-	     (if all "No more completions" "No completions")))
+        (completion--message
+         (if all "No more completions" "No completions"))
       (setq completion-cycling t)
       (goto-char end)
       (insert (car all))
@@ -955,11 +954,9 @@ Return nil if there is no valid completion, else t."
   (interactive)
   (case (completion--do-completion 'completion--try-word-completion)
     (#b000 nil)
-    (#b001 (if completion-show-inline-help
-	       (minibuffer-message "Sole completion"))
+    (#b001 (completion--message "Sole completion")
            t)
-    (#b011 (if completion-show-inline-help
-	       (minibuffer-message "Complete, but not unique"))
+    (#b011 (completion--message "Complete, but not unique")
            t)
     (t     t)))
 
@@ -1377,6 +1374,10 @@ Currently supported properties are:
   "List of well-behaved functions found on `completion-at-point-functions'.")
 
 (defun completion--capf-wrapper (fun which)
+  ;; FIXME: The safe/misbehave handling assumes that a given function will
+  ;; always return the same kind of data, but this breaks down with functions
+  ;; like comint-completion-at-point or mh-letter-completion-at-point, which
+  ;; could be sometimes safe and sometimes misbehaving (and sometimes neither).
   (if (case which
         (all t)
         (safe (member fun completion--capf-safe-funs))
@@ -1408,7 +1409,7 @@ The completion method is determined by `completion-at-point-functions'."
              (completion-in-region-mode-predicate
               (lambda ()
                 ;; We're still in the same completion field.
-                (eq (car (funcall hookfun)) start))))
+                (eq (car-safe (funcall hookfun)) start))))
         (completion-in-region start end collection
                               (plist-get plist :predicate))))
      ;; Maybe completion already happened and the function returned t.
@@ -1433,7 +1434,7 @@ The completion method is determined by `completion-at-point-functions'."
              (completion-in-region-mode-predicate
               (lambda ()
                 ;; We're still in the same completion field.
-                (eq (car (funcall hookfun)) start)))
+                (eq (car-safe (funcall hookfun)) start)))
              (ol (make-overlay start end nil nil t)))
         ;; FIXME: We should somehow (ab)use completion-in-region-function or
         ;; introduce a corresponding hook (plus another for word-completion,

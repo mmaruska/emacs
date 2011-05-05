@@ -1,4 +1,195 @@
+2011-05-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-binary-file-name-regexp): Set default
+	to "".
+	(ange-ftp-write-region, ange-ftp-insert-file-contents)
+	(ange-ftp-copy-file-internal): Use only `ange-ftp-binary-file' for
+	determining of binary transfer.  (Bug#7383)
+
+2011-05-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band): Fix
+	port computation bug.  (Bug#8618)
+
+2011-05-05  Glenn Morris  <rgm@gnu.org>
+
+	* allout-widgets.el (allout-widgets-mode-inhibit): Declare before use.
+
+	* simple.el (shell-dynamic-complete-functions)
+	(comint-dynamic-complete-functions): Declare.
+
+	* net/network-stream.el (gnutls-negotiate):
+	* simple.el (tabulated-list-print): Fix declarations.
+
+	* progmodes/gud.el (syntax-symbol, syntax-point):
+	Remove unnecessary and incorrect declarations.
+
+	* emacs-lisp/check-declare.el (check-declare-scan):
+	Handle byte-compile-initial-macro-environment in bytecomp.el
+
+2011-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix earlier half-done eieio-defmethod change (bug#8338).
+	* emacs-lisp/eieio.el (eieio--defmethod): Rename from eieio-defmethod.
+	Streamline and change calling convention.
+	(defmethod): Adjust accordingly and simplify.
+	(eieio-defclass): Fix broken calls to eieio-defmethod and redirect to
+	new eieio--defmethod.
+	(slot-boundp): Minor CSE simplification.
+
+2011-05-05  Milan Zamazal  <pdm@zamazal.org>
+
+	* progmodes/glasses.el (glasses-separate-capital-groups): New option.
+	(glasses-make-readable): Use glasses-separate-capital-groups.
+
+2011-05-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/warnings.el (warning-level-aliases): Reflow docstring.
+	(warning-series): Doc fix.
+	(display-warning): Don't try to create the buffer if we just found it.
+
+2011-05-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/autoload.el (generated-autoload-file): Set to nil.
+	(autoload-find-generated-file): New function.
+	(generate-file-autoloads): Bind generated-autoload-file to
+	buffer-file-name.
+	(update-file-autoloads, update-directory-autoloads):
+	Use autoload-find-generated-file.  If called interactively, prompt for
+	output file (Bug#7989).
+	(batch-update-autoloads): Doc fix.
+
+2011-05-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* term/w32-win.el (dynamic-library-alist): Add `gnutls'.
+
+2011-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-fancy-date-pattern): Turn it into a
+	function, so it follows changes in calendar-date-style.
+	(diary-fancy-date-matcher): New function.
+	(diary-fancy-font-lock-keywords): Use diary-fancy-date-matcher.
+	(diary-fancy-font-lock-fontify-region-function):
+	Use diary-fancy-date-pattern as a function.
+
+	* calendar/diary-lib.el (diary-fancy-date-pattern): Do not use
+	non-numbers for `year' etc pseudo-variables.  (Bug#8583)
+
+2011-05-04  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/gnutls.el (gnutls-negotiate): Use CL-style keyword arguments
+	instead of positional arguments.  Allow :keylist and :crlfiles
+	arguments.
+	(open-gnutls-stream): Call it.
+
+	* net/network-stream.el (network-stream-open-starttls): Adjust to
+	call `gnutls-negotiate' with :process and :hostname arguments.
+
+2011-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--message): New function.
+	(completion--do-completion, minibuffer-complete)
+	(minibuffer-force-complete, minibuffer-complete-word): Use it.
+	(completion--do-completion): Don't ignore completion-auto-help when in
+	icomplete-mode.
+
+	* whitespace.el (whitespace-trailing-regexp): Don't rely on the
+	internal encoding (e.g. tibetan zero is not whitespace).
+	(global-whitespace-mode): Prefer save-current-buffer.
+	(whitespace-trailing-regexp): Remove useless save-match-data.
+	(whitespace-empty-at-bob-regexp): Minor simplification.
+
+2011-05-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/autoload.el (generated-autoload-file): Doc fix (Bug#7989).
+
+2011-05-03  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-add-per-file-word-list):
+	Use `concat' to create string for insertion.
+
+2011-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/bibtex.el (bibtex-fill-field-bounds, bibtex-fill-entry):
+	Avoid open-line which runs post-self-insert-hook.
+	(bibtex-fill-entry): Remove unused `end' var.
+
+2011-05-03  Dirk Ullrich  <dirk.ullrich@googlemail.com>  (tiny change)
+
+	* textmodes/ispell.el (ispell-add-per-file-word-list):
+	Protect against `nil' value of `comment-start' (Bug#8579).
+
+2011-05-03  Leo Liu  <sdl.web@gmail.com>
+
+	* isearch.el (isearch-yank-pop): New command.
+	(isearch-mode-map): Bind it to `M-y'.
+	(isearch-forward): Mention it.
+
+2011-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (minibuffer-complete-shell-command): Remove.
+	(minibuffer-local-shell-command-map): Use completion-at-point.
+	(read-shell-command): Setup completion vars here instead.
+	(read-expression-map): Bind TAB to symbol completion.
+
+	* textmodes/ispell.el (lookup-words): Use with-temp-buffer; signal
+	error directly rather via storing it into `results'.
+
+2011-05-02  Leo Liu  <sdl.web@gmail.com>
+
+	* vc/diff.el: Fix description.
+
+2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* server.el (server-eval-at): New function.
+
+2011-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/network-stream.el (open-network-stream): Take a :nowait
+	parameter and pass it on to `make-network-process'.
+	(network-stream-open-plain): Ditto.
+
+2011-04-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* faces.el (face-spec-set-match-display): Don't match toolkit
+	options on terminal frames.
+
+2011-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/pascal.el: Use lexical binding.
+	(pascal-mode-map): Remove author preferences.
+
+	* pcomplete.el (pcomplete-std-complete): Don't abuse
+	completion-at-point.
+
+2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* calc/calccomp.el (math-comp-to-string-flat-term): Simplify by
+	removing code that has been dead since 1991 or so.
+
+	* startup.el (command-line): When warning about "_emacs", use a
+	delayed warning to allow the user to filter it out.
+
+2011-04-28  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el (rcirc-handler-353): Fix bug for channels which the
+	user has not joined.
+
 2011-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcomplete.el (pcomplete-completions-at-point): Return nil if there
+	aren't any completions at point.
+
+2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (display-delayed-warnings): New function.
+	(delayed-warnings-hook): New variable.
+
+2011-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-at-point, completion-help-at-point):
+	Don't presume that a given completion-at-point-function will always
+	use the same calling convention.
 
 	* pcomplete.el (pcomplete-completions-at-point):
 	Obey pcomplete-ignore-case.  Don't call pcomplete-norm-func unless
@@ -449,6 +640,15 @@
 	* calendar/solar.el (solar-horizontal-coordinates):
 	Use the longitude argument rather than `calendar-longitude'.
 	(solar-date-next-longitude): Remove unused locals.
+
+2011-04-20  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: New version 13.2.1.
+
+2011-04-20  felix  <EmacsWiki>  (tiny change)
+
+	* whitespace.el (global-whitespace-mode): keep highlight when
+	switching between major modes on a file.
 
 2011-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -87,6 +87,16 @@ used."
 This is used for cid: URLs, and the function is called with the
 cid: URL as the argument.")
 
+(defface shr-strike-through '((t (:strike-through t)))
+  "Font for <s> elements."
+  :group 'shr)
+
+(defface shr-link '((t (:underline t)
+                       (:foreground "yellow")
+                       (:background "black")))
+  "Font for <s> elements."
+  :group 'shr)
+
 ;;; Internal variables.
 
 (defvar shr-folding-mode nil)
@@ -587,6 +597,7 @@ START, and END.  Note that START and END should be merkers."
    :help-echo (if title (format "%s (%s)" url title) url)
    :keymap shr-map
    url)
+  (put-text-property start (point) 'face 'shr-link)
   (put-text-property start (point) 'shr-url url))
 
 (defun shr-encode-url (url)
@@ -760,6 +771,9 @@ ones, in case fg and bg are nil."
   (shr-generic cont)
   (shr-ensure-newline))
 
+(defun shr-tag-s (cont)
+  (shr-fontize-cont cont 'shr-strike-through))
+
 (defun shr-tag-b (cont)
   (shr-fontize-cont cont 'bold))
 
@@ -774,9 +788,6 @@ ones, in case fg and bg are nil."
 
 (defun shr-tag-u (cont)
   (shr-fontize-cont cont 'underline))
-
-(defun shr-tag-s (cont)
-  (shr-fontize-cont cont 'strike-through))
 
 (defun shr-parse-style (style)
   (when style
@@ -867,10 +878,13 @@ ones, in case fg and bg are nil."
 	  (shr-put-image (shr-get-image-data url) alt))
 	 (t
 	  (insert alt)
-	  (ignore-errors
-	    (url-retrieve (shr-encode-url url) 'shr-image-fetched
-			  (list (current-buffer) start (point-marker))
-			  t))))
+	  (funcall
+	   (if (fboundp 'url-queue-retrieve)
+	       'url-queue-retrieve
+	     'url-retrieve)
+	   (shr-encode-url url) 'shr-image-fetched
+	   (list (current-buffer) start (point-marker))
+	   t)))
 	(put-text-property start (point) 'keymap shr-map)
 	(put-text-property start (point) 'shr-alt alt)
 	(put-text-property start (point) 'image-url url)

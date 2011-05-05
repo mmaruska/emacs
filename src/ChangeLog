@@ -1,3 +1,183 @@
+2011-05-05 Eli Zaretskii  <eliz@gnu.org>
+
+	* w32heap.c (allocate_heap) [USE_LISP_UNION_TYPE || USE_LSB_TAG]:
+	New version that can reserve upto 2GB of heap space.
+
+2011-05-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsfns.m (Fns_read_file_name): Doc fix (Bug#8534).
+
+2011-05-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.c (fn_gnutls_certificate_set_x509_key_file): Add alias to
+	`gnutls_certificate_set_x509_key_file'.
+
+2011-05-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/image.$(O), $(BLD)/process.$(O)):
+	Update dependencies.
+
+2011-05-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnutls.h (emacs_gnutls_write, emacs_gnutls_read):
+	* gnutls.c (emacs_gnutls_write, emacs_gnutls_read):
+	Remove unused parameter `fildes'.
+	* process.c (read_process_output, send_process): Don't pass it.
+
+2011-05-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	Fix previous change: the library cache is defined in w32.c.
+	* image.c (CACHE_IMAGE_TYPE) [!HAVE_NTGUI]: Define to noop.
+	(Finit_image_library): Wrap Vlibrary_cache on "#ifdef HAVE_NTGUI".
+
+2011-05-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	Implement dynamic loading of GnuTLS on Windows.
+
+	* gnutls.h (GNUTLS_EMACS_ERROR_NOT_LOADED): New macro.
+	(emacs_gnutls_write, emacs_gnutls_read): Mark as extern.
+	(emacs_gnutls_record_check_pending, emacs_gnutls_transport_set_errno):
+	Declare.
+
+	* gnutls.c (Qgnutls_dll): Define.
+	(DEF_GNUTLS_FN, LOAD_GNUTLS_FN): New macros.
+	(gnutls_*): Declare function pointers.
+	(init_gnutls_functions): New function to initialize function pointers.
+	(emacs_gnutls_handshake, Fgnutls_error_string, Fgnutls_deinit)
+	(emacs_gnutls_global_init, Fgnutls_bye): Use function pointers.
+	(emacs_gnutls_record_check_pending, emacs_gnutls_transport_set_errno):
+	Wrappers for gnutls_record_check_pending and gnutls_transport_set_errno.
+	(emacs_gnutls_write, emacs_gnutls_read)
+	(emacs_gnutls_handle_error, Fgnutls_error_fatalp)
+	(Fgnutls_available_p): New function.
+	(Fgnutls_boot): Call Fgnutls_available_p.  Use function pointers.
+	(syms_of_gnutls) <Qgnutls_dll>: Initialize and staticpro it.
+	(syms_of_gnutls) <Sgnutls_available_p>: defsubr it.
+
+	* image.c: Include w32.h.
+	(Vimage_type_cache): Delete.
+	(syms_of_image) <Vimage_type_cache>: Don't initialize and staticpro it.
+	(CACHE_IMAGE_TYPE, Finit_image_library): Use Vlibrary_cache instead.
+	(w32_delayed_load): Move to w32.c.
+
+	* w32.h (VlibraryCache, QCloaded_from, w32_delayed_load): Declare.
+
+	* w32.c (QCloaded_from, Vlibrary_cache): Define.
+	(w32_delayed_load): Move from image.c.  When loading a library, record
+	its filename in the :loaded-from property of the library id.
+	(globals_of_w32) <QCloaded_from, Vlibrary_cache>:
+	Initialize and staticpro them.
+	(emacs_gnutls_pull, emacs_gnutls_push): Call emacs_gnutls_* functions.
+
+	* process.c: Include lisp.h before w32.h, not after.
+	(wait_reading_process_output): Call emacs_gnutls_record_check_pending
+	instead of gnutls_record_check_pending.
+
+	* callproc.c, emacs.c: Include lisp.h before w32.h, not after.
+
+2011-05-04  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.c (Fgnutls_boot): Support :keylist and :crlfiles options
+	instead of :keyfiles.  Give GnuTLS the keylist and the CRL lists
+	as passed in.
+
+2011-05-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_set_frame_alpha): Do not set property on anything
+	else than FRAME_X_OUTER_WINDOW (Bug#8608).
+
+2011-05-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* sysdep.c (get_tty_size) [WINDOWSNT]: Implement.  (Bug#8596)
+
+2011-05-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnutls.c (Qgnutls_log_level, Qgnutls_code, Qgnutls_anon)
+	(Qgnutls_x509pki, Qgnutls_e_interrupted, Qgnutls_e_again)
+	(Qgnutls_e_invalid_session, Qgnutls_e_not_ready_for_handshake)
+	(gnutls_global_initialized, Qgnutls_bootprop_priority)
+	(Qgnutls_bootprop_trustfiles, Qgnutls_bootprop_keyfiles)
+	(Qgnutls_bootprop_callbacks, Qgnutls_bootprop_loglevel)
+	(Qgnutls_bootprop_hostname, Qgnutls_bootprop_verify_flags)
+	(Qgnutls_bootprop_verify_error, Qgnutls_bootprop_verify_hostname_error)
+	(Qgnutls_bootprop_callbacks_verify): Make static.
+
+2011-05-01  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* callproc.c: Indentation fixup.
+
+	* sysdep.c (wait_for_termination_1): Make static.
+	(wait_for_termination, interruptible_wait_for_termination): Move
+	after wait_for_termination_1.
+
+2011-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* sysdep.c (interruptible_wait_for_termination): New function
+	which is like wait_for_termination, but allows keyboard
+	interruptions.
+
+	* callproc.c (Fcall_process): Add (:file "file") as an option for
+	the STDOUT buffer.
+	(Fcall_process_region): Ditto.
+
+2011-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* dosfns.c (Fint86, Fdos_memget, Fdos_memput): Use `ASIZE (FOO)'
+	rather than `XVECTOR (FOO)->size'.
+
+	* process.c: Remove HAVE_INTTYPES_H condition from inclusion of
+	inttypes.h, as a gnulib replacement is used if it not available in
+	system headers.
+
+2011-04-21  Eli Zaretskii  <eliz@gnu.org>
+
+	Lift the MOST_POSITIVE_FIXNUM/4 limitation on visited files.
+	* fileio.c (Finsert_file_contents): Don't limit file size to 1/4
+	of MOST_POSITIVE_FIXNUM.  (Bug#8528)
+
+	* coding.c (coding_alloc_by_realloc): Error out if destination
+	will grow beyond MOST_POSITIVE_FIXNUM.
+	(decode_coding_emacs_mule): Abort if there isn't enough place in
+	charbuf for the composition carryover bytes.  Reserve an extra
+	space for up to 2 characters produced in a loop.
+	(decode_coding_iso_2022): Abort if there isn't enough place in
+	charbuf for the composition carryover bytes.
+
+2011-04-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* doprnt.c (doprnt) [!HAVE_LONG_LONG_INT]: Error out instead of
+	aborting when %lld or %lll format is passed.
+	[!HAVE_UNSIGNED_LONG_LONG_INT]: Error out instead of aborting when
+	%llo or %llx format is passed.  (Bug#8545)
+
+	* window.c (window_scroll_line_based): Use a marker instead of
+	simple variables to record original value of point.  (Bug#7952)
+
+	* doprnt.c (doprnt): Fix the case where a multibyte sequence
+	produced by %s or %c overflows available buffer space.  (Bug#8545)
+
+2011-04-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doprnt.c (doprnt): Omit useless test; int overflow check (Bug#8545).
+	(SIZE_MAX): Move defn after all includes, as they might #define it.
+
+2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c (init_environment): Warn about defaulting HOME to C:\.
+
+2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keyboard.c (Qdelayed_warnings_hook): Define.
+	(command_loop_1): Run `delayed-warnings-hook'
+	if Vdelayed_warnings_list is non-nil.
+	(syms_of_keyboard) <delayed-warnings-hook>: DEFSYM it.
+	(syms_of_keyboard) <delayed-warnings-list>: DEFVAR_LISP it.
+
+2011-04-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* doprnt.c (doprnt): Don't return value smaller than the buffer
+	size if the message was truncated.  (Bug#8545).
+
 2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32fns.c (Fx_change_window_property, Fx_delete_window_property)

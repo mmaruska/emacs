@@ -1,3 +1,28 @@
+2011-05-05  Ben Key  <bkey76@gmail.com>
+
+	* configure.bat: Added support for --cflags and --ldflags
+	options that include quotes as long as command extensions are
+	enabled.  Specifically when -I, -L, and similar flags are used
+	to specify supplementary include and library directories a
+	directory name that includes spaces may now be used if it is
+	enclosed in quotes.
+
+	* INSTALL: Documented the change to configure.bat.
+
+2011-05-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Clarify GnuTLS support.
+
+2011-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (HAVE_LONG_LONG_INT, HAVE_UNSIGNED_LONG_LONG_INT):
+	Define to 1 for MinGW of MSVC versions >= 1400.
+
+2011-04-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* gmake.defs (ARCH): Fix error message in case of unknown
+	architecture.
+
 2011-04-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/inttypes.h: New file.

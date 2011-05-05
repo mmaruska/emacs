@@ -70,7 +70,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
      %<flags><width><precision><length>character
 
    where flags is [+ -0], width is [0-9]+, precision is .[0-9]+, and length
-   modifier is empty or l or ll.
+   is empty or l or ll.  Also, %% in a format stands for a single % in the
+   output.  A % that does not introduce a valid %-sequence causes
+   undefined behavior.
 
    The + flag character inserts a + before any positive number, while a space
    inserts a space before any positive number; these flags only affect %d, %o,
@@ -111,9 +113,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 
 #include <limits.h>
-#ifndef SIZE_MAX
-# define SIZE_MAX ((size_t) -1)
-#endif
 
 #include "lisp.h"
 
@@ -122,14 +121,21 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    another macro.  */
 #include "character.h"
 
+#ifndef SIZE_MAX
+# define SIZE_MAX ((size_t) -1)
+#endif
+
 #ifndef DBL_MAX_10_EXP
 #define DBL_MAX_10_EXP 308 /* IEEE double */
 #endif
 
 /* Generate output from a format-spec FORMAT,
    terminated at position FORMAT_END.
+   (*FORMAT_END is not part of the format, but must exist and be readable.)
    Output goes in BUFFER, which has room for BUFSIZE chars.
-   If the output does not fit, truncate it to fit.
+   BUFSIZE must be positive.  If the output does not fit, truncate it
+   to fit and return BUFSIZE - 1; if this truncates a multibyte
+   sequence, store '\0' into the sequence's first byte.
    Returns the number of bytes stored into BUFFER, excluding
    the terminating null byte.  Output is always null-terminated.
    String arguments are passed as C strings.
@@ -198,8 +204,12 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 		  while (fmt < format_end
 			 && '0' <= fmt[1] && fmt[1] <= '9')
 		    {
-		      if (n >= SIZE_MAX / 10
-			  || n * 10 > SIZE_MAX - (fmt[1] - '0'))
+		      /* Avoid size_t overflow.  Avoid int overflow too, as
+			 many sprintfs mishandle widths greater than INT_MAX.
+			 This test is simple but slightly conservative: e.g.,
+			 (INT_MAX - INT_MAX % 10) is reported as an overflow
+			 even when it's not.  */
+		      if (n >= min (INT_MAX, SIZE_MAX) / 10)
 			error ("Format width or precision too large");
 		      n = n * 10 + fmt[1] - '0';
 		      *string++ = *++fmt;
@@ -259,7 +269,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 		    long long ll = va_arg (ap, long long);
 		    sprintf (sprintf_buffer, fmtcpy, ll);
 #else
-		    abort ();
+		    error ("Invalid format operation %%ll%c", fmt[-1]);
 #endif
 		  }
 		else if (long_flag)
@@ -289,7 +299,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 		    unsigned long long ull = va_arg (ap, unsigned long long);
 		    sprintf (sprintf_buffer, fmtcpy, ull);
 #else
-		    abort ();
+		    error ("Invalid format operation %%ll%c", fmt[-1]);
 #endif
 		  }
 		else if (long_flag)
@@ -357,9 +367,21 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 		  /* Truncate the string at character boundary.  */
 		  tem = bufsize;
 		  while (!CHAR_HEAD_P (string[tem - 1])) tem--;
-		  memcpy (bufptr, string, tem);
-		  /* We must calculate WIDTH again.  */
-		  width = strwidth (bufptr, tem);
+		  /* If the multibyte sequence of this character is
+		     too long for the space we have left in the
+		     buffer, truncate before it.  */
+		  if (tem > 0
+		      && BYTES_BY_CHAR_HEAD (string[tem - 1]) > bufsize)
+		    tem--;
+		  if (tem > 0)
+		    memcpy (bufptr, string, tem);
+		  bufptr[tem] = 0;
+		  /* Trigger exit from the loop, but make sure we
+		     return to the caller a value which will indicate
+		     that the buffer was too small.  */
+		  bufptr += bufsize;
+		  bufsize = 0;
+		  continue;
 		}
 	      else
 		memcpy (bufptr, string, tem);
@@ -403,7 +425,9 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 	while (fmt < format_end && --bufsize > 0 && !CHAR_HEAD_P (*fmt));
 	if (!CHAR_HEAD_P (*fmt))
 	  {
-	    bufptr = save_bufptr;
+	    /* Truncate, but return value that will signal to caller
+	       that the buffer was too small.  */
+	    *save_bufptr = 0;
 	    break;
 	  }
       }
