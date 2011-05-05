@@ -1,3 +1,9 @@
+emacs-snapshot (1:20110505-1) unstable; urgency=low
+
+  * New snapshot.
+
+ -- Julien Danjou <acid@debian.org>  Thu, 05 May 2011 16:02:37 +0200
+
 emacs-snapshot (1:20110428-1) unstable; urgency=low
 
   * New snapshot.
