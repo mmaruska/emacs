@@ -1,3 +1,18 @@
+2011-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Specifying File Variables):
+	Deprecate using mode: for minor modes.
+
+2011-05-07  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi (Sexp Diary Entries): Mention diary-hebrew-birthday.
+
+2011-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Appointments): Mention appt-warning-time-regexp.
+
+	* cal-xtra.texi (Fancy Diary Display): Mention diary comments.
+
 2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* misc.texi (Emacs Server): Document `server-eval-at'.

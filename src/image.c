@@ -1892,7 +1892,7 @@ mark_image_cache (struct image_cache *c)
 #ifdef HAVE_NTGUI
 
 /* Macro for defining functions that will be loaded from image DLLs.  */
-#define DEF_IMGLIB_FN(rettype,func,args) rettype (FAR CDECL *fn_##func)args
+#define DEF_IMGLIB_FN(rettype,func,args) static rettype (FAR CDECL *fn_##func)args
 
 /* Macro for loading those image functions from the library.  */
 #define LOAD_IMGLIB_FN(lib,func) {					\
@@ -8602,14 +8602,16 @@ Libraries to load are specified in alist LIBRARIES (usually, the value
 of `dynamic-library-alist', which see).  */)
   (Lisp_Object type, Lisp_Object libraries)
 {
-  Lisp_Object tested;
-
 #ifdef HAVE_NTGUI
   /* Don't try to reload the library.  */
-  tested = Fassq (type, Vlibrary_cache);
+  Lisp_Object tested = Fassq (type, Vlibrary_cache);
   if (CONSP (tested))
     return XCDR (tested);
 #endif
+
+  /* Types pbm and xbm are built-in and always available.  */
+  if (EQ (type, Qpbm) || EQ (type, Qxbm))
+    return Qt;
 
 #if defined (HAVE_XPM) || defined (HAVE_NS)
   if (EQ (type, Qxpm))
@@ -8643,10 +8645,8 @@ of `dynamic-library-alist', which see).  */)
 
 #if defined (HAVE_IMAGEMAGICK)
   if (EQ (type, Qimagemagick))
-    {
-      return CHECK_LIB_AVAILABLE (&imagemagick_type, init_imagemagick_functions,
-				  libraries);
-    }
+    return CHECK_LIB_AVAILABLE (&imagemagick_type, init_imagemagick_functions,
+                                libraries);
 #endif
 
 #ifdef HAVE_GHOSTSCRIPT

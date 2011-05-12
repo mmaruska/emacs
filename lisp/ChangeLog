@@ -1,3 +1,196 @@
+2011-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-now-displayed): Remove pointless variable.
+	(appt-check): Simplify.
+
+2011-05-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* smerge-mode.el (smerge-resolve): Use null-device rather than a
+	literal "/dev/null".
+
+2011-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol, lisp-completion-at-point):
+	Fix typo.
+
+2011-05-12  Ralph Schleicher  <rs@ralph-schleicher.de>
+
+	* progmodes/which-func.el (which-function):
+	Use add-log-current-defun instead of add-log-current-defun-function,
+	which might not be defined (Bug#8260).
+
+2011-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-defmumble):
+	Let byte-compile-initial-macro-environment always take precedence.
+
+2011-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/rcirc.el: Add support for SSL/TLS connections.
+	(rcirc-server-alist): New field `encryption'.
+	(rcirc): Check `encryption' settings.
+	(rcirc-connect): New arg `encryption'.  Use open-network-stream.
+	Merge make-local-variable into `set'.
+	(rcirc--connection-open-p): New function.
+	(rcirc-send-string, rcirc-clean-up-buffer): Use it to handle case where
+	the process is not a network process (e.g. running gnutls-cli).
+	(set-rcirc-decode-coding-system, set-rcirc-encode-coding-system):
+	Make rcirc-(en|de)code-coding-system local here.
+	(rcirc-mode): Merge make-local-variable into `set'.
+	(rcirc-parent-buffer): Make permanent buffer-local.
+	(rcirc-multiline-minor-mode): Don't do it here.
+	(rcirc-switch-to-server-buffer): Don't switch to a random buffer if
+	there's no server buffer.
+
+2011-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* newcomment.el (comment-kill): Prefix "unused" local.
+
+	* term/w32console.el (get-screen-color): Declare.
+
+	* emacs-lisp/bytecomp.el (byte-compile-arglist-warn):
+	Handle symbol elements of byte-compile-initial-macro-environment.
+
+2011-05-10  Leo Liu  <sdl.web@gmail.com>
+
+	* bookmark.el (bookmark-bmenu-mode-map):
+	Bind bookmark-bmenu-search to `/'.
+
+	* mail/footnote.el: Convert to utf-8 encoding.
+	(footnote-unicode-string, footnote-unicode-regexp): New variable.
+	(Footnote-unicode): New function.
+	(footnote-style-alist): Add unicode style to the list.
+	(footnote-style): Doc fix.
+
+2011-05-10  Glenn Morris  <rgm@gnu.org>
+	   Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (hack-one-local-variable-eval-safep):
+	Consider "eval: (foo-mode)" to be safe.  (Bug#8613)
+
+2011-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-list-entries-hook)
+	(diary-mark-entries-hook, diary-nongregorian-listing-hook)
+	(diary-nongregorian-marking-hook, diary-list-entries)
+	(diary-include-other-diary-files, diary-mark-entries)
+	(diary-mark-included-diary-files): Doc fixes.
+
+2011-05-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* misc.el: Require tabulated-list.el during compilation.
+
+2011-05-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-start):
+	Run compilation-filter-hook for the async case too.
+	(compilation-filter-hook): Doc fix.
+
+2011-05-09  Deniz Dogan  <deniz@dogan.se>
+
+	* wdired.el: Remove outdated installation comment.  Fix usage
+	comment.
+
+2011-05-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* misc.el: Implement new command `list-dynamic-libraries'.
+	(list-dynamic-libraries--loaded-only-p): New variable.
+	(list-dynamic-libraries--refresh): New function.
+	(list-dynamic-libraries): New command.
+
+2011-05-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Fix the ant regexp to handle end-line and end-column info from jikes.
+	Re-introduce maven regexp.  Give the ruby-Test::Unit regexp a
+	higher priority to avoid clobbering by gnu.
+
+2011-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-face.el (custom-declare-face): Call custom-theme-recalc-face
+	if the face has existing theme settings (Bug#8454).
+
+2011-05-08  Ralph Schleicher  <rs@ralph-schleicher.de>
+
+	* progmodes/perl-mode.el (perl-imenu-generic-expression):
+	Only match variables declared via `my' or `our' (Bug#8261).
+
+	* net/browse-url.el (browse-url-of-dired-file): Allow browsing of
+	special file names `.' and `..' (Bug#8259).
+
+2011-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/grep.el (grep-mode-font-lock-keywords):
+	Remove buffer-changing entries.
+	(grep-filter): New function.
+	(grep-mode): Add it to compilation-filter-hook.
+
+	* progmodes/compile.el (compilation-filter-hook)
+	(compilation-filter-start): New defvars.
+	(compilation-filter): Call compilation-filter-hook prior to
+	updating the process mark.
+
+2011-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio.el (defmethod): Fix typo in last change.
+
+2011-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/sendmail.el (send-mail-function): On MS-Windows, default to
+	mailclient-send-it even if window-system is nil.  (Bug#8595)
+
+	* term/w32console.el (terminal-init-w32console):
+	Call get-screen-color and use its output to set the frame
+	background-mode.  (Bug#8597)
+
+2011-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make bytecomp.el understand that defmethod defines funs (bug#8631).
+	* emacs-lisp/eieio.el (eieio--defalias, eieio--defgeneric-init-form):
+	New functions.
+	(defgeneric, eieio--defmethod): Use them.
+	(eieio-defgeneric): Remove.
+	(defmethod): Call defgeneric in a way visible to the byte-compiler.
+
+2011-05-07  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/timeclock.el (timeclock-log-data): Remove unused local.
+	Use let rather than let*.
+	(timeclock-find-discrep): Remove unused local.
+
+	* calendar/diary-lib.el (diary-comment-start): Doc fix.
+
+	* calendar/appt.el (appt-time-msg-list): Doc fix.
+
+2011-05-06  Noah Friedman  <friedman@splode.com>
+
+	* apropos.el (apropos-print-doc): Only use
+	emacs-lisp-docstring-fill-column when it is bound to an integer,
+	per that variable's documentation.
+
+2011-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lpr.el (print-region-1): Echo lpr-program's output, so error messages
+	and warnings are not silently discarded (e.g. use -d instead of -P).
+
+2011-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-message-warning-time): Doc fix.
+	(appt-warning-time-regexp): New option.
+	(appt-make-list): Respect appt-message-warning-time.
+
+	* calendar/diary-lib.el (diary-comment-start, diary-comment-end):
+	New options.
+	(diary-add-to-list): Strip comments from the displayed string.
+	(diary-mode): Set comment-start and comment-end.
+
+	* vc/diff-mode.el (smerge-refine-subst): Declare.
+	(diff-refine-hunk): Don't require smerge-mode when compiling.
+
+2011-05-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (list-processes): Return nil as the docstring says.
+
 2011-05-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/ange-ftp.el (ange-ftp-binary-file-name-regexp): Set default
@@ -8,8 +201,8 @@
 
 2011-05-05  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band): Fix
-	port computation bug.  (Bug#8618)
+	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band):
+	Fix port computation bug.  (Bug#8618)
 
 2011-05-05  Glenn Morris  <rgm@gnu.org>
 
@@ -1920,7 +2113,7 @@
 	(emerge-protect-metachars): Quote correctly for ms-dos and
 	windows-nt systems.
 
-2011-03-19  Ralph Schleicher  <rs@ralph-schleicher.de>  (tiny change)
+2011-03-19  Ralph Schleicher  <rs@ralph-schleicher.de>
 
 	* info.el (info-initialize): Replace all uses of `:' with
 	path-separator for compatibility with non-Unix systems.

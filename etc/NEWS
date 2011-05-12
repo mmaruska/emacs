@@ -267,6 +267,10 @@ default, all themes included in Emacs are treated as safe.
 ** The user option `remote-file-name-inhibit-cache' controls whether
 the remote file-name cache is used for read access.
 
++++
+** The use of a "mode: minor" specification in a file local variables section
+to enable a minor-mode is deprecated.  Instead, use "eval: (minor-mode)".
+
 ** The standalone programs lib-src/digest-doc and sorted-doc have been
 replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
 
@@ -377,8 +381,14 @@ $ESHELL nor variable `explicit-shell-file-name' is set.
 
 ** comint and modes derived from it use the generic completion code.
 
-** The compile.el mode can be used without font-lock-mode.
+** Compilation mode
+
+*** Compilation mode can be used without font-lock-mode.
 `compilation-parse-errors-function' is now obsolete.
+
+*** `compilation-filter-start' is let-bound to the start of the text
+inserted by the compilation filter function, when calling
+compilation-filter-hook.
 
 ** The Landmark game is now invoked with `landmark', not `lm'.
 
@@ -447,6 +457,15 @@ You can get a comparable behavior with:
 
 ** Calendar, Diary, and Appt
 
++++
+*** Diary entries can contain non-printing `comments'.
+See the variable `diary-comment-start'.
+
++++
+*** Appointments can specify their individual warning times.
+See the variable `appt-warning-time-regexp'.
+
++++
 *** New function `diary-hebrew-birthday'.
 
 ---
@@ -653,6 +672,9 @@ on a D-Bus without simultaneously registering a property or a method.
 
 *** The following access methods are discontinued: "ssh1_old",
 "ssh2_old", "scp1_old", "scp2_old", "imap", "imaps" and "fish".
+
+*** The option `ange-ftp-binary-file-name-regexp' has changed its
+default value to "".
 
 ** VC and related modes
 
