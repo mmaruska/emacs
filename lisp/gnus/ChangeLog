@@ -1,3 +1,51 @@
+2011-05-18  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-user-format-function-M):
+	Use `mapconcat'.
+	(gnus-registry-user-format-function-M2): Use to see the full text of
+	the marks.  Make "," the mark text separator.
+
+	* nntp.el (nntp-send-authinfo): Use the "force" token for NNTP
+	authentication with auth-source.
+
+2011-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-group.el (gnus-import-other-newsrc-file):
+	Use insert-file-contents.
+
+2011-05-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-sum.el (gnus-summary-hide-all-threads): Add update message every
+	1000 iterations.
+
+2011-05-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nntp.el (nntp-open-connection): Check if process-type is available.
+
+2011-05-16  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-tag-del): Add support for del tag.
+
+2011-05-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-html.el (gnus-html-put-image): Register a displayer.
+
+	* shr.el (shr-image-displayer): Don't remove text props from alt text.
+
+2011-05-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el (prune-factor): New initialization parameter defaulting
+	to 0.1.
+	(registry-prune-hard): Use it.
+
+	* gnus-registry.el (gnus-registry-fixup-registry): Set prune-factor to
+	0.1 expicitly.
+
+2011-05-13  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-send-mail-with-sendmail): Assume sendmail-program
+	is bound, since this function requires sendmail.
+
 2011-05-11  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* registry.el (registry-usage-test): Disable pruning test.
@@ -7,6 +55,10 @@
 	* registry.el (registry-prune-hard-candidates)
 	(registry-prune-soft-candidates): Helper methods for registry pruning.
 	(registry-prune): Use them.  Make the sort function optional.
+
+2011-05-10  Jim Meyering  <meyering@redhat.com>
+
+	* shr.el (shr-colorize-region): Fix typo "on on -> on".
 
 2011-05-10  Julien Danjou  <julien@danjou.info>
 

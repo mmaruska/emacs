@@ -1,3 +1,282 @@
+2011-05-19  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el (rcirc-mode): Initialize rcirc-urls to nil.
+
+2011-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-type-def-re):
+	Handle "type, bind(c)".  (Bug#8691)
+
+	* emacs-lisp/autoload.el (batch-update-autoloads):
+	Set autoload-excludes by parsing loadup.el rather than Makefiles.
+
+2011-05-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-process-actions): Set "first-password-request"
+	property for the correct connection in case of multihops.
+
+2011-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-fixed-entries): Remove fakemail.c.
+	* mail/sendmail.el (sendmail-program): Fall back to just "sendmail".
+
+	Rationalize calendar handling of day and month abbrev-arrays.
+	* calendar/calendar.el (calendar-customized-p): New function.
+	(calendar-abbrev-construct, calendar-make-alist): Change what it does.
+	(calendar-day-name-array, calendar-month-name-array): Doc fix.
+	Add :set function.
+	(calendar-abbrev-length, calendar-day-abbrev-array)
+	(calendar-month-abbrev-array): Make defcustoms, with appropriate :set.
+	(calendar-day-abbrev-array, calendar-month-abbrev-array):
+	Elements may no longer be nil.
+	(calendar-day-name, calendar-month-name):
+	Update for changed nature of abbrev arrays.
+	* calendar/diary-lib.el (diary-name-pattern):
+	Update for changed nature of abbrev arrays.
+	(diary-mark-entries-1): Update calendar-make-alist calls.
+	(diary-font-lock-date-forms): Doc fix for changed abbrev arrays.
+	* calendar/cal-html.el (cal-html-day-abbrev-array):
+	Simply inherit from calendar-day-abbrev-array.
+
+2011-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/grep.el (grep-mode): Disable default
+	compilation-directory-matcher setting (bug#8684).
+
+2011-05-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-insert-file-contents): Use "dd"
+	instead of "head" and "tail".  There were problems with SunOS 5.9,
+	and it performs better.
+
+2011-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* mail/mail-utils.el (mail-dont-reply-to): Silence compiler.
+
+	* progmodes/idlw-shell.el (idlwave-shell-complete-filename):
+	Replace obsolete function.
+
+	* shell.el (pcomplete-parse-arguments-function): Declare.
+
+	* calendar/appt.el (appt-message-warning-time, appt-display-mode-line)
+	(appt-display-diary, appt-display-interval, appt-prev-comp-time)
+	(appt-check): Doc fixes.
+	(appt-disp-window-function, appt-delete-window-function):
+	Remove needless special case in custom :type.
+	(appt-display-count): Default to 0, not nil.
+	(appt-check): Reset appt-display-count to 0, not nil.
+
+2011-05-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/python.el (python-font-lock-keywords):
+	Add the Python 3.X keyword "nonlocal" (bug#8639).
+
+2011-05-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio.el (defmethod): Fix quoting of code (bug#8677).
+
+2011-05-16  Kevin Ryde  <user42@zip.com.au>
+
+	* info-look.el (makefile-automake-mode): New setups, looking in
+	automake manual, then makefile-mode.
+	(makefile-mode): Remove automake manual, have it just in
+	makefile-automake-mode since there's various things different or
+	not relevant to plain make.
+	(makefile-mode): Remove "other-modes" non-existent automake-mode,
+	believe a hypothetical automake-mode would go to makefile-mode,
+	not the other way around.
+
+2011-05-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/diff-mode.el (diff-fixup-modifs): Locate correct position for
+	hunk-end tags (Bug#8672).
+
+	* vc/vc-annotate.el (vc-annotate-mode-map): Bind = to
+	vc-annotate-show-diff-revision-at-line (Bug#8671).
+
+2011-05-14  Glenn Morris  <rgm@gnu.org>
+
+	* vc/add-log.el (add-change-log-entry): Don't start adding a new entry
+	in the middle of an existing one with multiple authors.  (Bug#8645)
+	(change-log-font-lock-keywords): Also handle multiple author lines
+	with leading tabs.  (Bug#8644)
+
+	* calendar/appt.el (appt-check): Rename some local variables.
+	Some simplification/reordering.
+
+	* mail/feedmail.el (feedmail-confirm-outgoing-timeout)
+	(feedmail-sendmail-f-doesnt-sell-me-out)
+	(feedmail-queue-slug-suspect-regexp, feedmail-debug)
+	(feedmail-debug-sit-for, feedmail-queue-express-hook)
+	(feedmail-queue-runner-message-sender): Set :version.
+	(bbdb-search, bbdb-records, smtp-via-smtp, smtp-server)
+	(bbdb-dwim-net-address, vm-mail): Declare.
+	(feedmail-binmail-gnulinuxish-template):
+	Rename from feedmail-binmail-linuxish-template.
+	(feedmail-buffer-to-smtp, feedmail-vm-mail-mode):
+	Use insert-buffer-substring.
+
+2011-05-14  Bill Carpenter  <bill@carpenter.org>
+
+	* mail/feedmail.el (feedmail-patch-level): Increase.
+	(feedmail-debug): New custom group.
+	(feedmail-confirm-outgoing-timeout)
+	(feedmail-sendmail-f-doesnt-sell-me-out)
+	(feedmail-queue-slug-suspect-regexp, feedmail-debug)
+	(feedmail-debug-sit-for, feedmail-queue-express-hook): New options.
+	(feedmail-sender-line, feedmail-from-line)
+	(feedmail-fiddle-headers-upwardly, feedmail-enable-spray)
+	(feedmail-spray-this-address)
+	(feedmail-spray-address-fiddle-plex-list)
+	(feedmail-queue-use-send-time-for-date)
+	(feedmail-queue-use-send-time-for-message-id)
+	(feedmail-last-chance-hook, feedmail-queue-runner-mode-setter)
+	(feedmail-buffer-eating-function):
+	Doc fixes.
+	(feedmail-spray-via-bbdb, feedmail-buffer-to-smtp)
+	(feedmail-vm-mail-mode, feedmail-message-action-scroll-up)
+	(feedmail-message-action-scroll-down): New functions.
+	(feedmail-queue-directory, feedmail-queue-draft-directory):
+	Use expand-file-name.
+	(feedmail-prompt-before-queue-standard-alist): Add scroll entries.
+	Remove C-v help entry.
+	(feedmail-queue-buffer-file-name): New variable.
+	(feedmail-mail-send-hook-splitter, feedmail-buffer-to-binmail)
+	(feedmail-buffer-to-smtpmail, feedmail-queue-express-to-draft)
+	(feedmail-message-action-send-strong, feedmail-message-action-edit)
+	(feedmail-message-action-draft, feedmail-message-action-draft-strong)
+	(feedmail-message-action-queue, feedmail-message-action-queue-strong)
+	(feedmail-message-action-toggle-spray)
+	(feedmail-run-the-queue-no-prompts)
+	(feedmail-run-the-queue-global-prompt, feedmail-queue-reminder)
+	(feedmail-look-at-queue-directory, feedmail-queue-subject-slug-maker)
+	(feedmail-create-queue-filename, feedmail-rfc822-time-zone):
+	(feedmail-fiddle-header, feedmail-give-it-to-buffer-eater)
+	(feedmail-envelope-deducer, feedmail-fiddle-from)
+	(feedmail-fiddle-sender, feedmail-default-date-generator)
+	(feedmail-fiddle-date, feedmail-fiddle-message-id)
+	(feedmail-fiddle-spray-address)
+	(feedmail-fiddle-list-of-spray-fiddle-plexes)
+	(feedmail-fiddle-list-of-fiddle-plexes)
+	(feedmail-fill-to-cc-function, feedmail-fill-this-one)
+	(feedmail-one-last-look, feedmail-fqm-p): Add debug calls.
+	(feedmail-queue-runner-message-sender, feedmail-binmail-template):
+	Change default.  Doc fix.
+	(feedmail-queue-runner-cleaner-upper): Use feedmail-say-chatter.
+	(feedmail-binmail-linuxish-template): New constant.
+	(feedmail-buffer-to-sendmail): Doc fix.  Add debug call.
+	Respect feedmail-sendmail-f-doesnt-sell-me-out.
+	(feedmail-send-it): Add debug call.
+	Use feedmail-queue-buffer-file-name, and
+	feedmail-send-it-immediately-wrapper.
+	(feedmail-message-action-send): Add debug call.
+	Use feedmail-send-it-immediately-wrapper.
+	(feedmail-queue-express-to-queue): Add debug call.
+	Run feedmail-queue-express-hook.
+	(feedmail-message-action-help): Add debug call.  Use feedmail-p-h-b-n.
+	(feedmail-message-action-help-blat):
+	Rename from feedmail-queue-send-edit-prompt-help-first.
+	(feedmail-run-the-queue): Add debug call.  Set buffer-file-type.
+	Check line-endings.  Handle errors better.
+	(feedmail-queue-reminder-brief, feedmail-queue-reminder-medium):
+	Doc fix.  Add debug call.
+	(feedmail-queue-send-edit-prompt): Doc fix.  Add debug call.
+	Use feedmail-queue-send-edit-prompt-inner.
+	(feedmail-queue-runner-prompt, feedmail-scroll-buffer): New functions.
+	(feedmail-queue-send-edit-prompt-inner): New function, extracted
+	from feedmail-queue-send-edit-prompt.
+	(feedmail-queue-send-edit-prompt-help)
+	(feedmail-queue-send-edit-prompt-help-later): Remove functions.
+	(feedmail-tidy-up-slug): Add debug call.
+	Respect feedmail-queue-slug-suspect-regexp.
+	(feedmail-queue-subject-slug-maker): Use buffer-substring-no-properties.
+	(feedmail-dump-message-to-queue): Add debug call.
+	Expand queue-directory.
+	(feedmail-dump-message-to-queue): Change message slightly.
+	Use feedmail-say-chatter.
+	(feedmail-rfc822-date): Add debug call.  Bind system-time-locale.
+	(feedmail-send-it-immediately-wrapper): New function.
+	(feedmail-send-it-immediately): Add debug calls.  Use let not let*.
+	Insert empty string rather than newline.  Handle full-frame case.
+	Use catch/throw.  Use feedmail-say-chatter.
+	(feedmail-fiddle-from): Try mail-host-address.
+	(feedmail-default-message-id-generator): Doc fix.
+	Bind system-time-locale.  Handle missing end.
+	(feedmail-fiddle-x-mailer): Add debug call.
+	Handle feedmail-x-mailer-line being nil.
+	(feedmail-accume-n-nuke-header, feedmail-deduce-address-list):
+	Add debug call.  Use buffer-substring-no-properties.
+	(feedmail-say-debug, feedmail-say-chatter): New functions.
+	(feedmail-find-eoh): Give an explicit error.
+
+2011-05-13  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-treeview.el (newsticker-treeview-face): Change default
+	family from helvetica to sans.
+	(newsticker-treeview-tool-bar-map): Move tool-bar icons to
+	etc/images/newsticker.
+
+	* net/newst-reader.el (newsticker-feed-face): Change default
+	family from helvetica to sans.
+
+	* net/newst-plainview.el (newsticker-new-item-face)
+	(newsticker-old-item-face, newsticker-immortal-item-face)
+	(newsticker-obsolete-item-face, newsticker-date-face)
+	(newsticker-statistics-face): Change default family from
+	helvetica to sans.
+	(newsticker--plainview-tool-bar-map): Move tool-bar icons to
+	etc/images/newsticker.
+
+	* net/newst-backend.el (newsticker--do-run-auto-mark-filter),
+	(newsticker--process-auto-mark-filter-match): : Tell user about
+	auto-marking.
+
+2011-05-13  Didier Verna  <didier@xemacs.org>
+
+	Common Lisp indentation improvements on defmethod and lambda-lists.
+	* cl-indent.el: Advertise the changes and remove obsolete TODO entries.
+	(lisp-lambda-list-keyword-parameter-indentation)
+	(lisp-lambda-list-keyword-parameter-alignment)
+	(lisp-lambda-list-keyword-alignment): New customizable user options.
+	(lisp-indent-defun-method): Improve docstring.
+	(extended-loop-p): Fix comment.
+	(lisp-indent-lambda-list-keywords-regexp): New variable.
+	(lisp-indent-lambda-list): New function.
+	(lisp-indent-259): Use it.
+	(lisp-indent-defmethod): Support for more than one
+	method qualifier and properly indent methods lambda-lists.
+	(defgeneric): Provide a missing common-lisp-indent-function property.
+
+2011-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* thingatpt.el (bounds-of-thing-at-point): Return nil rather than
+	bounds for the empty string (bug#8667).
+
+2011-05-13  Glenn Morris  <rgm@gnu.org>
+
+	* mail/feedmail.el (feedmail-buffer-to-sendmail): Require sendmail.
+
+	* mail/sendmail.el (sendmail-program): Try executable-find first.
+	(sendmail-send-it): `sendmail-program' cannot be unbound.
+
+	* calendar/appt.el (appt-make-list): Simplify.
+	(appt-time-msg-list): Doc fix.
+	(appt-check): Change mode-line message at the time of the appointment.
+
+2011-05-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* progmodes/ld-script.el (ld-script-keywords)
+	(ld-script-builtins): Update keywords list.
+
+2011-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/grep.el (grep-filter): Don't trip on partial lines.
+
+	* shell.el (shell-completion-vars): New function.
+	(shell-mode):
+	* simple.el (read-shell-command): Use it.
+	(blink-matching-open): No need for " [...]" in minibuffer-message.
+
 2011-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/appt.el (appt-now-displayed): Remove pointless variable.
@@ -62,8 +341,21 @@
 	(footnote-style-alist): Add unicode style to the list.
 	(footnote-style): Doc fix.
 
+2011-05-10  Jim Meyering  <meyering@redhat.com>
+
+	Fix doubled-word typos.
+	* international/quail.el (quail-insert-kbd-layout): and and -> and
+	* kermit.el: and and -> and
+	* net/ldap.el (ldap-search-internal): to to -> to
+	* progmodes/vhdl-mode.el (vhdl-offsets-alist): Likewise.
+	* progmodes/js.el (js-mode): and and -> and
+	* textmodes/artist.el (artist-move-to-xy): at at -> at
+	(artist-draw-region-trim-line-endings): if if -> if
+	And Safetyc -> Safety.
+	* textmodes/reftex-dcr.el (reftex-view-crossref): at at -> at a
+
 2011-05-10  Glenn Morris  <rgm@gnu.org>
-	   Stefan Monnier  <monnier@iro.umontreal.ca>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (hack-one-local-variable-eval-safep):
 	Consider "eval: (foo-mode)" to be safe.  (Bug#8613)
