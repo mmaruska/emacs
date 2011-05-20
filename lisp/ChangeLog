@@ -1,6 +1,12 @@
+2011-05-20  Nix  <nix@esperi.org.uk>
+
+	* files.el (basic-save-buffer-2):
+	Fix handling of break-hardlink-on-save with non-existent files.
+
 2011-05-19  Deniz Dogan  <deniz@dogan.se>
 
 	* net/rcirc.el (rcirc-mode): Initialize rcirc-urls to nil.
+	(rcirc-markup-urls): Check if rcirc-url-regexp is nil.
 
 2011-05-19  Glenn Morris  <rgm@gnu.org>
 
