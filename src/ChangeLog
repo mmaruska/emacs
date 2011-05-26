@@ -1,3 +1,77 @@
+2011-05-26  Leo Liu  <sdl.web@gmail.com>
+
+	* editfns.c (Ftranspose_regions): Allow empty regions.  (Bug#8699)
+
+2011-05-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h (struct glyph_row): New member fringe_bitmap_periodic_p.
+
+	* dispnew.c (shift_glyph_matrix, scrolling_window): Mark scrolled row
+	for fringe update if it has periodic bitmap.
+	(row_equal_p): Also compare left_fringe_offset,	right_fringe_offset,
+	and fringe_bitmap_periodic_p.
+
+	* fringe.c (get_fringe_bitmap_data): New function.
+	(draw_fringe_bitmap_1, update_window_fringes): Use it.
+	(update_window_fringes): Record periodicity of fringe bitmap in glyph
+	row.  Mark glyph row for fringe update if periodicity changed.
+
+	* xdisp.c (try_window_reusing_current_matrix): Don't mark scrolled row
+	for fringe update unless it has periodic bitmap.
+
+2011-05-25  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (get_next_display_element): Set correct it->face_id for
+	a static composition.
+
+2011-05-24  Leo Liu  <sdl.web@gmail.com>
+
+	* deps.mk (fns.o):
+	* makefile.w32-in ($(BLD)/fns.$(O)): Include sha1.h.
+
+	* fns.c (crypto_hash_function, Fsha1): New function.
+	(Fmd5): Use crypto_hash_function.
+	(syms_of_fns): Add Ssha1.
+
+2011-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* gnutls.c: Remove unused macros.
+	(fn_gnutls_transport_set_lowat, fn_gnutls_transport_set_pull_function):
+	(fn_gnutls_transport_set_push_function) [!WINDOWSNT]:
+	Remove macros that are defined and never used.
+	Caught by gcc -Wunused-macros (GCC 4.6.0, Fedora 14).
+
+2011-05-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xselect.c (syms_of_xselect): Remove unused symbol SAVE_TARGETS.
+	(Fx_get_selection_internal): Minor cleanup.
+	(Fx_own_selection_internal): Rename arguments for consistency with
+	select.el.
+
+2011-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xselect.c (QSAVE_TARGETS): New static var, to fix build failure.
+
+2011-05-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xselect.c (syms_of_xselect): Include character.h; use DEFSYM.
+
+2011-05-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (scrolling_window): Don't exclude the case that the
+	last enabled row in the desired matrix touches the bottom boundary.
+
+2011-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(etc)/DOC): Make second command line even shorter.
+	(SOME_MACHINE_OBJECTS): Replace FONT_OBJ by its maximal expansion,
+	and add some more files.
+
+2011-05-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* callproc.c (Fcall_process) [MSDOS]: Fix arguments to
+	report_file_error introduced by the change from 2011-05-07.
+
 2011-05-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* systime.h (Time): Define only if emacs is defined.
@@ -176,11 +250,11 @@
 	(Fget_screen_color): New function.
 	(syms_of_ntterm): Defsubr it.
 
-	* callproc.c (call_process_cleanup): Don't close and unlink the
-	temporary file if Fcall_process didn't create it in the first
-	place.
-	(Fcall_process): Don't create tempfile if stdout of the child
-	process will be redirected to a file specified with `:file'.
+	* callproc.c (call_process_cleanup) [MSDOS]: Don't close and
+	unlink the temporary file if Fcall_process didn't create it in the
+	first place.
+	(Fcall_process) [MSDOS]: Don't create tempfile if stdout of the
+	child process will be redirected to a file specified with `:file'.
 	Don't try to re-open tempfile in that case, and set fd[0] to -1 as
 	cue to call_process_cleanup not to close that handle.
 

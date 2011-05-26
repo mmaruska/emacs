@@ -1,3 +1,201 @@
+2011-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (hack-local-variables-prop-line, hack-local-variables):
+	Downcase mode names, as seems to be traditional.
+
+	* mail/emacsbug.el (report-emacs-bug): Mention checking From address.
+	(report-emacs-bug-hook): Try to validate the From address.  (Bug#8038)
+
+2011-05-25  Julien Danjou  <julien@danjou.info>
+
+	* textmodes/rst.el (rst-define-level-faces): Do not define face
+	symbol if it is already defined.
+
+2011-05-24  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* play/5x5.el (5x5-new-game, 5x5-randomize):
+	Reset 5x5-solver-output to nil when a new grid is cast.
+	(5x5-log-init, 5x5-log): Use defsubst instead of defmacro to shunt
+	these debugging traces, as defmacro breaks the compiled code.
+
+2011-05-24  Dmitry Kurochkin  <dmitry.kurochkin@gmail.com>  (tiny change)
+
+	* isearch.el (isearch-range-invisible): Use invisible-p (bug#8721).
+
+2011-05-24  Leo Liu  <sdl.web@gmail.com>
+
+	* vc/vc-bzr.el (vc-bzr-sha1-program): Rename from sha1-program.
+	(vc-bzr-sha1): Adapt.
+
+	* sha1.el: Remove. Function `sha1' is now builtin.
+
+	* bindings.el: Provide sha1 feature.
+
+2011-05-24  Kenichi Handa  <handa@m17n.org>
+
+	* mail/sendmail.el: Require `rfc2047'.
+	(mail-insert-from-field): Do not perform RFC2047 encoding.
+	(mail-encode-header): New function.
+	(sendmail-send-it): Set buffer-file-coding-system of the work
+	buffer to the return value of select-message-coding-system.
+	Call mail-encode-header.
+
+	* mail/smtpmail.el (smtpmail-send-it): Call mail-encode-header.
+
+2011-05-24  Sean Neakums  <sneakums@zork.net>  (tiny change)
+
+	* mail/supercite.el (sc-default-cite-frame):
+	Handle sc-nested-citation-p when sc-cite-blank-lines-p is non-nil.
+
+2011-05-24  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/python.el (brm-menu): Declare.
+
+	* emulation/viper.el (viper-set-hooks): Declare.
+
+	* play/5x5.el (5x5-log-init, 5x5-log): Evaluate when compiling.
+	(5x5-log-init, 5x5-log, 5x5-solver): Doc fixes.
+	(math-map-vec, math-sub, math-mul, math-make-intv, math-reduce-vec)
+	(math-format-number, math-pow, calcFunc-arrange, calcFunc-cvec)
+	(calcFunc-diag, calcFunc-trn, calcFunc-inv, calcFunc-mrow)
+	(calcFunc-mcol, calcFunc-vconcat, calcFunc-index): Declare.
+
+2011-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add an :exit-function for completion-at-point.
+
+	* minibuffer.el (completion--done): New fun.
+	(completion--do-completion): Use it.  New arg `expect-exact'.
+	(minibuffer-complete, minibuffer-complete-word): Don't output message,
+	since completion--do-completion does it for us now.
+	(minibuffer-force-complete): Use completion--done and
+	completion--replace.  Handle sole-completion case with more care.
+	(minibuffer-complete-and-exit): Use new `expect-exact' arg.
+	(completion-extra-properties): New var.
+	(completion-annotate-function): Make obsolete.
+	(minibuffer-completion-help): Adjust accordingly.
+	Use completion-list-insert-choice-function.
+	(completion-at-point, completion-help-at-point):
+	Bind completion-extra-properties.
+	(completion-pcm-word-delimiters): Add | (for uniquify, for example).
+	* simple.el (completion-list-insert-choice-function): New var.
+	(completion-setup-function): Preserve it.
+	(choose-completion): Pay attention to it, shuffle the code a bit.
+	(choose-completion-string): New arg `insert-function'.
+
+	* textmodes/bibtex.el: Convert to lexical binding.
+	(bibtex-mode-map): Use completion-at-point.
+	(bibtex-mode): Use define-derived-mode&completion-at-point-functions.
+	(bibtex-completion-at-point-function): New fun, from bibtex-complete.
+	(bibtex-complete): Define as obsolete alias.
+	(bibtex-complete-internal): Remove.
+	(bibtex-format-entry): Remove unused sub-group in regexp.
+	* shell.el (shell--command-completion-data)
+	(shell-environment-variable-completion):
+	* pcomplete.el (pcomplete-completions-at-point):
+	* comint.el (comint--complete-file-name-data): Use :exit-function
+	instead of completion-table-with-terminator so it also works for
+	choose-completion.
+
+2011-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* <lots-of-files>.el: Don't quote lambda expressions with `quote'.
+
+	* vc/smerge-mode.el (smerge-refine-subst): Don't deactivate the mark
+	(bug#8710).
+
+	* emacs-lisp/lisp.el (up-list): Fix forward movement (bug#8708).
+
+2011-05-23  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-inhibit-auto-fill-on-headline): Create new
+	customization variable and implement: If non-nil, auto-fill will
+	be inhibited while on topic's header line.
+
+2011-05-23  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* play/5x5.el: I/ Add an arithmetic solver to suggest positions to
+	click on. II/ Make 5x5 multisession. III/ Ensure that random grids
+	always have a solution in grid size = 5 cases.
+	(5x5-mode-map): Add keybinding to function `5x5-solve-suggest'.
+	(5x5-solver-output, 5x5-log-buffer): New vars.
+	(5x5-grid, 5x5-x-pos, 5x5-y-pos, 5x5-moves, 5x5-cracking):
+	Make these variables buffer local to achieve 5x5 multi-session-ness.
+	(5x5): Set 5x5-grid-size only if SIZE is non-negative.
+	(5x5-grid-to-vec, 5x5-vec-to-grid, 5x5-log-init, 5x5-log, 5x5-solver)
+	(5x5-solve-suggest): New funs.
+	(5x5-randomize): Use 5x5-make-move instead of 5x5-flip-cell to
+	randomize a grid so that we ensure that there is always a solution.
+	(5x5-make-random-grid): Allow other movement than flipping.
+
+2011-05-23  Kevin Ryde  <user42@zip.com.au>
+
+	* emacs-lisp/advice.el (ad-read-advised-function):
+	Use `function-called-at-point' as the default default, if it has
+	advice and passes PREDICATE.
+
+2011-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-function-form): Only call
+	byte-compile-lambda if it's actually a lambda.
+
+	* emacs-lisp/eieio.el (eieio-defgeneric-form-primary-only-one):
+	Fix function quoting.  Use backquote better.
+
+2011-05-22  Yuanle Song  <sylecn@gmail.com>
+
+	* nxml/rng-xsd.el (rng-xsd-check-pattern): Use case-sensitive
+	matching (Bug#8516).
+
+2011-01-22  Jari Aalto  <jari.aalto@cante.net>
+
+	* vc/vc-dir.el (vc-default-dir-printer): Give edited tag a
+	different face (Bug#8178).
+
+2011-05-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/diff-mode.el (diff-changed): Don't use terminal specs for
+	defface (Bug#8144).
+
+2011-05-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Convert ' to #' for
+	funcall as well (bug#8712).  Warn when performing those conversions.
+	* emacs-lisp/bytecomp.el (byte-compile-form): Fix error report.
+
+	* progmodes/grep.el (grep-mode): Fix it for good (bug#8684)!
+
+2011-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (hack-local-variables-prop-line): Small simplifications.
+	(hack-local-variables, hack-local-variables-prop-line):
+	If MODE-ONLY, return the mode, rather than just `t'.
+
+2011-05-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/grep.el (grep-mode): Fix last change (bug#8684).
+
+2011-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (hack-local-variables-prop-line, hack-local-variables):
+	If only interested in the mode, don't bother doing the other stuff.
+
+	* image-mode.el (image-after-revert-hook):
+	Redraw all frames on which the image is visible.  (Bug#8567)
+
+	* dired-aux.el (dired-touch-initial): Just use current-time.  (Bug#6887)
+
+	* wid-edit.el (widget-checklist-match-inline):
+	Fix 2011-04-19 change.  (Bug#8649)
+
+2011-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/checkdoc.el (checkdoc-sentencespace-region-engine):
+	Also allow singlespace after single-letter capitals followed by a dot.
+
+	* nxml/nxml-mode.el (nxml-electric-slash): Reindent when completion is
+	enabled.  Suggested by James Ahlborn <jahlborn@gmail.com> (bug#8704).
+
 2011-05-20  Nix  <nix@esperi.org.uk>
 
 	* files.el (basic-save-buffer-2):
