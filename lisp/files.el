@@ -2241,6 +2241,8 @@ in that case, this function acts as if `enable-local-variables' were t."
   (interactive)
   (funcall (or (default-value 'major-mode) 'fundamental-mode))
   (let ((enable-local-variables (or (not find-file) enable-local-variables)))
+    ;; FIXME this is less efficient than it could be, since both
+    ;; s-a-m and h-l-v may parse the same regions, looking for "mode:".
     (report-errors "File mode specification error: %s"
       (set-auto-mode))
     (report-errors "File local-variables error: %s"
@@ -2435,8 +2437,6 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ("\\.ppd\\'" . conf-ppd-mode)
      ("java.+\\.conf\\'" . conf-javaprop-mode)
      ("\\.properties\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-javaprop-mode)
-     ;; *.cf, *.cfg, *.conf, *.config[.local|.de_DE.UTF8|...], */config
-     ("[/.]c\\(?:on\\)?f\\(?:i?g\\)?\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-mode-maybe)
      ("\\`/etc/\\(?:DIR_COLORS\\|ethers\\|.?fstab\\|.*hosts\\|lesskey\\|login\\.?de\\(?:fs\\|vperm\\)\\|magic\\|mtab\\|pam\\.d/.*\\|permissions\\(?:\\.d/.+\\)?\\|protocols\\|rpc\\|services\\)\\'" . conf-space-mode)
      ("\\`/etc/\\(?:acpid?/.+\\|aliases\\(?:\\.d/.+\\)?\\|default/.+\\|group-?\\|hosts\\..+\\|inittab\\|ksysguarddrc\\|opera6rc\\|passwd-?\\|shadow-?\\|sysconfig/.+\\)\\'" . conf-mode)
      ;; ChangeLog.old etc.  Other change-log-mode entries are above;
@@ -2458,11 +2458,14 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ;; Using mode nil rather than `ignore' would let the search continue
      ;; through this list (with the shortened name) rather than start over.
      ("\\.~?[0-9]+\\.[0-9][-.0-9]*~?\\'" nil t)
+     ("\\.\\(?:orig\\|in\\|[bB][aA][kK]\\)\\'" nil t)
+     ;; This should come after "in" stripping (e.g. config.h.in).
+     ;; *.cf, *.cfg, *.conf, *.config[.local|.de_DE.UTF8|...], */config
+     ("[/.]c\\(?:on\\)?f\\(?:i?g\\)?\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-mode-maybe)
      ;; The following should come after the ChangeLog pattern
      ;; for the sake of ChangeLog.1, etc.
      ;; and after the .scm.[0-9] and CVS' <file>.<rev> patterns too.
-     ("\\.[1-9]\\'" . nroff-mode)
-     ("\\.\\(?:orig\\|in\\|[bB][aA][kK]\\)\\'" nil t)))
+     ("\\.[1-9]\\'" . nroff-mode)))
   "Alist of filename patterns vs corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION NON-NIL).
 \(NON-NIL stands for anything that is not nil; the value does not matter.)
@@ -2521,6 +2524,7 @@ and `magic-mode-alist', which determines modes based on file contents.")
      ("ksh" . sh-mode)
      ("oash" . sh-mode)
      ("pdksh" . sh-mode)
+     ("rbash" . sh-mode)
      ("rc" . sh-mode)
      ("rpm" . sh-mode)
      ("sh" . sh-mode)
@@ -2616,23 +2620,24 @@ Also applies to `magic-fallback-mode-alist'.")
   "Select major mode appropriate for current buffer.
 
 To find the right major mode, this function checks for a -*- mode tag,
+checks for a `mode:' entry in the Local Variables section of the file,
 checks if it uses an interpreter listed in `interpreter-mode-alist',
 matches the buffer beginning against `magic-mode-alist',
 compares the filename against the entries in `auto-mode-alist',
 then matches the buffer beginning against `magic-fallback-mode-alist'.
 
-It does not check for the `mode:' local variable in the
-Local Variables section of the file; for that, use `hack-local-variables'.
-
-If `enable-local-variables' is nil, this function does not check for a
--*- mode tag.
+If `enable-local-variables' is nil, this function does not check for
+any mode: tag anywhere in the file.
 
 If the optional argument KEEP-MODE-IF-SAME is non-nil, then we
 set the major mode only if that would change it.  In other words
 we don't actually set it to the same mode the buffer already has."
   ;; Look for -*-MODENAME-*- or -*- ... mode: MODENAME; ... -*-
   (let (end done mode modes)
-    ;; Find a -*- mode tag
+    ;; Once we drop the deprecated feature where mode: is also allowed to
+    ;; specify minor-modes (ie, there can be more than one "mode:), we can
+    ;; remove this section and just let (hack-local-variables t) handle it.
+    ;; Find a -*- mode tag.
     (save-excursion
       (goto-char (point-min))
       (skip-chars-forward " \t\n")
@@ -2667,6 +2672,14 @@ we don't actually set it to the same mode the buffer already has."
 	      (or (set-auto-mode-0 mode keep-mode-if-same)
 		  ;; continuing would call minor modes again, toggling them off
 		  (throw 'nop nil))))))
+    (and (not done)
+	 enable-local-variables
+	 (setq mode (hack-local-variables t))
+	 (not (memq mode modes))	; already tried and failed
+	 (if (not (functionp mode))
+	     (message "Ignoring unknown mode `%s'" mode)
+	   (setq done t)
+	   (set-auto-mode-0 mode keep-mode-if-same)))
     ;; If we didn't, look for an interpreter specified in the first line.
     ;; As a special case, allow for things like "#!/bin/env perl", which
     ;; finds the interpreter anywhere in $PATH.
@@ -3147,6 +3160,8 @@ DIR-NAME is the name of the associated directory.  Otherwise it is nil."
 
 (defun hack-local-variables (&optional mode-only)
   "Parse and put into effect this buffer's local variables spec.
+Uses `hack-local-variables-apply' to apply the variables.
+
 If MODE-ONLY is non-nil, all we do is check whether a \"mode:\"
 is specified, and return the corresponding mode symbol, or nil.
 In this case, we try to ignore minor-modes, and only return a
@@ -3260,6 +3275,14 @@ major-mode."
 	   (hack-local-variables-apply)))))
 
 (defun hack-local-variables-apply ()
+  "Apply the elements of `file-local-variables-alist'.
+If there are any elements, runs `before-hack-local-variables-hook',
+then calls `hack-one-local-variable' to apply the alist elements one by one.
+Finishes by running `hack-local-variables-hook', regardless of whether
+the alist is empty or not.
+
+Note that this function ignores a `mode' entry if it specifies the same
+major mode as the buffer already has."
   (when file-local-variables-alist
     ;; Any 'evals must run in the Right sequence.
     (setq file-local-variables-alist

@@ -898,7 +898,7 @@ string_to_multibyte (Lisp_Object string)
   if (STRING_MULTIBYTE (string))
     return string;
 
-  nbytes = parse_str_to_multibyte (SDATA (string), SBYTES (string));
+  nbytes = count_size_as_multibyte (SDATA (string), SBYTES (string));
   /* If all the chars are ASCII, they won't need any more bytes once
      converted.  */
   if (nbytes == SBYTES (string))
@@ -3704,7 +3704,7 @@ copy_hash_table (struct Lisp_Hash_Table *h1)
 /* Resize hash table H if it's too full.  If H cannot be resized
    because it's already too large, throw an error.  */
 
-static INLINE void
+static inline void
 maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 {
   if (NILP (h->next_free))
@@ -4520,9 +4520,14 @@ including negative integers.  */)
 #include "md5.h"
 #include "sha1.h"
 
+/* Convert a possibly-signed character to an unsigned character.  This is
+   a bit safer than casting to unsigned char, since it catches some type
+   errors that the cast doesn't.  */
+static inline unsigned char to_uchar (char ch) { return ch; }
+
 /* TYPE: 0 for md5, 1 for sha1. */
 
-Lisp_Object
+static Lisp_Object
 crypto_hash_function (int type, Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp_Object coding_system, Lisp_Object noerror, Lisp_Object binary)
 {
   int i;
@@ -4708,17 +4713,16 @@ crypto_hash_function (int type, Lisp_Object object, Lisp_Object start, Lisp_Obje
     {
     case 0:			/* MD5 */
       {
-	unsigned char digest[16];
+	char digest[16];
 	md5_buffer (SSDATA (object) + start_byte,
 		    SBYTES (object) - (size_byte - end_byte),
 		    digest);
 
-	if (NILP(binary))
+	if (NILP (binary))
 	  {
-	    unsigned char value[33];
+	    char value[33];
 	    for (i = 0; i < 16; i++)
-	      sprintf (&value[2 * i], "%02x", digest[i]);
-	    value[32] = '\0';
+	      sprintf (&value[2 * i], "%02x", to_uchar (digest[i]));
 	    res = make_string (value, 32);
 	  }
 	else
@@ -4728,16 +4732,15 @@ crypto_hash_function (int type, Lisp_Object object, Lisp_Object start, Lisp_Obje
 
     case 1:			/* SHA1 */
       {
-	unsigned char digest[20];
-	sha1_buffer (SDATA (object) + start_byte,
+	char digest[20];
+	sha1_buffer (SSDATA (object) + start_byte,
 		     SBYTES (object) - (size_byte - end_byte),
 		     digest);
-	if (NILP(binary))
+	if (NILP (binary))
 	  {
-	    unsigned char value[41];
+	    char value[41];
 	    for (i = 0; i < 20; i++)
-	      sprintf (&value[2 * i], "%02x", digest[i]);
-	    value[40] = '\0';
+	      sprintf (&value[2 * i], "%02x", to_uchar (digest[i]));
 	    res = make_string (value, 40);
 	  }
 	else

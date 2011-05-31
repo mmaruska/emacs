@@ -1,7 +1,210 @@
+2011-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el: Add metadata method to completion tables.
+	(completion-category-overrides): New defcustom.
+	(completion-metadata, completion--field-metadata)
+	(completion-metadata-get, completion--styles)
+	(completion--cycle-threshold): New functions.
+	(completion-try-completion, completion-all-completions):
+	Add `metadata' argument to choose completion-styles.
+	(completion--do-completion): Use metadata to choose cycling.
+	(completion-all-sorted-completions): Use metadata for sorting.
+	Remove :completion-cycle-penalty which is not needed any more.
+	(completion--try-word-completion): Add `metadata' argument.
+	(minibuffer-completion-help): Check metadata for annotation function
+	and sorting.
+	(completion-file-name-table): Return `category' metadata.
+	(minibuffer-completing-file-name): Make obsolete.
+	* simple.el (minibuffer-completing-symbol): Make obsolete.
+	* icomplete.el (icomplete-completions): Pass new `metadata' param to
+	completion-try-completion.
+
+2011-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/smtpmail.el (smtpmail-send-data): Add progress reporter.
+
+2011-05-30  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-debug-buffer): Use visible buffer name.
+	(rcirc-print): Decode all incoming messages (bug#8744).
+	(rcirc-decode-coding-system): Allow value nil for automatic coding
+	system detection.
+
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.el (image-animate-max-time): Allow nil and t values.
+	Default to nil.
+	(create-animated-image): Doc fix.
+	(image-animate-start): Remove second arg; just use
+	image-animate-max-time.
+	(image-animate-timeout): Doc fix.  Args changed.
+
+	* image-mode.el (image-toggle-display-image): Ensure that the
+	image spec passed to the animate timer is the same object as in
+	the the buffer's display property (Bug#6981).
+	(image-transform-properties): Doc fix.
+
+	* image.el (image-animate-max-time): Default to nil.
+
+2011-05-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* menu-bar.el (kill-this-buffer-enabled-p): Avoid looping over
+	entire buffer list (Bug#8184).
+
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.el (imagemagick-types-inhibit)
+	(imagemagick-register-types): Doc fix.
+
+2011-05-29  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el (rcirc): Use the user's stored encryption method by
+	default.
+
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* select.el: Don't perform clipboard-manager saving in hooks;
+	leave the hooks empty.
+
+2011-05-28  Leo Liu  <sdl.web@gmail.com>
+
+	* replace.el (occur-menu-map, occur-edit-mode-map): New vars.
+	(occur-mode-map): Bind occur-edit-mode.  Use occur-menu-map.
+	(occur-edit-mode): New major mode (Bug#8463).
+	(occur-after-change-function): New function.
+	(occur-engine): Give Occur tags a read-only property.
+
+2011-05-28  Kevin Ryde  <user42@zip.com.au>
+
+	* subr.el (def-edebug-spec): Doc fix (Bug#8430).
+
+2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el (help-echo): Make the initial non-indicator dash
+	empty on graphical terminals (Bug#7295).
+
+	* files.el (auto-mode-alist): Move config rule after the
+	in-stripping one (Bug#8547).
+
+	* newcomment.el (comment-end-skip): Doc fix (Bug#8659).
+
+	* startup.el (normal-splash-screen): Remove gratuitous mode-line
+	setting (Bug#8740).
+
+2011-05-28  Alp Aker  <aker@pitt.edu>  (tiny change)
+
+	* buff-menu.el (Buffer-menu-revert-function, Buffer-menu-sort)
+	(Buffer-menu-buffer+size): Use Buffer-menu-buffer-column
+	(Bug#8539).
+
+2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
+
+
+	* emacs-lisp/re-builder.el (re-builder): Improve doc (Bug#8286).
+
+2011-05-28  Dima Kogan  <dkogan@cds.caltech.edu>  (tiny change)
+
+	* progmodes/hideshow.el (hs-looking-at-block-start-p): New fun.
+	(hs-hide-block-at-point, hs-find-block-beginning)
+	(hs-already-hidden-p, hs-hide-block, hs-show-block): Use it
+	(Bug#8279).
+
+2011-05-28  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (fancy-about-screen): Use standard mode line.  (Bug#8740)
+
+2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help-fns.el (describe-function-1): If the function is a derived
+	major mode, print the parent mode.
+
+	* progmodes/cc-mode.el (c-mode, c++-mode, objc-mode, java-mode)
+	(idl-mode, pike-mode, awk-mode): Inherit from prog-mode.
+
+2011-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--capf-wrapper): Check applicability before
+	retuning non-nil for non-exclusive completion data.
+	* progmodes/etags.el (tags-completion-at-point-function):
+	* info-look.el (info-lookup-completions-at-point): Mark as
+	non-exclusive.
+	(info-complete): Adjust accordingly.
+
+	* info-look.el: Convert to lexical-binding and completion-at-point.
+	(info-lookup-completions-at-point): New function.
+	(info-complete): Use it and completion-in-region.
+
+2011-05-28  Drew Adams  <drew.adams@oracle.com>
+
+	* isearch.el: Let M-e start with point at the first mismatched char.
+	(isearch-fail-pos): New function.
+	(isearch-edit-string): Use it.
+
+2011-05-28  Dmitry Kurochkin  <dmitry.kurochkin@gmail.com>  (tiny change)
+
+	* isearch.el (isearch-range-invisible): Use invisible-p (bug#8721).
+
+2009-11-23  Toby Cubitt  <toby-predictive@dr-qubit.org>
+
+	* emacs-lisp/avl-tree.el: New avl-tree-stack datatype.  Add new
+	traversal functions for avl-trees.
+	(avl-tree--stack): New struct.
+	(avl-tree-stack-p, avl-tree--stack-repopulate): New funs.
+	(avl-tree-enter): Add optional `updatefun' arg.
+	(avl-tree--do-enter): Add optional `updatefun' arg.
+	Change return value.
+	(avl-tree-delete): Add optional `test' and `nilflag' args.
+	(avl-tree--do-delete): Add `test' and `nilflag' args.
+	Change return value.
+	(avl-tree-member): Add optional `nilflag'
+	(avl-tree-member-p): New function.
+	(avl-tree-mapc, avl-tree-mapf, avl-tree-mapcar): New functions.
+	(avl-tree-stack, avl-tree-stack-pop, avl-tree-stack-first)
+	(avl-tree-stack-empty-p): New functions.
+
+2009-11-23  Toby Cubitt  <toby-predictive@dr-qubit.org>
+
+	* emacs-lisp/avl-tree.el (avl-tree--del-balance): Rename from
+	avl-tree--del-balance1 and make it work both ways.
+	(avl-tree--del-balance2): Remove.
+	(avl-tree--enter-balance): Rename from avl-tree--enter-balance1 and
+	make it work both ways.
+	(avl-tree--enter-balance2): Remove.
+	(avl-tree--switch-dir, avl-tree--dir-to-sign, avl-tree--sign-to-dir):
+	New macros.
+	(avl-tree--mapc, avl-tree-map): Add direction argument.
+
+2011-05-27  David Michael  <fedora.dm0@gmail.com>  (tiny change)
+
+	* files.el (interpreter-mode-alist): Add rbash (bug#8745).
+
+2011-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* select.el: Support clipboard managers with built-in function
+	x-clipboard-manager-save, via delete-frame-functions and
+	kill-emacs-hook.
+	(xselect-convert-to-targets): Add MULTIPLE target to list.
+	(xselect-convert-to-save-targets): New function.
+
+2011-05-27  Kenichi Handa  <handa@m17n.org>
+
+	* mail/sendmail.el (mail-encode-header): Avoid double encoding by
+	let-binding rfc2047-encode-encoded-words to nil.
+
+2011-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el: Don't require url-util.
+
+	* shell.el (shell-directory-tracker): Case matters.  (Bug#8735)
+
+	* files.el (set-auto-mode):
+	Also respect mode: entries at the end of the file.  (Bug#8586)
+
 2011-05-26  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (hack-local-variables-prop-line, hack-local-variables):
 	Downcase mode names, as seems to be traditional.
+	(hack-local-variables, hack-local-variables-apply): Doc fixes.
 
 	* mail/emacsbug.el (report-emacs-bug): Mention checking From address.
 	(report-emacs-bug-hook): Try to validate the From address.  (Bug#8038)
