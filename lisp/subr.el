@@ -1805,6 +1805,13 @@ Signal an error if the program returns with a non-zero exit status."
 	  (forward-line 1))
 	(nreverse lines)))))
 
+(defun process-alive-p (process)
+  "Returns non-nil if PROCESS is alive.
+A process is considered alive if its status is `run', `open',
+`listen', `connect' or `stop'."
+  (memq (process-status process)
+        '(run open listen connect stop)))
+
 ;; compatibility
 
 (make-obsolete
@@ -2919,6 +2926,7 @@ with the buffer BUFNAME temporarily current.  It runs the hook
 buffer temporarily current, and the window that was used to display it
 temporarily selected.  But it doesn't run `temp-buffer-show-hook'
 if it uses `temp-buffer-show-function'."
+  (declare (debug t))
   (let ((old-dir (make-symbol "old-dir"))
         (buf (make-symbol "buf")))
     `(let* ((,old-dir default-directory)
@@ -3694,6 +3702,8 @@ echo area updates (default is 0.2 seconds.)  If the function
 `float-time' is not present, time is not tracked at all.  If the
 OS is not capable of measuring fractions of seconds, this
 parameter is effectively rounded up."
+  (when (string-match "[[:alnum:]]\\'" message)
+    (setq message (concat message "...")))
   (unless min-time
     (setq min-time 0.2))
   (let ((reporter

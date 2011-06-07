@@ -1695,10 +1695,14 @@ void
 x_set_scroll_bar_default_width (struct frame *f)
 {
   int wid = FRAME_COLUMN_WIDTH (f);
-
+  int minw = 16;
+  int width;
 #ifdef USE_TOOLKIT_SCROLL_BARS
+#ifdef USE_GTK
+  minw = xg_get_default_scrollbar_width (f);
+#endif
   /* A minimum width of 14 doesn't look good for toolkit scroll bars.  */
-  int width = 16 + 2 * VERTICAL_SCROLL_BAR_WIDTH_TRIM;
+  width = minw + 2 * VERTICAL_SCROLL_BAR_WIDTH_TRIM;
   FRAME_CONFIG_SCROLL_BAR_COLS (f) = (width + wid - 1) / wid;
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = width;
 #else
@@ -4295,18 +4299,9 @@ no value of TYPE (always string in the MS Windows case).  */)
 
   if (! NILP (source))
     {
-      if (NUMBERP (source))
-        {
-          if (FLOATP (source))
-            target_window = (Window) XFLOAT (source);
-          else
-            target_window = XFASTINT (source);
-
-          if (target_window == 0)
-            target_window = FRAME_X_DISPLAY_INFO (f)->root_window;
-        }
-      else if (CONSP (source))
-        target_window = cons_to_long (source);
+      CONS_TO_INTEGER (source, Window, target_window);
+      if (! target_window)
+	target_window = FRAME_X_DISPLAY_INFO (f)->root_window;
     }
 
   BLOCK_INPUT;

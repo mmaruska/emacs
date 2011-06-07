@@ -24,6 +24,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stddef.h>
 #include <inttypes.h>
 
+#include <intprops.h>
+
 /* Use the configure flag --enable-checking[=LIST] to enable various
    types of run time checks for Lisp objects.  */
 
@@ -525,22 +527,20 @@ extern Lisp_Object make_number (EMACS_INT);
 
 #define EQ(x, y) (XHASH (x) == XHASH (y))
 
+/* Number of bits in a fixnum, including the sign bit.  */
+#ifdef USE_2_TAGS_FOR_INTS
+# define FIXNUM_BITS (VALBITS + 1)
+#else
+# define FIXNUM_BITS VALBITS
+#endif
+
+/* Mask indicating the significant bits of a fixnum.  */
+#define INTMASK (((EMACS_INT) 1 << FIXNUM_BITS) - 1)
+
 /* Largest and smallest representable fixnum values.  These are the C
    values.  */
-
-#ifdef USE_2_TAGS_FOR_INTS
-# define MOST_NEGATIVE_FIXNUM	- ((EMACS_INT) 1 << VALBITS)
-# define MOST_POSITIVE_FIXNUM	(((EMACS_INT) 1 << VALBITS) - 1)
-/* Mask indicating the significant bits of a Lisp_Int.
-   I.e. (x & INTMASK) == XUINT (make_number (x)).  */
-# define INTMASK ((((EMACS_INT) 1) << (VALBITS + 1)) - 1)
-#else
-# define MOST_NEGATIVE_FIXNUM	- ((EMACS_INT) 1 << (VALBITS - 1))
-# define MOST_POSITIVE_FIXNUM	(((EMACS_INT) 1 << (VALBITS - 1)) - 1)
-/* Mask indicating the significant bits of a Lisp_Int.
-   I.e. (x & INTMASK) == XUINT (make_number (x)).  */
-# define INTMASK ((((EMACS_INT) 1) << VALBITS) - 1)
-#endif
+#define MOST_POSITIVE_FIXNUM (INTMASK / 2)
+#define MOST_NEGATIVE_FIXNUM (-1 - MOST_POSITIVE_FIXNUM)
 
 /* Value is non-zero if I doesn't fit into a Lisp fixnum.  It is
    written this way so that it also works if I is of unsigned
@@ -764,6 +764,12 @@ extern EMACS_INT string_bytes (struct Lisp_String *);
   ((STR)->size_byte < 0 ? (STR)->size : (STR)->size_byte)
 
 #endif /* not GC_CHECK_STRING_BYTES */
+
+/* A string cannot contain more bytes than a fixnum can represent,
+   nor can it be so long that C pointer arithmetic stops working on
+   the string plus a terminating null.  */
+#define STRING_BYTES_MAX  \
+  min (MOST_POSITIVE_FIXNUM, min (SIZE_MAX, PTRDIFF_MAX) - 1)
 
 /* Mark STR as a unibyte string.  */
 #define STRING_SET_UNIBYTE(STR)  \
@@ -1179,7 +1185,7 @@ struct Lisp_Hash_Table
      a special way (e.g. because of weakness).  */
 
   /* Number of key/value entries in the table.  */
-  unsigned int count;
+  EMACS_INT count;
 
   /* Vector of keys and values.  The key of item I is found at index
      2 * I, the value is found at index 2 * I + 1.
@@ -1191,11 +1197,12 @@ struct Lisp_Hash_Table
   struct Lisp_Hash_Table *next_weak;
 
   /* C function to compare two keys.  */
-  int (* cmpfn) (struct Lisp_Hash_Table *, Lisp_Object,
-                 unsigned, Lisp_Object, unsigned);
+  int (*cmpfn) (struct Lisp_Hash_Table *,
+		Lisp_Object, EMACS_UINT,
+		Lisp_Object, EMACS_UINT);
 
   /* C function to compute hash code.  */
-  unsigned (* hashfn) (struct Lisp_Hash_Table *, Lisp_Object);
+  EMACS_UINT (*hashfn) (struct Lisp_Hash_Table *, Lisp_Object);
 };
 
 
@@ -2093,7 +2100,7 @@ extern Lisp_Object Vascii_canon_table;
 
 /* Number of bytes of structure consed since last GC.  */
 
-extern int consing_since_gc;
+extern EMACS_INT consing_since_gc;
 
 extern EMACS_INT gc_relative_threshold;
 
@@ -2403,9 +2410,35 @@ EXFUN (Fadd1, 1);
 EXFUN (Fsub1, 1);
 EXFUN (Fmake_variable_buffer_local, 1);
 
+/* Convert the integer I to an Emacs representation, either the integer
+   itself, or a cons of two or three integers, or if all else fails a float.
+   I should not have side effects.  */
+#define INTEGER_TO_CONS(i)					    \
+  (! FIXNUM_OVERFLOW_P (i)					    \
+   ? make_number (i)						    \
+   : ! ((FIXNUM_OVERFLOW_P (INTMAX_MIN >> 16)			    \
+	 || FIXNUM_OVERFLOW_P (UINTMAX_MAX >> 16))		    \
+	&& FIXNUM_OVERFLOW_P ((i) >> 16))			    \
+   ? Fcons (make_number ((i) >> 16), make_number ((i) & 0xffff))    \
+   : ! ((FIXNUM_OVERFLOW_P (INTMAX_MIN >> 16 >> 24)		    \
+	 || FIXNUM_OVERFLOW_P (UINTMAX_MAX >> 16 >> 24))	    \
+	&& FIXNUM_OVERFLOW_P ((i) >> 16 >> 24))			    \
+   ? Fcons (make_number ((i) >> 16 >> 24),			    \
+	    Fcons (make_number ((i) >> 16 & 0xffffff),		    \
+		   make_number ((i) & 0xffff)))			    \
+   : make_float (i))
+
+/* Convert the Emacs representation CONS back to an integer of type
+   TYPE, storing the result the variable VAR.  Signal an error if CONS
+   is not a valid representation or is out of range for TYPE.  */
+#define CONS_TO_INTEGER(cons, type, var)				\
+ (TYPE_SIGNED (type)							\
+  ? ((var) = cons_to_signed (cons, TYPE_MINIMUM (type), TYPE_MAXIMUM (type))) \
+  : ((var) = cons_to_unsigned (cons, TYPE_MAXIMUM (type))))
+extern intmax_t cons_to_signed (Lisp_Object, intmax_t, intmax_t);
+extern uintmax_t cons_to_unsigned (Lisp_Object, uintmax_t);
+
 extern struct Lisp_Symbol *indirect_variable (struct Lisp_Symbol *);
-extern Lisp_Object long_to_cons (unsigned long);
-extern unsigned long cons_to_long (Lisp_Object);
 extern void args_out_of_range (Lisp_Object, Lisp_Object) NO_RETURN;
 extern void args_out_of_range_3 (Lisp_Object, Lisp_Object,
                                  Lisp_Object) NO_RETURN;
@@ -2468,19 +2501,19 @@ extern void syms_of_syntax (void);
 
 /* Defined in fns.c */
 extern Lisp_Object QCrehash_size, QCrehash_threshold;
-extern int next_almost_prime (int);
-extern Lisp_Object larger_vector (Lisp_Object, int, Lisp_Object);
+extern EMACS_INT next_almost_prime (EMACS_INT);
+extern Lisp_Object larger_vector (Lisp_Object, EMACS_INT, Lisp_Object);
 extern void sweep_weak_hash_tables (void);
 extern Lisp_Object Qcursor_in_echo_area;
 extern Lisp_Object Qstring_lessp;
 extern Lisp_Object QCsize, QCtest, QCweakness, Qequal, Qeq, Qeql;
-unsigned sxhash (Lisp_Object, int);
+EMACS_UINT sxhash (Lisp_Object, int);
 Lisp_Object make_hash_table (Lisp_Object, Lisp_Object, Lisp_Object,
                              Lisp_Object, Lisp_Object, Lisp_Object,
                              Lisp_Object);
-int hash_lookup (struct Lisp_Hash_Table *, Lisp_Object, unsigned *);
-int hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
-              unsigned);
+EMACS_INT hash_lookup (struct Lisp_Hash_Table *, Lisp_Object, EMACS_UINT *);
+EMACS_INT hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
+		    EMACS_UINT);
 void init_weak_hash_tables (void);
 extern void init_fns (void);
 EXFUN (Fmake_hash_table, MANY);
@@ -2685,8 +2718,8 @@ extern void allocate_string_data (struct Lisp_String *, EMACS_INT, EMACS_INT);
 extern void reset_malloc_hooks (void);
 extern void uninterrupt_malloc (void);
 extern void malloc_warning (const char *);
-extern void memory_full (void) NO_RETURN;
-extern void buffer_memory_full (void) NO_RETURN;
+extern void memory_full (size_t) NO_RETURN;
+extern void buffer_memory_full (EMACS_INT) NO_RETURN;
 extern int survives_gc_p (Lisp_Object);
 extern void mark_object (Lisp_Object);
 #if defined REL_ALLOC && !defined SYSTEM_MALLOC
@@ -3182,16 +3215,12 @@ extern Lisp_Object get_frame_param (struct frame *, Lisp_Object);
 extern Lisp_Object frame_buffer_predicate (Lisp_Object);
 EXFUN (Fselect_frame, 2);
 EXFUN (Fselected_frame, 0);
-EXFUN (Fwindow_frame, 1);
-EXFUN (Fframe_root_window, 1);
-EXFUN (Fframe_first_window, 1);
 EXFUN (Fmake_frame_visible, 1);
 EXFUN (Ficonify_frame, 1);
 EXFUN (Fframe_parameter, 2);
 EXFUN (Fmodify_frame_parameters, 2);
 EXFUN (Fraise_frame, 1);
 EXFUN (Fredirect_frame_focus, 2);
-EXFUN (Fset_frame_selected_window, 3);
 extern Lisp_Object frame_buffer_list (Lisp_Object);
 extern void frames_discard_buffer (Lisp_Object);
 extern void set_frame_buffer_list (Lisp_Object, Lisp_Object);

@@ -2342,7 +2342,7 @@ from adjoining text, if those properties are sticky.  */)
     len = CHAR_STRING (XFASTINT (character), str);
   else
     str[0] = XFASTINT (character), len = 1;
-  if (MOST_POSITIVE_FIXNUM / len < XINT (count))
+  if (BUF_BYTES_MAX / len < XINT (count))
     error ("Maximum buffer size would be exceeded");
   n = XINT (count) * len;
   if (n <= 0)
@@ -3589,7 +3589,7 @@ usage: (format STRING &rest OBJECTS)  */)
   char initial_buffer[4000];
   char *buf = initial_buffer;
   EMACS_INT bufsize = sizeof initial_buffer;
-  EMACS_INT max_bufsize = min (MOST_POSITIVE_FIXNUM + 1, SIZE_MAX);
+  EMACS_INT max_bufsize = STRING_BYTES_MAX + 1;
   char *p;
   Lisp_Object buf_save_value IF_LINT (= {0});
   register char *format, *end, *format_start;
@@ -3636,7 +3636,7 @@ usage: (format STRING &rest OBJECTS)  */)
   {
     EMACS_INT i;
     if ((SIZE_MAX - formatlen) / sizeof (struct info) <= nargs)
-      memory_full ();
+      memory_full (SIZE_MAX);
     SAFE_ALLOCA (info, struct info *, (nargs + 1) * sizeof *info + formatlen);
     discarded = (char *) &info[nargs + 1];
     for (i = 0; i < nargs + 1; i++)
@@ -4083,7 +4083,10 @@ usage: (format STRING &rest OBJECTS)  */)
 		  int exponent_bytes = 0;
 		  int signedp = src0 == '-' || src0 == '+' || src0 == ' ';
 		  int significand_bytes;
-		  if (zero_flag && '0' <= src[signedp] && src[signedp] <= '9')
+		  if (zero_flag
+		      && ((src[signedp] >= '0' && src[signedp] <= '9')
+			  || (src[signedp] >= 'a' && src[signedp] <= 'f')
+			  || (src[signedp] >= 'A' && src[signedp] <= 'F')))
 		    {
 		      leading_zeros += padding;
 		      padding = 0;
