@@ -1288,100 +1288,6 @@ return value, which may be passed as the REQUIRE-MATCH arg to
 	 'confirm)
 	(t nil)))
 
-(defun read-buffer-to-switch (prompt)
-  "Read the name of a buffer to switch to and return as a string.
-It is intended for `switch-to-buffer' family of commands since they
-need to omit the name of current buffer from the list of completions
-and default values."
-  (let ((rbts-completion-table (internal-complete-buffer-except)))
-    (minibuffer-with-setup-hook
-        (lambda ()
-          (setq minibuffer-completion-table rbts-completion-table)
-          ;; Since rbts-completion-table is built dynamically, we
-          ;; can't just add it to the default value of
-          ;; icomplete-with-completion-tables, so we add it
-          ;; here manually.
-          (if (and (boundp 'icomplete-with-completion-tables)
-                   (listp icomplete-with-completion-tables))
-              (set (make-local-variable 'icomplete-with-completion-tables)
-                   (cons rbts-completion-table
-                         icomplete-with-completion-tables))))
-      (read-buffer prompt (other-buffer (current-buffer))
-                   (confirm-nonexistent-file-or-buffer)))))
-
-(defun switch-to-buffer-other-window (buffer-or-name &optional norecord)
-  "Select the buffer specified by BUFFER-OR-NAME in another window.
-BUFFER-OR-NAME may be a buffer, a string \(a buffer name), or
-nil.  Return the buffer switched to.
-
-If called interactively, prompt for the buffer name using the
-minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
-determines whether to request confirmation before creating a new
-buffer.
-
-If BUFFER-OR-NAME is a string and does not identify an existing
-buffer, create a new buffer with that name.  If BUFFER-OR-NAME is
-nil, switch to the buffer returned by `other-buffer'.
-
-Optional second argument NORECORD non-nil means do not put this
-buffer at the front of the list of recently selected ones.
-
-This uses the function `display-buffer' as a subroutine; see its
-documentation for additional customization information."
-  (interactive
-   (list (read-buffer-to-switch "Switch to buffer in other window: ")))
-  (let ((pop-up-windows t)
-	same-window-buffer-names same-window-regexps)
-    (pop-to-buffer buffer-or-name t norecord)))
-
-(defun switch-to-buffer-other-frame (buffer-or-name &optional norecord)
-  "Switch to buffer BUFFER-OR-NAME in another frame.
-BUFFER-OR-NAME may be a buffer, a string \(a buffer name), or
-nil.  Return the buffer switched to.
-
-If called interactively, prompt for the buffer name using the
-minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
-determines whether to request confirmation before creating a new
-buffer.
-
-If BUFFER-OR-NAME is a string and does not identify an existing
-buffer, create a new buffer with that name.  If BUFFER-OR-NAME is
-nil, switch to the buffer returned by `other-buffer'.
-
-Optional second arg NORECORD non-nil means do not put this
-buffer at the front of the list of recently selected ones.
-
-This uses the function `display-buffer' as a subroutine; see its
-documentation for additional customization information."
-  (interactive
-   (list (read-buffer-to-switch "Switch to buffer in other frame: ")))
-  (let ((pop-up-frames t)
-	same-window-buffer-names same-window-regexps)
-    (pop-to-buffer buffer-or-name t norecord)))
-
-(defun display-buffer-other-frame (buffer)
-  "Display buffer BUFFER in another frame.
-This uses the function `display-buffer' as a subroutine; see
-its documentation for additional customization information."
-  (interactive "BDisplay buffer in other frame: ")
-  (let ((pop-up-frames t)
-	same-window-buffer-names same-window-regexps
-        ;;(old-window (selected-window))
-	new-window)
-    (setq new-window (display-buffer buffer t))
-    ;; This may have been here in order to prevent the new frame from hiding
-    ;; the old frame.  But it does more harm than good.
-    ;; Maybe we should call `raise-window' on the old-frame instead?  --Stef
-    ;;(lower-frame (window-frame new-window))
-
-    ;; This may have been here in order to make sure the old-frame gets the
-    ;; focus.  But not only can it cause an annoying flicker, with some
-    ;; window-managers it just makes the window invisible, with no easy
-    ;; way to recover it.  --Stef
-    ;;(make-frame-invisible (window-frame old-window))
-    ;;(make-frame-visible (window-frame old-window))
-    ))
-
 (defmacro minibuffer-with-setup-hook (fun &rest body)
   "Temporarily add FUN to `minibuffer-setup-hook' while executing BODY.
 BODY should use the minibuffer at most once.
@@ -2635,7 +2541,7 @@ we don't actually set it to the same mode the buffer already has."
   ;; Look for -*-MODENAME-*- or -*- ... mode: MODENAME; ... -*-
   (let (end done mode modes)
     ;; Once we drop the deprecated feature where mode: is also allowed to
-    ;; specify minor-modes (ie, there can be more than one "mode:), we can
+    ;; specify minor-modes (ie, there can be more than one "mode:"), we can
     ;; remove this section and just let (hack-local-variables t) handle it.
     ;; Find a -*- mode tag.
     (save-excursion
@@ -3367,7 +3273,7 @@ It is dangerous if either of these conditions are met:
       (and (symbolp (car exp))
 	   ;; Allow (minor)-modes calls with no arguments.
 	   ;; This obsoletes the use of "mode:" for such things.  (Bug#8613)
-	   (or (and (null (cdr exp))
+	   (or (and (member (cdr exp) '(nil (1) (-1)))
 		    (string-match "-mode\\'" (symbol-name (car exp))))
 	       (let ((prop (get (car exp) 'safe-local-eval-function)))
 		 (cond ((eq prop t)
@@ -5256,7 +5162,7 @@ non-nil, it is called instead of rereading visited file contents."
 	       (save-excursion
 		 (let ((switches dired-listing-switches))
 		   (if (file-symlink-p file)
-		       (setq switches (concat switches "L")))
+		       (setq switches (concat switches " -L")))
 		   (set-buffer standard-output)
 		   ;; Use insert-directory-safely, not insert-directory,
 		   ;; because these files might not exist.  In particular,
@@ -5299,7 +5205,7 @@ Then you'll be asked about a number of files to recover."
       (error "No previous sessions to recover")))
   (let ((ls-lisp-support-shell-wildcards t))
     (dired (concat auto-save-list-file-prefix "*")
-	   (concat dired-listing-switches "t")))
+	   (concat dired-listing-switches " -t")))
   (save-excursion
     (goto-char (point-min))
     (or (looking-at " Move to the session you want to recover,")

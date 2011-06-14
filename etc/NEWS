@@ -294,7 +294,7 @@ the remote file-name cache is used for read access.
 
 +++
 ** The use of a "mode: minor" specification in a file local variables section
-to enable a minor-mode is deprecated.  Instead, use "eval: (minor-mode)".
+to enable a minor-mode is deprecated.  Instead, use "eval: (minor-mode 1)".
 
 ** The standalone programs lib-src/digest-doc and sorted-doc have been
 replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
@@ -510,6 +510,11 @@ See the variable `diary-comment-start'.
 +++
 *** Appointments can specify their individual warning times.
 See the variable `appt-warning-time-regexp'.
+
+---
+*** The function specified by `appt-disp-window-function' may be passed
+lists of arguments if multiple appointments are due at similar times.
+If you are using a custom function for this, you should update it.
 
 +++
 *** New function `diary-hebrew-birthday'.
