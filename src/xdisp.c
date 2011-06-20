@@ -1335,7 +1335,7 @@ string_char_and_length (const unsigned char *str, int *len)
   int c;
 
   c = STRING_CHAR_AND_LENGTH (str, *len);
-  if (!CHAR_VALID_P (c, 1))
+  if (!CHAR_VALID_P (c))
     /* We may not change the length here because other places in Emacs
        don't use this function, i.e. they silently accept invalid
        characters.  */
@@ -2138,7 +2138,7 @@ safe_eval_handler (Lisp_Object arg)
    redisplay during the evaluation.  */
 
 Lisp_Object
-safe_call (size_t nargs, Lisp_Object *args)
+safe_call (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object val;
 
@@ -2248,8 +2248,7 @@ check_it (it)
    to be---the last row in the current matrix displaying text.  */
 
 static void
-check_window_end (w)
-     struct window *w;
+check_window_end (struct window *w)
 {
   if (!MINI_WINDOW_P (w)
       && !NILP (w->window_end_valid))
@@ -5819,7 +5818,8 @@ get_next_display_element (struct it *it)
 		 display.  Then, set IT->dpvec to these glyphs.  */
 	      Lisp_Object gc;
 	      int ctl_len;
-	      int face_id, lface_id = 0 ;
+	      int face_id;
+	      EMACS_INT lface_id = 0;
 	      int escape_glyph;
 
 	      /* Handle control characters with ^.  */
@@ -6374,7 +6374,7 @@ next_element_from_display_vector (struct it *it)
 	it->face_id = it->dpvec_face_id;
       else
 	{
-	  int lface_id = GLYPH_CODE_FACE (gc);
+	  EMACS_INT lface_id = GLYPH_CODE_FACE (gc);
 	  if (lface_id > 0)
 	    it->face_id = merge_faces (it->f, Qt, lface_id,
 				       it->saved_face_id);
@@ -11146,8 +11146,8 @@ debug_method_add (w, fmt, a1, a2, a3, a4, a5, a6, a7, a8, a9)
     fprintf (stderr, "%p (%s): %s\n",
 	     w,
 	     ((BUFFERP (w->buffer)
-	       && STRINGP (XBUFFER (w->buffer)->name))
-	      ? SSDATA (XBUFFER (w->buffer)->name)
+	       && STRINGP (BVAR (XBUFFER (w->buffer), name)))
+	      ? SSDATA (BVAR (XBUFFER (w->buffer), name))
 	      : "no buffer"),
 	     buffer);
 }
@@ -16276,9 +16276,7 @@ void dump_glyph (struct glyph_row *, struct glyph *, int);
    GLYPHS > 1 means show glyphs in long form.  */
 
 void
-dump_glyph_matrix (matrix, glyphs)
-     struct glyph_matrix *matrix;
-     int glyphs;
+dump_glyph_matrix (struct glyph_matrix *matrix, int glyphs)
 {
   int i;
   for (i = 0; i < matrix->nrows; ++i)
@@ -16290,10 +16288,7 @@ dump_glyph_matrix (matrix, glyphs)
    the glyph row and area where the glyph comes from.  */
 
 void
-dump_glyph (row, glyph, area)
-     struct glyph_row *row;
-     struct glyph *glyph;
-     int area;
+dump_glyph (struct glyph_row *row, struct glyph *glyph, int area)
 {
   if (glyph->type == CHAR_GLYPH)
     {
@@ -16386,9 +16381,7 @@ dump_glyph (row, glyph, area)
    GLYPHS > 1 means show glyphs in long form.  */
 
 void
-dump_glyph_row (row, vpos, glyphs)
-     struct glyph_row *row;
-     int vpos, glyphs;
+dump_glyph_row (struct glyph_row *row, int vpos, int glyphs)
 {
   if (glyphs != 1)
     {
@@ -16570,7 +16563,7 @@ With ARG, turn tracing on if and only if ARG is positive.  */)
 DEFUN ("trace-to-stderr", Ftrace_to_stderr, Strace_to_stderr, 1, MANY, "",
        doc: /* Like `format', but print result to stderr.
 usage: (trace-to-stderr STRING &rest OBJECTS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object s = Fformat (nargs, args);
   fprintf (stderr, "%s", SDATA (s));
@@ -19379,7 +19372,8 @@ decode_mode_spec_coding (Lisp_Object coding_system, register char *buf, int eol_
       else if (CHARACTERP (eoltype))
 	{
 	  unsigned char *tmp = (unsigned char *) alloca (MAX_MULTIBYTE_LENGTH);
-	  eol_str_len = CHAR_STRING (XINT (eoltype), tmp);
+	  int c = XFASTINT (eoltype);
+	  eol_str_len = CHAR_STRING (c, tmp);
 	  eol_str = tmp;
 	}
       else
@@ -20468,8 +20462,7 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 #if GLYPH_DEBUG
 
 void
-dump_glyph_string (s)
-     struct glyph_string *s;
+dump_glyph_string (struct glyph_string *s)
 {
   fprintf (stderr, "glyph string\n");
   fprintf (stderr, "  x, y, w, h = %d, %d, %d, %d\n",

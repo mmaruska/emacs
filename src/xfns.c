@@ -1074,8 +1074,7 @@ x_set_border_pixel (struct frame *f, int pix)
   if (FRAME_X_WINDOW (f) != 0 && f->border_width > 0)
     {
       BLOCK_INPUT;
-      XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			(unsigned long)pix);
+      XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), pix);
       UNBLOCK_INPUT;
 
       if (FRAME_VISIBLE_P (f))
@@ -1701,7 +1700,7 @@ x_set_scroll_bar_default_width (struct frame *f)
   int wid = FRAME_COLUMN_WIDTH (f);
 #ifdef USE_TOOLKIT_SCROLL_BARS
 #ifdef USE_GTK
-  int minw = xg_get_default_scrollbar_width (f);
+  int minw = xg_get_default_scrollbar_width ();
 #else
   int minw = 16;
 #endif
@@ -3157,10 +3156,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* With FRAME_X_DISPLAY_INFO set up, this unwind-protect is safe.  */
   record_unwind_protect (unwind_create_frame, frame);
-#if GLYPH_DEBUG
-  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
-  dpyinfo_refcount = dpyinfo->reference_count;
-#endif /* GLYPH_DEBUG */
 
   /* These colors will be set anyway later, but it's important
      to get the color reference counts right, so initialize them!  */
@@ -3314,6 +3309,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
      end up in init_iterator with a null face cache, which should not
      happen.  */
   init_frame_faces (f);
+
+#if GLYPH_DEBUG
+  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
+  dpyinfo_refcount = dpyinfo->reference_count;
+#endif /* GLYPH_DEBUG */
 
   /* The X resources controlling the menu-bar and tool-bar are
      processed specially at startup, and reflected in the mode
@@ -4607,10 +4607,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
 #endif /* USE_TOOLKIT_SCROLL_BARS */
   f->icon_name = Qnil;
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
-#if GLYPH_DEBUG
-  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
-  dpyinfo_refcount = dpyinfo->reference_count;
-#endif /* GLYPH_DEBUG */
   f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
   f->output_data.x->explicit_parent = 0;
 
@@ -4721,6 +4717,11 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
      end up in init_iterator with a null face cache, which should not
      happen.  */
   init_frame_faces (f);
+
+#if GLYPH_DEBUG
+  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
+  dpyinfo_refcount = dpyinfo->reference_count;
+#endif /* GLYPH_DEBUG */
 
   f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
 
