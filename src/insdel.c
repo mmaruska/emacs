@@ -44,12 +44,6 @@ static void insert_from_buffer_1 (struct buffer *buf,
 				  int inherit);
 static void gap_left (EMACS_INT charpos, EMACS_INT bytepos, int newgap);
 static void gap_right (EMACS_INT charpos, EMACS_INT bytepos);
-static void adjust_markers_for_insert (EMACS_INT from, EMACS_INT from_byte,
-				       EMACS_INT to, EMACS_INT to_byte,
-				       int before_markers);
-static void adjust_markers_for_replace (EMACS_INT, EMACS_INT, EMACS_INT,
-					EMACS_INT, EMACS_INT, EMACS_INT);
-static void adjust_point (EMACS_INT nchars, EMACS_INT nbytes);
 
 static Lisp_Object Fcombine_after_change_execute (void);
 
@@ -2225,8 +2219,7 @@ syms_of_insdel (void)
 This affects `before-change-functions' and `after-change-functions',
 as well as hooks attached to text properties and overlays.  */);
   inhibit_modification_hooks = 0;
-  Qinhibit_modification_hooks = intern_c_string ("inhibit-modification-hooks");
-  staticpro (&Qinhibit_modification_hooks);
+  DEFSYM (Qinhibit_modification_hooks, "inhibit-modification-hooks");
 
   defsubr (&Scombine_after_change_execute);
 }

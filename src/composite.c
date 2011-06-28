@@ -285,7 +285,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
       && VECTORP (AREF (components, 0)))
     {
       /* COMPONENTS is a glyph-string.  */
-      EMACS_UINT len = ASIZE (key);
+      EMACS_INT len = ASIZE (key);
 
       for (i = 1; i < len; i++)
 	if (! VECTORP (AREF (key, i)))
@@ -293,7 +293,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
     }
   else if (VECTORP (components) || CONSP (components))
     {
-      EMACS_UINT len = ASIZE (key);
+      EMACS_INT len = ASIZE (key);
 
       /* The number of elements should be odd.  */
       if ((len % 2) == 0)
@@ -673,13 +673,14 @@ composition_gstring_put_cache (Lisp_Object gstring, EMACS_INT len)
   hash = h->hashfn (h, header);
   if (len < 0)
     {
-      EMACS_UINT j, glyph_len = LGSTRING_GLYPH_LEN (gstring);
+      EMACS_INT j, glyph_len = LGSTRING_GLYPH_LEN (gstring);
       for (j = 0; j < glyph_len; j++)
 	if (NILP (LGSTRING_GLYPH (gstring, j)))
 	  break;
       len = j;
     }
 
+  lint_assume (len <= TYPE_MAXIMUM (EMACS_INT) - 2);
   copy = Fmake_vector (make_number (len + 2), Qnil);
   LGSTRING_SET_HEADER (copy, Fcopy_sequence (header));
   for (i = 0; i < len; i++)
@@ -705,7 +706,7 @@ int
 composition_gstring_p (Lisp_Object gstring)
 {
   Lisp_Object header;
-  int i;
+  EMACS_INT i;
 
   if (! VECTORP (gstring) || ASIZE (gstring) < 2)
     return 0;
@@ -1252,7 +1253,7 @@ composition_reseat_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
     {
       Lisp_Object lgstring = Qnil;
       Lisp_Object val, elt;
-      int i;
+      EMACS_INT i;
 
       val = CHAR_TABLE_REF (Vcomposition_function_table, cmp_it->ch);
       for (i = 0; i < cmp_it->rule_idx; i++, val = XCDR (val));
@@ -1676,7 +1677,6 @@ find_automatic_composition (EMACS_INT pos, EMACS_INT limit,
 	}
       BACKWARD_CHAR (cur, stop);
     }
-  return 0;
 }
 
 /* Return the adjusted point provided that point is moved from LAST_PT
@@ -1685,9 +1685,8 @@ find_automatic_composition (EMACS_INT pos, EMACS_INT limit,
 EMACS_INT
 composition_adjust_point (EMACS_INT last_pt, EMACS_INT new_pt)
 {
-  EMACS_INT beg, end;
+  EMACS_INT i, beg, end;
   Lisp_Object val;
-  int i;
 
   if (new_pt == BEGV || new_pt == ZV)
     return new_pt;
@@ -1938,8 +1937,7 @@ syms_of_composite (void)
 {
   int i;
 
-  Qcomposition = intern_c_string ("composition");
-  staticpro (&Qcomposition);
+  DEFSYM (Qcomposition, "composition");
 
   /* Make a hash table for static composition.  */
   {
@@ -1998,11 +1996,8 @@ valid.
 The default value is the function `compose-chars-after'.  */);
   Vcompose_chars_after_function = intern_c_string ("compose-chars-after");
 
-  Qauto_composed = intern_c_string ("auto-composed");
-  staticpro (&Qauto_composed);
-
-  Qauto_composition_function = intern_c_string ("auto-composition-function");
-  staticpro (&Qauto_composition_function);
+  DEFSYM (Qauto_composed, "auto-composed");
+  DEFSYM (Qauto_composition_function, "auto-composition-function");
 
   DEFVAR_LISP ("auto-composition-mode", Vauto_composition_mode,
 	       doc: /* Non-nil if Auto-Composition mode is enabled.

@@ -44,8 +44,10 @@
 
 (require 'tls)
 (require 'starttls)
+(require 'auth-source)
 
-(declare-function gnutls-negotiate "gnutls" t t) ; defun*
+(autoload 'gnutls-negotiate "gnutls")
+(autoload 'open-gnutls-stream "gnutls")
 
 ;;;###autoload
 (defun open-network-stream (name buffer host service &rest parameters)
@@ -110,10 +112,21 @@ values:
   STARTTLS if the server supports STARTTLS, and nil otherwise.
 
 :always-query-capabilies says whether to query the server for
-capabilities, even if we're doing a `plain' network connection.
+  capabilities, even if we're doing a `plain' network connection.
+
+:client-certificate should either be a list where the first
+  element is the certificate key file name, and the second
+  element is the certificate file name itself, or `t', which
+  means that `auth-source' will be queried for the key and the
+  certificate.  This parameter will only be used when doing TLS
+  or STARTTLS connections.
+
+If :use-starttls-if-possible is non-nil, do opportunistic
+STARTTLS upgrades even if Emacs doesn't have built-in TLS
+functionality.
 
 :nowait is a boolean that says the connection should be made
-asynchronously, if possible."
+  asynchronously, if possible."
   (unless (featurep 'make-network-process)
     (error "Emacs was compiled without networking support"))
   (let ((type (plist-get parameters :type))
@@ -149,8 +162,25 @@ asynchronously, if possible."
 	    (list (car result)
 		  :greeting     (nth 1 result)
 		  :capabilities (nth 2 result)
-		  :type         (nth 3 result))
+		  :type         (nth 3 result)
+		  :error        (nth 4 result))
 	  (car result))))))
+
+(defun network-stream-certificate (host service parameters)
+  (let ((spec (plist-get :client-certificate parameters)))
+    (cond
+     ((listp spec)
+      ;; Either nil or a list with a key/certificate pair.
+      spec)
+     ((eq spec t)
+      (let* ((auth-info
+	      (car (auth-source-search :max 1
+				       :host host
+				       :port service)))
+	     (key (plist-get auth-info :key))
+	     (cert (plist-get auth-info :cert)))
+	(and key cert
+	     (list key cert)))))))
 
 ;;;###autoload
 (defalias 'open-protocol-stream 'open-network-stream)
@@ -179,20 +209,25 @@ asynchronously, if possible."
 	 (greeting (network-stream-get-response stream start eoc))
 	 (capabilities (network-stream-command stream capability-command eoc))
 	 (resulting-type 'plain)
-	 starttls-command)
+	 (builtin-starttls (and (fboundp 'gnutls-available-p)
+				(gnutls-available-p)))
+	 starttls-command error)
 
+    ;; First check whether the server supports STARTTLS at all.
+    (when (and capabilities success-string starttls-function)
+      (setq starttls-command
+	    (funcall starttls-function capabilities)))
     ;; If we have built-in STARTTLS support, try to upgrade the
     ;; connection.
-    (when (and (or (fboundp 'open-gnutls-stream)
-		   (and require-tls
+    (when (and starttls-command
+	       (or builtin-starttls
+		   (and (or require-tls
+			    (plist-get parameters :use-starttls-if-possible))
 			(executable-find "gnutls-cli")))
-	       capabilities success-string starttls-function
-	       (setq starttls-command
-		     (funcall starttls-function capabilities))
 	       (not (eq (plist-get parameters :type) 'plain)))
       ;; If using external STARTTLS, drop this connection and start
       ;; anew with `starttls-open-stream'.
-      (unless (fboundp 'open-gnutls-stream)
+      (unless builtin-starttls
 	(delete-process stream)
 	(setq start (with-current-buffer buffer (point-max)))
 	(let* ((starttls-use-gnutls t)
@@ -201,14 +236,28 @@ asynchronously, if possible."
 		    starttls-extra-arguments
 		  ;; For opportunistic TLS upgrades, we don't really
 		  ;; care about the identity of the peer.
-		  (cons "--insecure" starttls-extra-arguments))))
+		  (cons "--insecure" starttls-extra-arguments)))
+	       (cert (network-stream-certificate host service parameters)))
+	  ;; There are client certificates requested, so add them to
+	  ;; the command line.
+	  (when cert
+	    (setq starttls-extra-arguments
+		  (nconc (list "--x509keyfile" (expand-file-name (nth 0 cert))
+			       "--x509certfile" (expand-file-name (nth 1 cert)))
+			 starttls-extra-arguments)))
 	  (setq stream (starttls-open-stream name buffer host service)))
-	(network-stream-get-response stream start eoc))
+	(network-stream-get-response stream start eoc)
+	;; Requery capabilities for protocols that require it; i.e.,
+	;; EHLO for SMTP.
+	(when (plist-get parameters :always-query-capabilities)
+	  (network-stream-command stream capability-command eoc)))
       (when (string-match success-string
 			  (network-stream-command stream starttls-command eoc))
 	;; The server said it was OK to begin STARTTLS negotiations.
-	(if (fboundp 'open-gnutls-stream)
-	    (gnutls-negotiate :process stream :hostname host)
+	(if builtin-starttls
+	    (let ((cert (network-stream-certificate host service parameters)))
+	      (gnutls-negotiate :process stream :hostname host
+				:keylist (and cert (list cert))))
 	  (unless (starttls-negotiate stream)
 	    (delete-process stream)))
 	(if (memq (process-status stream) '(open run))
@@ -225,11 +274,22 @@ asynchronously, if possible."
 	      (network-stream-command stream capability-command eoc))))
 
     ;; If TLS is mandatory, close the connection if it's unencrypted.
-    (and require-tls
-	 (eq resulting-type 'plain)
-	 (delete-process stream))
+    (when (and (or require-tls
+		   ;; The server said it was possible to do STARTTLS,
+		   ;; and we wanted to use it...
+		   (and starttls-command
+			(plist-get parameters :use-starttls-if-possible)))
+	       ;; ... but Emacs wasn't able to -- either no built-in
+	       ;; support, or no gnutls-cli installed.
+	       (eq resulting-type 'plain))
+	  (setq error
+		(if require-tls
+		    "Server does not support TLS"
+		  "Server supports STARTTLS, but Emacs does not have support for it"))
+      (delete-process stream)
+      (setq stream nil))
     ;; Return value:
-    (list stream greeting capabilities resulting-type)))
+    (list stream greeting capabilities resulting-type error)))
 
 (defun network-stream-command (stream command eoc)
   (when command
@@ -253,7 +313,8 @@ asynchronously, if possible."
 (defun network-stream-open-tls (name buffer host service parameters)
   (with-current-buffer buffer
     (let* ((start (point-max))
-	   (use-builtin-gnutls (fboundp 'open-gnutls-stream))
+	   (use-builtin-gnutls (and (fboundp 'gnutls-available-p)
+				    (gnutls-available-p)))
 	   (stream
 	    (funcall (if use-builtin-gnutls
 			 'open-gnutls-stream
@@ -264,7 +325,8 @@ asynchronously, if possible."
 	  (list nil nil nil 'plain)
 	;; If we're using tls.el, we have to delete the output from
 	;; openssl/gnutls-cli.
-	(when (and (null use-builtin-gnutls) eoc)
+	(when (and (null use-builtin-gnutls)
+		   eoc)
 	  (network-stream-get-response stream start eoc)
 	  (goto-char (point-min))
 	  (when (re-search-forward eoc nil t)

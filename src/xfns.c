@@ -145,7 +145,7 @@ static Lisp_Object Qcompound_text, Qcancel_timer;
 Lisp_Object Qfont_param;
 
 #if GLYPH_DEBUG
-int image_cache_refcount, dpyinfo_refcount;
+static int image_cache_refcount, dpyinfo_refcount;
 #endif
 
 #if defined (USE_GTK) && defined (HAVE_FREETYPE)
@@ -1883,7 +1883,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
   /* Make a fontset name from the base font name.  */
   if (xic_defaut_fontset == base_fontname)
     { /* There is no base font name, use the default.  */
-      int len = strlen (base_fontname) + 2;
+      ptrdiff_t len = strlen (base_fontname) + 2;
       fontsetname = xmalloc (len);
       memset (fontsetname, 0, len);
       strcpy (fontsetname, base_fontname);
@@ -1896,7 +1896,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	 - the base font where the charset spec is replaced by -*-*.
 	 - the same but with the family also replaced with -*-*-.  */
       const char *p = base_fontname;
-      int i;
+      ptrdiff_t i;
 
       for (i = 0; *p; p++)
 	if (*p == '-') i++;
@@ -1904,7 +1904,8 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	{ /* As the font name doesn't conform to XLFD, we can't
 	     modify it to generalize it to allcs and allfamilies.
 	     Use the specified font plus the default.  */
-	  int len = strlen (base_fontname) + strlen (xic_defaut_fontset) + 3;
+	  ptrdiff_t len =
+	    strlen (base_fontname) + strlen (xic_defaut_fontset) + 3;
 	  fontsetname = xmalloc (len);
 	  memset (fontsetname, 0, len);
 	  strcpy (fontsetname, base_fontname);
@@ -1913,7 +1914,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	}
       else
 	{
-	  int len;
+	  ptrdiff_t len;
 	  const char *p1 = NULL, *p2 = NULL, *p3 = NULL;
 	  char *font_allcs = NULL;
 	  char *font_allfamilies = NULL;
@@ -1940,7 +1941,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	     wildcard.  */
 	  if (*p3 != '*')
 	    {
-	      int diff = (p2 - p3) - 2;
+	      ptrdiff_t diff = (p2 - p3) - 2;
 
 	      base = alloca (strlen (base_fontname) + 1);
 	      memcpy (base, base_fontname, p3 - base_fontname);
@@ -2434,7 +2435,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
 
   /* Do some needed geometry management.  */
   {
-    int len;
+    ptrdiff_t len;
     char *tem, shell_position[32];
     Arg gal[10];
     int gac = 0;
@@ -2926,7 +2927,7 @@ unwind_create_frame (Lisp_Object frame)
   /* If frame is ``official'', nothing to do.  */
   if (!CONSP (Vframe_list) || !EQ (XCAR (Vframe_list), frame))
     {
-#if GLYPH_DEBUG
+#if GLYPH_DEBUG && XASSERTS
       struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 #endif
 
@@ -5796,24 +5797,17 @@ syms_of_xfns (void)
   /* The section below is built by the lisp expression at the top of the file,
      just above where these variables are declared.  */
   /*&&& init symbols here &&&*/
-  Qnone = intern_c_string ("none");
-  staticpro (&Qnone);
-  Qsuppress_icon = intern_c_string ("suppress-icon");
-  staticpro (&Qsuppress_icon);
-  Qundefined_color = intern_c_string ("undefined-color");
-  staticpro (&Qundefined_color);
-  Qcompound_text = intern_c_string ("compound-text");
-  staticpro (&Qcompound_text);
-  Qcancel_timer = intern_c_string ("cancel-timer");
-  staticpro (&Qcancel_timer);
-  Qfont_param = intern_c_string ("font-parameter");
-  staticpro (&Qfont_param);
+  DEFSYM (Qnone, "none");
+  DEFSYM (Qsuppress_icon, "suppress-icon");
+  DEFSYM (Qundefined_color, "undefined-color");
+  DEFSYM (Qcompound_text, "compound-text");
+  DEFSYM (Qcancel_timer, "cancel-timer");
+  DEFSYM (Qfont_param, "font-parameter");
   /* This is the end of symbol initialization.  */
 
   /* Text property `display' should be nonsticky by default.  */
   Vtext_property_default_nonsticky
     = Fcons (Fcons (Qdisplay, Qt), Vtext_property_default_nonsticky);
-
 
   Fput (Qundefined_color, Qerror_conditions,
 	pure_cons (Qundefined_color, pure_cons (Qerror, Qnil)));

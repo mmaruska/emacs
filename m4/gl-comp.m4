@@ -26,14 +26,18 @@ AC_DEFUN([gl_EARLY],
   m4_pattern_allow([^gl_LIBOBJS$])dnl a variable
   m4_pattern_allow([^gl_LTLIBOBJS$])dnl a variable
   AC_REQUIRE([AC_PROG_RANLIB])
+  # Code from module alloca-opt:
   # Code from module allocator:
   # Code from module arg-nonnull:
   # Code from module c++defs:
   # Code from module careadlinkat:
   # Code from module crypto/md5:
   # Code from module crypto/sha1:
+  # Code from module crypto/sha256:
+  # Code from module crypto/sha512:
   # Code from module dosname:
   # Code from module dtoastr:
+  # Code from module dup2:
   # Code from module extensions:
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
   # Code from module filemode:
@@ -70,6 +74,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module sys_stat:
   # Code from module time:
   # Code from module time_r:
+  # Code from module u64:
   # Code from module unistd:
   # Code from module verify:
   # Code from module warn-on-use:
@@ -91,10 +96,15 @@ AC_DEFUN([gl_INIT],
   m4_pushdef([gl_LIBSOURCES_DIR], [])
   gl_COMMON
   gl_source_base='lib'
+gl_FUNC_ALLOCA
 AC_CHECK_FUNCS_ONCE([readlinkat])
 gl_MD5
 gl_SHA1
+gl_SHA256
+gl_SHA512
 AC_REQUIRE([gl_C99_STRTOLD])
+gl_FUNC_DUP2
+gl_UNISTD_MODULE_INDICATOR([dup2])
 gl_FILEMODE
 gl_GETLOADAVG
 if test $HAVE_GETLOADAVG = 0; then
@@ -165,6 +175,7 @@ if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then
   gl_PREREQ_TIME_R
 fi
 gl_TIME_MODULE_INDICATOR([time_r])
+AC_REQUIRE([AC_C_INLINE])
 gl_UNISTD_H
   gl_gnulib_enabled_dosname=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
@@ -197,6 +208,9 @@ gl_SYS_STAT_MODULE_INDICATOR([stat])
       gl_gnulib_enabled_stat=true
       if $condition; then
         func_gl_gnulib_m4code_dosname
+      fi
+      if $condition; then
+        func_gl_gnulib_m4code_verify
       fi
     fi
   }
@@ -386,12 +400,14 @@ AC_DEFUN([gl_FILE_LIST], [
   build-aux/arg-nonnull.h
   build-aux/c++defs.h
   build-aux/warn-on-use.h
+  lib/alloca.in.h
   lib/allocator.c
   lib/allocator.h
   lib/careadlinkat.c
   lib/careadlinkat.h
   lib/dosname.h
   lib/dtoastr.c
+  lib/dup2.c
   lib/filemode.c
   lib/filemode.h
   lib/ftoastr.c
@@ -413,6 +429,10 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/readlink.c
   lib/sha1.c
   lib/sha1.h
+  lib/sha256.c
+  lib/sha256.h
+  lib/sha512.c
+  lib/sha512.h
   lib/stat.c
   lib/stdarg.in.h
   lib/stdbool.in.h
@@ -431,10 +451,13 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/sys_stat.in.h
   lib/time.in.h
   lib/time_r.c
+  lib/u64.h
   lib/unistd.in.h
   lib/verify.h
   m4/00gnulib.m4
+  m4/alloca.m4
   m4/c-strtod.m4
+  m4/dup2.m4
   m4/extensions.m4
   m4/filemode.m4
   m4/getloadavg.m4
@@ -449,6 +472,8 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/multiarch.m4
   m4/readlink.m4
   m4/sha1.m4
+  m4/sha256.m4
+  m4/sha512.m4
   m4/socklen.m4
   m4/ssize_t.m4
   m4/st_dm_mode.m4

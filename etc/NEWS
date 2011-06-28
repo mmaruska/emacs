@@ -84,6 +84,10 @@ client frame in parent X window ID, via XEmbed.  This works like the
 +++
 *** New emacsclient argument -q/--quiet suppresses some status messages.
 
++++
+*** New emacsclient argument --frame-parameters can be used to set the
+frame parameters of a newly-created graphical frame.
+
 *** If emacsclient shuts down as a result of Emacs signalling an
 error, its exit status is 1.
 
@@ -108,6 +112,26 @@ and pops down the *Completions* buffer accordingly.
 `completing-read-function'.
 
 ** auto-mode-case-fold is now enabled by default.
+
+** smtpmail changes
+
+** smtpmail has been largely rewritten to upgrade to STARTTLS if
+possible, and uses the auth-source framework for getting credentials.
+The rewrite should be largely compatible with previous versions of
+smtpmail, but there are two major incompatibilities:
+
+** `smtpmail-auth-credentials' no longer exists.  That variable could
+be either ~/.authinfo (in which case you're fine -- you won't see any
+difference), but if it were a direct list of user names and passwords,
+you will be prompted for the user name and the password instead, and
+they will then be saved to ~/.authinfo.
+
+** Similarly, if you had `smtpmail-starttls-credentials' set, then
+then you need to put
+
+machine smtp.whatever.foo port 25 key "~/.my_smtp_tls.key" cert "~/.my_smtp_tls.cert"
+
+in your ~/.authinfo file instead.
 
 ** Internationalization changes
 
@@ -305,9 +329,15 @@ If you need it, feedmail.el ought to provide a superset of the functionality.
 
 ** The variable `focus-follows-mouse' now always defaults to nil.
 
-** Function `sha1' is now implemented in C for speed.
+** New primitive `secure-hash' that supports many secure hash algorithms
+including md5, sha-1 and sha-2 (sha-224, sha-256, sha-384 and sha-512).
 The elisp implementation sha1.el is removed. Feature sha1 is provided
 by default.
+
+** Menu-bar changes
+
+*** `menu-bar-select-buffer-function' lets you choose another operation
+instead of `switch-to-buffer' when selecting an item in the Buffers menu.
 
 
 * Editing Changes in Emacs 24.1
@@ -757,6 +787,9 @@ the user for specifics, e.g. a merge source.
 
 **** Currently supported for Bzr, Git, and Mercurial.
 
+*** New option `vc-revert-show-diff' controls whether `vc-revert'
+shows a diff while querying the user.  It defaults to t.
+
 *** Log entries in some Log View buffers can be toggled to display a
 longer description by typing RET (log-view-toggle-entry-display).
 In the Log View buffers made by `C-x v L' (vc-print-root-log), you can
@@ -771,6 +804,9 @@ binding `log-view-expanded-log-entry-function' to a suitable function.
 of a file similar to `vc-diff', but using ediff backend.
 
 ** Miscellaneous
+
++++
+*** f90.el has some support for Fortran 2008 syntax.
 
 ---
 *** `copyright-fix-years' can optionally convert consecutive years to ranges.

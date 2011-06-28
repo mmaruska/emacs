@@ -2257,12 +2257,14 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   p = XBOOL_VECTOR (val);
   p->size = XFASTINT (length);
 
-  memset (p->data, NILP (init) ? 0 : -1, length_in_chars);
+  if (length_in_chars)
+    {
+      memset (p->data, ! NILP (init) ? -1 : 0, length_in_chars);
 
-  /* Clear the extraneous bits in the last byte.  */
-  if (XINT (length) != length_in_chars * BOOL_VECTOR_BITS_PER_CHAR)
-    p->data[length_in_chars - 1]
-      &= (1 << (XINT (length) % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
+      /* Clear any extraneous bits in the last byte.  */
+      p->data[length_in_chars - 1]
+	&= (1 << (XINT (length) % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
+    }
 
   return val;
 }
@@ -6249,8 +6251,7 @@ do hash-consing of the objects allocated to pure space.  */);
   DEFVAR_LISP ("post-gc-hook", Vpost_gc_hook,
 	       doc: /* Hook run after garbage collection has finished.  */);
   Vpost_gc_hook = Qnil;
-  Qpost_gc_hook = intern_c_string ("post-gc-hook");
-  staticpro (&Qpost_gc_hook);
+  DEFSYM (Qpost_gc_hook, "post-gc-hook");
 
   DEFVAR_LISP ("memory-signal-data", Vmemory_signal_data,
 	       doc: /* Precomputed `signal' argument for memory-full error.  */);
@@ -6264,11 +6265,8 @@ do hash-consing of the objects allocated to pure space.  */);
 	       doc: /* Non-nil means Emacs cannot get much more Lisp memory.  */);
   Vmemory_full = Qnil;
 
-  staticpro (&Qgc_cons_threshold);
-  Qgc_cons_threshold = intern_c_string ("gc-cons-threshold");
-
-  staticpro (&Qchar_table_extra_slots);
-  Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
+  DEFSYM (Qgc_cons_threshold, "gc-cons-threshold");
+  DEFSYM (Qchar_table_extra_slots, "char-table-extra-slots");
 
   DEFVAR_LISP ("gc-elapsed", Vgc_elapsed,
 	       doc: /* Accumulated time elapsed in garbage collections.

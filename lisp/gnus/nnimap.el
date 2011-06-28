@@ -420,9 +420,9 @@ textual parts.")
 			(nnimap-login (car credentials) (cadr credentials))))
 		(if (car login-result)
 		    (progn
-                    ;; Save the credentials if a save function exists
-                    ;; (such a function will only be passed if a new
-                    ;; token was created).
+		      ;; Save the credentials if a save function exists
+		      ;; (such a function will only be passed if a new
+		      ;; token was created).
 		      (when (functionp (nth 2 credentials))
 			(funcall (nth 2 credentials)))
 		      ;; See if CAPABILITY is set as part of login
@@ -929,7 +929,7 @@ textual parts.")
 		 (car (setq result (nnimap-parse-response))))
 	;; Select the last instance of the message in the group.
 	(and (setq article
-		   (car (last (assoc "SEARCH" (cdr result)))))
+		   (car (last (cdr (assoc "SEARCH" (cdr result))))))
 	     (string-to-number article))))))
 
 (defun nnimap-delete-article (articles)

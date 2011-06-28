@@ -1,3 +1,44 @@
+2011-06-27  Bill Wohler  <wohler@newt.com>
+
+	* .bzrignore: Add lisp/mh-e/mh-autoloads.el and lisp/mh-e/mh-cus-load.el.
+
+2011-06-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use gnulib's dup2 module instead of rolling our own.
+	* Makefile.in (GNULIB_MODULES): Add dup2.
+	* configure.in: Do not check for dup2; gnulib does that now.
+	* lib/dup2.c, m4/dup2.m4: New files, from gnulib.
+
+2011-06-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lib/getopt.c, lib/stat.c, m4/gl-comp.m4: Merge from gnulib.
+
+2011-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use gnulib's alloca-opt module.
+	* .bzrignore: Add lib/alloca.h.
+	* Makefile.in (GNULIB_MODULES): Add alloca-opt.
+	* configure.in (AC_FUNC_ALLOCA): Remove almost all the alloca stuff,
+	as gnulib now does that for us.  Put alloca check in config.h.
+	Include <alloca.h> before any other include file, for AIX 3.
+	* lib/gnulib.mk, m4/gl-comp.m4: Regenerate.
+	* lib/alloca.in.h, m4/alloca.m4: New files, from gnulib.
+
+2011-06-21  Leo Liu  <sdl.web@gmail.com>
+
+	* m4/sha256.m4:
+	* m4/sha512.m4:
+	* m4/gl-comp.m4:
+	* lib/u64.h:
+	* lib/sha256.c:
+	* lib/sha256.h:
+	* lib/sha512.c:
+	* lib/sha512.h:
+	* lib/makefile.w32-in (GNULIBOBJS):
+	* lib/gnulib.mk:
+	* Makefile.in (GNULIB_MODULES): Add crypto/sha256 and
+	crypto/sha512 modules from gnulib.
+
 2011-06-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lib/unistd.in.h, m4/getloadavg.m4: Merge from gnulib.
