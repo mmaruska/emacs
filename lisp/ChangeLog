@@ -1,3 +1,29 @@
+2011-06-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-send-it): Leave off changing the
+	buffer multibyteness, since it shouldn't matter.
+
+2011-06-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-in-side-window): Handle dedicated
+	windows as in display-buffer-reuse-window.
+	(display-buffer-normalize-alist): Use value of override
+	specifier.
+	(display-buffer-normalize-specifiers): Use value of
+	other-window-means-other-frame specifier.
+	(display-buffer-alist): Rewrite some texts in widgets.
+	(display-buffer): Spread arguments when calling function
+	specified by fun-with-args.
+
+2011-06-28  Deniz Dogan  <deniz@dogan.se>
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table): Unnest
+	`let'.
+
+	* textmodes/css-mode.el (css-font-lock-keywords): Fix grouped
+	selectors (Bug#5732).
+	(css-proprietary-nmstart-re): Use `regexp-opt'.
+
 2011-06-27  Jari Aalto  <jari.aalto@cante.net>
 
 	* eshell/em-ls.el: Display `ls -l' dates in ISO format (Bug#8440).
