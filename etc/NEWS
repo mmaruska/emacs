@@ -111,6 +111,10 @@ and pops down the *Completions* buffer accordingly.
 *** `completing-read' can be customized using the new variable
 `completing-read-function'.
 
+*** minibuffer-local-filename-must-match-map is not used any more.
+Instead, the bindings in minibuffer-local-filename-completion-map are combined
+with minibuffer-local-must-match-map.
+
 ** auto-mode-case-fold is now enabled by default.
 
 ** smtpmail changes
@@ -481,7 +485,7 @@ Just set shell-dir-cookie-re to an appropriate regexp.
 
 ** FIXME: xdg-open for browse-url and reportbug, 2010/08.
 
-** Archive Mode has basic support to browse 7z archives.
+** Archive Mode has basic support to browse and update 7z archives.
 
 ** browse-url has gotten a new variable that is used for mailto: URLs,
 `browse-url-mailto-function', which defaults to `browse-url-mail'.
@@ -803,6 +807,10 @@ binding `log-view-expanded-log-entry-function' to a suitable function.
 *** New command `vc-ediff' allows visual comparison of two revisions
 of a file similar to `vc-diff', but using ediff backend.
 
+** CC Mode (C, C++, etc.)
+
+*** New feature to "guess" the style in an existing buffer.
+
 ** Miscellaneous
 
 +++
@@ -1090,6 +1098,7 @@ as well as those in the -*- line.
 ---
 ** rx.el has a new `group-n' construct for explicitly numbered groups.
 
+** keymaps can inherit from multiple parents.
 
 * Changes in Emacs 24.1 on non-free operating systems
 

@@ -34,9 +34,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <X11/Xproto.h>
 
+#ifdef HAVE_GSETTINGS
+#include <glib-object.h>
+#include <gio/gio.h>
+#else
 #ifdef HAVE_GCONF
 #include <gconf/gconf-client.h>
 #endif
+#endif
+
 #ifdef HAVE_XFT
 #include <X11/Xft/Xft.h>
 #endif
@@ -48,11 +54,6 @@ static Lisp_Object Qmonospace_font_name, Qfont_name, Qfont_render,
   Qtool_bar_style;
 static Lisp_Object current_tool_bar_style;
 
-#ifdef HAVE_GCONF
-static GConfClient *gconf_client;
-#endif
-
-
 static void
 store_config_changed_event (Lisp_Object arg, Lisp_Object display_name)
 {
@@ -63,6 +64,39 @@ store_config_changed_event (Lisp_Object arg, Lisp_Object display_name)
   event.arg = arg;
   kbd_buffer_store_event (&event);
 }
+
+static void
+store_monospaced_changed (const char *newfont)
+{
+  if (current_mono_font != NULL && strcmp (newfont, current_mono_font) == 0)
+    return; /* No change. */
+
+  xfree (current_mono_font);
+  current_mono_font = xstrdup (newfont);
+
+  if (first_dpyinfo != NULL && use_system_font)
+    {
+      /* Check if display still open */
+      struct x_display_info *dpyinfo;
+      int found = 0;
+      for (dpyinfo = x_display_list; !found && dpyinfo; dpyinfo = dpyinfo->next)
+        found = dpyinfo == first_dpyinfo;
+
+      if (found)
+        store_config_changed_event (Qmonospace_font_name,
+                                    XCAR (first_dpyinfo->name_list_element));
+    }
+}
+
+
+#ifdef HAVE_GSETTINGS
+static GSettings *gsettings_client;
+#else
+#ifdef HAVE_GCONF
+static GConfClient *gconf_client;
+#endif
+#endif
+
 
 #define XSETTINGS_FONT_NAME       "Gtk/FontName"
 #define XSETTINGS_TOOL_BAR_STYLE  "Gtk/ToolbarStyle"
@@ -91,10 +125,37 @@ struct xsettings
   unsigned seen;
 };
 
-#ifdef HAVE_GCONF
+#ifdef HAVE_GSETTINGS
+#define GSETTINGS_SCHEMA  "org.gnome.desktop.interface"
+#define SYSTEM_MONO_FONT  "monospace-font-name"
 
-#define SYSTEM_MONO_FONT     "/desktop/gnome/interface/monospace_font_name"
-#define SYSTEM_FONT          "/desktop/gnome/interface/font_name"
+static void
+something_changedCB (GSettings *settings,
+                     gchar *key,
+                     gpointer user_data)
+{
+  GVariant *val;
+  if (strcmp (key, SYSTEM_MONO_FONT) != 0) return;
+  val = g_settings_get_value (settings, SYSTEM_MONO_FONT);
+  if (val)
+    {
+      g_variant_ref_sink (val);
+      if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+        {
+          const gchar *newfont = g_variant_get_string (val, NULL);
+          store_monospaced_changed (newfont);
+        }
+      g_variant_unref (val);
+    }
+}
+
+#else
+#ifdef HAVE_GCONF
+#define SYSTEM_MONO_FONT  "/desktop/gnome/interface/monospace_font_name"
+
+#ifdef HAVE_XFT
+# define SYSTEM_FONT       "/desktop/gnome/interface/font_name"
+#endif
 
 /* Callback called when something changed in GConf that we care about,
    that is SYSTEM_MONO_FONT.  */
@@ -111,28 +172,12 @@ something_changedCB (GConfClient *client,
   if (v->type == GCONF_VALUE_STRING)
     {
       const char *value = gconf_value_get_string (v);
-      if (current_mono_font != NULL && strcmp (value, current_mono_font) == 0)
-        return; /* No change. */
-
-      xfree (current_mono_font);
-      current_mono_font = xstrdup (value);
-    }
-
-
-  if (first_dpyinfo != NULL)
-    {
-      /* Check if display still open */
-      struct x_display_info *dpyinfo;
-      int found = 0;
-      for (dpyinfo = x_display_list; !found && dpyinfo; dpyinfo = dpyinfo->next)
-        found = dpyinfo == first_dpyinfo;
-
-      if (found && use_system_font)
-        store_config_changed_event (Qmonospace_font_name,
-                                    XCAR (first_dpyinfo->name_list_element));
+      store_monospaced_changed (value);
     }
 }
+
 #endif /* HAVE_GCONF */
+#endif /* ! HAVE_GSETTINGS */
 
 #ifdef HAVE_XFT
 
@@ -632,9 +677,46 @@ xft_settings_event (struct x_display_info *dpyinfo, XEvent *event)
 
 
 static void
+init_gsettings (void)
+{
+#ifdef HAVE_GSETTINGS
+  GVariant *val;
+  const gchar *const *schemas;
+  int schema_found = 0;
+
+#ifdef HAVE_G_TYPE_INIT
+  g_type_init ();
+#endif
+
+  schemas = g_settings_list_schemas();
+  if (schemas == NULL) return;
+  while (! schema_found && *schemas != NULL)
+    schema_found = strcmp (*schemas++, GSETTINGS_SCHEMA) == 0;
+  if (!schema_found) return;
+
+  gsettings_client = g_settings_new (GSETTINGS_SCHEMA);
+  if (!gsettings_client) return;
+  g_object_ref_sink (G_OBJECT (gsettings_client));
+
+  val = g_settings_get_value (gsettings_client, SYSTEM_MONO_FONT);
+  if (val)
+    {
+      g_variant_ref_sink (val);
+      if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+        current_mono_font = xstrdup (g_variant_get_string (val, NULL));
+      g_variant_unref (val);
+    }
+
+  g_signal_connect (G_OBJECT (gsettings_client), "changed",
+                    G_CALLBACK (something_changedCB), NULL);
+#endif /* HAVE_GSETTINGS */
+}
+
+
+static void
 init_gconf (void)
 {
-#if defined (HAVE_GCONF) && defined (HAVE_XFT)
+#if defined (HAVE_GCONF) && defined (HAVE_XFT) && ! defined (HAVE_GSETTINGS)
   char *s;
 
 #ifdef HAVE_G_TYPE_INIT
@@ -662,7 +744,7 @@ init_gconf (void)
                            SYSTEM_MONO_FONT,
                            something_changedCB,
                            NULL, NULL, NULL);
-#endif /* HAVE_GCONF && HAVE_XFT */
+#endif /* HAVE_GCONF && HAVE_XFT && ! HAVE_GSETTINGS */
 }
 
 static void
@@ -687,6 +769,7 @@ void
 xsettings_initialize (struct x_display_info *dpyinfo)
 {
   if (first_dpyinfo == NULL) first_dpyinfo = dpyinfo;
+  init_gsettings ();
   init_gconf ();
   init_xsettings (dpyinfo);
 }
@@ -746,8 +829,12 @@ syms_of_xsettings (void)
   current_mono_font = NULL;
   current_font = NULL;
   first_dpyinfo = NULL;
+#ifdef HAVE_GSETTINGS
+  gsettings_client = NULL;
+#else
 #ifdef HAVE_GCONF
   gconf_client = NULL;
+#endif
 #endif
 
   DEFSYM (Qmonospace_font_name, "monospace-font-name");
@@ -769,7 +856,7 @@ If this variable is nil, Emacs ignores system font changes.  */);
 
 #ifdef HAVE_XFT
   Fprovide (intern_c_string ("font-render-setting"), Qnil);
-#ifdef HAVE_GCONF
+#if defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
   Fprovide (intern_c_string ("system-font-setting"), Qnil);
 #endif
 #endif
