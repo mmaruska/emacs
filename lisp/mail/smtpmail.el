@@ -71,9 +71,11 @@
   :group 'mail)
 
 
-(defvar smtpmail-default-smtp-server nil
+(defcustom smtpmail-default-smtp-server nil
   "Specify default SMTP server.
-This only has effect if you specify it before loading the smtpmail library.")
+This only has effect if you specify it before loading the smtpmail library."
+  :type '(choice (const nil) string)
+  :group 'smtpmail)
 
 (defcustom smtpmail-smtp-server
   (or (getenv "SMTPSERVER") smtpmail-default-smtp-server)
@@ -96,13 +98,14 @@ don't define this value."
 
 (defcustom smtpmail-stream-type nil
   "Connection type SMTP connections.
-This may be either nil (plain connection) or `starttls' (use the
-starttls mechanism to turn on TLS security after opening the
-stream)."
+This may be either nil (possibly upgraded to STARTTLS if
+possible), or `starttls' (refuse to send if STARTTLS isn't
+available), or `plain' (never use STARTTLS).."
   :version "24.1"
   :group 'smtpmail
-  :type '(choice (const :tag "Plain" nil)
-		 (const starttls)))
+  :type '(choice (const :tag "Possibly upgrade to STARTTLS" nil)
+		 (const :tag "Always use STARTTLS" starttls)
+		 (const :tag "Never use STARTTLS" plain)))
 
 (defcustom smtpmail-sendto-domain nil
   "Local domain name without a host name.
@@ -785,10 +788,11 @@ The list is in preference order.")
 		  nil)
 		 ((and auth-mechanisms
 		       (not ask-for-password)
-		       (= (car result) 550))
-		  ;; We got a "550 relay not permitted", and the server
-		  ;; accepts credentials, so we try again, but ask for a
-		  ;; password first.
+		       (>= (car result) 550)
+		       (<= (car result) 554))
+		  ;; We got a "550 relay not permitted" (or the like),
+		  ;; and the server accepts credentials, so we try
+		  ;; again, but ask for a password first.
 		  (smtpmail-send-command process "QUIT")
 		  (smtpmail-read-response process)
 		  (delete-process process)

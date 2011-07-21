@@ -1008,10 +1008,10 @@ Pre-defined symbols include `gnus-group-tool-bar-gnome' and
   '((gnus-group-post-news "mail/compose")
     ;; Some useful agent icons?  I don't use the agent so agent users should
     ;; suggest useful commands:
-    (gnus-agent-toggle-plugged "disconnect" t
+    (gnus-agent-toggle-plugged "unplugged" t
 			       :help "Gnus is currently unplugged.  Click to work online."
      			       :visible (and gnus-agent (not gnus-plugged)))
-    (gnus-agent-toggle-plugged "connect" t
+    (gnus-agent-toggle-plugged "plugged" t
 			       :help "Gnus is currently plugged.  Click to work offline."
      			       :visible (and gnus-agent gnus-plugged))
     ;; FIXME: gnus-agent-toggle-plugged (in gnus-agent-group-make-menu-bar)
@@ -2282,6 +2282,8 @@ Return the name of the group if selection was successful."
     (gnus-group-completing-read)
     (gnus-read-method "From method")))
   ;; Transform the select method into a unique server.
+  (unless (gnus-alive-p)
+    (gnus-no-server))
   (when (stringp method)
     (setq method (gnus-server-to-method method)))
   (setq method
@@ -2296,11 +2298,14 @@ Return the name of the group if selection was successful."
      `(-1 nil (,group
 	       ,gnus-level-default-subscribed nil nil ,method
 	       ,(cons
-		 (if quit-config
-		     (cons 'quit-config quit-config)
+		 (cond
+		  (quit-config
+		   (cons 'quit-config quit-config))
+		  ((assq gnus-current-window-configuration
+			 gnus-buffer-configuration)
 		   (cons 'quit-config
 			 (cons gnus-summary-buffer
-			       gnus-current-window-configuration)))
+			       gnus-current-window-configuration))))
 		 parameters)))
      gnus-newsrc-hashtb)
     (push method gnus-ephemeral-servers)
@@ -2428,25 +2433,28 @@ the bug number, and browsing the URL must return mbox output."
   :version "24.1"
   :type '(repeat (cons (symbol) (string :tag "URL format string"))))
 
-(defun gnus-read-ephemeral-bug-group (number mbox-url &optional window-conf)
+(defun gnus-read-ephemeral-bug-group (ids mbox-url &optional window-conf)
   "Browse bug NUMBER as ephemeral group."
   (interactive (list (read-string "Enter bug number: "
 				  (thing-at-point 'word) nil)
 		     ;; FIXME: Add completing-read from
 		     ;; `gnus-emacs-bug-group-download-format' ...
 		     (cdr (assoc 'emacs gnus-bug-group-download-format-alist))))
-  (when (stringp number)
-    (setq number (string-to-number number)))
+  (when (stringp ids)
+    (setq ids (string-to-number ids)))
+  (unless (listp ids)
+    (setq ids (list ids)))
   (let ((tmpfile (mm-make-temp-file "gnus-temp-group-"))
 	(coding-system-for-write 'binary)
 	(coding-system-for-read 'binary))
     (with-temp-file tmpfile
-      (url-insert-file-contents (format mbox-url number))
+      (dolist (id ids)
+	(url-insert-file-contents (format mbox-url id)))
       (goto-char (point-min))
       ;; Add the debbugs address so that we can respond to reports easily.
       (while (re-search-forward "^To: " nil t)
 	(end-of-line)
-	(insert (format ", %s@%s" number
+	(insert (format ", %s@%s" (car ids)
 			(gnus-replace-in-string
 			 (gnus-replace-in-string mbox-url "^http://" "")
 			 "/.*$" ""))))
@@ -2466,19 +2474,23 @@ the bug number, and browsing the URL must return mbox output."
    number
    (cdr (assoc 'debian gnus-bug-group-download-format-alist))))
 
-(defun gnus-read-ephemeral-emacs-bug-group (number &optional window-conf)
-  "Browse Emacs bug NUMBER as ephemeral group."
+(defvar debbugs-gnu-bug-number)		; debbugs-gnu
+
+(defun gnus-read-ephemeral-emacs-bug-group (ids &optional window-conf)
+  "Browse Emacs bugs IDS as an ephemeral group."
   (interactive (list (string-to-number
 		      (read-string "Enter bug number: "
 				   (thing-at-point 'word) nil))))
+  (unless (listp ids)
+    (setq ids (list ids)))
   (gnus-read-ephemeral-bug-group
-   number
+   ids
    (cdr (assoc 'emacs gnus-bug-group-download-format-alist))
    window-conf)
-  (when (boundp 'debbugs-summary-mode)
+  (when (fboundp 'debbugs-gnu-summary-mode)
     (with-current-buffer (window-buffer (selected-window))
-      (debbugs-summary-mode 1)
-      (set (make-local-variable 'debbugs-bug-number) number))))
+      (debbugs-gnu-summary-mode 1)
+      (set (make-local-variable 'debbugs-gnu-bug-number) (car ids)))))
 
 (defun gnus-group-jump-to-group (group &optional prompt)
   "Jump to newsgroup GROUP.

@@ -1,3 +1,63 @@
+2011-07-18  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* charsets/GB180302.map: Update to 2005 edition.
+	* charsets/GB180304.map: Likewise.
+
+2011-07-17  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.93.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.2.93.
+
+2011-07-16  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.92.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.2.92.
+
+2011-07-12  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.91.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.2.91.
+
+	* MH-E-NEWS: Mention that SourceForge MH-E users will have to
+	update their load-paths.
+
+2011-07-10  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.90.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.2.90.
+
+2011-07-07  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* themes/tsdh-light-theme.el:
+	* themes/tsdh-dark-theme.el: Make `gnus-button' face inherit from
+	`button', `gnus-header-name' boxed, and define `rcirc-my-nick'
+	face.
+
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* NEWS: Clarify `smtpmail-auth-credentials' non-existence.
+	Mention the `send-mail-function' default change.
+
+2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* themes/dichromacy-theme.el:
+	* themes/tango-theme.el:
+	* themes/tango-dark-theme.el:
+	* themes/wheatgrass-theme.el: Don't define button face separately;
+	it inherits from link now.
+
+2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* NEWS: Clarify that `smtpmail-starttls-credentials' doesn't exist.
+
+2011-07-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document new emacs-lock.el and renaming of old one.
+
 2011-07-05  Manoj Srivastava  <srivasta@ieee.org>
 
 	* themes/manoj-dark-theme.el (manoj-dark): New file.

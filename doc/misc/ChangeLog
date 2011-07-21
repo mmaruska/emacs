@@ -1,3 +1,35 @@
+2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* flymake.texi (Example -- Configuring a tool called via make):
+	Use /dev/null instead of the Windows "nul" (bug#8715).
+
+2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* widget.texi (Setting Up the Buffer): Remove mention of the
+	global keymap parent, which doesn't seem to be accurate
+	(bug#7045).
+
+2010-07-10  Kevin Ryde  <user42@zip.com.au>
+
+	* cl.texi (For Clauses): Add destructuring example processing an
+	alist (bug#6596).
+
+2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* org.texi (Special agenda views): Fix double quoting (bug#3509).
+
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* ediff.texi (Major Entry Points): Remove mention of `require',
+	since that's not pertinent in the installed Emacs (bug#9016).
+
+2011-07-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Expiring Mail): Document gnus-auto-expirable-marks.
+	(Filtering New Groups): Clarify how simple the "options -n" format is.
+	(Agent Expiry): Remove mention of `gnus-request-expire-articles', which
+	is internal.
+
 2011-07-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Cleanup remote connections): Add

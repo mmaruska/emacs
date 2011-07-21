@@ -1258,7 +1258,7 @@ emacs_blocked_realloc (void *ptr, size_t size, const void *ptr2)
    calls malloc because it is the first call, and we have an endless loop.  */
 
 void
-reset_malloc_hooks ()
+reset_malloc_hooks (void)
 {
   __free_hook = old_free_hook;
   __malloc_hook = old_malloc_hook;
@@ -4415,18 +4415,18 @@ valid_pointer_p (void *p)
 #ifdef WINDOWSNT
   return w32_valid_pointer_p (p, 16);
 #else
-  int fd;
+  int fd[2];
 
   /* Obviously, we cannot just access it (we would SEGV trying), so we
      trick the o/s to tell us whether p is a valid pointer.
      Unfortunately, we cannot use NULL_DEVICE here, as emacs_write may
      not validate p in that case.  */
 
-  if ((fd = emacs_open ("__Valid__Lisp__Object__", O_CREAT | O_WRONLY | O_TRUNC, 0666)) >= 0)
+  if (pipe (fd) == 0)
     {
-      int valid = (emacs_write (fd, (char *)p, 16) == 16);
-      emacs_close (fd);
-      unlink ("__Valid__Lisp__Object__");
+      int valid = (emacs_write (fd[1], (char *) p, 16) == 16);
+      emacs_close (fd[1]);
+      emacs_close (fd[0]);
       return valid;
     }
 
@@ -5619,7 +5619,8 @@ mark_buffer (Lisp_Object buf)
   /* buffer-local Lisp variables start at `undo_list',
      tho only the ones from `name' on are GC'd normally.  */
   for (ptr = &buffer->BUFFER_INTERNAL_FIELD (name);
-       (char *)ptr < (char *)buffer + sizeof (struct buffer);
+       ptr <= &PER_BUFFER_VALUE (buffer,
+				 PER_BUFFER_VAR_OFFSET (LAST_FIELD_PER_BUFFER));
        ptr++)
     mark_object (*ptr);
 
@@ -5732,7 +5733,7 @@ gc_sweep (void)
 	int ilim = (lim + BITS_PER_INT - 1) / BITS_PER_INT;
 
 	/* Scan the mark bits an int at a time.  */
-	for (i = 0; i <= ilim; i++)
+	for (i = 0; i < ilim; i++)
 	  {
 	    if (cblk->gcmarkbits[i] == -1)
 	      {
