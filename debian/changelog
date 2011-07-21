@@ -1,8 +1,9 @@
 emacs-snapshot (1:20110721-1) unstable; urgency=low
 
   * New snapshot.
+  * Update libjpeg build dep.
 
- -- Julien Danjou <acid@debian.org>  Thu, 21 Jul 2011 09:39:43 +0200
+ -- Julien Danjou <acid@debian.org>  Thu, 21 Jul 2011 11:39:49 +0200
 
 emacs-snapshot (1:20110705-1) unstable; urgency=low
 
