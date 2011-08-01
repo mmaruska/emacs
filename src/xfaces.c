@@ -940,11 +940,13 @@ the pixmap.  Bits are stored row by row, each row occupies
 	    }
 	}
 
-      if (NATNUMP (width) && NATNUMP (height) && STRINGP (data))
+      if (STRINGP (data)
+	  && INTEGERP (width) && 0 < XINT (width)
+	  && INTEGERP (height) && 0 < XINT (height))
 	{
-	  int bytes_per_row = ((XFASTINT (width) + BITS_PER_CHAR - 1)
-			       / BITS_PER_CHAR);
-	  if (SBYTES (data) >= bytes_per_row * XINT (height))
+	  EMACS_INT bytes_per_row = ((XINT (width) + BITS_PER_CHAR - 1)
+				     / BITS_PER_CHAR);
+	  if (XINT (height) <= SBYTES (data) / bytes_per_row)
 	    pixmap_p = 1;
 	}
     }
@@ -1918,7 +1920,8 @@ check_lface_attrs (Lisp_Object *attrs)
 	   || IGNORE_DEFFACE_P (attrs[LFACE_FONT_INDEX])
 	   || FONTP (attrs[LFACE_FONT_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_FONTSET_INDEX])
-	   || STRINGP (attrs[LFACE_FONTSET_INDEX]));
+	   || STRINGP (attrs[LFACE_FONTSET_INDEX])
+	   || NILP (attrs[LFACE_FONTSET_INDEX]));
 #endif
 }
 
