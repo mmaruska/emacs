@@ -526,6 +526,20 @@ but optional second arg NODIGITS non-nil treats them like other chars."
 	  (define-key map (char-to-string loop) 'digit-argument)
 	  (setq loop (1+ loop))))))
 
+(defun make-composed-keymap (maps &optional parent)
+  "Construct a new keymap composed of MAPS and inheriting from PARENT.
+When looking up a key in the returned map, the key is looked in each
+keymap of MAPS in turn until a binding is found.
+If no binding is found in MAPS, the lookup continues in PARENT, if non-nil.
+As always with keymap inheritance, a nil binding in MAPS overrides
+any corresponding binding in PARENT, but it does not override corresponding
+bindings in other keymaps of MAPS.
+MAPS can be a list of keymaps or a single keymap.
+PARENT if non-nil should be a keymap."
+  `(keymap
+    ,@(if (keymapp maps) (list maps) maps)
+    ,@parent))
+
 (defun define-key-after (keymap key definition &optional after)
   "Add binding in KEYMAP for KEY => DEFINITION, right after AFTER's binding.
 This is like `define-key' except that the binding for KEY is placed
@@ -3524,6 +3538,31 @@ If IGNORE-CASE is non-nil, the comparison is done without paying attention
 to case differences."
   (eq t (compare-strings str1 nil nil
                          str2 0 (length str1) ignore-case)))
+
+(defun string-mark-left-to-right (str)
+  "Return a string that can be safely inserted in left-to-right text.
+If STR contains right-to-left (RTL) script, return a string
+consisting of STR followed by a terminating invisible
+left-to-right mark (LRM) character.
+
+The LRM character marks the end of an RTL segment, and resets the
+display direction of any subsequent text to left-to-right.
+\(Otherwise, some of that text might be displayed as part of the
+RTL segment, based on the bidirectional display algorithm.)
+
+If STR contains no RTL characters, return STR."
+  (unless (stringp str)
+    (signal 'wrong-type-argument (list 'stringp str)))
+  (let ((len (length str))
+	(n 0)
+	rtl-found)
+    (while (and (not rtl-found) (< n len))
+      (setq rtl-found (memq (get-char-code-property
+			     (aref str n) 'bidi-class) '(R AL RLO))
+	    n (1+ n)))
+    (if rtl-found
+	(concat str (propertize (string ?\x200e) 'invisible t))
+      str)))
 
 ;;;; invisibility specs
 
