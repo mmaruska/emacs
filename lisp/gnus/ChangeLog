@@ -1,3 +1,92 @@
+2011-08-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nntp.el (nntp-authinfo-file): Mark as obsolete -- use auth-source
+	instead.
+
+	* pop3.el (pop3-wait-for-messages): Don't use Gnus functions here.
+
+	* gnus-util.el (gnus-process-live-p): Copy over compat function.
+
+	* pop3.el (pop3-wait-for-messages): If the pop3 process dies, stop
+	processing.
+
+	* nntp.el (nntp-kill-buffer): Kill the process before killing the
+	buffer to avoid warnings.
+
+2011-08-20  Simon Josefsson  <simon@josefsson.org>
+
+	* gnus-agent.el (gnus-agent-expire-done-message): Use %.f as format
+	specified to reduce precision.
+
+2011-08-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-transform-headers): Protect against (NIL ...)
+	bodystructures (bug#9314).
+
+2011-08-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-insert-mime-button, gnus-mime-display-alternative):
+	Make button keymap non-sticky after buttons.
+
+2011-08-18  David Engster  <dengste@eml.cc>
+
+	* nnmairix.el (nnmairix-request-set-mark)
+	(nnmairix-goto-original-article): Remove adding of article to registry,
+	since `gnus-registry-add-group' isn't available anymore.
+	(nnmairix-determine-original-group-from-registry): Use
+	`gnus-registry-get-id-key' since `gnus-registry-fetch-groups' isn't
+	available anymore.
+
+2011-08-12  Simon Josefsson  <simon@josefsson.org>
+
+	* starttls.el (starttls-any-program-available): Define as obsolete
+	function.
+
+2011-08-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-util.el (gnus-y-or-n-p): Reinstate the message-clearing y-or-n-p
+	versions which Gnus use when appropriate.
+
+	* gnus-group.el (gnus-group-clear-data): Add a y-or-n query, since it's
+	a pretty destructive command.
+
+	* nnmail.el (nnmail-extra-headers): Clarify slightly (bug#9302).
+
+2011-08-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-fix-before-sending): Make a different warning
+	about NUL characters (bug#9270).
+
+	* gnus-sum.el (gnus-auto-select-subject): Allow specifying a function
+	from custom (bug#9260).
+
+	* gnus-spec.el (gnus-lrm-string): Use 8206 instead of ?\x200e to make
+	things work in Emacs 22 and XEmacs, too.
+
+	* gnus-sum.el (gnus-summary-from-or-to-or-newsgroups): LRM-ify the
+	default From.
+
+	* gnus-spec.el (gnus-lrm-string-p): New macro.
+	(gnus-lrm-string): New constant.
+	(gnus-summary-line-format-spec): LRM-ify the from.
+	(gnus-tilde-max-form): LRM-ify string chopping.
+
+	* gnus-ems.el (gnus-string-mark-left-to-right): New function.
+
+	* message.el (message-is-yours-p): Allow disabling canlock checking
+	(bug#9295).
+	(message-shoot-gnksa-feet): Add `canlock-verify'.
+	(message-auto-save-directory): Use ~/ as the auto-save directory if the
+	message directory isn't writable (bug#9304).
+
+	* auth-source.el (auth-source-netrc-saver): Make the .authinfo file
+	non-world-readable.
+
+2011-08-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nndraft.el (nndraft-update-unread-articles): Don't send delayed
+	articles.
+
 2011-08-13  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* gnus-score.el (gnus-all-score-files): Use copy-sequence instead of

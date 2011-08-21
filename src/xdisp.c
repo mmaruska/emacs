@@ -8037,8 +8037,12 @@ move_it_in_display_line_to (struct it *it,
 	      if (!saw_smaller_pos && IT_CHARPOS (*it) > to_charpos)
 		{
 		  if (IT_CHARPOS (ppos_it) < ZV)
-		    RESTORE_IT (it, &ppos_it, ppos_data);
-		  goto buffer_pos_reached;
+		    {
+		      RESTORE_IT (it, &ppos_it, ppos_data);
+		      result = MOVE_POS_MATCH_OR_ZV;
+		    }
+		  else
+		    goto buffer_pos_reached;
 		}
 	      else if (it->line_wrap == WORD_WRAP && atpos_it.sp >= 0
 		       && IT_CHARPOS (*it) > to_charpos)
@@ -8089,7 +8093,8 @@ move_it_in_display_line_to (struct it *it,
 		{
 		  if (!at_eob_p && IT_CHARPOS (ppos_it) < ZV)
 		    RESTORE_IT (it, &ppos_it, ppos_data);
-		  goto buffer_pos_reached;
+		  result = MOVE_POS_MATCH_OR_ZV;
+		  break;
 		}
 	      if (ITERATOR_AT_END_OF_LINE_P (it))
 		{
@@ -8103,7 +8108,8 @@ move_it_in_display_line_to (struct it *it,
 	    {
 	      if (IT_CHARPOS (ppos_it) < ZV)
 		RESTORE_IT (it, &ppos_it, ppos_data);
-	      goto buffer_pos_reached;
+	      result = MOVE_POS_MATCH_OR_ZV;
+	      break;
 	    }
 	  result = MOVE_LINE_TRUNCATED;
 	  break;
@@ -13745,11 +13751,13 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
       /* that candidate is not the row we are processing */
       && MATRIX_ROW (matrix, w->cursor.vpos) != row
       /* Make sure cursor.vpos specifies a row whose start and end
-	 charpos occlude point.  This is because some callers of this
-	 function leave cursor.vpos at the row where the cursor was
-	 displayed during the last redisplay cycle.  */
+	 charpos occlude point, and it is valid candidate for being a
+	 cursor-row.  This is because some callers of this function
+	 leave cursor.vpos at the row where the cursor was displayed
+	 during the last redisplay cycle.  */
       && MATRIX_ROW_START_CHARPOS (MATRIX_ROW (matrix, w->cursor.vpos)) <= pt_old
-      && pt_old <= MATRIX_ROW_END_CHARPOS (MATRIX_ROW (matrix, w->cursor.vpos)))
+      && pt_old <= MATRIX_ROW_END_CHARPOS (MATRIX_ROW (matrix, w->cursor.vpos))
+      && cursor_row_p (MATRIX_ROW (matrix, w->cursor.vpos)))
     {
       struct glyph *g1 =
 	MATRIX_ROW_GLYPH_START (matrix, w->cursor.vpos) + w->cursor.hpos;
@@ -18378,15 +18386,22 @@ display_line (struct it *it)
 #define RECORD_MAX_MIN_POS(IT)					\
   do								\
     {								\
-      if (IT_CHARPOS (*(IT)) < min_pos)				\
+      int composition_p = (IT)->what == IT_COMPOSITION;		\
+      EMACS_INT current_pos =					\
+	composition_p ? (IT)->cmp_it.charpos			\
+		      : IT_CHARPOS (*(IT));			\
+      EMACS_INT current_bpos =					\
+	composition_p ? CHAR_TO_BYTE (current_pos)		\
+		      : IT_BYTEPOS (*(IT));			\
+      if (current_pos < min_pos)				\
 	{							\
-	  min_pos = IT_CHARPOS (*(IT));				\
-	  min_bpos = IT_BYTEPOS (*(IT));			\
+	  min_pos = current_pos;				\
+	  min_bpos = current_bpos;				\
 	}							\
-      if (IT_CHARPOS (*(IT)) > max_pos)				\
+      if (current_pos > max_pos)				\
 	{							\
-	  max_pos = IT_CHARPOS (*(IT));				\
-	  max_bpos = IT_BYTEPOS (*(IT));			\
+	  max_pos = current_pos;				\
+	  max_bpos = current_bpos;				\
 	}							\
     }								\
   while (0)

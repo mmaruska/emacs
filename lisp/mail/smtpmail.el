@@ -55,15 +55,12 @@
 ;;; Code:
 
 (require 'sendmail)
+(require 'auth-source)
 (autoload 'mail-strip-quoted-names "mail-utils")
 (autoload 'message-make-date "message")
 (autoload 'message-make-message-id "message")
 (autoload 'rfc2104-hash "rfc2104")
-(autoload 'netrc-parse "netrc")
-(autoload 'netrc-machine "netrc")
-(autoload 'netrc-get "netrc")
 (autoload 'password-read "password-cache")
-(autoload 'auth-source-search "auth-source")
 
 ;;;
 (defgroup smtpmail nil
@@ -87,6 +84,11 @@ This only has effect if you specify it before loading the smtpmail library."
   "SMTP service port number.
 The default value would be \"smtp\" or 25."
   :type '(choice (integer :tag "Port") (string :tag "Service"))
+  :group 'smtpmail)
+
+(defcustom smtpmail-smtp-user nil
+  "User name to use when looking up credentials."
+  :type '(choice (const nil) string)
   :group 'smtpmail)
 
 (defcustom smtpmail-local-domain nil
@@ -493,6 +495,7 @@ The list is in preference order.")
 		     (auth-source-search
 		      :host host
 		      :port port
+		      :user smtpmail-smtp-user
 		      :max 1
 		      :require (and ask-for-password
 				    '(:user :secret))
@@ -513,6 +516,7 @@ The list is in preference order.")
 	      :max 1
 	      :host host
 	      :port port
+	      :user smtpmail-smtp-user
 	      :require '(:user :secret)
 	      :create t))
 	    password (plist-get auth-info :secret)))

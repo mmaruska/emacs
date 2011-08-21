@@ -234,6 +234,9 @@ these image types, minus those listed in `imagemagick-types-inhibit'.
 
 See the Emacs Lisp Reference Manual for more information.
 
+** New basic faces `error', `warning', `success' are available to
+highlight strings that indicate failure, caution or successful operation.
+
 ** The colors for selected text (the region face) are taken from the GTK
 theme when Emacs is built with GTK.
 
@@ -404,7 +407,7 @@ If non-nil, C-d, [delete], and DEL delete the region if it is active
 and no prefix argument is given.  If set to `kill', these commands
 kill instead.
 
-*** New command `delete-forward-char', bound to C-d and [delete].
+*** New command `delete-forward-char', bound to [delete].
 This is meant for interactive use, and obeys `delete-active-region'.
 The command `delete-char' does not obey `delete-active-region'.
 
@@ -820,6 +823,11 @@ on a D-Bus without simultaneously registering a property or a method.
 *** The option `ange-ftp-binary-file-name-regexp' has changed its
 default value to "".
 
+** Rmail
+
+*** The command `rmail-epa-decrypt' decrypts OpenPGP data
+in the Rmail incoming message.
+
 ** VC and related modes
 
 *** Support for pulling on distributed version control systems.
@@ -1038,15 +1046,17 @@ of function value which looks like (closure ENV ARGS &rest BODY).
 *** New function `special-variable-p' to check whether a variable is
 declared as dynamically bound.
 
-** New function `string-mark-left-to-right'.
++++
+** New function `bidi-string-mark-left-to-right'.
 Given a string containing right-to-left (RTL) script, this function
-returns another string with a terminating LRM (left-to-right mark)
-character.  If this string is inserted into a buffer, Emacs treats the
-LRM as the end of an RTL segment and displays following text as LTR.
+returns another string which can be safely inserted into a buffer as a
+distinct RTL "segment", without causing any following text to be
+displayed as RTL.  (This is done by appending a Unicode "left-to-right
+mark" character.)
 
 This is useful when the buffer has overall left-to-right (LTR)
-paragraph direction and you need to insert a string whose contents
-(and hence directionality) are not known in advance.
+paragraph direction and you need to insert a string whose contents and
+directionality are not known in advance.
 
 ** pre/post-command-hook are not reset to nil upon error.
 Instead, the offending function is removed.

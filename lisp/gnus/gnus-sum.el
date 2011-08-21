@@ -375,7 +375,8 @@ place point on some subject line."
 		 (const unread)
 		 (const first)
 		 (const unseen)
-	         (const unseen-or-unread)))
+	         (const unseen-or-unread)
+		 (function :tag "Function to call")))
 
 (defcustom gnus-auto-select-next t
   "*If non-nil, offer to go to the next group from the end of the previous.
@@ -3709,7 +3710,9 @@ buffer that was in action when the last article was fetched."
                                 gnus-newsgroup-name)) 'nntp)
 		      (gnus-group-real-name gnus-newsgroup-name))))
 	      (concat gnus-summary-newsgroup-prefix newsgroups)))))
-     (inline (gnus-summary-extract-address-component gnus-tmp-from)))))
+     (gnus-string-mark-left-to-right
+      (inline
+       (gnus-summary-extract-address-component gnus-tmp-from))))))
 
 (defun gnus-summary-insert-line (gnus-tmp-header
 				 gnus-tmp-level gnus-tmp-current

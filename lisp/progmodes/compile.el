@@ -145,7 +145,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 
     (ant
      "^[ \t]*\\[[^] \n]+\\][ \t]*\\([^: \n]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\):\\)?\
-\\( warning\\)?" 1 (2 . 4) (3 . 5) (4))
+\\( warning\\)?" 1 (2 . 4) (3 . 5) (6))
 
     (bash
      "^\\([^: \n\t]+\\): line \\([0-9]+\\):" 1 2)
@@ -647,19 +647,19 @@ starting the compilation process.")
 (defvar compile-history nil)
 
 (defface compilation-error
-  '((t :inherit font-lock-warning-face))
+  '((t :inherit error))
   "Face used to highlight compiler errors."
   :group 'compilation
   :version "22.1")
 
 (defface compilation-warning
-  '((t :inherit font-lock-variable-name-face))
+  '((t :inherit warning))
   "Face used to highlight compiler warnings."
   :group 'compilation
   :version "22.1")
 
 (defface compilation-info
-  '((t :inherit font-lock-type-face))
+  '((t :inherit success))
   "Face used to highlight compiler information."
   :group 'compilation
   :version "22.1")
@@ -985,12 +985,15 @@ POS and RES.")
 	    (let* ((prev
 		    (or (get-text-property (1- prev-pos) 'compilation-message)
 			(get-text-property prev-pos 'compilation-message)))
-		   (prev-struct
-		    (car (nth 2 (car prev)))))
+		   (prev-file-struct
+		    (and prev
+			 (compilation--loc->file-struct
+			  (compilation--message->loc prev)))))
+
 	      ;; Construct FILE . DIR from that.
-	      (if prev-struct
-		  (setq file (cons (car prev-struct)
-				   (cadr prev-struct))))))
+	      (if prev-file-struct
+		  (setq file (cons (caar prev-file-struct)
+				   (cadr (car prev-file-struct)))))))
 	(unless file
 	  (setq file '("*unknown*")))))
     ;; All of these fields are optional, get them only if we have an index, and
