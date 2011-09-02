@@ -1,3 +1,23 @@
+2011-09-01  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus-sum.el: When adding article headers to a summary buffer also
+	update gnus-newsgroup-articles (bug#9386).
+
+2011-08-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* auth-source.el: Autoload help-mode.
+
+2011-08-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-name-charset): Don't bug out on server
+	names.
+
+2011-08-27  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml-smime.el (mml-smime-epg-verify): Don't use the 4th arg of
+	mm-replace-in-string for compatibility issues.
+	* mml2015.el (mml2015-epg-verify): Ditto.
+
 2011-08-26  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mailcap.el (mailcap-mime-data): Regexp-quote MIME subtype.
