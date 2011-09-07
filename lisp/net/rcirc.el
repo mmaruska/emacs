@@ -964,7 +964,13 @@ This number is independent of the number of lines in the buffer.")
   (setq mode-line-process nil)
 
   (set (make-local-variable 'rcirc-input-ring)
-       (make-ring rcirc-input-ring-size))
+       ;; If rcirc-input-ring is already a ring with desired size do
+       ;; not re-initialize.
+       (if (and (ring-p rcirc-input-ring)
+		(= (ring-size rcirc-input-ring)
+		   rcirc-input-ring-size))
+	   rcirc-input-ring
+	 (make-ring rcirc-input-ring-size)))
   (set (make-local-variable 'rcirc-server-buffer) (process-buffer process))
   (set (make-local-variable 'rcirc-target) target)
   (set (make-local-variable 'rcirc-topic) nil)
@@ -1556,18 +1562,16 @@ record activity."
 
 	  ;; keep window on bottom line if it was already there
 	  (when rcirc-scroll-show-maximum-output
-	    (walk-windows (lambda (w)
-			    (when (eq (window-buffer w) (current-buffer))
-			      (with-current-buffer (window-buffer w)
-				(when (eq major-mode 'rcirc-mode)
-				  (with-selected-window w
-				    (when (<= (- (window-height)
-						 (count-screen-lines (window-point)
-								     (window-start))
-						 1)
-					      0)
-				      (recenter -1)))))))
-				  nil t))
+	    (let ((window (get-buffer-window)))
+	      (when window
+		(with-selected-window window
+		  (when (eq major-mode 'rcirc-mode)
+		    (when (<= (- (window-height)
+				 (count-screen-lines (window-point)
+						     (window-start))
+				 1)
+			      0)
+		      (recenter -1)))))))
 
 	  ;; flush undo (can we do something smarter here?)
 	  (buffer-disable-undo)
