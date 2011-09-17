@@ -403,7 +403,7 @@ confflags += --with-crt-dir=/usr/lib/$(shell dpkg-architecture -qDEB_HOST_MULTIA
 # Emacs confflags
 emacs_confflags := ${confflags}
 emacs_confflags += --with-x=yes
-emacs_confflags += --with-x-toolkit=gtk
+emacs_confflags += --with-x-toolkit=gtk3
 emacs_confflags += --with-imagemagick=yes
 
 # Emacs-nox confflags
