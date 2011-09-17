@@ -1,6 +1,5 @@
 [Desktop Entry]
 Version=1.0
-Encoding=UTF-8
 Name=@MENU_TITLE@ (client)
 GenericName=Emacs
 Comment=GNU @MENU_TITLE@ Client
@@ -10,4 +9,4 @@ Terminal=false
 Type=Application
 Icon=emacs-snapshot
 Categories=Development;Utility;TextEditor;
-MimeType=text/plain
+MimeType=text/plain;
