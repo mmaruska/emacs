@@ -113,6 +113,8 @@ minor_ver := $(shell echo ${runtime_ver} | perl -pe 's/^[^.]*\.//o')
 debsrc_ver := $(shell echo ${debian_ver} | perl -pe 's/-[^-]+$$//o')
 upstream_ver := $(shell echo ${debian_ver} | cut -d: -f2 | cut -d- -f1)
 
+has_gtk3 := $(shell pkg-config --exists gtk+-3.0 && echo yes || echo no)
+
 # These are used for cross-compiling and for saving the configure script
 # from having to guess our platform (since we know it already)
 DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
@@ -403,7 +405,11 @@ confflags += --with-crt-dir=/usr/lib/$(shell dpkg-architecture -qDEB_HOST_MULTIA
 # Emacs confflags
 emacs_confflags := ${confflags}
 emacs_confflags += --with-x=yes
+ifeq ($(has_gtk3),yes)
 emacs_confflags += --with-x-toolkit=gtk3
+else
+emacs_confflags += --with-x-toolkit=gtk
+endif
 emacs_confflags += --with-imagemagick=yes
 
 # Emacs-nox confflags
