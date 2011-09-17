@@ -208,20 +208,6 @@ UPSTREAM_AUTOGEN_FILES := \
 
 movemail_bin := usr/lib/emacs/${runtime_ver}/${target}/movemail
 
-define checkdir
-	test -f debian/emacs.postinst
-	@if ! test -f src/emacs.c; \
-	then \
-	  echo; \
-	  echo -n "The upstream source does not appear to be available."; \
-	  echo "  Please put the contents"; \
-	  echo -n "of ${src_name}_${debsrc_ver}.orig.tar.gz into the"; \
-	  echo " current directory."; \
-	  echo; \
-	  false; \
-	fi
-endef
-
 define expand_file_subst_vars
 	sed -e "s%@SRC_NAME@%${src_name}%g" \
 	    -e "s%@BIN_NAME@%${bin_name}%g" \
