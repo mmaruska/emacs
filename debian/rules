@@ -427,7 +427,7 @@ check-distribution:
 			debian/patches/series ;				\
 	fi
 
-build: check-distribution build-stamp
+build-indep build-arch build: check-distribution build-stamp
 
 build-stamp: bootstrap emacs-nox emacs-lucid emacs
 	dh_testdir
