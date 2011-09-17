@@ -1,3 +1,10 @@
+emacs-snapshot (1:20110917-1) unstable; urgency=low
+
+  * New snapshot.
+  * Switch to GTK3.
+
+ -- Julien Danjou <acid@debian.org>  Sat, 17 Sep 2011 14:35:17 +0200
+
 emacs-snapshot (1:20110914-1) unstable; urgency=low
 
   * New snapshot.
