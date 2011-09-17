@@ -12,7 +12,7 @@ Build-Depends: libncurses5-dev,
                libxpm-dev,
                libxaw7-dev,
                libgtk2.0-dev,
-               dpkg-dev (>> 1.10.0),
+               dpkg-dev (>= 1.15.6),
                quilt (>= 0.42),
                debhelper (>= 5.0.0),
                libasound2-dev [!hurd-i386 !kfreebsd-i386 !kfreebsd-amd64],
@@ -37,7 +37,7 @@ Package: @BIN_NAME@-common
 Section: editors
 Priority: optional
 Architecture: all
-Pre-Depends: dpkg (>= 1.14.21)
+Pre-Depends: dpkg (>= 1.15.6)
 Depends: emacsen-common (>= 1.4.10), install-info, ${misc:Depends}
 Suggests: @BIN_NAME@-el
 Conflicts: @BIN_NAME@-el (<< ${binary:Version}),
@@ -55,7 +55,7 @@ Package: @BIN_NAME@-bin-common
 Section: editors
 Priority: optional
 Architecture: any
-Pre-Depends: dpkg (>= 1.14.21)
+Pre-Depends: dpkg (>= 1.15.6)
 Depends: @BIN_NAME@-common (= ${binary:Version}), ${shlibs:Depends},
          ${misc:Depends}
 Conflicts: @BIN_NAME@ (<< 1:20060120-2),
@@ -70,7 +70,7 @@ Package: @BIN_NAME@
 Section: editors
 Priority: optional
 Architecture: any
-Pre-Depends: dpkg (>= 1.14.21)
+Pre-Depends: dpkg (>= 1.15.6)
 Depends: @BIN_NAME@-bin-common (= ${binary:Version}), ${shlibs:Depends},
          ${misc:Depends}
 Provides: emacsen, editor, info-browser, mail-reader, news-reader
@@ -82,7 +82,7 @@ Package: @BIN_NAME@-gtk
 Section: editors
 Priority: extra
 Architecture: all
-Pre-Depends: dpkg (>= 1.14.21)
+Pre-Depends: dpkg (>= 1.15.6)
 Depends: @BIN_NAME@, ${misc:Depends}
 Description: The GNU Emacs editor (transitional package)
  Empty package to facilitate upgrades, can be safely removed.
@@ -91,7 +91,7 @@ Package: @BIN_NAME@-nox
 Section: editors
 Priority: optional
 Architecture: any
-Pre-Depends: dpkg (>= 1.14.21)
+Pre-Depends: dpkg (>= 1.15.6)
 Depends: @BIN_NAME@-bin-common (= ${binary:Version}), ${shlibs:Depends},
          ${misc:Depends}
 Provides: @BIN_NAME@, emacsen, editor, info-browser, mail-reader, news-reader
@@ -104,7 +104,7 @@ Package: @BIN_NAME@-lucid
 Section: editors
 Priority: optional
 Architecture: any
-Pre-Depends: dpkg (>= 1.14.21)
+Pre-Depends: dpkg (>= 1.15.6)
 Depends: @BIN_NAME@-bin-common (= ${binary:Version}), ${shlibs:Depends},
          ${misc:Depends}
 Provides: @BIN_NAME@, emacsen, editor, info-browser, mail-reader, news-reader
@@ -117,7 +117,7 @@ Package: @BIN_NAME@-el
 Section: editors
 Priority: optional
 Architecture: all
-Pre-Depends: dpkg (>= 1.14.21)
+Pre-Depends: dpkg (>= 1.15.6)
 Depends: @BIN_NAME@-common (= ${binary:Version}), ${misc:Depends}
 Description: GNU Emacs LISP (.el) files
  GNU Emacs is the extensible self-documenting text editor.
@@ -128,7 +128,7 @@ Package: @BIN_NAME@-dbg
 Section: debug
 Priority: extra
 Architecture: any
-Pre-Depends: dpkg (>= 1.14.21)
+Pre-Depends: dpkg (>= 1.15.6)
 Depends: @BIN_NAME@ (= ${binary:Version}) | @BIN_NAME@-nox (= ${binary:Version}),
          ${misc:Depends}
 Description: The GNU Emacs editor (debugging symbols)
