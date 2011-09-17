@@ -41,7 +41,6 @@ Pre-Depends: dpkg (>= 1.15.6)
 Depends: emacsen-common (>= 1.4.10), install-info, ${misc:Depends}
 Suggests: @BIN_NAME@-el
 Conflicts: @BIN_NAME@-el (<< ${binary:Version}),
-           w3-el,
            dictionaries-common (<< 0.60.0),
            @BIN_NAME@ (<< 1:20060120-2),
            @BIN_NAME@-gtk (<< 1:20060120-2),
@@ -74,7 +73,7 @@ Pre-Depends: dpkg (>= 1.15.6)
 Depends: @BIN_NAME@-bin-common (= ${binary:Version}), ${shlibs:Depends},
          ${misc:Depends}
 Provides: emacsen, editor, info-browser, mail-reader, news-reader
-Conflicts: w3-el, @BIN_NAME@-gtk (<= 1:20070824-1)
+Conflicts: @BIN_NAME@-gtk (<= 1:20070824-1)
 Description: The GNU Emacs editor@FLAVOUR_DESC@
  GNU Emacs is the extensible self-documenting text editor.
 
@@ -95,7 +94,6 @@ Pre-Depends: dpkg (>= 1.15.6)
 Depends: @BIN_NAME@-bin-common (= ${binary:Version}), ${shlibs:Depends},
          ${misc:Depends}
 Provides: @BIN_NAME@, emacsen, editor, info-browser, mail-reader, news-reader
-Conflicts: w3-el
 Description: The GNU Emacs editor (without X support)
  GNU Emacs is the extensible self-documenting text editor.
  This package contains a version of Emacs compiled without support for X.
@@ -108,7 +106,6 @@ Pre-Depends: dpkg (>= 1.15.6)
 Depends: @BIN_NAME@-bin-common (= ${binary:Version}), ${shlibs:Depends},
          ${misc:Depends}
 Provides: @BIN_NAME@, emacsen, editor, info-browser, mail-reader, news-reader
-Conflicts: w3-el
 Description: The GNU Emacs editor (with X support by lucid/athena toolkit)
  GNU Emacs is the extensible self-documenting text editor.
  This package contains a version of Emacs compiled with lucid toolkit.
