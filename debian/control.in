@@ -50,7 +50,7 @@ Description: The GNU Emacs editor's common infrastructure
 Package: @BIN_NAME@-bin-common
 Architecture: any
 Pre-Depends: dpkg (>= 1.15.6)
-Depends: @BIN_NAME@-common (= ${binary:Version}), ${shlibs:Depends},
+Depends: @BIN_NAME@-common (= ${source:Version}), ${shlibs:Depends},
          ${misc:Depends}
 Conflicts: @BIN_NAME@ (<< 1:20060120-2),
            @BIN_NAME@-gtk (<< 1:20060120-2),
@@ -101,7 +101,7 @@ Description: The GNU Emacs editor (with X support by lucid/athena toolkit)
 Package: @BIN_NAME@-el
 Architecture: all
 Pre-Depends: dpkg (>= 1.15.6)
-Depends: @BIN_NAME@-common (= ${binary:Version}), ${misc:Depends}
+Depends: @BIN_NAME@-common (= ${source:Version}), ${misc:Depends}
 Description: GNU Emacs LISP (.el) files
  GNU Emacs is the extensible self-documenting text editor.
  This package contains the elisp sources for the convenience of users,
