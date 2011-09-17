@@ -1,3 +1,2 @@
 @PKG_NAME@: extra-license-file usr/share/emacs/@FULL_VERSION@/etc/copying.paper
-@PKG_NAME@: wrong-name-for-upstream-changelog usr/share/doc/@PKG_NAME@/changelogs
 @PKG_NAME@: menu-command-not-in-package /usr/share/menu/@PKG_NAME@:7 /usr/bin/@BIN_NAME@
