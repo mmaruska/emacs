@@ -1,4 +1,6 @@
-#!/bin/sh -e
+#!/bin/sh
+
+set -e
 
 # b2m was removed in 20101016-1, clean up the alternative
 if [ "$1" = "upgrade" ] && \
