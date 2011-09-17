@@ -6441,6 +6441,8 @@ get_next_display_element (struct it *it)
 
 	      c = ' ';
 	      for (i = 0; i < cmp->glyph_len; i++)
+		/* TAB in a composition means display glyphs with
+		   padding space on the left or right.  */
 		if ((c = COMPOSITION_GLYPH (cmp, i)) != '\t')
 		  break;
 	    }
@@ -11916,9 +11918,9 @@ hscroll_window_tree (Lisp_Object window)
 		}
 	      hscroll = max (hscroll, XFASTINT (w->min_hscroll));
 
-	      /* Don't call Fset_window_hscroll if value hasn't
-		 changed because it will prevent redisplay
-		 optimizations.  */
+	      /* Don't prevent redisplay optimizations if hscroll
+		 hasn't changed, as it will unnecessarily slow down
+		 redisplay.  */
 	      if (XFASTINT (w->hscroll) != hscroll)
 		{
 		  XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
@@ -13635,15 +13637,17 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	       /* A truncated row may not include PT among its
 		  character positions.  Setting the cursor inside the
 		  scroll margin will trigger recalculation of hscroll
-		  in hscroll_window_tree.  */
-	       || (row->truncated_on_left_p && pt_old < bpos_min)
-	       || (row->truncated_on_right_p && pt_old > bpos_max)
-	       /* Zero-width characters produce no glyphs.  */
+		  in hscroll_window_tree.  But if a display string
+		  covers point, defer to the string-handling code
+		  below to figure this out.  */
 	       || (!string_seen
-		   && !empty_line_p
-		   && (row->reversed_p
-		       ? glyph_after > glyphs_end
-		       : glyph_after < glyphs_end)))
+		   && ((row->truncated_on_left_p && pt_old < bpos_min)
+		       || (row->truncated_on_right_p && pt_old > bpos_max)
+		       /* Zero-width characters produce no glyphs.  */
+		       || (!empty_line_p
+			   && (row->reversed_p
+			       ? glyph_after > glyphs_end
+			       : glyph_after < glyphs_end)))))
 	{
 	  cursor = glyph_after;
 	  x = -1;
@@ -14627,7 +14631,10 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		     is set, we are done.  */
 		  at_zv_p =
 		    MATRIX_ROW (w->current_matrix, w->cursor.vpos)->ends_at_zv_p;
-		  if (!at_zv_p)
+		  if (rv && !at_zv_p
+		      && w->cursor.hpos >= 0
+		      && w->cursor.hpos < MATRIX_ROW_USED (w->current_matrix,
+							   w->cursor.vpos))
 		    {
 		      struct glyph_row *candidate =
 			MATRIX_ROW (w->current_matrix, w->cursor.vpos);
@@ -21293,7 +21300,7 @@ else if the text is replaced by an ellipsis.  */)
       ? XFLOATINT (X)				\
       : - 1)
 
-int
+static int
 calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 			    struct font *font, int width_p, int *align_to)
 {
@@ -21723,6 +21730,8 @@ fill_composite_glyph_string (struct glyph_string *s, struct face *base_face,
     {
       int c = COMPOSITION_GLYPH (s->cmp, i);
 
+      /* TAB in a composition means display glyphs with padding space
+	 on the left or right.  */
       if (c != '\t')
 	{
 	  int face_id = FACE_FOR_CHAR (s->f, base_face->ascii_face, c,
