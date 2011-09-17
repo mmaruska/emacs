@@ -34,8 +34,6 @@ Vcs-Git: git://git.debian.org/git/users/acid/emacs-snapshot.git
 Bugs: mailto:acid@debian.org
 
 Package: @BIN_NAME@-common
-Section: editors
-Priority: optional
 Architecture: all
 Pre-Depends: dpkg (>= 1.15.6)
 Depends: emacsen-common (>= 1.4.10), install-info, ${misc:Depends}
@@ -50,8 +48,6 @@ Description: The GNU Emacs editor's common infrastructure
  and @BIN_NAME@-nox.
 
 Package: @BIN_NAME@-bin-common
-Section: editors
-Priority: optional
 Architecture: any
 Pre-Depends: dpkg (>= 1.15.6)
 Depends: @BIN_NAME@-common (= ${binary:Version}), ${shlibs:Depends},
@@ -65,8 +61,6 @@ Description: The GNU Emacs editor's shared, architecture dependent files
  that's shared by @BIN_NAME@ and @BIN_NAME@-nox.
 
 Package: @BIN_NAME@
-Section: editors
-Priority: optional
 Architecture: any
 Pre-Depends: dpkg (>= 1.15.6)
 Depends: @BIN_NAME@-bin-common (= ${binary:Version}), ${shlibs:Depends},
@@ -77,7 +71,6 @@ Description: The GNU Emacs editor@FLAVOUR_DESC@
  GNU Emacs is the extensible self-documenting text editor.
 
 Package: @BIN_NAME@-gtk
-Section: editors
 Priority: extra
 Architecture: all
 Pre-Depends: dpkg (>= 1.15.6)
@@ -86,8 +79,6 @@ Description: The GNU Emacs editor (transitional package)
  Empty package to facilitate upgrades, can be safely removed.
 
 Package: @BIN_NAME@-nox
-Section: editors
-Priority: optional
 Architecture: any
 Pre-Depends: dpkg (>= 1.15.6)
 Depends: @BIN_NAME@-bin-common (= ${binary:Version}), ${shlibs:Depends},
@@ -98,8 +89,6 @@ Description: The GNU Emacs editor (without X support)
  This package contains a version of Emacs compiled without support for X.
 
 Package: @BIN_NAME@-lucid
-Section: editors
-Priority: optional
 Architecture: any
 Pre-Depends: dpkg (>= 1.15.6)
 Depends: @BIN_NAME@-bin-common (= ${binary:Version}), ${shlibs:Depends},
@@ -110,8 +99,6 @@ Description: The GNU Emacs editor (with X support by lucid/athena toolkit)
  This package contains a version of Emacs compiled with lucid toolkit.
 
 Package: @BIN_NAME@-el
-Section: editors
-Priority: optional
 Architecture: all
 Pre-Depends: dpkg (>= 1.15.6)
 Depends: @BIN_NAME@-common (= ${binary:Version}), ${misc:Depends}
