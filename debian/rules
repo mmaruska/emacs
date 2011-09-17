@@ -502,9 +502,6 @@ clean: debian-clean
 		rm -f info/$$f* ; \
 	done
 
-	# Remove backup files
-	find -name '*~' | xargs --no-run-if-empty rm -f
-
 install: build $(DEBPKGFILES)
 	dh_testdir
 	dh_testroot
