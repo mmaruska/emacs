@@ -38,8 +38,7 @@ Architecture: all
 Pre-Depends: dpkg (>= 1.15.6)
 Depends: emacsen-common (>= 1.4.10), install-info, ${misc:Depends}
 Suggests: @BIN_NAME@-el
-Conflicts: dictionaries-common (<< 0.60.0),
-           @BIN_NAME@ (<< 1:20060120-2),
+Conflicts: @BIN_NAME@ (<< 1:20060120-2),
            @BIN_NAME@-gtk (<< 1:20060120-2),
            @BIN_NAME@-nox (<< 1:20060120-2)
 Description: The GNU Emacs editor's common infrastructure
