@@ -4853,13 +4853,34 @@ at the front of the list of recently selected ones."
 	 (old-frame (selected-frame))
 	 (window (display-buffer buffer action))
 	 (frame (window-frame window)))
-    (if (eq frame old-frame)
-	;; Make sure new window is selected (Bug#8615), (Bug#6954).
-	(select-window window norecord)
-      ;; If `display-buffer' has chosen another frame, make sure it
-      ;; gets input focus.
+    ;; If we chose another frame, make sure it gets input focus.
+    (unless (eq frame old-frame)
       (select-frame-set-input-focus frame norecord))
+    ;; Make sure new window is selected (Bug#8615), (Bug#6954).
+    (select-window window norecord)
     buffer))
+
+(defun pop-to-buffer-same-window (buffer &optional norecord)
+  "Select buffer BUFFER in some window, preferably the same one.
+This function behaves much like `switch-to-buffer', except it
+displays with `special-display-function' if BUFFER has a match in
+`special-display-buffer-names' or `special-display-regexps'.
+
+Unlike `pop-to-buffer', this function prefers using the selected
+window over popping up a new window or frame.
+
+BUFFER may be a buffer, a string (a buffer name), or nil.  If it
+is a string not naming an existent buffer, create a buffer with
+that name.  If BUFFER is nil, choose some other buffer.  Return
+the buffer.
+
+NORECORD, if non-nil means do not put this buffer at the front of
+the list of recently selected ones."
+  (pop-to-buffer buffer
+		 '((display-buffer--special
+		    display-buffer-same-window)
+		   (inhibit-same-window . nil))
+		 norecord))
 
 (defun read-buffer-to-switch (prompt)
   "Read the name of a buffer to switch to, prompting with PROMPT.
