@@ -250,7 +250,7 @@ define patch_info
 	| grep -v '^#' | cat -s
 endef
 
-MASTER = $(shell git show `git rev-list --merges master..HEAD | head -1`  | grep ^Merge | cut -d' ' -f3)
+MASTER = $(shell git show `git rev-list --merges trunk..HEAD | head -1`  | grep ^Merge | cut -d' ' -f3)
 get-orig-source:
 	@echo Master is: $(MASTER)
 	@git --no-pager show --format=short $(MASTER)
