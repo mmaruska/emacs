@@ -243,10 +243,8 @@ get-orig-source:
 .PHONY: get-orig-source
 
 debian/patches/series:
-	if test -d $(CURDIR)/.git \
-	then \
-		cd $(CURDIR)/debian/patches && rm -f * && git format-patch trunk..debian/patches > series ; \
-	fi
+	test -d $(CURDIR)/.git && \
+		cd $(CURDIR)/debian/patches && rm -f * && git format-patch trunk..debian/patches > series
 
 .PHONY: debian/patches/series
 
