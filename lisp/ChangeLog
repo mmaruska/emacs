@@ -1,3 +1,82 @@
+2011-10-01  Julien Danjou  <julien@danjou.info>
+
+	* notifications.el (notifications-notify): Fix docstring.
+
+2011-10-01  Per Starbäck  <per@starback.se>
+
+	* pcmpl-gnu.el (pcomplete/tar): Fix tar-header-name call.  (Bug#9643)
+
+2011-09-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* startup.el (command-line-1): Fix last fix by inserting
+	initial-scratch-message into *scratch* before displaying it.
+	(Bug#9605) and (Bug#9636)
+
+2011-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (line-move): If auto-hscroll-mode is disabled and the
+	window is hscrolled, move by logical lines.  (Bug#9607)
+	(line-move-visual): Update the doc string to the above effect.
+
+2011-09-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-record-window): When WINDOW is the
+	selected window use `point' instead of `window-point'.  (Bug#9626)
+
+	* startup.el (command-line-1): Use insert-before-markers when
+	inserting initial-scratch-message.  (Bug#9605)
+
+	* help.el (help-window): Remove variable.
+
+2011-09-29  Glenn Morris  <rgm@gnu.org>
+
+	* pcmpl-cvs.el (pcomplete/cvs): Add "status" handler.
+
+2011-09-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* descr-text.el (describe-char-categories): Accept category
+	descriptions more than one line long.
+
+2011-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (delete-trailing-whitespace): Fix last change.
+
+	* progmodes/perl-mode.el (perl-syntax-propertize-function):
+	Don't confuse "y => 3" as the beginning of a `y' operation.
+
+	* emacs-lisp/debug.el (debug-convert-byte-code): Don't assume the
+	object has more than 4 slots (bug#9613).
+
+2011-09-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (with-output-to-temp-buffer):
+	* net/quickurl.el (quickurl, quickurl-browse-url):
+	Fix typos in docstrings.
+
+2011-09-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* minibuffer.el (completion-styles)
+	(completion-category-overrides): Cross reference each other in doc
+	strings.
+
+2011-09-27  Glenn Morris  <rgm@gnu.org>
+
+	* pcmpl-cvs.el (pcmpl-cvs-entries): Update for Emacs 22.1 changes
+	to split-string.  (Bug#9606)
+
+2011-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Fix STARTTLS detection
+	(bug#9615).
+
+2011-09-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (list-packages): Fix echo area message.
+
+2011-09-27  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-read-internal): Accept cons cell HIST arg.
+
 2011-09-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-unregister-object): Don't release services for
@@ -8,6 +87,13 @@
 	* progmodes/cfengine.el (cfengine-auto-mode): Add convenience
 	function that picks between cfengine 2 and 3 support
 	automatically.  Update docs accordingly.
+
+2011-09-22  Kenichi Handa  <handa@m17n.org>
+
+	* language/ind-util.el (indian-tml-base-table): Add TAMIL DIGIT
+	ZERO.
+	(indian-itrans-v5-table-for-tamil): New variable.
+	(indian-tml-itrans-v5-hash): Use the above variable (Bug#9336).
 
 2011-09-22  Ken Manheimer  <ken.manheimer@gmail.com>
 
