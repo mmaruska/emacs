@@ -18,12 +18,6 @@
 
 SHELL = /bin/bash
 
-# XXX: we use DEB_QUILT_CMD below, it's originally a cdbs internal
-# variable since Ubuntu's emacs22 uses cdbs's quilt patchsys.
-DEB_QUILT_CMD := QUILT_PATCHES=debian/patches quilt --quiltrc /dev/null
-
-DEB_TRASH :=
-
 # For now we assume that emacs' versioning scheme is always
 # MAJOR.MINORtinyrev where MAJOR and MINOR are integers and tinyrev is
 # an optional lowercase letter (or letters).  We also assume that
@@ -163,8 +157,6 @@ local_lpath_install := $(EMACS_COMMON)/$(subst :,:$(EMACS_COMMON)/,${local_lpath
 PERSISTENT_AUTOGEN_FILES := debian/control debian/copyright
 
 NONPERSISTENT_AUTOGEN_FILES := \
-  debian/README.Debian \
-  debian/README.binpkg \
   debian/bug.presubj \
   debian/bug.script \
   debian/bug.control \
@@ -243,13 +235,6 @@ check-vars:
 	@echo "minor_ver: ${minor_ver}"
 .PHONY: check-vars
 
-define patch_info
-	{ for p in $$($(DEB_QUILT_CMD) series | grep "^$(1)-"); do	     \
-	      $(DEB_QUILT_CMD) header --strip-diffstat $$p | sed 's/^---//'; \
-	  done }							     \
-	| grep -v '^#' | cat -s
-endef
-
 MASTER = $(shell git show `git rev-list --merges trunk..HEAD | head -1`  | grep ^Merge | cut -d' ' -f3)
 get-orig-source:
 	@echo Master is: $(MASTER)
@@ -258,21 +243,12 @@ get-orig-source:
 .PHONY: get-orig-source
 
 debian/patches/series:
-	if test -d $(CURDIR)/.git ; \
+	if test -d $(CURDIR)/.git \
 	then \
 		cd $(CURDIR)/debian/patches && rm -f * && git format-patch trunk..debian/patches > series ; \
 	fi
 
 .PHONY: debian/patches/series
-
-# we use PHONY because deleting patches won't cause rebuild otherwise.
-debian/README.Debian: debian/README.in debian/patches/series
-	@(cat $<;							  \
-	  printf "* Additional features\n\n"; $(call patch_info,feature); \
-	  printf "* Bugfixes\n\n"; $(call patch_info,fix);		  \
-	  printf "* Changes specific to Debian-based systems\n\n";	  \
-	  $(call patch_info,debian)) >$@
-.PHONY: debian/README.Debian
 
 debian/%: debian/%.in debian/changelog
 	${expand_file_subst_vars}
@@ -345,12 +321,6 @@ define emacs_build
 	${check_pure_space}
 	# save binary from deletion
 	mv src/emacs src/${2}
-endef
-
-define inst_readme
-	# Install README.Debian
-	$(INSTALL) -D -m 0644 debian/README.binpkg \
-		${1}/usr/share/doc/${2}/README.Debian
 endef
 
 define inst_desktop
@@ -644,7 +614,6 @@ install: build $(DEBPKGFILES)
 		usr/share/man/man1/${bin_name}.1.gz
 
 	$(call inst_desktop,$(EMACS_BIN_COMMON),emacsclient-${bin_name})
-	$(call inst_readme,$(EMACS_BIN_COMMON),${bin_name}-bin-common)
 	$(call inst_overrides,lintian,$(EMACS_BIN_COMMON),${bin_name}-bin-common)
 	$(call inst_bug_files,$(EMACS_BIN_COMMON),${bin_name}-bin-common)
 
@@ -653,7 +622,6 @@ install: build $(DEBPKGFILES)
 
 	$(call inst_binary,gtk-emacs,$(EMACS),${bin_name}-gtk)
 	$(call inst_manpage,$(EMACS),${bin_name},${bin_name}-gtk,${bin_name})
-	$(call inst_readme,$(EMACS),${bin_name})
 	$(call inst_desktop,$(EMACS),${bin_name})
 	$(call inst_overrides,lintian,$(EMACS),${bin_name})
 	$(call inst_bug_files,$(EMACS),${bin_name})
@@ -667,7 +635,6 @@ install: build $(DEBPKGFILES)
 
 	$(call inst_binary,nox-emacs,$(EMACS_NOX),${bin_name}-nox)
 	$(call inst_manpage,$(EMACS_NOX),${bin_name},${bin_name}-nox,${bin_name}-nox)
-	$(call inst_readme,$(EMACS_NOX),${bin_name}-nox)
 	$(call inst_overrides,lintian,$(EMACS_NOX),${bin_name}-nox)
 	$(call inst_bug_files,$(EMACS_NOX),${bin_name}-nox)
 	$(call inst_bug_notice,$(EMACS_NOX),${bin_name}-nox)
@@ -677,7 +644,6 @@ install: build $(DEBPKGFILES)
 
 	$(call inst_binary,lucid-emacs,$(EMACS_LUCID),${bin_name}-lucid)
 	$(call inst_manpage,$(EMACS_LUCID),${bin_name},${bin_name}-lucid,${bin_name}-lucid)
-	$(call inst_readme,$(EMACS_LUCID),${bin_name}-lucid)
 	$(call inst_overrides,lintian,$(EMACS_LUCID),${bin_name}-lucid)
 	$(call inst_bug_files,$(EMACS_LUCID),${bin_name}-lucid)
 	$(call inst_bug_notice,$(EMACS_LUCID),${bin_name}-lucid)
@@ -690,7 +656,6 @@ install: build $(DEBPKGFILES)
 	    tar cpf - --files-from -) | \
 	      (cd $(EMACS_EL) && tar xpf -)
 
-	$(call inst_readme,$(EMACS_EL),${bin_name}-el)
 	$(call inst_bug_files,$(EMACS_EL),${bin_name}-el)
 
 	##################################################
@@ -710,7 +675,7 @@ binary-indep: build install
 	dh_installdocs -i
 	dh_installmenu -i
 	dh_link -i
-	dh_compress -XREADME.Debian -i
+	dh_compress -i
 	dh_fixperms -i
 	dh_installdeb -i
 	dh_shlibdeps -i
