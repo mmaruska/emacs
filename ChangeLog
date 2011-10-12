@@ -1,3 +1,23 @@
+2011-10-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in: Remove check for -lintl (Bug#9713).
+	The check breaks 'configure' in some CentOS 5.7 x86 configurations.
+	The check was helpful but not essential in Solaris 2.6 (1997),
+	and is no longer needed in Solaris 8 (2000).  Solaris 2.6 is
+	obsolete -- Sun dropped support for it in 2006 -- and without
+	access to that Silurian platform we can't maintain the code anyway.
+
+2011-10-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, fixing some 'configure' typos (Bug#9696).
+	* lib/signal.in.h, lib/sigprocmask.c, m4/gl-comp.m4:
+	* m4/gnulib-common.m4: Merge from gnulib.
+	Without this, 'configure' would say "func_gl_gnulib_m4code_pathmax:
+	command not found" on powerpc-apple-darwin9.8.0.
+
+	* configure.in (GC_LISP_OBJECT_ALIGNMENT): Remove.
+	This is now done by src/alloc.c.
+
 2011-10-02  Richard Stallman  <rms@gnu.org>
 
 	* configure.in: Rename xlinux_first_failure to xgnu_linux_first_failure
