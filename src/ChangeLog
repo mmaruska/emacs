@@ -1,3 +1,78 @@
+2011-10-18  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (get_next_display_element): Handle U+2010 and U+2011
+	with nobreak-char-display too.
+
+2011-10-18  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix part 3 of bug#9771.
+	* bidi.c (bidi_line_init): Initialize next_en_pos to zero, not -1.
+	(bidi_resolve_neutral): Don't enter the expensive loop looking for
+	non-neutral characters if the current character is a paragraph
+	separator (a.k.a. Newline).  This avoids running the same
+	expensive loop twice, once when we consume the preceding newline
+	and the other time when the line actually needs to be displayed.
+	Avoid the loop when we see neutrals on the base embedding level
+	following a character whose directionality is the same as the
+	paragraph's.  This avoids running the expensive loop when a line
+	ends in a long sequence of neutrals, like control characters.
+	Add assertion against STRONG_AL type.  Slightly rearrange code
+	that determines the type of a neutral given the first non-neutral
+	that follows it.
+	(bidi_level_of_next_char): Set next_en_pos to zero when
+	invalidating its info.
+
+2011-10-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (push_display_prop): Determine whether to record string
+	or buffer position by IT->string, not by IT->method.  Allow
+	GET_FROM_DISPLAY_VECTOR as IT->method on entry.  (Bug#9771, part 4)
+	(move_it_vertically_backward): Don't look for character position
+	immediately after the newline when in a continuation line.
+	(Bug#9771, part 1)
+
+2011-10-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (coordinates_in_window): Rewrite and delabelize
+	vertical border check.  (Bug#5357) (Bug#9618)
+
+2011-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xterm.c (frame_highlight, frame_unhighlight): Ignore unexplained
+	errors in XSetWindowBorder (bug#9310).
+
+2011-10-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* editfns.c (Fset_time_zone_rule): Replace free with xfree to
+	avoid crash when xmalloc overrun checking is enabled.
+
+2011-10-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fcurrent_bidi_paragraph_direction): Initialize
+	itb.paragraph_dir to NEUTRAL_DIR.  Fixes an occasional incorrect
+	cursor motion with <left> and <right> arrow keys.
+
+	* bidi.c (bidi_init_it): Don't initialize paragraph_dir here, as
+	some callers set that themselves.
+
+2011-10-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (find_row_edges): Handle the case where ROW comes from a
+	display string and the previous row comes from the same string and
+	is empty.  (Bug#9739)  (Bug#9738)
+
+2011-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc.c (get_doc_string): Encode file name (bug#9735).
+
+2011-10-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_level_of_next_char):
+	* xdisp.c (get_visually_first_element): Remove old incorrect
+	comments regarding the Unicode Line Separator character.
+
+	* bidi.c (bidi_init_it): Initialize paragraph_dir to NEUTRAL_DIR.
+
 2011-10-12  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* alloc.c (Fgc_status): Do not access beyond zombies array
@@ -39,8 +114,8 @@
 
 2011-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* buffer.c (syms_of_buffer) <enable-multibyte-characters>: Don't
-	advertise functionality which we discourage or doesn't work.
+	* buffer.c (syms_of_buffer) <enable-multibyte-characters>:
+	Don't advertise functionality which we discourage or doesn't work.
 
 2011-10-07  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -306,8 +381,7 @@
 2011-09-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (reseat_at_next_visible_line_start): Keep information
-	about the current paragraph and restore it after the call to
-	reseat.
+	about the current paragraph and restore it after the call to reseat.
 
 	* bidi.c (MAX_PARAGRAPH_SEARCH): New macro.
 	(bidi_find_paragraph_start): Search back for paragraph beginning
@@ -527,7 +601,7 @@
 	* doprnt.c (doprnt): Support printing ptrdiff_t and intmax_t values.
 	(esprintf, exprintf, evxprintf): New functions.
 	* keyboard.c (command_loop_level): Now EMACS_INT, not int.
-	(cmd_error): kbd macro iterations count is now EMACS_INT, not int.
+	(cmd_error): Kbd macro iterations count is now EMACS_INT, not int.
 	(modify_event_symbol): Do not assume that the length of
 	name_alist_or_stem is safe to alloca and fits in int.
 	(Fexecute_extended_command): Likewise for function name and binding.
@@ -1271,8 +1345,7 @@
 
 2011-08-18  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* process.c (Fnetwork_interface_list): Correctly determine buffer
-	size.
+	* process.c (Fnetwork_interface_list): Correctly determine buffer size.
 
 2011-08-17  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1317,15 +1390,10 @@
 
 2011-08-15  Eli Zaretskii  <eliz@gnu.org>
 
-	* biditype.h: File removed.
-
-	* bidimirror.h: File removed.
-
-	* deps.mk (bidi.o): Remove biditype.h and
-	bidimirror.h.
-
-	* makefile.w32-in ($(BLD)/bidi.$(O)): Remove biditype.h and
-	bidimirror.h.
+	* bidimirror.h:
+	* biditype.h: Remove file.
+	* makefile.w32-in ($(BLD)/bidi.$(O)):
+	* deps.mk (bidi.o): Remove biditype.h and bidimirror.h.
 
 	* dispextern.h: Fix a typo in the comment to bidi_type_t.
 
@@ -1500,8 +1568,7 @@
 
 2011-08-04  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* regex.c (re_iswctype): Remove some redundant boolean
-	conversions.
+	* regex.c (re_iswctype): Remove some redundant boolean conversions.
 
 2011-08-04  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -2038,8 +2105,7 @@
 2011-07-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_in_display_line_to): Fix vertical motion with
-	bidi redisplay when a line includes both an image and is
-	truncated.
+	bidi redisplay when a line includes both an image and is truncated.
 
 2011-07-14  Paul Eggert  <eggert@cs.ucla.edu>
 

@@ -1,3 +1,14 @@
+2011-10-18  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Glyphless Chars): New node.
+
+2011-10-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Yanking): Document yank-excluded-properties.
+
+	* package.texi (Packaging Basics): The commentary should say how
+	to begin using the package.
+
 2011-10-11  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Deleting Windows): Mention which window gets
