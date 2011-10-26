@@ -94,8 +94,9 @@ Optional LIGHTER is displayed in the modeline when the mode is on.
 Optional KEYMAP is the default keymap bound to the mode keymap.
   If non-nil, it should be a variable name (whose value is a keymap),
   or an expression that returns either a keymap or a list of
-  arguments for `easy-mmode-define-keymap'.  If KEYMAP is not a symbol,
-  this also defines the variable MODE-map.
+  arguments for `easy-mmode-define-keymap'.  If you supply a KEYMAP
+  argument that is not a symbol, this macro defines the variable
+  MODE-map and gives it the value that KEYMAP specifies.
 
 BODY contains code to execute each time the mode is enabled or disabled.
   It is executed after toggling the mode, and before running MODE-hook.
@@ -350,14 +351,16 @@ call another major mode in their body."
        (define-minor-mode ,global-mode
 	 ;; Very short lines to avoid too long lines in the generated
 	 ;; doc string.
-	 ,(format "Toggle %s in every possible buffer.
-With prefix ARG, turn %s on if and only if
-ARG is positive.
+	 ,(format "Toggle %s in all buffers.
+With prefix ARG, enable %s if ARG is positive;
+otherwise, disable it.  If called from Lisp, enable the mode if
+ARG is omitted or nil.
+
 %s is enabled in all buffers where
 \`%s' would do it.
 See `%s' for more information on %s."
-		  pretty-name pretty-global-name pretty-name turn-on
-		  mode pretty-name)
+		  pretty-name pretty-global-name
+		  pretty-name turn-on mode pretty-name)
 	 :global t ,@group ,@(nreverse extra-keywords)
 
 	 ;; Setup hook to handle future mode changes and new buffers.

@@ -1856,7 +1856,8 @@ struct bidi_it {
   struct bidi_saved_info next_for_neutral; /* surrounding characters for... */
   struct bidi_saved_info prev_for_neutral; /* ...resolving neutrals */
   struct bidi_saved_info next_for_ws; /* character after sequence of ws */
-  EMACS_INT next_en_pos;	/* position of next EN char for ET */
+  EMACS_INT next_en_pos;	/* pos. of next char for determining ET type */
+  bidi_type_t next_en_type;	/* type of char at next_en_pos */
   EMACS_INT ignore_bn_limit;	/* position until which to ignore BNs */
   bidi_dir_t sor;		/* direction of start-of-run in effect */
   int scan_dir;			/* direction of text scan, 1: forw, -1: back */
@@ -3345,6 +3346,7 @@ extern int tty_capable_p (struct tty_display_info *, unsigned, unsigned long, un
 extern void set_tty_color_mode (struct tty_display_info *, struct frame *);
 extern struct terminal *get_named_tty (const char *);
 EXFUN (Ftty_type, 1);
+EXFUN (Fcontrolling_tty_p, 1);
 extern void create_tty_output (struct frame *);
 extern struct terminal *init_tty (const char *, const char *, int);
 extern void tty_append_glyph (struct it *);
