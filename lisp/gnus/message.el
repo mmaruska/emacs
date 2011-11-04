@@ -4022,7 +4022,9 @@ The text will also be indented the normal way."
 ;;;
 
 (defun message-send-and-exit (&optional arg)
-  "Send message like `message-send', then, if no errors, exit from mail buffer."
+  "Send message like `message-send', then, if no errors, exit from mail buffer.
+The usage of ARG is defined by the instance that called Message.
+It should typically alter the sending method in some way or other."
   (interactive "P")
   (let ((buf (current-buffer))
 	(actions message-exit-actions))
@@ -7888,7 +7890,11 @@ those headers."
 		(let ((mail-abbrev-mode-regexp (caar alist)))
 		  (not (mail-abbrev-in-expansion-header-p))))
       (setq alist (cdr alist)))
-    (cdar alist)))
+    (when (cdar alist)
+      (lexical-let ((fun (cdar alist)))
+        ;; Even if completion fails, return a non-nil value, so as to avoid
+        ;; falling back to message-tab-body-function.
+        (lambda () (funcall fun) 'completion-attempted)))))
 
 (eval-and-compile
   (condition-case nil

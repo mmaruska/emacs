@@ -624,6 +624,7 @@ Don't call this function; it is for internal use only."
 (defun keymap--menu-item-with-binding (item binding)
   "Build a menu-item like ITEM but with its binding changed to BINDING."
   (cond
+   ((not (consp item)) binding)		;Not a menu-item.
    ((eq 'menu-item (car item))
     (setq item (copy-sequence item))
     (let ((tail (nthcdr 2 item)))
@@ -1530,6 +1531,9 @@ if it is empty or a duplicate."
 (make-variable-buffer-local 'delayed-mode-hooks)
 (put 'delay-mode-hooks 'permanent-local t)
 
+(defvar change-major-mode-after-body-hook nil
+  "Normal hook run in major mode functions, before the mode hooks.")
+
 (defvar after-change-major-mode-hook nil
   "Normal hook run at the very end of major mode functions.")
 
@@ -1546,7 +1550,7 @@ FOO-mode-hook."
     ;; Normal case, just run the hook as before plus any delayed hooks.
     (setq hooks (nconc (nreverse delayed-mode-hooks) hooks))
     (setq delayed-mode-hooks nil)
-    (apply 'run-hooks hooks)
+    (apply 'run-hooks (cons 'change-major-mode-after-body-hook hooks))
     (run-hooks 'after-change-major-mode-hook)))
 
 (defmacro delay-mode-hooks (&rest body)
@@ -2259,11 +2263,25 @@ is nil and `use-dialog-box' is non-nil."
   ;; where all the keys were unbound (i.e. it somehow got triggered
   ;; within read-key, apparently).  I had to kill it.
   (let ((answer 'recenter))
-    (if (and (display-popup-menus-p)
-             (listp last-nonmenu-event)
-             use-dialog-box)
-        (setq answer
-              (x-popup-dialog t `(,prompt ("Yes" . act) ("No" . skip))))
+    (cond
+     (noninteractive
+      (setq prompt (concat prompt
+                           (if (eq ?\s (aref prompt (1- (length prompt))))
+                               "" " ")
+                           "(y or n) "))
+      (let ((temp-prompt prompt))
+	(while (not (memq answer '(act skip)))
+	  (let ((str (read-string temp-prompt)))
+	    (cond ((member str '("y" "Y")) (setq answer 'act))
+		  ((member str '("n" "N")) (setq answer 'skip))
+		  (t (setq temp-prompt (concat "Please answer y or n.  "
+					       prompt))))))))
+     ((and (display-popup-menus-p)
+	   (listp last-nonmenu-event)
+	   use-dialog-box)
+      (setq answer
+	    (x-popup-dialog t `(,prompt ("Yes" . act) ("No" . skip)))))
+     (t
       (setq prompt (concat prompt
                            (if (eq ?\s (aref prompt (1- (length prompt))))
                                "" " ")
@@ -2285,7 +2303,7 @@ is nil and `use-dialog-box' is non-nil."
              ((memq answer '(exit-prefix quit)) (signal 'quit nil) t)
              (t t)))
         (ding)
-        (discard-input)))
+        (discard-input))))
     (let ((ret (eq answer 'act)))
       (unless noninteractive
         (message "%s %s" prompt (if ret "y" "n")))
