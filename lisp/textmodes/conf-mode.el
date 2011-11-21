@@ -155,7 +155,7 @@ not align (only setting space according to `conf-assignment-space')."
     (modify-syntax-entry ?/  ". 124" table)
     (modify-syntax-entry ?*  ". 23b" table)
     table)
-  "Syntax table in use in Java prperties buffers.")
+  "Syntax table in use in Java properties buffers.")
 
 (defvar conf-ppd-mode-syntax-table
   (let ((table (make-syntax-table conf-mode-syntax-table)))
@@ -417,7 +417,7 @@ See also `conf-space-mode', `conf-colon-mode', `conf-javaprop-mode',
     (run-mode-hooks 'conf-mode-hook)))
 
 (defun conf-mode-initialize (comment &optional font-lock)
-  "Intitializations for sub-modes of conf-mode.
+  "Initializations for sub-modes of conf-mode.
 COMMENT initializes `comment-start' and `comment-start-skip'.
 The optional arg FONT-LOCK is the value for FONT-LOCK-KEYWORDS."
   (set (make-local-variable 'comment-start) comment)

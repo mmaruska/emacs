@@ -79,7 +79,7 @@
 
 ;;; TODO:
 
-;; o Generalise the display-line code so that we can use it to
+;; o Generalize the display-line code so that we can use it to
 ;;   display the stuff we send, as well as the stuff we receive.
 ;;   Then, move all display-related code into another backend-like
 ;;   file, erc-display.el, say.
@@ -1432,7 +1432,7 @@ add things to `%s' instead."
         (when (string= cmd "PRIVMSG")
           (erc-auto-query proc parsed))))))
 
-;; FIXME: need clean way of specifiying extra hooks in
+;; FIXME: need clean way of specifying extra hooks in
 ;; define-erc-response-handler.
 (add-hook 'erc-server-PRIVMSG-functions 'erc-auto-query)
 
@@ -2000,4 +2000,3 @@ See `erc-display-error-notice'." nil
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; End:
-

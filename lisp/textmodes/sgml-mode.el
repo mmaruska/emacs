@@ -847,7 +847,7 @@ and disable it otherwise.  If called from Lisp, enable the mode
 if ARG is omitted or nil.
 
 SGML Electric Tag Pair mode is a buffer-local minor mode for use
-with `sgml-mode' and related maor modes.  When enabled, editing
+with `sgml-mode' and related major modes.  When enabled, editing
 an opening markup tag automatically updates the closing tag."
   :lighter "/e"
   (if sgml-electric-tag-pair-mode
@@ -1558,7 +1558,7 @@ LCON is the lexical context, if any."
 
 (defun sgml-guess-indent ()
   "Guess an appropriate value for `sgml-basic-offset'.
-Base the guessed identation level on the first indented tag in the buffer.
+Base the guessed indentation level on the first indented tag in the buffer.
 Add this to `sgml-mode-hook' for convenience."
   (interactive)
   (save-excursion
@@ -1872,7 +1872,7 @@ This takes effect when first loading the library.")
     ("dir" . "Directory list (obsolete)")
     ("div" . "Generic block-level container")
     ("dl" . "Definition list")
-    ("dt" . "Term to be definined")
+    ("dt" . "Term to be defined")
     ("em" . "Emphasized")
     ("embed" . "Embedded data in foreign format")
     ("fig" . "Figure")
@@ -1897,7 +1897,7 @@ This takes effect when first loading the library.")
     ("input" . "Form input field")
     ("ins" . "Inserted text")
     ("isindex" . "Input field for index search")
-    ("kbd" . "Keybard example face")
+    ("kbd" . "Keyboard example face")
     ("lang" . "Natural language")
     ("li" . "List item")
     ("link" . "Link relationship")

@@ -981,7 +981,7 @@ The value of this variable is used when Font Lock mode is turned on."
 ;; rules one way and C code another.  Neat!
 ;;
 ;; A further reason to use the fontification indirection feature is when the
-;; default syntactual fontification, or the default fontification in general,
+;; default syntactic fontification, or the default fontification in general,
 ;; is not flexible enough for a particular major mode.  For example, perhaps
 ;; comments are just too hairy for `font-lock-fontify-syntactically-region' to
 ;; cope with.  You need to write your own version of that function, e.g.,
@@ -1742,7 +1742,7 @@ If SYNTACTIC-KEYWORDS is non-nil, it means these keywords are used for
 	 keyword)))
 
 (defun font-lock-eval-keywords (keywords)
-  "Evalulate KEYWORDS if a function (funcall) or variable (eval) name."
+  "Evaluate KEYWORDS if a function (funcall) or variable (eval) name."
   (if (listp keywords)
       keywords
     (font-lock-eval-keywords (if (fboundp keywords)
