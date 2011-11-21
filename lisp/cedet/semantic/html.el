@@ -61,7 +61,7 @@
 (define-mode-local-override semantic-parse-region
   html-mode (&rest ignore)
   "Parse the current html buffer for semantic tags.
-INGNORE any arguments.  Always parse the whole buffer.
+IGNORE any arguments.  Always parse the whole buffer.
 Each tag returned is of the form:
  (\"NAME\" section (:members CHILDREN))
 or
@@ -126,7 +126,7 @@ html parser.  PNT is the new point to set."
 NAME is the name of this section.
 MEMBERS is a list of semantic tags representing the elements that make
 up this section.
-LEVEL is the levelling level.
+LEVEL is the leveling level.
 START and END define the location of data described by the tag."
   (let ((anchorp (eq level 11)))
     (append (semantic-tag name

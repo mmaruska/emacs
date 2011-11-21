@@ -197,7 +197,11 @@ Returns nil when we can't find this char."
 ;; value, which only works well if the variable is preloaded.
 ;;;###autoload
 (defvar electric-indent-chars '(?\n)
-  "Characters that should cause automatic reindentation.")
+  "Characters that should cause automatic reindentation.
+Each entry of the list can be either a character or a cons of the
+form (CHAR . PREDICATE) which means that CHAR should cause reindentation
+only if PREDICATE returns non-nil.  PREDICATE is called with no arguments
+and with point before the inserted char.")
 
 (defun electric-indent-post-self-insert-function ()
   ;; FIXME: This reindents the current line, but what we really want instead is
@@ -208,7 +212,12 @@ Returns nil when we can't find this char."
   ;; There might be a way to get it working by analyzing buffer-undo-list, but
   ;; it looks challenging.
   (let (pos)
-    (when (and (memq last-command-event electric-indent-chars)
+    (when (and (or (memq last-command-event electric-indent-chars)
+                   (let ((cp (assq last-command-event electric-indent-chars)))
+                     (and cp (setq pos (electric--after-char-pos))
+                          (save-excursion
+                            (goto-char (1- pos))
+                            (funcall (cdr cp))))))
                ;; Don't reindent while inserting spaces at beginning of line.
                (or (not (memq last-command-event '(?\s ?\t)))
                    (save-excursion (skip-chars-backward " \t") (not (bolp))))
@@ -251,21 +260,23 @@ reindentation is triggered whenever you insert a character listed
 in `electric-indent-chars'."
   :global t
   :group 'electricity
-  (if electric-indent-mode
-      (add-hook 'post-self-insert-hook
-                #'electric-indent-post-self-insert-function)
-    (remove-hook 'post-self-insert-hook
-                 #'electric-indent-post-self-insert-function))
-  ;; FIXME: electric-indent-mode and electric-layout-mode interact
-  ;; in non-trivial ways.  It turns out that electric-indent-mode works
-  ;; better if it is run *after* electric-layout-mode's hook.
-  (when (memq #'electric-layout-post-self-insert-function
-              (memq #'electric-indent-post-self-insert-function
-                    (default-value 'post-self-insert-hook)))
-    (remove-hook 'post-self-insert-hook
-                 #'electric-layout-post-self-insert-function)
+  (if (not electric-indent-mode)
+      (remove-hook 'post-self-insert-hook
+                   #'electric-indent-post-self-insert-function)
+    ;; post-self-insert-hooks interact in non-trivial ways.
+    ;; It turns out that electric-indent-mode generally works better if run
+    ;; late, but still before blink-paren.
     (add-hook 'post-self-insert-hook
-              #'electric-layout-post-self-insert-function)))
+              #'electric-indent-post-self-insert-function
+              'append)
+    ;; FIXME: Ugly!
+    (let ((bp (memq #'blink-paren-post-self-insert-function
+                    (default-value 'post-self-insert-hook))))
+      (when (memq #'electric-indent-post-self-insert-function bp)
+        (setcar bp #'electric-indent-post-self-insert-function)
+        (setcdr bp (cons #'blink-paren-post-self-insert-function
+                         (delq #'electric-indent-post-self-insert-function
+                               (cdr bp))))))))
 
 ;; Electric pairing.
 
@@ -284,6 +295,7 @@ This can be convenient for people who find it easier to hit ) than C-f."
 
 (defun electric-pair-post-self-insert-function ()
   (let* ((syntax (and (eq (char-before) last-command-event) ; Sanity check.
+                      electric-pair-mode
                       (let ((x (assq last-command-event electric-pair-pairs)))
                         (cond
                          (x (if (eq (car x) (cdr x)) ?\" ?\())

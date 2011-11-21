@@ -330,7 +330,7 @@ w32font_list (Lisp_Object frame, Lisp_Object font_spec)
 
 /* w32 implementation of match for font backend.
    Return a font entity most closely matching with FONT_SPEC on
-   FRAME.  The closeness is detemined by the font backend, thus
+   FRAME.  The closeness is determined by the font backend, thus
    `face-font-selection-order' is ignored here.  */
 static Lisp_Object
 w32font_match (Lisp_Object frame, Lisp_Object font_spec)
@@ -462,7 +462,7 @@ w32font_has_char (Lisp_Object entity, int c)
    Return a glyph code of FONT for character C (Unicode code point).
    If FONT doesn't have such a glyph, return FONT_INVALID_CODE.
 
-   For speed, the gdi backend uses unicode (Emacs calls encode_char
+   For speed, the gdi backend uses Unicode (Emacs calls encode_char
    far too often for it to be efficient). But we still need to detect
    which characters are not supported by the font.
   */
@@ -620,7 +620,7 @@ w32font_text_extents (struct font *font, unsigned *code,
       total_width = size.cx;
     }
 
-  /* On 95/98/ME, only some unicode functions are available, so fallback
+  /* On 95/98/ME, only some Unicode functions are available, so fallback
      on doing a dummy draw to find the total width.  */
   if (!total_width)
     {
@@ -1153,7 +1153,7 @@ w32_enumfont_pattern_entity (Lisp_Object frame,
   else
     ASET (entity, FONT_SIZE_INDEX, make_number (0));
 
-  /* Cache unicode codepoints covered by this font, as there is no other way
+  /* Cache Unicode codepoints covered by this font, as there is no other way
      of getting this information easily.  */
   if (font_type & TRUETYPE_FONTTYPE)
     {
@@ -1284,14 +1284,23 @@ font_matches_spec (DWORD type, NEWTEXTMETRICEX *font,
             {
               /* Only truetype fonts will have information about what
                  scripts they support.  This probably means the user
-                 will have to force Emacs to use raster, postscript
-                 or atm fonts for non-ASCII text.  */
+                 will have to force Emacs to use raster, PostScript
+                 or ATM fonts for non-ASCII text.  */
               if (type & TRUETYPE_FONTTYPE)
                 {
                   Lisp_Object support
                     = font_supported_scripts (&font->ntmFontSig);
                   if (! memq_no_quit (val, support))
                     return 0;
+
+		  /* Avoid using non-Japanese fonts for Japanese, even
+		     if they claim they are capable, due to known
+		     breakage in Vista and Windows 7 fonts
+		     (bug#6029).  */
+		  if (EQ (val, Qkana)
+		      && (font->ntmTm.tmCharSet != SHIFTJIS_CHARSET
+			  || !(font->ntmFontSig.fsCsb[0] & CSB_JAPANESE)))
+		    return 0;
                 }
               else
                 {
@@ -1455,7 +1464,7 @@ check_face_name (LOGFONT *font, char *full_name)
   /* Helvetica is mapped to Arial in Windows, but if a Type-1 Helvetica is
      installed, we run into problems with the Uniscribe backend which tries
      to avoid non-truetype fonts, and ends up mixing the Type-1 Helvetica
-     with Arial's characteristics, since that attempt to use Truetype works
+     with Arial's characteristics, since that attempt to use TrueType works
      some places, but not others.  */
   if (!xstrcasecmp (font->lfFaceName, "helvetica"))
     {
@@ -1483,7 +1492,7 @@ check_face_name (LOGFONT *font, char *full_name)
 
 
 /* Callback function for EnumFontFamiliesEx.
- * Checks if a font matches everything we are trying to check agaist,
+ * Checks if a font matches everything we are trying to check against,
  * and if so, adds it to a list. Both the data we are checking against
  * and the list to which the fonts are added are passed in via the
  * lparam argument, in the form of a font_callback_data struct. */
@@ -1505,9 +1514,9 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
   /* Skip non matching fonts.  */
 
   /* For uniscribe backend, consider only truetype or opentype fonts
-     that have some unicode coverage.  */
+     that have some Unicode coverage.  */
   if (match_data->opentype_only
-      && ((!physical_font->ntmTm.ntmFlags & NTMFLAGS_OPENTYPE
+      && ((!(physical_font->ntmTm.ntmFlags & NTMFLAGS_OPENTYPE)
 	   && !(font_type & TRUETYPE_FONTTYPE))
 	  || !is_unicode))
     return 1;
@@ -1548,7 +1557,7 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
       Lisp_Object spec_charset = AREF (match_data->orig_font_spec,
 				       FONT_REGISTRY_INDEX);
 
-      /* iso10646-1 fonts must contain unicode mapping tables.  */
+      /* iso10646-1 fonts must contain Unicode mapping tables.  */
       if (EQ (spec_charset, Qiso10646_1))
 	{
 	  if (!is_unicode)
@@ -1563,13 +1572,13 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
 	      && !(physical_font->ntmFontSig.fsUsb[0] & 0x007F001F))
 	    return 1;
 	}
-      /* unicode-sip fonts must contain characters in unicode plane 2.
+      /* unicode-sip fonts must contain characters in Unicode plane 2.
 	 so look for bit 57 (surrogates) in the Unicode subranges, plus
 	 the bits for CJK ranges that include those characters.  */
       else if (EQ (spec_charset, Qunicode_sip))
 	{
-	  if (!physical_font->ntmFontSig.fsUsb[1] & 0x02000000
-	      || !physical_font->ntmFontSig.fsUsb[1] & 0x28000000)
+	  if (!(physical_font->ntmFontSig.fsUsb[1] & 0x02000000)
+	      || !(physical_font->ntmFontSig.fsUsb[1] & 0x28000000))
 	    return 1;
 	}
 
@@ -1577,10 +1586,18 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
 
       /* If registry was specified, ensure it is reported as the same.  */
       if (!NILP (spec_charset))
-	ASET (entity, FONT_REGISTRY_INDEX, spec_charset);
-
+	{
+	  /* Avoid using non-Japanese fonts for Japanese, even if they
+	     claim they are capable, due to known breakage in Vista
+	     and Windows 7 fonts (bug#6029).  */
+	  if (logical_font->elfLogFont.lfCharSet == SHIFTJIS_CHARSET
+	      && !(physical_font->ntmFontSig.fsCsb[0] & CSB_JAPANESE))
+	    return 1;
+	  else
+	    ASET (entity, FONT_REGISTRY_INDEX, spec_charset);
+	}
       /* Otherwise if using the uniscribe backend, report ANSI and DEFAULT
-	 fonts as unicode and skip other charsets.  */
+	 fonts as Unicode and skip other charsets.  */
       else if (match_data->opentype_only)
 	{
 	  if (logical_font->elfLogFont.lfCharSet == ANSI_CHARSET
@@ -1623,7 +1640,7 @@ x_to_w32_charset (char * lpcs)
   if (strncmp (lpcs, "*-#", 3) == 0)
     return atoi (lpcs + 3);
 
-  /* All Windows fonts qualify as unicode.  */
+  /* All Windows fonts qualify as Unicode.  */
   if (!strncmp (lpcs, "iso10646", 8))
     return DEFAULT_CHARSET;
 
@@ -1908,7 +1925,7 @@ w32_registry (LONG w32_charset, DWORD font_type)
 {
   char *charset;
 
-  /* If charset is defaulted, charset is unicode or unknown, depending on
+  /* If charset is defaulted, charset is Unicode or unknown, depending on
      font type.  */
   if (w32_charset == DEFAULT_CHARSET)
     return font_type == TRUETYPE_FONTTYPE ? Qiso10646_1 : Qunknown;
@@ -2063,7 +2080,7 @@ fill_in_logfont (FRAME_PTR f, LOGFONT *logfont, Lisp_Object font_spec)
         {
           Lisp_Object key, val;
           key = XCAR (tmp), val = XCDR (tmp);
-          /* Only use QCscript if charset is not provided, or is unicode
+          /* Only use QCscript if charset is not provided, or is Unicode
              and a single script is specified.  This is rather crude,
              and is only used to narrow down the fonts returned where
              there is a definite match.  Some scripts, such as latin, han,
@@ -2204,7 +2221,7 @@ font_supported_scripts (FONTSIGNATURE * sig)
      so don't need to mark them separately.  */
   /* 1: Latin-1 supplement, 2: Latin Extended A, 3: Latin Extended B.  */
   SUBRANGE (4, Qphonetic);
-  /* 5: Spacing and tone modifiers, 6: Combining Diacriticals.  */
+  /* 5: Spacing and tone modifiers, 6: Combining Diacritical Marks.  */
   SUBRANGE (7, Qgreek);
   SUBRANGE (8, Qcoptic);
   SUBRANGE (9, Qcyrillic);
@@ -2294,7 +2311,7 @@ font_supported_scripts (FONTSIGNATURE * sig)
   /* 115: Saurashtra, 116: Kayah Li, 117: Rejang.  */
   SUBRANGE (118, Qcham);
   /* 119: Ancient symbols, 120: Phaistos Disc.  */
-  /* 121: Carian, Lycian, Lydian, 122: Dominos, Mah Jong tiles.  */
+  /* 121: Carian, Lycian, Lydian, 122: Dominoes, Mahjong tiles.  */
   /* 123-127: Reserved.  */
 
   /* There isn't really a main symbol range, so include symbol if any

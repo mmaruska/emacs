@@ -1,3 +1,122 @@
+2011-11-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Windows and Frames, Splitting Windows): Fix
+	typos.
+
+2011-11-21  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Splitting Windows): Fix error in documentation of
+	window-combination-limit.
+	(Cyclic Window Ordering): Minor fixes to next-window,
+	one-window-p, and get-lru-window docs.  Don't document
+	window-list-1.
+	(Buffers and Windows): Copyedits.
+	(Choosing Window): Document special handling of special-display-*.
+	(Choosing Window Options): Fix display-buffer-reuse-frames doc.
+	Don't document even-window-heights, which is going away.  Clarify
+	which options are obeyed by which action functions.
+
+2011-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* display.texi (Invisible Text): Clarify point adjustment (bug#10072).
+
+2011-11-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows, Splitting Windows):
+	Remove term "status" when talking about combination limits.
+
+2011-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* compile.texi (Compiler Errors):
+	* help.texi (Help Functions): Fix typos.
+
+2011-11-19  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Splitting Windows): Clarify role of window
+	parameters in split-window.  Shorten the example.
+	(Deleting Windows): Rewrite intro to handle internal windows.
+	Fix delete-windows-on doc.
+	(Selecting Windows): Copyedits.
+
+2011-11-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows, Splitting Windows)
+	(Deleting Windows): Use term window-combination-resize instead
+	of window-splits.
+
+2011-11-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows, Splitting Windows):
+	Rename occurrences of window-nest to window-combination-limit.
+
+2011-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* intro.texi (Lisp History): Fix typo.
+
+2011-11-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Splitting Windows, Deleting Windows):
+	Remove references to splits status of windows.
+
+2011-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* buffers.texi (Read Only Buffers): Expand a bit on why
+	toggle-read-only should only be used interactively.  (Bug#7292)
+
+2011-11-09  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Window Sizes): Document window-pixel-edges,
+	window-inside-pixel-edges, window-absolute-pixel-edges, and
+	window-inside-absolute-pixel-edges.
+	(Resizing Windows): shrink-window-if-larger-than-buffer works on
+	non-full-width windows.
+
+2011-11-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows): Rewrite documentation of
+	window-resizable.
+
+2011-11-09  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Splitting Windows): Simplify example.
+
+2011-11-08  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Window Sizes): Copyedits.  Document
+	window-text-height.  Remove window-min-height and window-min-width
+	discussion, referring instead to Emacs manual.
+	(Splitting Windows, Resizing Windows): Add xref to Emacs manual.
+	(Resizing Windows): Simplify introduction.  Don't document
+	enlarge-window, shrink-window, enlarge-window-horizontally, and
+	shrink-window-horizontally; they are no longer preferred for
+	calling from Lisp, and are already documented in the Emacs manual.
+
+2011-11-07  Glenn Morris  <rgm@gnu.org>
+
+	* windows.texi (Choosing Window): Fix keybinding typo.
+
+2011-11-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Resizing Windows, Splitting Windows)
+	(Window Configurations): Use "child window" instead of
+	"subwindow".
+
+2011-11-06  Chong Yidong  <cyd@gnu.org>
+
+	* windows.texi (Basic Windows): Clarify various definitions.
+	Treat window-normalize-* as internal; don't document them.
+	(Windows and Frames): Various clarifications, e.g. non-live
+	windows also belong to frames.  Fix window-list description.
+	Simplify window nesting example.
+	(Splitting Windows, Window Configurations):
+	Use split-window-below.
+
+2011-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* windows.texi (Window Sizes): Mention in the doc string that the
+	return values of `window-body-height' and `window-body-width' are
+	in frame's canonical units.  (Bug#9949)
+
 2011-10-30  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Windows and Frames): Remove "iso-" infix from
@@ -40,8 +159,8 @@
 
 2011-10-05  Chong Yidong  <cyd@stupidchicken.com>
 
-	* display.texi (Low-Level Font, Face Attributes, Font Lookup): Fix
-	Emacs manual xref (Bug#9675).
+	* display.texi (Low-Level Font, Face Attributes, Font Lookup):
+	Fix Emacs manual xref (Bug#9675).
 
 2011-10-01  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -80,8 +199,8 @@
 	* windows.texi (Window History): New node.  Move text here from
 	Buffers and Windows.
 	(Switching Buffers): Rename from Displaying Buffers, since we
-	don't document display-buffer here; callers changed.  Document
-	FORCE-SAME-WINDOW arg to switch-to-buffer and
+	don't document display-buffer here; callers changed.
+	Document FORCE-SAME-WINDOW arg to switch-to-buffer and
 	switch-to-buffer-other-frame.  Delete duplicate
 	replace-buffer-in-windows doc.
 	(Choosing Window): Document display actions.
@@ -112,10 +231,10 @@
 	Provide examples.  Describe window-nest and window-splits
 	options.
 	(Deleting Windows): Minor rewrite.
-	(Selecting Windows): Minor rewrite.  Describe
-	frame-selected-window and set-frame-selected-window here.
-	(Cyclic Window Ordering): Minor rewrite.  Describe
-	window-list-1.
+	(Selecting Windows): Minor rewrite.
+	Describe frame-selected-window and set-frame-selected-window here.
+	(Cyclic Window Ordering): Minor rewrite.
+	Describe window-list-1.
 	(Buffers and Windows): Rewrite.  Explain a window's previous and
 	next buffers and the corresponding functions.
 	(Window Tree): Merge into Windows and Frames section.
@@ -217,8 +336,8 @@
 
 	* display.texi (Bidirectional Display): Document the pitfalls of
 	concatenating strings with bidirectional content, with possible
-	solutions.  Document bidi-string-mark-left-to-right.  Mention
-	paragraph direction in modes that inherit from prog-mode.
+	solutions.  Document bidi-string-mark-left-to-right.
+	Mention paragraph direction in modes that inherit from prog-mode.
 	Document use of `bidi-class' and `mirroring' properties as part of
 	reordering.
 
@@ -274,8 +393,8 @@
 	the next character, and doesn't affect longer sequences in
 	particular (bug#8935).
 
-	* debugging.texi (Using Debugger): Mention
-	@code{eval-expression-debug-on-error} (bug#8549).
+	* debugging.texi (Using Debugger):
+	Mention @code{eval-expression-debug-on-error} (bug#8549).
 
 2011-07-14  Eli Zaretskii  <eliz@gnu.org>
 
@@ -424,7 +543,7 @@
 
 2011-06-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* processes.texi (Process Information): Renamed `process-alive-p'
+	* processes.texi (Process Information): Rename `process-alive-p'
 	to `process-live-p' for consistency with other `-live-p' functions.
 
 2011-06-03  Paul Eggert  <eggert@cs.ucla.edu>
@@ -441,8 +560,8 @@
 
 2011-05-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* processes.texi (Process Information): Document
-	`process-alive-p'.
+	* processes.texi (Process Information):
+	Document `process-alive-p'.
 
 2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1048,9 +1167,9 @@
 	* commands.texi (Misc Events): Add cross-references to where
 	POSITION of a mouse event is described in detail.
 
-2010-08-08  Christoph  <cschol2112@googlemail.com>
+2010-08-08  Christoph Scholtes  <cschol2112@googlemail.com>
 
-	* control.texi (Handling Errors) <error-message-string>: Fix arg name.
+	* control.texi (Handling Errors)  <error-message-string>: Fix arg name.
 
 2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -1840,8 +1959,8 @@
 
 2009-05-09  Eli Zaretskii  <eliz@gnu.org>
 
-	* nonascii.texi (Default Coding Systems): Document
-	find-auto-coding, set-auto-coding, and auto-coding-alist.
+	* nonascii.texi (Default Coding Systems):
+	Document find-auto-coding, set-auto-coding, and auto-coding-alist.
 	Add indexing.
 	(Lisp and Coding Systems): Add index entries.
 
@@ -2158,7 +2277,7 @@
 	(Future Local Variables): Node deleted.
 
 	* objects.texi (General Escape Syntax): Update explanation of
-	unicode escape syntax.
+	Unicode escape syntax.
 
 2009-02-23  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -5072,8 +5191,8 @@
 	(Saving Buffers): Mention code and EOL conversions by file I/O
 	primitives and subroutines.
 
-	* nonascii.texi (Lisp and Coding Systems): Document
-	coding-system-eol-type.  Add index entries for eol conversion.
+	* nonascii.texi (Lisp and Coding Systems):
+	Document coding-system-eol-type.  Add index entries for eol conversion.
 
 	* display.texi (Defining Faces): Mention `mac', and add an xref to
 	where window-system is described.
@@ -9023,7 +9142,7 @@
 
 	* functions.texi (Defining Functions): Explain about redefining
 	primitives.
-	(Function Safety): Renamed.  Minor changes.
+	(Function Safety): Rename.  Minor changes.
 	Comment out the detailed criteria for what is safe.
 
 2003-06-22  Andreas Schwab  <schwab@suse.de>
@@ -9524,7 +9643,7 @@
 
 	* Makefile (infodir, prefix): New vars.
 	(install): Use infodir.
-	(emacsinfodir): Deleted.
+	(emacsinfodir): Delete.
 
 1993-05-27  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -9535,7 +9654,7 @@
 
 1993-05-16  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-	* Makefile (dist): Changed to use Gzip instead of compress.
+	* Makefile (dist): Change to use Gzip instead of compress.
 
 1993-04-23  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 

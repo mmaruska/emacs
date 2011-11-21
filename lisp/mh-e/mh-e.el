@@ -5,7 +5,7 @@
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
-;; Version: 8.3
+;; Version: 8.3.1
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -127,7 +127,7 @@
 ;; Try to keep variables local to a single file. Provide accessors if
 ;; variables are shared. Use this section as a last resort.
 
-(defconst mh-version "8.3" "Version number of MH-E.")
+(defconst mh-version "8.3.1" "Version number of MH-E.")
 
 ;; Variants
 
@@ -2447,7 +2447,7 @@ of citations entirely, choose \"None\"."
     "Followup-To:"                      ; RFC 1036
     "For-Approval:"                     ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "For-Comment:"                      ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
-    "For-Handdling:"                    ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "For-Handling:"                     ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Forwarded:"                        ; MH
     "From "                             ; sendmail
     "Generate-Delivery-Report:"         ; RFC 2156
@@ -2478,7 +2478,7 @@ of citations entirely, choose \"None\"."
     "Original-NNTP-"                    ; mail to news
     "Original-Path:"                    ; mail to news
     "Original-Received:"                ; mail to news
-    "Original-Recipt:"                  ; RFC 2298
+    "Original-Recipient:"               ; RFC 2298
     "Original-To:"                      ; mail to news
     "Original-X-"                       ; mail to news
     "Origination-Client:"               ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
