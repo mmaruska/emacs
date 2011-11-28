@@ -136,6 +136,8 @@ movemail_bin := usr/lib/emacs/${runtime_ver}/${target}/movemail
 main_dir_info_files := $(shell grep '^$$(infodir)/' doc/misc/Makefile.in | \
 	sed -e "s%\$$(infodir)/\([^:]*\).*$$%\1%" | sort) emacs eintr elisp
 
+PACKAGES=${bin_name} ${bin_name}-nox ${bin_name}-lucid ${bin_name}-el ${bin_name}-common ${bin_name}-bin-common ${bin_name}-gtk ${bin_name}-dbg
+
 # Build directories
 EMACS_COMMON = $(CURDIR)/debian/${bin_name}-common
 EMACS_BIN_COMMON = $(CURDIR)/debian/${bin_name}-bin-common
@@ -325,20 +327,6 @@ define inst_desktop
 	# Install desktop entry
 	$(INSTALL) -D -m 0644 debian/${2}.desktop \
 		${1}/usr/share/applications/${2}.desktop
-endef
-
-define inst_bug_files
-	# Install bug script and control file
-	$(INSTALL) -D -m 0755 debian/bug.script \
-		${1}/usr/share/bug/${2}/script
-	$(INSTALL) -D -m 0644 debian/bug.control \
-		${1}/usr/share/bug/${2}/control
-endef
-
-define inst_bug_notice
-	# Install bug notice
-	$(INSTALL) -D -m 0644 debian/bug.presubj \
-		${1}/usr/share/bug/${2}/presubj
 endef
 
 define inst_overrides
@@ -571,7 +559,6 @@ install: build $(DEBPKGFILES)
 	rm -rf $(EMACS_COMMON)/var/games
 
 	$(call inst_overrides,lintian,$(EMACS_COMMON),${bin_name}-common)
-	$(call inst_bug_files,$(EMACS_COMMON),${bin_name}-common)
 
 	# Remove extra license files
 	rm -f $(EMACS_COMMON)/usr/share/emacs/${runtime_ver}/{etc,lisp}/COPYING
@@ -613,7 +600,6 @@ install: build $(DEBPKGFILES)
 
 	$(call inst_desktop,$(EMACS_BIN_COMMON),emacsclient-${bin_name})
 	$(call inst_overrides,lintian,$(EMACS_BIN_COMMON),${bin_name}-bin-common)
-	$(call inst_bug_files,$(EMACS_BIN_COMMON),${bin_name}-bin-common)
 
 	##################################################
 	# emacs (preparation)
@@ -622,8 +608,6 @@ install: build $(DEBPKGFILES)
 	$(call inst_manpage,$(EMACS),${bin_name},${bin_name}-gtk,${bin_name})
 	$(call inst_desktop,$(EMACS),${bin_name})
 	$(call inst_overrides,lintian,$(EMACS),${bin_name})
-	$(call inst_bug_files,$(EMACS),${bin_name})
-	$(call inst_bug_notice,$(EMACS),${bin_name})
 
 	# Create a compatibility symlink emacs-x -> emacs-gtk.
 	dh_link -p${bin_name} usr/bin/${bin_name}-gtk usr/bin/${bin_name}-x
@@ -634,8 +618,6 @@ install: build $(DEBPKGFILES)
 	$(call inst_binary,nox-emacs,$(EMACS_NOX),${bin_name}-nox)
 	$(call inst_manpage,$(EMACS_NOX),${bin_name},${bin_name}-nox,${bin_name}-nox)
 	$(call inst_overrides,lintian,$(EMACS_NOX),${bin_name}-nox)
-	$(call inst_bug_files,$(EMACS_NOX),${bin_name}-nox)
-	$(call inst_bug_notice,$(EMACS_NOX),${bin_name}-nox)
 
 	##################################################
 	# emacs-lucid (preparation)
@@ -643,8 +625,6 @@ install: build $(DEBPKGFILES)
 	$(call inst_binary,lucid-emacs,$(EMACS_LUCID),${bin_name}-lucid)
 	$(call inst_manpage,$(EMACS_LUCID),${bin_name},${bin_name}-lucid,${bin_name}-lucid)
 	$(call inst_overrides,lintian,$(EMACS_LUCID),${bin_name}-lucid)
-	$(call inst_bug_files,$(EMACS_LUCID),${bin_name}-lucid)
-	$(call inst_bug_notice,$(EMACS_LUCID),${bin_name}-lucid)
 
 	##################################################
 	# emacs-el (preparation)
@@ -654,7 +634,17 @@ install: build $(DEBPKGFILES)
 	    tar cpf - --files-from -) | \
 	      (cd $(EMACS_EL) && tar xpf -)
 
-	$(call inst_bug_files,$(EMACS_EL),${bin_name}-el)
+	# Common stuff
+	# Install bug notices
+	for e in $(PACKAGES) emacs-el emacs-common emacs-bin-common; do \
+		$(INSTALL) -D -m 0644 debian/bug.presubj \
+			$(CURDIR)/debian/$$e/usr/share/bug/$$e/presubj ; \
+		# Install bug script and control file
+		$(INSTALL) -D -m 0755 debian/bug.script \
+			$(CURDIR)/debian/$$e/usr/share/bug/$$e/script ; \
+		$(INSTALL) -D -m 0644 debian/bug.control \
+			$(CURDIR)/debian/$$e/usr/share/bug/$$e/control ; \
+	done
 
 	##################################################
 	# Final emacs-common clean ups
