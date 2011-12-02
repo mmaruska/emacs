@@ -639,7 +639,6 @@ install: build $(DEBPKGFILES)
 	for e in $(PACKAGES) emacs-el emacs-common emacs-bin-common; do \
 		$(INSTALL) -D -m 0644 debian/bug.presubj \
 			$(CURDIR)/debian/$$e/usr/share/bug/$$e/presubj ; \
-		# Install bug script and control file
 		$(INSTALL) -D -m 0755 debian/bug.script \
 			$(CURDIR)/debian/$$e/usr/share/bug/$$e/script ; \
 		$(INSTALL) -D -m 0644 debian/bug.control \
