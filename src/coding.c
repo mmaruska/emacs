@@ -5244,7 +5244,7 @@ encode_coding_ccl (struct coding_system *coding)
       && coding->mode & CODING_MODE_LAST_BLOCK)
     ccl->last_block = 1;
 
-  while (charbuf < charbuf_end)
+  do
     {
       ccl_driver (ccl, charbuf, destination_charbuf,
 		  charbuf_end - charbuf, 1024, charset_list);
@@ -5266,6 +5266,7 @@ encode_coding_ccl (struct coding_system *coding)
 	  || ccl->status == CCL_STAT_INVALID_CMD)
 	break;
     }
+  while (charbuf < charbuf_end);
 
   switch (ccl->status)
     {
@@ -8755,6 +8756,7 @@ to the string.  */)
     }
 
   positions = Qnil;
+  charset_map_loaded = 0;
   while (1)
     {
       int c;
@@ -8782,6 +8784,16 @@ to the string.  */)
 	}
 
       from++;
+      if (charset_map_loaded && NILP (string))
+	{
+	  p = CHAR_POS_ADDR (from);
+	  pend = CHAR_POS_ADDR (to);
+	  if (from < GPT && to >= GPT)
+	    stop = GPT_ADDR;
+	  else
+	    stop = pend;
+	  charset_map_loaded = 0;
+	}
     }
 
   return (NILP (count) ? Fcar (positions) : Fnreverse (positions));

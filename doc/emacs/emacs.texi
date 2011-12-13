@@ -39,7 +39,7 @@ developing GNU and promoting software freedom.''
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  The manual should go
 @c onto the distribution in the full, 8.5 x 11" size.
-@smallbook
+@c @smallbook
 
 @ifset smallbook
 @smallbook
@@ -699,7 +699,7 @@ Compiling and Testing Programs
 * Executing Lisp::      Various modes for editing Lisp programs,
                           with different facilities for running
                           the Lisp programs.
-* Lisp Libraries::      Creating Lisp programs to run in Emacs.
+* Lisp Libraries::      How Lisp programs are loaded into Emacs.
 * Lisp Eval::           Executing a single Lisp expression in Emacs.
 * Lisp Interaction::    Executing Lisp in an Emacs buffer.
 * External Lisp::       Communicating through Emacs with a separate Lisp.
@@ -722,8 +722,7 @@ GDB Graphical Interface
 * Breakpoints Buffer::          A breakpoint control panel.
 * Threads Buffer::              Displays your threads.
 * Stack Buffer::                Select a frame from the call stack.
-* Other GDB Buffers::           Input/output, locals, registers,
-                                assembler, threads and memory buffers.
+* Other GDB Buffers::           Other buffers for controlling the GDB state.
 * Watch Expressions::           Monitor variable values in the speedbar.
 * Multithreaded Debugging::     Debugging programs with several threads.
 

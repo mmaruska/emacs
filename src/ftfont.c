@@ -166,8 +166,8 @@ get_adstyle_property (FcPattern *p)
 
 #ifdef FC_FONTFORMAT
   if ((FcPatternGetString (p, FC_FONTFORMAT, 0, &fcstr) == FcResultMatch)
-      && (xstrcasecmp ((char *) fcstr, "bdf") != 0
-	  || xstrcasecmp ((char *) fcstr, "pcf") != 0))
+      && xstrcasecmp ((char *) fcstr, "bdf") != 0
+      && xstrcasecmp ((char *) fcstr, "pcf") != 0)
     /* Not a BDF nor PCF font.  */
     return Qnil;
 #endif
@@ -960,7 +960,7 @@ ftfont_list (Lisp_Object frame, Lisp_Object spec)
   /* Need fix because this finds any fonts.  */
   if (fontset->nfont == 0 && ! NILP (family))
     {
-      /* Try maching with configuration.  For instance, the
+      /* Try matching with configuration.  For instance, the
 	 configuration may specify "Nimbus Mono L" as an alias of
 	 "Courier".  */
       FcPattern *pat = FcPatternBuild (0, FC_FAMILY, FcTypeString,
