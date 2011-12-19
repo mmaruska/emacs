@@ -1,3 +1,91 @@
+2011-12-19  Chong Yidong  <cyd@gnu.org>
+
+	* vc/vc-dir.el (vc-dir-parent-marked-p, vc-dir-children-marked-p):
+	Don't signal an error in a predicate function; return non-nil.
+	(vc-dir-mark-file): Move the error here.
+	(vc-dir-mark-unmark): If acting on the region, keep going if one
+	of the entries cannot be marked/unmarked.
+	(vc-dir-mark-all-files): If current entry is a directory, mark
+	only child files, as documented.
+
+2011-12-19  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el: Ooops... undo changes of revision 106664, as trunk
+	branch is feature frozen, and revision 106664 was a feature
+	addition.
+
+2011-12-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (ns-get-selection-internal)
+	(ns-store-selection-internal): Declare.
+	(ns-store-cut-buffer-internal, ns-get-cut-buffer-internal): Declare
+	as obsolete.
+	(ns-get-pasteboard, ns-paste-secondary): Use
+	ns-get-selection-internal.
+	(ns-set-pasteboard,  ns-copy-including-secondary): Use
+	ns-store-selection-internal.
+
+2011-12-17  Chong Yidong  <cyd@gnu.org>
+
+	* vc/vc.el (vc-next-action): Doc fix; remove CVS-isms.
+	(vc-deduce-fileset): Doc fix.
+
+2011-12-16  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* calc/calc-misc.el (calc-help): Avoid wrapping help message.
+
+2011-12-13  Sam Steingold  <sds@gnu.org>
+
+	* man.el (Man-getpage-in-background): When running under a
+	window-system, ignore $MANWIDTH and $COLUMNS.
+
+2011-12-15  Kenichi Handa  <handa@m17n.org>
+
+	* language/ethio-util.el: Change coding tag to utf-8-emacs.
+	(setup-ethiopic-environment-internal): Comment out key-binding for
+	ethio-toggle-punctuation.
+
+2011-12-13  Alan Mackenzie  <acm@muc.de>
+
+	Add the switch statement to AWK Mode.
+
+	* progmodes/cc-awk (awk-font-lock-keywords): Add "switch", "case",
+	"default" to the keywords regexp.
+
+	* progmodes/cc-langs (c-label-kwds): Let AWK take the same
+	expression as the rest.
+	(c-nonlabel-token-key): Allow string literals for AWK.  Refactor
+	for the other modes.
+
+	Large brace-block initialisation makes CC Mode slow: Fix.
+	Tidy up and accelerate c-in-literal, etc. by using the
+	c-parse-state
+	routines.  Limit backward searching in c-font-lock-enclosing.decl.
+
+	* progmodes/cc-engine.el (c-state-pp-to-literal): Return the
+	pp-state and literal type in addition to the limits.
+	(c-state-safe-place): New defun, extracted from
+	c-state-literal-at.
+	(c-state-literal-at): Use the above new defun.
+	(c-slow-in-literal, c-fast-in-literal): Removed.
+	(c-in-literal, c-literal-limits): Amended to use
+	c-state-pp-to-literal.
+
+	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls): Check for
+	being in a literal.  Add a limit for backward searching.
+
+	* progmodes/cc-mode.el (awk-mode): Don't alias c-in-literal to
+	c-slow-in-literal.
+
+2011-12-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/pascal.el: Declare `ind' as dyn-bound (bug#10264).
+
+2011-12-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (delete-other-windows): Use correct frame in call to
+	window-with-parameter.
+
 2011-12-12  Daniel Pfeiffer  <occitan@t-online.de>
 
 	* progmodes/make-mode.el: Bring it up to date with makepp V2.0.
@@ -5234,7 +5322,7 @@
 	(ses-calculate-cell, ses-update-cells): Use Dijkstra algorithm for
 	cycle detection.
 	(ses-self-reference-early-detection): New defcustom.
-	(ses-formula-references): Robustify against self-refering cells.
+	(ses-formula-references): Robustify against self-referring cells.
 	(ses-mode): Use ses-set-localvars.
 	(ses-command-hook): Add call to ses-initialize-Dijkstra-attempt
 	before lauching the update processing.

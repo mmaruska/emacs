@@ -2455,7 +2455,7 @@ window signal an error."
 	(throw 'done (delete-other-windows atom-root)))
        ((eq window-side 'none)
 	;; Set side-main to the major non-side window.
-	(setq side-main (window-with-parameter 'window-side 'none nil t)))
+	(setq side-main (window-with-parameter 'window-side 'none frame t)))
        ((memq window-side window-sides)
 	(error "Cannot make side window the only window")))
       ;; If WINDOW is the main non-side window, do nothing.
@@ -3713,7 +3713,7 @@ value can be also stored on disk and read back in a new session."
 	      (if (window-sizable-p window (- size) horizontal 'safe)
 		  (let* ((window-combination-limit
 			  (assq 'combination-limit item)))
-		    ;; We must inherit the combiantion limit, otherwise
+		    ;; We must inherit the combination limit, otherwise
 		    ;; we might mess up handling of atomic and side
 		    ;; window.
 		    (setq new (split-window window size horizontal)))
