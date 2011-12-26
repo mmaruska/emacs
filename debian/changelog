@@ -1,8 +1,9 @@
 emacs-snapshot (1:20111226-1) unstable; urgency=low
 
   * New snapshot.
+  * Bump standard policy
 
- -- Julien Danjou <acid@debian.org>  Mon, 26 Dec 2011 14:47:10 +0100
+ -- Julien Danjou <acid@debian.org>  Mon, 26 Dec 2011 15:10:29 +0100
 
 emacs-snapshot (1:20111219-1) unstable; urgency=low
 
