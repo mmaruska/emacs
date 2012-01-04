@@ -342,7 +342,7 @@ Name of the Previous sequence.")
   "Non-nil means that we have \"flists\".")
 
 (defvar mh-index-data-file ".mhe_index"
-  "MH-E specific file where index seach info is stored.")
+  "MH-E specific file where index search info is stored.")
 
 (defvar mh-letter-header-field-regexp "^\\([A-Za-z][A-Za-z0-9-]*\\):")
 
@@ -2508,7 +2508,7 @@ of citations entirely, choose \"None\"."
     "Seal-Send-Time:"
     "See-Also:"                         ; H. Spencer: News Article Format and Transmission, June 1994
     "Sensitivity:"                      ; RFC 2156, 2421
-    "Speach-Act:"                       ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "Speech-Act:"                       ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Status:"                           ; sendmail
     "Supersedes:"                       ; H. Spencer: News Article Format and Transmission, June 1994
     "Telefax:"                          ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
