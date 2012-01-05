@@ -2229,7 +2229,10 @@ doesn't exist, to valid the overview buffer."
 article counts for each of the method's subscribed groups."
   (let ((gnus-command-method (or method gnus-command-method)))
     (when (or (null gnus-agent-article-local-times)
-	      (zerop gnus-agent-article-local-times))
+	      (zerop gnus-agent-article-local-times)
+	      (not (gnus-methods-equal-p
+		    gnus-command-method
+		    (symbol-value (intern "+method" gnus-agent-article-local)))))
       (setq gnus-agent-article-local
 	    (gnus-cache-file-contents
 	     (gnus-agent-lib-file "local")
@@ -4031,7 +4034,7 @@ If REREAD is not nil, downloaded articles are marked as unread."
 	;; gnus-agent-regenerate-group can remove the article ID of every
 	;; article (with the exception of the last ID in the list - it's
 	;; special) that no longer appears in the overview.  In this
-	;; situtation, the last article ID in the list implies that it,
+	;; situation, the last article ID in the list implies that it,
 	;; and every article ID preceding it, have been fetched from the
 	;; server.
 

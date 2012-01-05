@@ -116,7 +116,8 @@ and pops down the *Completions* buffer accordingly.
 
 ** Mail changes
 
-The default of `send-mail-function' is now `sendmail-query-once',
++++
+*** The default of `send-mail-function' is now `sendmail-query-once',
 which asks the user (once) whether to use the smtpmail package to send
 email, or to use the old defaults that rely on external mail
 facilities (`sendmail-send-it' on GNU/Linux and other Unix-like
@@ -156,14 +157,12 @@ If you had that set, then you need to put
 
 in your ~/.authinfo file instead.
 
-*** sendmail changes
+*** Mail mode changes (this is the old Mail mode, not Message mode)
 +++
-You can now add MIME attachments to outgoing messages with the new
-command `mail-add-attachment'.
-
+**** New command `mail-add-attachment' for adding MIME attachments
 ---
-The command `mail-attach-file' was renamed to `mail-insert-file'; the
-old name is now an obsolete alias to the new name.
+**** The command `mail-attach-file' was renamed to `mail-insert-file'.
+The old name is now an obsolete alias to the new name.
 
 ** Emacs server and client changes
 +++
@@ -567,6 +566,7 @@ region (or with the left margin if there is no previous line).
 +++
 ** Archive Mode has basic support for browsing and updating 7z archives.
 
++++
 ** browse-url has a new variable `browse-url-mailto-function'
 specifies how mailto: URLs are handled.  The default is `browse-url-mail'.
 
@@ -693,7 +693,7 @@ utf-8, and do the normal `undecided' decoding for the rest.
 exists, that is used instead.
 
 ** gdb-mi
-
++++
 *** GDB User Interface migrated to GDB Machine Interface and now
 supports multithread non-stop debugging and debugging of several
 threads simultaneously.
@@ -719,6 +719,7 @@ handy if you have many manuals in many Info buffers, and don't
 remember the name of the buffer visiting the manual you want to
 consult.
 
++++
 ** The Landmark game is now invoked with `landmark', not `lm'.
 
 ** MH-E has been upgraded to MH-E version 8.3.1.
@@ -743,16 +744,12 @@ This change was made in Emacs 23.1 but was not advertised at the time.
 Try using `rmail-show-message-hook' instead.
 
 ** Shell mode
-
++++
 *** Shell mode uses pcomplete rules, with the standard completion UI.
-
++++
 *** The `shell' command prompts for the shell path name if the default
 directory is a remote file name and neither the environment variable
 $ESHELL nor the variable `explicit-shell-file-name' is set.
-
-*** New variable `shell-dir-cookie-re'.
-If set to an appropriate regexp, Shell mode can track your cwd by
-reading it from your prompt.
 
 ---
 ** SQL Mode enhancements.
@@ -903,6 +900,7 @@ They are superseded by shift-select-mode enabled by default in 23.1.
 ---
 *** `copyright-fix-years' can optionally convert consecutive years to ranges.
 
++++
 *** New command `nato-region' converts text to NATO phonetic alphabet.
 
 

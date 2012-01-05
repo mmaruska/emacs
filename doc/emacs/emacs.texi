@@ -548,6 +548,7 @@ Commands for Human Languages
 * Case::                Changing the case of text.
 * Text Mode::           The major modes for editing text files.
 * Outline Mode::        Editing outlines.
+* Org Mode::            The Emacs organizer.
 * TeX Mode::            Editing input to the formatter TeX.
 * HTML Mode::           Editing HTML and SGML files.
 * Nroff Mode::          Editing input to the formatter nroff.
@@ -918,10 +919,10 @@ Customizing the Calendar and Diary
 
 Document Viewing
 
-* Navigation::  Navigation inside DocView buffers.
-* Searching::   Searching inside documents.
-* Slicing::     Specifying which part of pages should be displayed.
-* Conversion::  Influencing and triggering conversion.
+* DocView Navigation::  Navigating DocView buffers.
+* DocView Searching::   Searching inside documents.
+* DocView Slicing::     Specifying which part of a page is displayed.
+* DocView Conversion::  Influencing and triggering conversion.
 
 Sending Mail
 
@@ -973,7 +974,8 @@ Gnus
 
 * Buffers of Gnus::     The group, summary, and article buffers.
 * Gnus Startup::        What you should know about starting Gnus.
-* Summary of Gnus::     A short description of the basic Gnus commands.
+* Gnus Group Buffer::   A short description of Gnus group commands.
+* Gnus Summary Buffer:: A short description of Gnus summary commands.
 
 Running Shell Commands from Emacs
 
@@ -986,7 +988,6 @@ Running Shell Commands from Emacs
 * Shell Options::       Options for customizing Shell mode.
 * Terminal emulator::   An Emacs window as a terminal emulator.
 * Term Mode::           Special Emacs commands used in Term mode.
-* Paging in Term::      Paging in the terminal emulator.
 * Remote Host::         Connecting to another computer.
 * Serial Terminal::     Connecting to a serial port.
 
@@ -1370,7 +1371,7 @@ Shapiro, Richard Sharman, Olin Shivers, Espen Skoglund, Rick Sladkey,
 Lynn Slater, Chris Smith, David Smith, Paul D.@: Smith, William
 Sommerfeld, Andre Spiegel, Michael Staats, Ulf Stegemann, Reiner Steib,
 Sam Steingold, Ake Stenhoff, Peter Stephenson, Ken Stevens, Andy Stewart,
-Jonathan Stigelman, Martin Stjernholm, Kim F.@: Storm, Steve Strassman,
+Jonathan Stigelman, Martin Stjernholm, Kim F.@: Storm, Steve Strassmann,
 Olaf Sylvester, Naoto Takahashi, Steven Tamm, Jean-Philippe Theberge,
 Jens T.@: Berger Thielemann, Spencer Thomas, Jim Thompson, Luc
 Teirlinck, David O'Toole, Tom Tromey, Enami Tsugutomo, Eli Tziperman,

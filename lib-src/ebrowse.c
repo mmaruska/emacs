@@ -981,7 +981,7 @@ make_namespace (char *name, struct sym *context)
 }
 
 
-/* Find the symbol for namespace NAME.  If not found, retrun NULL */
+/* Find the symbol for namespace NAME.  If not found, return NULL */
 
 static struct sym *
 check_namespace (char *name, struct sym *context)
@@ -3526,7 +3526,7 @@ static void
 version (void)
 {
   /* Makes it easier to update automatically. */
-  char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
+  char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundation, Inc.";
 
   printf ("ebrowse %s\n", VERSION);
   puts (emacs_copyright);

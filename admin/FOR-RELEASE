@@ -154,10 +154,9 @@ killing.texi      cyd
 kmacro.texi       cyd
 macos.texi        
 maintaining.texi  cyd
-major.texi        
 mark.texi         cyd
 mini.texi         
-misc.texi         
+misc.texi         cyd
 modes.texi        cyd
 msdog.texi        
 msdog-xtra.texi   
@@ -169,7 +168,7 @@ regs.texi         cyd
 rmail.texi        
 screen.texi       cyd
 search.texi       cyd
-sending.texi      
+sending.texi      cyd
 text.texi         cyd
 trouble.texi      
 vc-xtra.texi      cyd
