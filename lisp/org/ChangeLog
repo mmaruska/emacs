@@ -1,3 +1,26 @@
+2012-01-05  Eric Schulte  <eric.schulte@gmx.com>
+
+	* ob.el (org-babel-expand-noweb-references): Resurrect dropped
+	pieces of a previous patch.
+
+	* ob-maxima.el (org-babel-execute:maxima): Fix compiler warning.
+
+2012-01-05  Bastien Guerry  <bzg@gnu.org>
+
+	* org-eshell.el (org-eshell-open): Use (goto-char (point-max))
+	instead of (end-of-buffer).
+
+	* org-bbdb.el (name): Declare variable.
+	(bbdb-record-get-field, bbdb-search-name)
+	(bbdb-search-organization): Declare as part of ext:bbdb.
+
+	* org-agenda.el: Add an alias for `org-agenda-filter'.
+	(diary-list-entries-hook): Use the non-obsolete hook.
+	(org-agenda-filter-apply): Silent compiler warnings.
+
+	* org-mobile.el (org-mobile-push): Use `org-agenda-tag-filter'
+	instead of the obsolete `org-agenda-filter'.
+
 2012-01-03  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-ctrl-c-ctrl-c): Preserve symmetry when adding
@@ -1154,7 +1177,7 @@
 	* org.el: Remap `outline-promote' and `outline-demote' keys to
 	`org-promote-subtree' and `org-demote-subtree'.
 
-2012-01-03  Leo  <sdl.web@gmail.com>
+2012-01-03  Leo Liu  <sdl.web@gmail.com>
 
 	* org-agenda.el (org-agenda-do-context-action): Check if marker is
 	valid before use.
@@ -1726,7 +1749,7 @@
 
 2012-01-03  Suvayu Ali  <fatkasuvayu+linux@gmail.com>  (tiny change)
 
-	* org-inlinetask.el (org-inlinetask): New customisable face
+	* org-inlinetask.el (org-inlinetask): New customizable face
 	for inlinetasks
 
 2012-01-03  Bastien Guerry  <bzg@gnu.org>
@@ -2941,7 +2964,7 @@
 
 	* org-latex.el (org-export-latex-header-defs-re): Delete.
 
-2011-07-28  Bastien  <bzg@gnu.org>
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
 	* org.el (org-last-set-property): New variable.
 	(org-read-property-name): Use the new variable: the prompt
@@ -6763,7 +6786,7 @@
 	* ob.el (org-babel-params-from-properties): Test for
 	"header-arg-name" and ":header-arg-name", in that order.
 
-2011-07-28  Bastien  <bastien.guerry@wikimedia.fr>
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
 	* org-capture.el (org-capture-templates): Document "currentfile"
 	for capture template.
@@ -19550,7 +19573,7 @@
 	against all agenda files.
 
 2008-10-12  Carsten Dominik  <dominik@science.uva.nl>
-	Bastien Guerry  <bzg@altern.org>
+	    Bastien Guerry  <bzg@altern.org>
 
 	* org-list.el: New file, aggregating list functions from org.el
 	and org-export-latex.el.
@@ -20463,7 +20486,7 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-	Copyright (C) 2008-2011  Free Software Foundation, Inc.
+	Copyright (C) 2008-2012  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

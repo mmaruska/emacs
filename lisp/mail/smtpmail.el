@@ -1,6 +1,6 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
 
-;; Copyright (C) 1995-1996, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2001-2012  Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: Simon Josefsson <simon@josefsson.org>
@@ -60,7 +60,6 @@
 (autoload 'message-make-date "message")
 (autoload 'message-make-message-id "message")
 (autoload 'rfc2104-hash "rfc2104")
-(autoload 'password-read "password-cache")
 
 ;;;
 (defgroup smtpmail nil
@@ -469,9 +468,6 @@ The list is in preference order.")
       (when (memq el2 list1)
 	(push el2 result)))
     (nreverse result)))
-
-;; `password-read' autoloads password-cache.
-(declare-function password-cache-add "password-cache" (key password))
 
 (defun smtpmail-command-or-throw (process string &optional code)
   (let (ret)

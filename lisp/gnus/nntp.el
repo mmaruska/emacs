@@ -847,7 +847,14 @@ command whose response triggered the error."
   "Retrieve group info on GROUPS."
   (nntp-with-open-group
    nil server
-   (when (nntp-find-connection-buffer nntp-server-buffer)
+   (when (and (nntp-find-connection-buffer nntp-server-buffer)
+	      (with-current-buffer
+		  (nntp-find-connection-buffer nntp-server-buffer)
+		(if (not nntp-retrieval-in-progress)
+		    t
+		  (message "Warning: Refusing to do retrieval from %s because a retrieval is already happening"
+			   server)
+		  nil)))
      (catch 'done
        (save-excursion
          ;; Erase nntp-server-buffer before nntp-inhibit-erase.
@@ -1242,8 +1249,8 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 	 (alist (netrc-machine list nntp-address "nntp"))
          (auth-info
           (nth 0 (auth-source-search :max 1
-                                     ;; TODO: allow the virtual server name too
-                                     :host nntp-address
+                                     :host (list nntp-address
+                                                 (nnoo-current-server 'nntp))
                                      :port '("119" "nntp"))))
          (auth-user (plist-get auth-info :user))
          (auth-force (plist-get auth-info :force))
