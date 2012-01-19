@@ -1,3 +1,32 @@
+2012-01-19  Kenichi Handa  <handa@m17n.org>
+
+	* character.c (char_width): New function.
+	(Fchar_width, c_string_width, lisp_string_width):
+	Use char_width (Bug#9496).
+
+2012-01-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Vwindow_persistent_parameters): New variable.
+	(Fset_window_configuration, save_window_save): Handle persistent
+	window parameters.
+
+2012-01-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (signal_user_input): Don't do a QUIT, to avoid
+	thrashing the stack of the thread.  (Bug#9087)
+
+2012-01-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c (rows_from_pos_range): Add parens as per gcc -Wparentheses.
+
+2012-01-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (rows_from_pos_range): Handle the case where the
+	highlight ends on a newline.  (Bug#10464)
+	(mouse_face_from_buffer_pos): Fix off-by-one error in calculating
+	he end column for display of highlight that ends on a newline
+	before a R2L line.
+
 2012-01-11  Glenn Morris  <rgm@gnu.org>
 
 	* lread.c (init_lread): If no-site-lisp, remove site-lisp dirs
