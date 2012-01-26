@@ -1,3 +1,10 @@
+emacs-snapshot (2:20120126-1) unstable; urgency=low
+
+  * New snapshot
+  * Increase epoch because I screwed up
+
+ -- Julien Danjou <acid@debian.org>  Thu, 26 Jan 2012 14:00:10 +0100
+
 emacs-snapshot (1:20121126-1) unstable; urgency=low
 
   * New snapshot
