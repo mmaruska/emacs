@@ -1,3 +1,28 @@
+2012-01-31  Glenn Morris  <rgm@gnu.org>
+
+	* nsterm.m (syms_of_nsterm) <x-toolkit-scroll-bars>:
+	* w32term.c (syms_of_w32term) <x-toolkit-scroll-bars>:
+	* xterm.c (syms_of_xterm) <x-toolkit-scroll-bars>: Sync docs.
+
+2012-01-29  Glenn Morris  <rgm@gnu.org>
+
+	* gnutls.c (syms_of_gnutls): More doc (from etc/NEWS).
+
+2012-01-28  Samuel Thibault  <sthibault@debian.org>  (tiny change)
+
+	* s/gnu.h: Define POSIX_SIGNALS (Bug#10552).
+
+2012-01-28  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf.c (syms_of_minibuf): Doc fix (Bug#10550).
+
+2012-01-26  Chong Yidong  <cyd@gnu.org>
+
+	* keyboard.c (Vecho_keystrokes): Document zero value (Bug#10503).
+
+	* search.c (Fsearch_forward, Fsearch_backward): Document negative
+	repeat counts (Bug#10507).
+
 2012-01-26  Glenn Morris  <rgm@gnu.org>
 
 	* lread.c (syms_of_lread): Doc fix.
@@ -2343,7 +2368,7 @@
 	Remove unreachable code.
 	(read_hex, load_charset_map_from_file): Check for integer overflow.
 
-	* xterm.c: don't go over XClientMessageEvent limit
+	* xterm.c: Don't go over XClientMessageEvent limit.
 	(scroll_bar_windows_size): Now ptrdiff_t, as we prefer signed.
 	(x_send_scroll_bar_event): Likewise.  Check that the size does not
 	exceed limits imposed by XClientMessageEvent, as well as the usual
@@ -5634,7 +5659,7 @@
 
 	* ccl.c (ccl_driver): Redo slightly to avoid the need for 'unsigned'.
 
-	ccl: add integer overflow checks
+	ccl: Add integer overflow checks.
 	* ccl.c (CCL_CODE_MAX, GET_CCL_RANGE, GET_CCL_CODE, GET_CCL_INT):
 	(IN_INT_RANGE): New macros.
 	(ccl_driver): Use them to check for integer overflow when
