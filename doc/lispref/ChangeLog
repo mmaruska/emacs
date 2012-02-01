@@ -1,3 +1,58 @@
+2012-01-31  Chong Yidong  <cyd@gnu.org>
+
+	* syntax.texi (Parsing Expressions): Clarify intro (Bug#10657).
+	(Parser State): Remove unnecessary statement (Bug#10661).
+
+	* eval.texi (Intro Eval): Add footnote about "sexp" terminology.
+
+2012-01-31  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Defining Minor Modes):
+	Document define-minor-mode's new :variable keyword.
+
+2012-01-29  Chong Yidong  <cyd@gnu.org>
+
+	* syntax.texi (Syntax Class Table): Tweak description of newline
+	char syntax (Bug#9619).
+
+	* numbers.texi (Predicates on Numbers): Fix wholenump/natnump
+	description (Bug#10189).
+
+2012-01-29  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (Changing Files): Document SELinux support.
+
+	* windows.texi (Window Sizes): Fix typo.
+
+2012-01-28  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Fringe Indicators): Clarify fringe-indicator-alist
+	doc (Bug#8568).
+
+	* frames.texi (Input Focus): Add NORECORD arg to
+	select-frame-set-input-focus.  Clarify its role in select-frame.
+
+	* text.texi (Transposition): We don't use transpose-region as an
+	internal subroutine (Bug#3249).
+
+	* modes.texi (Example Major Modes): Update Lisp example code to
+	current sources.  Delete the old non-derived-major-mode example,
+	which has diverged badly from current sources.
+
+2012-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (texinputdir): Fix (presumed) typo.
+	(VERSION, manual): Remove, unused.
+
+2012-01-27  Chong Yidong  <cyd@gnu.org>
+
+	* commands.texi (Command Overview): Minor clarification (Bug#10384).
+
+2012-01-26  Chong Yidong  <cyd@gnu.org>
+
+	* searching.texi (String Search): Document negative repeat count
+	(Bug#10507).
+
 2012-01-26  Glenn Morris  <rgm@gnu.org>
 
 	* variables.texi (Using Lexical Binding):
