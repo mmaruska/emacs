@@ -134,7 +134,7 @@ textual parts.")
 
 (defstruct nnimap
   group process commands capabilities select-result newlinep server
-  last-command-time greeting examined stream-type)
+  last-command-time greeting examined stream-type initial-resync)
 
 (defvar nnimap-object nil)
 
@@ -189,25 +189,32 @@ textual parts.")
 
 (defun nnimap-transform-headers ()
   (goto-char (point-min))
-  (let (article bytes lines size string)
+  (let (article lines size string)
     (block nil
       (while (not (eobp))
-	(while (not (looking-at "\\* [0-9]+ FETCH.+?UID \\([0-9]+\\)"))
+	(while (not (looking-at "\\* [0-9]+ FETCH"))
 	  (delete-region (point) (progn (forward-line 1) (point)))
 	  (when (eobp)
 	    (return)))
-	(setq article (match-string 1))
+	(goto-char (match-end 0))
 	;; Unfold quoted {number} strings.
-	(while (re-search-forward "[^]][ (]{\\([0-9]+\\)}\r?\n"
-				  (1+ (line-end-position)) t)
+	(while (re-search-forward
+		"[^]][ (]{\\([0-9]+\\)}\r?\n"
+		(save-excursion
+		  (or (re-search-forward "\\* [0-9]+ FETCH" nil t)
+		      (point-max)))
+		t)
 	  (setq size (string-to-number (match-string 1)))
 	  (delete-region (+ (match-beginning 0) 2) (point))
 	  (setq string (buffer-substring (point) (+ (point) size)))
 	  (delete-region (point) (+ (point) size))
-	  (insert (format "%S" string)))
-	(setq bytes (nnimap-get-length)
-	      lines nil)
+	  (insert (format "%S" (mm-subst-char-in-string ?\n ?\s string))))
 	(beginning-of-line)
+	(setq article
+	      (and (re-search-forward "UID \\([0-9]+\\)" (line-end-position)
+				      t)
+		   (match-string 1)))
+	(setq lines nil)
 	(setq size
 	      (and (re-search-forward "RFC822.SIZE \\([0-9]+\\)"
 				      (line-end-position)
@@ -269,14 +276,16 @@ textual parts.")
 	 result))
       (mapconcat #'identity (nreverse result) ",")))))
 
-(deffoo nnimap-open-server (server &optional defs)
+(deffoo nnimap-open-server (server &optional defs no-reconnect)
   (if (nnimap-server-opened server)
       t
     (unless (assq 'nnimap-address defs)
       (setq defs (append defs (list (list 'nnimap-address server)))))
     (nnoo-change-server 'nnimap server defs)
-    (or (nnimap-find-connection nntp-server-buffer)
-	(nnimap-open-connection nntp-server-buffer))))
+    (if no-reconnect
+	(nnimap-find-connection nntp-server-buffer)
+      (or (nnimap-find-connection nntp-server-buffer)
+	  (nnimap-open-connection nntp-server-buffer)))))
 
 (defun nnimap-make-process-buffer (buffer)
   (with-current-buffer
@@ -288,7 +297,8 @@ textual parts.")
     (gnus-add-buffer)
     (set (make-local-variable 'after-change-functions) nil)
     (set (make-local-variable 'nnimap-object)
-	 (make-nnimap :server (nnoo-current-server 'nnimap)))
+	 (make-nnimap :server (nnoo-current-server 'nnimap)
+		      :initial-resync 0))
     (push (list buffer (current-buffer)) nnimap-connection-alist)
     (push (current-buffer) nnimap-process-buffers)
     (current-buffer)))
@@ -1218,6 +1228,7 @@ textual parts.")
     (with-current-buffer (nnimap-buffer)
       (erase-buffer)
       (setf (nnimap-group nnimap-object) nil)
+      (setf (nnimap-initial-resync nnimap-object) 0)
       (let ((qresyncp (nnimap-capability "QRESYNC"))
 	    params groups sequences active uidvalidity modseq group)
 	;; Go through the infos and gather the data needed to know
@@ -1242,12 +1253,7 @@ textual parts.")
 		     'qresync
 		     nil group 'qresync)
 	       sequences)
-	    (let ((start
-		   (if (and active uidvalidity)
-		       ;; Fetch the last 100 flags.
-		       (max 1 (- (cdr active) 100))
-		     1))
-		  (command
+	    (let ((command
 		   (if uidvalidity
 		       "EXAMINE"
 		     ;; If we don't have a UIDVALIDITY, then this is
@@ -1255,7 +1261,14 @@ textual parts.")
 		     ;; have to do a SELECT (which is slower than an
 		     ;; examine), but will tell us whether the group
 		     ;; is read-only or not.
-		     "SELECT")))
+		     "SELECT"))
+		  start)
+	      (if (and active uidvalidity)
+		  ;; Fetch the last 100 flags.
+		  (setq start (max 1 (- (cdr active) 100)))
+		(setf (nnimap-initial-resync nnimap-object)
+		      (1+ (nnimap-initial-resync nnimap-object)))
+		(setq start 1))
 	      (push (list (nnimap-send-command "%s %S" command
 					       (utf7-encode group t))
 			  (nnimap-send-command "UID FETCH %d:* FLAGS" start)
@@ -1274,7 +1287,7 @@ textual parts.")
 
 (deffoo nnimap-finish-retrieve-group-infos (server infos sequences)
   (when (and sequences
-	     (nnimap-possibly-change-group nil server)
+	     (nnimap-possibly-change-group nil server t)
 	     ;; Check that the process is still alive.
 	     (get-buffer-process (nnimap-buffer))
 	     (memq (process-status (get-buffer-process (nnimap-buffer)))
@@ -1629,11 +1642,11 @@ textual parts.")
 				  (cdr (assoc "SEARCH" (cdr result))))))
            nil t))))))
 
-(defun nnimap-possibly-change-group (group server)
+(defun nnimap-possibly-change-group (group server &optional no-reconnect)
   (let ((open-result t))
     (when (and server
 	       (not (nnimap-server-opened server)))
-      (setq open-result (nnimap-open-server server)))
+      (setq open-result (nnimap-open-server server nil no-reconnect)))
     (cond
      ((not open-result)
       nil)
@@ -1738,10 +1751,15 @@ textual parts.")
 			(not (looking-at (format "%d .*\n" sequence)))))
 	    (when messagep
 	      (nnheader-message-maybe
-	       7 "nnimap read %dk from %s" (/ (buffer-size) 1000)
-	       nnimap-address))
+	       7 "nnimap read %dk from %s%s" (/ (buffer-size) 1000)
+	       nnimap-address
+	       (if (not (zerop (nnimap-initial-resync nnimap-object)))
+		   (format " (initial sync of %d groups; please wait)"
+			   (nnimap-initial-resync nnimap-object))
+		 "")))
 	    (nnheader-accept-process-output process)
 	    (goto-char (point-max)))
+	  (setf (nnimap-initial-resync nnimap-object) 0)
           openp)
       (quit
        (when debug-on-quit

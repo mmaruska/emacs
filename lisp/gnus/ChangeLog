@@ -1,3 +1,96 @@
+2012-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el: Inhibit getting and sending cookies when fetching pictures.
+
+	* gnus-html.el (gnus-html-schedule-image-fetching): Ditto.
+
+2012-02-07  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-remove-trailing-whitespace): Don't strip whitespace from
+	lines that are narrower than the window width.  Otherwise background
+	"blocks" will look less readable.
+
+2012-02-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-show-thread): Revert last two changes.
+
+2012-02-07  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-transform-headers): Remove unused variable.
+	(nnimap-transform-headers): Fix parsing BODYSTRUCTURE elements that
+	have newlines within the strings, and where the UID comes after the
+	BODYSTRUCTURE element (bug#10537).
+
+	* shr-color.el (shr-color-set-minimum-interval): Renamed to add prefix
+	(bug#10732).
+
+	* shr.el (shr-insert-document): Add doc string.
+	(shr-visit-file): Ditto.
+	(shr-remove-trailing-whitespace): New function.
+	(shr-insert-document): Use it to clean up trailing whitespace as the
+	final step (bug#10714).
+
+2012-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-exit-no-update): Really deaden the summary
+	buffer if `gnus-kill-summary-on-exit' is nil.
+
+2012-02-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-show-thread):
+	next-single-char-property-change may return nil in XEmacs.
+
+2012-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-handle-ephemeral-exit): Allow exiting from Gnus
+	when just reading a single group from "without" Gnus.
+
+2012-02-06  Chong Yidong  <cyd@gnu.org>
+
+	* gnus-sum.el (gnus-summary-show-thread):
+	next-single-char-property-change never returns nil (Bug#8657).
+
+2012-02-05  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-open-server): Allow switching the nnoo server
+	without reconnecting.
+	(nnimap-possibly-change-group): Ditto.
+	(nnimap-finish-retrieve-group-infos): Don't reconnect if the server
+	connection has died before being called.
+
+2012-02-02  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-retrieve-group-data-early): Don't say we're doing
+	an initial sync unless we're really doing one.
+
+	* gnus-group.el (gnus-group-read-ephemeral-group): Don't add a new
+	address parameter if one already exists (bug#9676).
+
+	* gnus-msg.el (gnus-summary-mail-forward): Respect the process marks,
+	not the prefix, as documented (bug#10689).
+
+2012-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.el (gnus-valid-select-methods): nnmaildir also saves marks in
+	the "server".
+
+	* gnus-group.el (gnus-group-get-new-news-this-group): Don't overwrite
+	the real error message with the useless "previously known to be down".
+	Which isn't even correct.
+
+	* nntp.el (nntp-open-connection): Report the error message if the nntp
+	server can't be reached.
+
+	* nnimap.el (nnimap-retrieve-group-data-early): Keep track of how many
+	groups we do a total scan for.
+	(nnimap-wait-for-response): Say that we're doing a total scan, if we're
+	doing that.
+
+2012-01-31  Jim Meyering  <jim@meyering.net>
+
+	* gnus-agent.el (gnus-agent-expire-unagentized-dirs):
+	Correct a comment (insert "not") and hide nominally-doubled "to".
+
 2012-01-30  Philipp Haselwarter  <philipp.haselwarter@gmx.de>  (tiny change)
 
 	* gnus-agent.el (gnus-agent-auto-agentize-methods): Point to the Agent
