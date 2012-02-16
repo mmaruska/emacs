@@ -410,7 +410,8 @@ If CLIENT is non-nil, add a description of it to the logged message."
 	  (delete-frame frame)
 	(set-frame-parameter frame 'visibility t)
 	(set-frame-parameter frame 'server-dummy-buffer nil))
-      (kill-buffer buffer))))
+      (when (buffer-live-p buffer)
+	(kill-buffer buffer)))))
 
 (defun server-handle-delete-frame (frame)
   "Delete the client connection when the emacsclient frame is deleted.

@@ -133,24 +133,30 @@ email, or to use the old defaults that rely on external mail
 facilities (`sendmail-send-it' on GNU/Linux and other Unix-like
 systems, and `mailclient-send-it' on Windows).
 
-*** smtpmail changes
+---
+*** `compose-mail' now accepts an optional 8th arg, RETURN-ACTION, and
+passes it to the mail user agent function.  This argument specifies an
+action for returning to the caller after finishing with the mail.
+For example, this is used by Rmail to optionally delete a mail window.
 
-**** smtpmail now uses encrypted connections (via STARTTLS) if the
-mail server supports them.  It also uses the auth-source framework for
-getting credentials.
+*** smtpmail
 
++++
+**** smtpmail now uses encrypted connections (via STARTTLS) by default
+if the mail server supports them.  This uses either built-in GnuTLS
+support, or the starttls.el library.  Customize `smtpmail-stream-type'
+to change this.
+
++++
 **** The variable `smtpmail-auth-credentials' has been removed.
-That variable used to have the default value "~/.authinfo", in which
-case you won't see any difference.  But if you changed it to be a list
-of user names and passwords, that setting is now ignored; you will be
-prompted for the user name and the password, which will then be saved
-to ~/.authinfo.  (To control where and how the credentials are stored,
-see the auth-source manual.  You may want to change the auth-source
-preferences if you want to store the credentials encrypted, for
-instance.)
-
-You can also manually copy the credentials to your ~/.authinfo file.
-For example, if you had
+By default, the information is now stored in the file ~/.authinfo.
+This was the default value of smtpmail-auth-credentials.
+If you had customized smtpmail-auth-credentials to a list of user
+names and passwords, those settings will not be used.  Your first
+connection to the smtp server will prompt for the user name and password,
+and then offer to save them to the ~/.authinfo file.  Or you can
+manually copy the credentials to your ~/.authinfo files.  For example,
+if you had
 
   (setq smtpmail-auth-credentials
         '(("mail.example.org" 25 "jim" "s!cret")))
@@ -159,6 +165,10 @@ then the equivalent line in ~/.authinfo would be
 
   machine mail.example.org port 25 login jim password s!cret
 
+See the auth-source manual for more information, e.g. on encrypting
+the credentials file.
+
++++
 **** The variable `smtpmail-starttls-credentials' has been removed.
 
 If you had that set, then you need to put
@@ -173,6 +183,12 @@ in your ~/.authinfo file instead.
 ---
 **** The command `mail-attach-file' was renamed to `mail-insert-file'.
 The old name is now an obsolete alias to the new name.
+
++++
+*** You can type C-c m from M-x report-emacs-bug if you prefer, and if
+your system supports it, to transfer your report to your desktop's
+preferred mail client.  This uses either the "xdg-email" utility, or
+OS X's "open" command.
 
 ** Emacs server and client changes
 +++
@@ -293,9 +309,6 @@ context in their return values.
 +++
 *** The new functions file-selinux-context and set-file-selinux-context
 get and set the SELinux context of a file.
----
-*** Tramp offers handlers for file-selinux-context and set-file-selinux-context
-for remote machines which support SELinux.
 
 ** Changes for exiting Emacs
 +++
@@ -373,9 +386,6 @@ If a theme is not in this list, Emacs queries before loading it, and
 offers to save the theme to `custom-safe-themes' automatically.  By
 default, all themes included in Emacs are treated as safe.
 
-** The user option `remote-file-name-inhibit-cache' controls whether
-the remote file-name cache is used for read access.
-
 ** File- and directory-local variable changes
 +++
 *** You can stop directory local vars from applying to subdirectories.
@@ -402,10 +412,10 @@ in the corresponding way.
 +++
 ** The variable `focus-follows-mouse' now always defaults to nil.
 
-** New primitive `secure-hash' that supports many secure hash algorithms
-including md5, sha-1 and sha-2 (sha-224, sha-256, sha-384 and sha-512).
-The elisp implementation sha1.el is removed. Feature sha1 is provided
-by default.
++++
+** New primitive `secure-hash' that supports many secure hash algorithms:
+md5, sha1, sha2, sha224, sha256, sha384, and sha512.  The lisp library
+sha1.el has been removed.  The `sha1' feature is provided by default.
 
 ** Menu-bar changes
 ---
@@ -453,9 +463,10 @@ These maximize and minimize the size of a window within its frame.
 These functions allow to navigate through the live buffers that have
 been shown in a specific window.
 
++++
 ** The inactive minibuffer has its own major mode `minibuffer-inactive-mode'.
-This is handy for minibuffer-only frames, and is also used for the "mouse-1
-pops up *Messages*" feature, which can now easily be changed.
+This is handy for minibuffer-only frames, and is also used for the feature
+where mouse-1 pops up *Messages*"', which can now easily be changed.
 
 
 * Editing Changes in Emacs 24.1
@@ -587,22 +598,16 @@ region (or with the left margin if there is no previous line).
 +++
 ** Archive Mode has basic support for browsing and updating 7z archives.
 
-+++
-** browse-url has a new variable `browse-url-mailto-function'
-specifies how mailto: URLs are handled.  The default is `browse-url-mail'.
-
----
 ** BibTeX mode
-
+---
 *** BibTeX mode now supports biblatex.
-Use the variable bibtex-dialect to select support for different BibTeX
-dialects.  bibtex-entry-field-alist is now an obsolete alias for
-bibtex-BibTeX-entry-alist.
-
+Use the variable bibtex-dialect to select different BibTeX dialects.
+bibtex-entry-field-alist is now an obsolete alias forbibtex-BibTeX-entry-alist.
+---
 *** New command `bibtex-search-entries' bound to C-c C-a.
-
+---
 *** New `bibtex-entry-format' option `sort-fields', disabled by default.
-
+---
 *** New variable `bibtex-search-entry-globally'.
 
 ** Calendar, Diary, and Appt
@@ -640,9 +645,18 @@ appt-visible/appt-msg-window (use the variable appt-display-format)
 *** Some diary function aliases (obsolete since Emacs 22.1) have been removed:
 view-diary-entries, list-diary-entries, show-all-diary-entries
 
-** CC Mode (C, C++, etc.)
+** Browse-url
 
-*** New feature to "guess" the style in an existing buffer.
++++
+*** New option `browse-url-mailto-function' specifies how to handle "mailto:"s.
+
+---
+*** The default browser used by the package is now the "xdg-open" program,
+on platforms that support it.  This calls your desktop's preferred browser.
+
++++
+** New CC Mode feature to "guess" the style in an existing buffer.
+The main entry is M-x c-guess.
 
 ** comint and modes derived from it use the generic completion code.
 
@@ -651,10 +665,12 @@ view-diary-entries, list-diary-entries, show-all-diary-entries
 *** Compilation mode can be used without font-lock-mode.
 `compilation-parse-errors-function' is now obsolete.
 
-*** `compilation-filter-start' is let-bound to the start of the text
-inserted by the compilation filter function, when calling
-compilation-filter-hook.
+---
+*** New variable `compilation-filter-start', bound while
+compilation-filter-hook runs.  It records the start position of the
+text inserted by compilation-filter.
 
+---
 *** `compilation-error-screen-columns' and `compilation-first-column'
 are obeyed in the editing buffer.  So programming language modes can
 set them, whereas previously only the value in the *compilation* buffer
@@ -680,14 +696,13 @@ choose a color via list-colors-display.
 
 ** D-Bus
 
-*** It is possible now, to access alternative buses than the default
-system or session bus.
+*** It is now possible to access buses other than the default system
+or session bus.
 
-*** dbus-register-{service,method,property}
-The -method and -property functions do not automatically register
-names anymore.
+*** The dbus-register-method and dbus-register-property functions 
+optionally do not register names.
 
-The new function dbus-register-service registers a service known name
+*** The new function dbus-register-service registers a known service name
 on a D-Bus without simultaneously registering a property or a method.
 
 ** Dired-x
@@ -731,13 +746,12 @@ Animation plays once, unless the option `image-animate-loop' is non-nil.
 
 ** Info
 
-*** New command `info-display-manual' displays an Info manual
-specified by its name.  If that manual is already visited in some Info
-buffer within the current session, the command will display that
-buffer.  Otherwise, it will load the manual and display it.  This is
-handy if you have many manuals in many Info buffers, and don't
-remember the name of the buffer visiting the manual you want to
-consult.
++++
+*** New command `info-display-manual' displays a named Info manual.
+If that manual is already visited in some Info buffer, it displays
+that buffer.  (This is handy if you have many manuals in many *info*
+buffers, and don't remember the name of the buffer visiting the manual
+you want to consult.)  Otherwise, it loads and displays the manual.
 
 +++
 *** `e' is now bound to `end-of-buffer' rather than to `Info-edit'.
@@ -837,32 +851,39 @@ sql-list-all and sql-list-table.
 ---
 *** The following access methods are discontinued: "ssh1_old",
 "ssh2_old", "scp1_old", "scp2_old", "imap", "imaps" and "fish".
++++
+*** The user option `remote-file-name-inhibit-cache' controls whether
+remote file attributes are cached for better performance.
 ---
 *** The option `ange-ftp-binary-file-name-regexp' has changed its
 default value to "".
+---
+*** Handlers for file-selinux-context and set-file-selinux-context for
+remote machines that support SELinux.
 
-** `url-queue-retrieve' downloads web pages asynchronously, but allow
-controlling the degree of parallelism.
++++
+** New function, `url-queue-retrieve', which behaves like url-retrieve,
+but with limits (`url-queue-parallel-processes', `url-queue-timeout') on
+the degree of parallelism.
 
 ** VC and related modes
 
 +++
 *** Support for pulling on distributed version control systems.
-`C-x v +' (`vc-pull') runs a "pull" operation, if it is supported, to
-update the current branch and working tree.  A prefix argument means
-to prompt the user for specifics, e.g. a pull location.
+`C-x v +' (`vc-pull') runs a "pull" operation, if it is supported
+(currently with Bzr, Git, and Mercurial), to update the current branch
+and working tree.  A prefix argument means to prompt the user for
+specifics, e.g. a pull location.
 
-**** `vc-update' is now an alias for `vc-pull'.
-
-**** Currently supported by Bzr, Git, and Mercurial.
+---
+*** `vc-update' is now an alias for `vc-pull'.
 
 +++
 *** Support for merging on distributed version control systems.
-The vc-merge command now runs a "merge" operation, if it is supported,
-to merge changes from another branch into the current one.  It prompts
-for specifics, e.g. a merge source.
-
-**** Currently supported for Bzr, Git, and Mercurial.
+The vc-merge command now runs a "merge" operation, if it is supported
+(currently with Bzr, Git, and Mercurial), to merge changes from
+another branch into the current one.  It prompts for specifics, e.g. a
+merge source.
 
 +++
 *** New option `vc-revert-show-diff' controls whether `vc-revert'
@@ -871,13 +892,10 @@ shows a diff while querying the user.  It defaults to t.
 +++
 *** Log entries in some Log View buffers can be toggled to display a
 longer description by typing RET (log-view-toggle-entry-display).
+This is currently supported for Bzr, Git, and Mercurial (to support
+another backend, define a `log-view-expanded-log-entry-function').
 In the Log View buffers made by `C-x v L' (vc-print-root-log), you can
 use this to display the full log entry for the revision at point.
-
-**** Currently supported for Bzr, Git, and Mercurial.
-
-**** Packages using Log View mode can enable this functionality by
-binding `log-view-expanded-log-entry-function' to a suitable function.
 
 +++
 *** New command `vc-ediff' allows visual comparison of two revisions
@@ -891,8 +909,6 @@ this was not advertised at the time.
 *** `vc-toggle-read-only' is an obsolete alias for `toggle-read-only'.
 Since Emacs 23, it has done the same thing as `toggle-read-only', but
 this was not advertised at the time.
-
-** FIXME: xdg-open for browse-url and reportbug, 2010/08.
 
 ** Obsolete modes
 
@@ -910,6 +926,7 @@ You can get a comparable behavior with:
 ---
 *** pc-mode.el is obsolete (CUA mode is much more comprehensive).
 
+[FIXME gnus.texi, message.texi need updating]
 *** pgg is obsolete (use EasyPG instead)
 
 ---
@@ -926,6 +943,7 @@ They are superseded by shift-select-mode, enabled by default since 23.1.
 
 +++
 *** The Landmark game is now invoked with `landmark', not `lm'.
+Its functions and variables have been similarly renamed.
 
 ---
 *** In `ido-file-completion-map', C-v is no longer bound to ido-toggle-vc.
@@ -947,9 +965,23 @@ They are superseded by shift-select-mode, enabled by default since 23.1.
 ** Occur Edit mode applies edits made in *Occur* buffers to the
 original buffers.  It is bound to "e" in Occur mode.
 
-** New global minor modes electric-pair-mode, electric-indent-mode,
-and electric-layout-mode.
++++
+** New global minor mode electric-pair-mode.
+When enabled, typing an open parenthesis automatically inserts the
+matching closing one.
 
++++
+** New global minor mode electric-indent-mode.
+When enabled, typing certain characters triggers reindentation.
+Major modes wishing to use this can set electric-indent-chars or
+electric-indent-functions.
+
++++
+** New global minor mode electric-layout-mode.
+When enabled, typing certain characters automatically inserts newlines.
+Major modes wishing to use this can set electric-layout-rules.
+
++++
 ** tabulated-list.el provides a generic major mode for tabulated data,
 from which other modes can be derived.
 
@@ -994,11 +1026,7 @@ of the target directory, if the latter is an existing directory.  The
 new optional arg COPY-CONTENTS, if non-nil, makes the function copy
 the contents directly into a pre-existing target directory.
 
-** `compose-mail' now accepts an optional 8th arg, RETURN-ACTION, and
-passes it to the mail user agent function.  This argument specifies an
-action for returning to the caller after finishing with the mail.
-This is currently used by Rmail to delete a mail window.
-
++++
 ** For mouse click input events in the text area, the Y pixel
 coordinate in the POSITION list now counts from the top of the text
 area, excluding any header line.  Previously, it counted from the top
@@ -1083,7 +1111,10 @@ font-lock-defaults-alist (font-lock-defaults), and e (float-e).
 ** The following obsolete files were removed:
 sc.el, x-menu.el, rnews.el, rnewspost.el
 
-** FIXME finder-inf.el changes.
+---
+** The format of the finder-inf.el file has changed, since the finder
+mechanism is now based on the package concept.  The variable
+finder-package-info is replaced by package--builtins and finder-keywords-hash.
 
 
 * Lisp changes in Emacs 24.1
@@ -1258,6 +1289,7 @@ behavior of `completing-read'.
 ** `glyphless-char-display' can now distinguish between graphical and
 text terminal display, via a char-table entry that is a cons cell.
 
++++
 ** `open-network-stream' can now be used to open an encrypted stream.
 It now accepts an optional `:type' parameter for initiating a TLS
 connection, directly or via STARTTLS.  To do STARTTLS, additional
@@ -1283,8 +1315,11 @@ set of "wrapping" filters, similar to around advice.
 advertised at the time.)
 
 +++
-** The macros `condition-case-no-debug' and `with-demoted-errors' were
-added in Emacs 23.1, but not advertised.
+** New macro `condition-case-unless-debug' (this was actually added in
+Emacs 23.1 as condition-case-no-debug, but not advertised)
+
++++
+** The macro `with-demoted-errors' was added in Emacs 23.1, but not advertised.
 
 +++
 ** The new function `server-eval-at' allows evaluation of Lisp forms on
@@ -1443,8 +1478,14 @@ displayed with a "spinning bar".
 ** New variable `revert-buffer-in-progress-p' is true while a buffer is
 being reverted, even if the buffer has a local `revert-buffer-function'.
 
-** New variables `delayed-warnings-list' and `delayed-warnings-hook' allow
-deferring warnings until the main command loop is executed.
+---
+** New variables `delayed-warnings-list' and `delayed-warnings-hook'.
+If delayed-warnings-list is non-nil, the command loop calls
+delayed-warnings-hook after post-command-hook.  At present, this is
+only used by Emacs on some platforms to display warnings during
+startup, which might otherwise not be noticed.  This uses the functions
+display-delayed-warnings and collapse-delayed-warnings.
+
 
 +++
 ** `set-auto-mode' now respects mode: local variables at the end of files,

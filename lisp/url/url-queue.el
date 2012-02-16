@@ -56,9 +56,10 @@
 ;;;###autoload
 (defun url-queue-retrieve (url callback &optional cbargs silent inhibit-cookies)
   "Retrieve URL asynchronously and call CALLBACK with CBARGS when finished.
-Like `url-retrieve' (which see for details of the arguments), but
-controls the level of parallelism via the
-`url-queue-parallel-processes' variable."
+This is like `url-retrieve' (which see for details of the arguments),
+but with limits on the degree of parallelism.  The variable
+`url-queue-parallel-processes' sets the number of concurrent processes.
+The variable `url-queue-timeout' sets a timeout."
   (setq url-queue
 	(append url-queue
 		(list (make-url-queue :url url
@@ -126,8 +127,9 @@ controls the level of parallelism via the
 		   host)
 	(push job jobs)))
     (dolist (job jobs)
+      (url-queue-kill-job job)
       (setq url-queue (delq job url-queue)))))
-  
+
 (defun url-queue-start-retrieve (job)
   (setf (url-queue-buffer job)
 	(ignore-errors
@@ -145,13 +147,16 @@ controls the level of parallelism via the
 		    url-queue-timeout))
 	(push job dead-jobs)))
     (dolist (job dead-jobs)
-      (when (bufferp (url-queue-buffer job))
-	(while (get-buffer-process (url-queue-buffer job))
-	  (ignore-errors
-	    (delete-process (get-buffer-process (url-queue-buffer job)))))
-	(ignore-errors
-	  (kill-buffer (url-queue-buffer job))))
+      (url-queue-kill-job job)
       (setq url-queue (delq job url-queue)))))
+
+(defun url-queue-kill-job (job)
+  (when (bufferp (url-queue-buffer job))
+    (while (get-buffer-process (url-queue-buffer job))
+      (ignore-errors
+	(delete-process (get-buffer-process (url-queue-buffer job)))))
+    (ignore-errors
+      (kill-buffer (url-queue-buffer job)))))
 
 (provide 'url-queue)
 

@@ -61,11 +61,6 @@ sk	Miroslav Vaško
 
 * BUGS
 
-** rms: gnus-dired.el is a mistake.  Those features should not
-be part of Gnus.  They should be moved to some other part of Emacs.
-rsteib: Gnus dependencies in `gnus-dired.el' (and `mailcap.el') have been
-minimized.  I don't know what is left to do here.
-
 ** Check for modes which bind M-s that conflicts with a new global binding M-s
 and change key bindings where necessary.  The current list of modes:
 
@@ -137,7 +132,7 @@ cmdargs.texi      cyd
 commands.texi     cyd
 custom.texi       cyd
 dired.texi        cyd
-dired-xtra.texi
+dired-xtra.texi   rgm
 display.texi      cyd
 emacs.texi        
 emacs-xtra.texi
@@ -145,7 +140,7 @@ emerge-xtra.texi
 entering.texi     cyd
 files.texi        cyd
 fixit.texi        cyd
-fortran-xtra.texi 
+fortran-xtra.texi rgm
 frames.texi       cyd
 glossary.texi
 help.texi         cyd
@@ -180,16 +175,16 @@ xresources.texi   cyd
 ** Check the Lisp manual.
 
 abbrevs.texi      
-advice.texi       
+advice.texi       cyd
 anti.texi         
 back.texi
 backups.texi      
 buffers.texi      
-commands.texi     
-compile.texi      
+commands.texi     cyd
+compile.texi      cyd
 control.texi      cyd
 customize.texi    cyd
-debugging.texi    
+debugging.texi    cyd
 display.texi      
 edebug.texi
 elisp.texi
@@ -204,9 +199,9 @@ hooks.texi
 index.texi
 internals.texi    
 intro.texi        cyd
-keymaps.texi      
+keymaps.texi      cyd
 lists.texi        cyd
-loading.texi      
+loading.texi      cyd
 locals.texi       
 macros.texi       cyd
 maps.texi         
@@ -222,7 +217,7 @@ positions.texi
 processes.texi
 searching.texi    
 sequences.texi    cyd
-streams.texi      
+streams.texi      cyd
 strings.texi      cyd
 symbols.texi      cyd
 syntax.texi       
@@ -232,7 +227,7 @@ variables.texi    cyd
 windows.texi      
 
 * PLANNED ADDITIONS
-* pov-mode (probably not for Emacs-23: waiting for a Free POV-Ray).
+* pov-mode (waiting for a Free POV-Ray)
 ** gas-mode ?
 
 
