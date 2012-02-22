@@ -1,4 +1,53 @@
+2012-02-21  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (Files): Mention magic file names as arguments.
+	(Reading from Files): Copyedits.
+	(File Attributes): Mention how to change file modes.
+	(Changing Files): Use standard "file permissions" terminology.
+	Add xref to File Attributes node.
+	(Locating Files): Document locate-user-emacs-file.
+	(Unique File Names): Recommend against using make-temp-name.
+
+2012-02-19  Chong Yidong  <cyd@gnu.org>
+
+	* help.texi (Documentation, Documentation Basics, Help Functions):
+	Minor clarifications.
+	(Accessing Documentation): Clarify what documentation-property is
+	for.  Add xref to Keys in Documentation.
+
+	* tips.texi (Documentation Tips): Don't recommend using * in
+	docstrings.
+
+	* macros.texi (Defining Macros):
+	* modes.texi (Derived Modes): Say "documentation string" instead
+	of docstring.
+
+2012-02-18  Chong Yidong  <cyd@gnu.org>
+
+	* modes.texi (Tabulated List Mode): New node.
+	(Basic Major Modes): Add xref to it.
+
+	* processes.texi (Process Information): Mention Process Menu mode.
+
+2012-02-17  Chong Yidong  <cyd@gnu.org>
+
+	* syntax.texi (Motion via Parsing): Doc fix for scan-lists.
+
+2012-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* hooks.texi (Standard Hooks): Fix cross-ref to Emacs manual.
+
 2012-02-16  Chong Yidong  <cyd@gnu.org>
+
+	* syntax.texi (Syntax Tables, Syntax Descriptors)
+	(Syntax Table Functions): Copyedits.
+	(Syntax Basics): Don't repeat the material in the preceding node.
+	(Syntax Class Table): Use a table.
+	(Syntax Properties): Document syntax-propertize-function and
+	syntax-propertize-extend-region-functions.
+	(Motion via Parsing): Clarify scan-lists. Fix indentation.
+	(Parser State): Update for the new "c" comment style.  Fix
+	description of item 7 (comment style).
 
 	* modes.texi (Minor Modes): Update how mode commands should treat
 	arguments now.
@@ -16,7 +65,8 @@
 	(Search-based Fontification): Emphasize that font-lock-keywords
 	should not be set directly.
 	(Faces for Font Lock): Avoid some confusing terminology.
-	(Syntactic Font Lock): Minor clarifications.
+	(Syntactic Font Lock): Minor clarifications.  Add xref to
+	Syntactic Font Lock node.
 
 2012-02-15  Chong Yidong  <cyd@gnu.org>
 
