@@ -151,11 +151,16 @@ kmacro.texi       cyd
 macos.texi        rgm  (can't actually test any of it though)
 maintaining.texi  cyd
 mark.texi         cyd
-mini.texi         
+mini.texi         rgm
 misc.texi         cyd
 modes.texi        cyd
-msdog.texi        
-msdog-xtra.texi   
+msdog.texi        rgm  (can't actually test any of it though)
+  It was not obvious to me that the following is true (it could well be though):
+
+   Emacs on Windows automatically determines your default printer and
+   sets the variable `printer-name' to that printer's name.
+
+msdog-xtra.texi   rgm  (can't actually test any of it though)
 mule.texi         
 m-x.texi          cyd
 package.texi      cyd
@@ -175,12 +180,12 @@ xresources.texi   cyd
 
 ** Check the Lisp manual.
 
-abbrevs.texi      
+abbrevs.texi      rgm
 advice.texi       cyd
 anti.texi         
 back.texi
-backups.texi      
-buffers.texi      
+backups.texi      cyd
+buffers.texi      cyd
 commands.texi     cyd
 compile.texi      cyd
 control.texi      cyd
@@ -189,23 +194,23 @@ debugging.texi    cyd
 display.texi      
 edebug.texi
 elisp.texi
-errors.texi       
+errors.texi       rgm
 eval.texi         cyd
 files.texi        cyd
-frames.texi       
+frames.texi       cyd
 functions.texi    cyd
 hash.texi         cyd
 help.texi         cyd
-hooks.texi        
+hooks.texi        rgm
 index.texi
-internals.texi    
+internals.texi    rgm  (I don't know much about this, so it would be
+    good if someone else could at least look at the FIXME? comments.)
 intro.texi        cyd
 keymaps.texi      cyd
 lists.texi        cyd
 loading.texi      cyd
-locals.texi       
 macros.texi       cyd
-maps.texi         
+maps.texi         rgm
 markers.texi      
 minibuf.texi      
 modes.texi        cyd
@@ -214,7 +219,7 @@ numbers.texi      cyd
 objects.texi      cyd
 os.texi           
 package.texi
-positions.texi    
+positions.texi    cyd
 processes.texi
 searching.texi    
 sequences.texi    cyd
@@ -223,7 +228,7 @@ strings.texi      cyd
 symbols.texi      cyd
 syntax.texi       cyd
 text.texi         
-tips.texi         
+tips.texi         rgm
 variables.texi    cyd
 windows.texi      
 
