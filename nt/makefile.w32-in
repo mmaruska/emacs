@@ -22,7 +22,7 @@
 # FIXME: This file uses DOS EOLs.  Convert to Unix after 22.1 is out
 #        (and remove or replace this comment).
 
-VERSION		= 24.0.93
+VERSION		= 24.0.94
 
 TMP_DIST_DIR 	= emacs-$(VERSION)
 
@@ -264,7 +264,7 @@ maybe-copy-distfiles-CMD: doit
 
 maybe-copy-distfiles-SH: doit
 	@if [ ! $(ARGQUOTE)$(DIST_FILES)$(ARGQUOTE)=="" ] ; then \
-	  $(CP_DIR) $(DIST_FILES) $(TMP_DIST_DIR)/bin
+	  $(CP_DIR) $(DIST_FILES) $(TMP_DIST_DIR)/bin ; \
 	fi
 
 create-tmp-dist-dir:

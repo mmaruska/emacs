@@ -1,3 +1,316 @@
+2012-03-05  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (count-words): If called from Lisp, return the word
+	count, for symmetry with `count-lines'.  Arglist changed.
+	(count-words--message): Args changed.  Consolidate counting code
+	from count-words and count-words-region.
+	(count-words-region): Caller changed.
+	(count-lines-region): Make it an obsolete alias.
+
+2012-03-04  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* saveplace.el (save-place-to-alist)
+	(save-place-ignore-files-regexp): Allow value nil to disable this
+	feature.
+
+2012-03-04  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (face-spec-reset-face): For the default face, reset the
+	attributes to default values (Bug#10748).
+
+2012-03-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/emacsbug.el (report-emacs-bug-hook): Fix up thinko in
+	previous patch: Check `message-send-mail-function', and not the
+	default function (bug#10897).
+
+2012-03-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* notifications.el (notifications-on-action-signal)
+	(notifications-on-closed-signal): Check for unique service name of
+	incoming event.  Fix error in removing entry.
+	(top): Register for signals with wildcard service name.
+	(notifications-notify): Use daemon unique service name for map entries.
+
+2012-03-04  Chong Yidong  <cyd@gnu.org>
+
+	* cus-start.el: Make x-select-enable-clipboard-manager
+	customizable.
+
+2012-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* abbrev.el (copy-abbrev-table, abbrev-table-p)
+	(abbrev-minor-mode-table-alist, define-abbrev, abbrev-insert)
+	(expand-abbrev, define-abbrev-table): Doc fixes.
+
+2012-03-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/emacsbug.el (report-emacs-bug-hook): Look at the value of
+	`message-default-send-mail-function' and not `send-mail-function'
+	when doing the prompting for `sendmail-query-once' before sending
+	in Message buffers (bug#10897).
+
+	* net/tls.el (open-tls-stream): Don't set the dont-query-on-exit flag.
+	This is inconsistent with all the other stream functions, which leave
+	the setting up to the higher levels (if so wanted) (bug#10931).
+
+2012-03-02  Alan Mackenzie  <acm@muc.de>
+
+	Depessimize the handling of very large macros.
+
+	* progmodes/cc-engine.el (c-macro-cache, c-macro-cache-start-pos):
+	(c-macro-cache-syntactic): New variables to implement a one
+	element macro cache.
+	(c-invalidate-macro-cache): New function.
+	(c-beginning-of-macro, c-end-of-macro, c-syntactic-end-of-macro):
+	Adapt to use the new cache.
+	(c-state-safe-place): Use better the cache of safe positions.
+	(c-state-semi-nonlit-pos-cache)
+	(c-state-semi-nonlit-pos-cache-limit):
+	New variables for...
+	(c-state-semi-safe-place): New function.  Here, in a macro is "safe".
+	(c-invalidate-state-cache-1): New stuff for c-state-semi-safe-place.
+	(c-in-literal, c-literal-limits, c-determine-limit-get-base): Use
+	c-state-semi-safe-place.
+
+	* progmodes/cc-langs.el (c-get-state-before-change-functions): Add
+	c-invalidate-macro-cache to the C, C++, Obj entries.
+
+2012-03-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* jka-compr.el (jka-compr-call-process): Apply
+	`file-accessible-directory-p' only when the default directory is
+	not remote.
+
+2012-03-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (file-equal-p): Fix docstring.  Avoid unnecessary
+	access of FILE2, if FILE1 does not exist.
+
+	* net/tramp-sh.el (tramp-remote-process-environment): Add "PAGER=\"\"".
+	Reported by Robert Lupton the Good <rhl@astro.princeton.edu>.
+
+	* vc/vc-git.el (vc-git--call): Enable `inhibit-null-byte-detection'.
+	Add "PAGER=" to `process-environment'.
+
+2012-03-01  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Bug fix
+	(sql-get-login-ext): Save login values in globals.
+	(sql-get-login): Use new version of `sql-get-login-ext'.
+	(sql-interactive-mode): Set global `sql-connection' to nil.
+	(sql-connect): Set global values for connection.
+	(sql-product-interactive): Save global values as buffer local.
+
+2012-02-29  Leo Liu  <sdl.web@gmail.com>
+
+	* abbrev.el (define-abbrevs): Reset sys to nil.
+
+2012-02-28  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* files.el (file-equal-p): Rename from `files-equal-p'.
+	Return nil when one or both files don't exist.
+	(file-subdir-of-p): Now only top directory must exists,
+	return nil if it doesn't.
+	(copy-directory): No need to test with `file-subdir-of-p' after
+	creating dir.
+	* net/tramp.el (tramp-file-name-for-operation): Rename `files-equal-p'
+	to `file-equal-p'.
+
+2012-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* shell.el (shell-mode):
+	* progmodes/vhdl-mode.el (wildcard-to-regexp, file-expand-wildcards):
+	* play/landmark.el (landmark-font-lock-face-O):
+	* play/handwrite.el (handwrite):
+	* play/gomoku.el (gomoku-O):
+	* net/browse-url.el (browse-url-browser-display):
+	* international/mule.el (define-charset):
+	* htmlfontify.el (hfy-etags-cmd, hfy-face-attr-for-class):
+	* filesets.el (filesets-find-file-delay):
+	* eshell/em-xtra.el (eshell-xtra):
+	* eshell/em-unix.el (eshell-grep):
+	* emulation/viper.el (viper-mode):
+	* emacs-lisp/regexp-opt.el (regexp-opt-group):
+	* emacs-lisp/easymenu.el (easy-menu-define):
+	* calendar/timeclock.el (timeclock-use-display-time):
+	* bs.el (bs-mode):
+	* bookmark.el (bookmark-save-flag):
+	Doc fix (standardize possessive apostrophe usage).
+
+2012-02-27  Chong Yidong  <cyd@gnu.org>
+
+	* emulation/viper-cmd.el (viper-intercept-ESC-key):
+	Fix key-binding lookup for ESC key (Bug#9146).
+
+	* font-lock.el (font-lock-specified-p): Rename from
+	font-lock-spec-present.  Callers changed.
+
+2012-02-27  Daniel Hackney  <dan@haxney.org>
+
+	* emacs-lisp/package.el (package-compute-transaction):
+	Handle holding a package version to t in package-load-list.
+
+2012-02-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-inodes, tramp-devices): Initialize with 0.
+	(tramp-get-inode, tramp-get-device): Use cached values.
+
+2012-02-26  Alan Mackenzie  <acm@muc.de>
+
+	Check there is a font-lock specification before doing initial
+	fontification.
+
+	* font-core.el (font-lock-mode): Move the conditional from
+	:after-hook to font-lock-initial-fontify.
+	(font-lock-default-function): Move the check for a specification
+	to font-lock-spec-present.
+
+	* font-lock.el (font-lock-initial-fontify): call ...
+	(font-lock-spec-present): New function.
+
+2012-02-26  Jim Blandy  <jimb@red-bean.com>
+
+	* progmodes/gdb-mi.el (gdb-mi-quote): New function.
+	(gdb-send): Apply it to the operand of the '-interpreter-exec
+	console' command, so that we can pass arguments with (say) quotes
+	in them.  Store exact string sent in gdb-debug-log (Bug#10765).
+
+2012-02-26  Chong Yidong  <cyd@gnu.org>
+
+	* help-fns.el (describe-function-1): Clarify description of
+	remapping (Bug#10844).
+
+	* files.el (files-equal-p): Doc fix.
+	(file-subdir-of-p): Doc fix.  Convert loop macro to plain Lisp,
+	and quit the loop once a mismatch is found.
+
+2012-02-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--show-with-configuration): Don't throw an error
+	if the window cannot be split; otherwise, subsequent calls to
+	bs-show fail, restoring a stale window config.  (Bug#10882)
+
+2012-02-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (global-map): Bind ns-drag-file to
+	ns-find-file (Bug#5855, Bug#10050).
+
+2012-02-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* calendar/parse-time.el (parse-time-string): Allow extractor to
+	return nil.
+
+2012-02-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-for-operation):
+	Add `files-equal-p' and `file-subdir-of-p'.
+
+	* net/tramp-sh.el (tramp-sh-handle-copy-directory):
+	* net/tramp-smb.el (tramp-smb-handle-copy-directory):
+	Add COPY-CONTENTS argument.
+
+2012-02-25  Chong Yidong  <cyd@gnu.org>
+
+	Add custom groups for VC backends, for consistency with vc-bzr.
+
+	* vc/vc-arch.el (vc-arch):
+	* vc/vc-cvs.el (vc-cvs):
+	* vc/vc-git.el (vc-git):
+	* vc/vc-hg.el (vc-hg):
+	* vc/vc-mtn.el (vc-mtn):
+	* vc/vc-rcs.el (vc-rcs):
+	* vc/vc-sccs.el (vc-sccs):
+	* vc/vc-svn.el (vc-svn): New customization group (Bug#10871).
+	All relevant defcustoms reassigned.
+
+2012-02-25  Chong Yidong  <cyd@gnu.org>
+
+	* newcomment.el (comment-styles): Add autoload (Bug#10868).
+
+	* term/x-win.el (x-initialize-window-system): Reduce default for
+	x-selection-timeout to 5 seconds (Bug#8869).
+
+2012-02-24  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* files.el (file-subdir-of-p): Fix typo.
+
+2012-02-24  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* files.el (files-equal-p, file-subdir-of-p): New functions.
+	(copy-directory): Error when trying to copy a directory on itself.
+	Add missing copy-contents arg to tramp handler.
+	* dired-aux.el (dired-copy-file-recursive): Same.
+	(dired-create-files): Modify destination when source is equal to
+	dest when copying files.
+	Return also when dest is a subdir of source.  (Bug#10489)
+
+2012-02-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-parse-netrc): Suppress comment lines.
+	(Bug#10874)
+
+2012-02-23  Alan Mackenzie  <acm@muc.de>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Add extra
+	parameter "after-hook:" to allow the expansion to run code after
+	the execution of the mode hooks.
+
+	* font-lock.el (font-lock-initial-fontify): New function extracted
+	from font-lock-mode-internal.
+
+	* font-core.el (font-lock-mode): Call font-lock-initial-fontify in
+	:after-hook.
+
+2012-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el: Make sure cycling is reset upon edit with icomplete.el.
+	(completion--cache-all-sorted-completions): New function.
+	(completion-all-sorted-completions): Use it.
+	(completion--do-completion, minibuffer-force-complete):
+	Use it to re-instate the flush hook.
+
+	* icomplete.el (icomplete-completions): Replace last fix with a better
+	one (bug#10850).
+
+2012-02-23  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* emacs-lisp/lisp.el (beginning-of-defun-raw): Don't call end-of-defun
+	when it might call us back infinitely (bug#10797).
+
+2012-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* minibuffer.el (completion-category-overrides): Doc fix.
+
+2012-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-table-with-context): Fix inf-loop.
+	Reported by Aaron S. Hawley <aaron.s.hawley@gmail.com>.
+
+2012-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases, authors-fixed-case)
+	(authors-obsolete-files-regexps, authors-ignored-files)
+	(authors-ambiguous-files, authors-renamed-files-alist):
+	Add more entries.
+
+2012-02-23  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-occur): Sync interactive spec with occur's
+	new feature in `occur-read-primary-args'.  Doc fix.  (Bug#10705)
+
+	* replace.el (occur-menu-map): Add menu item for `occur-edit-mode'.
+
+2012-02-22  Juri Linkov  <juri@jurta.org>
+
+	* international/mule-cmds.el (read-char-by-name): Use \` and \'.
+	(ucs-insert): Doc fix.  Check for hex digits in the string.
+	Don't display `nil' in the error message.  (Bug#10857)
+
+2012-02-22  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el: Revert change #107149 from 2012-02-06.
+
 2012-02-22  Glenn Morris  <rgm@gnu.org>
 
 	* ffap.el (ffap-c-path):
@@ -172,7 +485,7 @@
 
 	Fix a loop in c-set-fl-decl-start.
 
-	* progmodes/cc-engine (c-set-fl-decl-start): Add a check that
+	* progmodes/cc-engine.el (c-set-fl-decl-start): Add a check that
 	c-backward-syntactic-ws actually moves backwards.
 
 2012-02-13  Leo Liu  <sdl.web@gmail.com>
@@ -312,7 +625,7 @@
 	* mail/emacsbug.el (report-emacs-bug-hook): Query the user first
 	about SMTP before checking the From header.
 
-	* mail/sendmail.el (sendmail-query-user-about-smtp): Refacored out
+	* mail/sendmail.el (sendmail-query-user-about-smtp): Refactor out
 	into own function for reuse by emacsbug.el.
 
 2012-02-10  Leo Liu  <sdl.web@gmail.com>
@@ -326,7 +639,7 @@
 	* emacs-lisp/package.el (package-refresh-contents)
 	(package-menu-execute):
 	* desktop.el (desktop-create-buffer):
-	* font-lock.el (lisp-font-lock-keywords-2): caller changed.
+	* font-lock.el (lisp-font-lock-keywords-2): Caller changed.
 
 2012-02-10  Glenn Morris  <rgm@gnu.org>
 
@@ -1362,10 +1675,10 @@
 
 	Add the switch statement to AWK Mode.
 
-	* progmodes/cc-awk (awk-font-lock-keywords): Add "switch", "case",
+	* progmodes/cc-awk.el (awk-font-lock-keywords): Add "switch", "case",
 	"default" to the keywords regexp.
 
-	* progmodes/cc-langs (c-label-kwds): Let AWK take the same
+	* progmodes/cc-langs.el (c-label-kwds): Let AWK take the same
 	expression as the rest.
 	(c-nonlabel-token-key): Allow string literals for AWK.
 	Refactor for the other modes.
@@ -3224,7 +3537,7 @@
 
 2011-10-08  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
-	* lisp/eshell/eshell.el (eshell-command): Avoid using hooks.
+	* eshell/eshell.el (eshell-command): Avoid using hooks.
 
 2011-10-07  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -6384,7 +6697,7 @@
 	* comint.el (comint-password-prompt-regexp): Accept "Response" as
 	a password-like phrase.
 
-2011-06-30  Mastake YAMATO  <yamato@redhat.com>
+2011-06-30  Masatake YAMATO  <yamato@redhat.com>
 
 	* progmodes/cc-guess.el: New file.
 
@@ -7944,7 +8257,7 @@
 
 	* isearch.el (isearch-range-invisible): Use invisible-p (bug#8721).
 
-2009-11-23  Toby Cubitt  <toby-predictive@dr-qubit.org>
+2011-05-27  Toby Cubitt  <toby-predictive@dr-qubit.org>
 
 	* emacs-lisp/avl-tree.el: New avl-tree-stack datatype.  Add new
 	traversal functions for avl-trees.
@@ -7961,8 +8274,6 @@
 	(avl-tree-mapc, avl-tree-mapf, avl-tree-mapcar): New functions.
 	(avl-tree-stack, avl-tree-stack-pop, avl-tree-stack-first)
 	(avl-tree-stack-empty-p): New functions.
-
-2009-11-23  Toby Cubitt  <toby-predictive@dr-qubit.org>
 
 	* emacs-lisp/avl-tree.el (avl-tree--del-balance): Rename from
 	avl-tree--del-balance1 and make it work both ways.
@@ -10692,7 +11003,8 @@
 	(calc-lu-field-reference): Rename from
 	`calc-logunits-field-reference'.
 
-	* calc/calc-help (calc-l-prefix-help): Mention musical note functions.
+	* calc/calc-help.el (calc-l-prefix-help):
+	Mention musical note functions.
 
 2011-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -10868,7 +11180,7 @@
 
 2011-03-09  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout.el Summary: Change so yank of distinctive-bullet items
+	* allout.el: Change so yank of distinctive-bullet items
 	preserves the existing header prefix, rebulleting it if necessary,
 	rather than replacing it.  This is necessary for proper operation
 	of cooperative addons like allout-widgets.

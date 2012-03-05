@@ -195,12 +195,11 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
      || defined DARWIN_OS || defined __sun)
 /* We also need to be able to specify mult-of-8 alignment on static vars.  */
 # if defined DECL_ALIGN
-/* mark_maybe_object assumes that EMACS_INT values are contiguous,
-   but this is not true on some hosts where EMACS_INT is wider than a pointer,
-   as they may allocate the halves of an EMACS_INT separately.
-   On these hosts USE_LSB_TAG is not needed because the top bits of an
-   EMACS_INT are unused, so define USE_LSB_TAG only on hosts where it
-   might be useful.  */
+/* On hosts where VALBITS is greater than the pointer width in bits,
+   USE_LSB_TAG is:
+    a. unnecessary, because the top bits of an EMACS_INT are unused, and
+    b. slower, because it typically requires extra masking.
+   So, define USE_LSB_TAG only on hosts where it might be useful.  */
 #  if UINTPTR_MAX >> VALBITS != 0
 #   define USE_LSB_TAG
 #  endif
