@@ -771,6 +771,11 @@ See MH-E-NEWS for details.
 ---
 ** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
 
+** nXML mode no longer binds C-RET to `nxml-complete'.
+Completion is now performed via `completion-at-point', bound to M-TAB.
+If `nxml-bind-meta-tab-to-complete-flag' is non-nil (the default),
+this performs tag completion.
+
 ---
 ** Prolog mode has been completely revamped, with lots of additional
 functionality such as more intelligent indentation, electricity, support for
@@ -1482,13 +1487,12 @@ These require Emacs to be built with ImageMagick support.
 image-transform-fit-to-height, image-transform-fit-to-width,
 image-transform-set-rotation, image-transform-set-scale.
 
++++
 ** XML and HTML parsing
-If Emacs is compiled with libxml2 support, there are two new functions:
-`libxml-parse-html-region' (which parses "real world" HTML) and
-`libxml-parse-xml-region' (which parses XML).  Both return an Emacs
-Lisp parse tree.
-
-FIXME: These should be front-ended by xml.el.
+If Emacs is compiled with libxml2 support, there are two new
+functions: `libxml-parse-html-region' (which parses "real world" HTML)
+and `libxml-parse-xml-region' (which parses XML).  Both return an
+Emacs Lisp parse tree.
 
 ** GnuTLS
 
