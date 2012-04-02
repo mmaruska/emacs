@@ -1,3 +1,75 @@
+2012-04-01  Chong Yidong  <cyd@gnu.org>
+
+	* files.texi (Kinds of Files): file-subdir-of-p renamed to
+	file-in-directory-p.
+
+2012-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* edebug.texi (Instrumenting Macro Calls):
+	Mention defining macros at instrumentation time.
+	(Edebug Options): Mention edebug-unwrap-results.
+
+2012-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* text.texi (Special Properties): Clarify the description of the
+	effect of integer values of the 'cursor' property on cursor
+	position.  See the discussions in bug#11068 for more details and
+	context.
+
+2012-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* edebug.texi (Edebug Eval, Specification List, Edebug Options):
+	Copyedits.
+
+2012-03-30  Chong Yidong  <cyd@gnu.org>
+
+	* display.texi (Image Formats): Add imagemagick type.
+	(Image Descriptors): Mention how they are used.
+	(ImageMagick Images): Clarify role of imagemagick-register-types.
+	(Character Display): Don't mention glyph tables.
+	(Display Tables): Use make-glyph-code in example.
+	(Glyphs): Avoid "simple glyph code" terminology.  Note that glyph
+	tables are semi-obsolete.  De-document create-glyph.
+	(Glyphless Chars): Note that display tables override this.
+	(Bidirectional Display): Copyedits.  Introduce "bidirectional
+	reordering" terminology, and use it.
+
+2012-03-30  Glenn Morris  <rgm@gnu.org>
+
+	* edebug.texi (Jumping): Give name of `i' binding.
+
+2012-03-28  Glenn Morris  <rgm@gnu.org>
+
+	* searching.texi (Regular Expressions, Regexp Special):
+	(Regexp Backslash, Regexp Example, Regexp Functions, Regexp Search):
+	(Simple Match Data, Saving Match Data, Standard Regexps): Copyedits.
+	(Regexp Special): Mention collation.
+	Clarify char classes with an example.
+	(Regexp Functions): Mention regexp-opt is not guaranteed.
+	Mention regexp-opt-charset.
+	(Regexp Search): Recommend against looking-back.
+	(Search and Replace): Use Texinfo recommended quote convention.
+	Add more query-replace-map items.  List multi-query-replace-map items.
+
+2012-03-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Window History): Describe new option
+	switch-to-visible-buffer.
+
+2012-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* searching.texi (String Search): Add xref to Emacs manual.
+	Copyedits.  Mention the function word-search-regexp.
+	(Searching and Case): Add xref to Emacs manual.  Copyedits.
+
+	* processes.texi (Network Servers): Standardize apostrophe usage.
+
+	* os.texi (System Environment): Copyedits.  Remove some examples
+	that do not seem useful.  Mention setenv third arg.
+	tty-erase-char does not seem to be nil under a window-system.
+	(User Identification): Copyedits.
+	Remove some examples that do not seem useful.
+
 2012-03-26  Glenn Morris  <rgm@gnu.org>
 
 	* os.texi (Startup Summary): Copyedits.  Fix startup screen logic.

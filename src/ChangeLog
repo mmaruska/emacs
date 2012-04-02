@@ -1,3 +1,55 @@
+2012-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32menu.c (simple_dialog_show, add_menu_item): Use SAFE_ALLOCA
+	instead of alloca.  (Bug#11138)
+
+2012-04-01  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* w32menu.c (is_simple_dialog): Properly check lisp types.
+	(Bug#11141)
+
+2012-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_by_lines): When DVPOS is positive, and the
+	position we get to after a call to move_it_to fails the
+	IS_POS_VALID_AFTER_MOVE_P test, move to the next buffer position
+	only if we wind up in a string from display property.  (Bug#11063)
+
+	* window.c (Fdelete_other_windows_internal): Invalidate the row
+	and column information about mouse highlight, so that redisplay
+	restores it after reallocating the glyph matrices.  (Bug#7464)
+
+	* xdisp.c (set_cursor_from_row): If `cursor' property on a display
+	string comes from a `display' text property, use the buffer
+	position of that property as if we actually saw that position in
+	the row's glyphs.
+	(move_it_by_lines): Remove the assertion that
+	"it->current_x == 0 && it->hpos == 0" which can be legitimately
+	violated when there's a before-string at the beginning of a line.
+	(Bug#11063)
+
+2012-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (append_space_for_newline): If the default face was
+	remapped, use the remapped face for the appended newline.
+	(extend_face_to_end_of_line): Use the remapped default face for
+	extending the face to the end of the line.
+	(display_line): Call extend_face_to_end_of_line when the default
+	face was remapped.  (Bug#11068)
+
+2012-03-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h: Discourage from defining HAVE_GETCWD.
+
+2012-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (safe_run_hooks_error): Don't unquote strings.
+
+2012-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* search.c (Fword_search_backward_lax, Fword_search_forward_lax):
+	Doc fixes.
+
 2012-03-26  Kenichi Handa  <handa@m17n.org>
 
 	* dispextern.h (struct glyph): Fix previous change.  Change the
@@ -11,8 +63,7 @@
 
 2012-03-25  Fabrice Popineau  <fabrice.popineau@supelec.fr>
 
-	* w32heap.c (_heap_init, _heap_term): Remove dead MSVC-specific
-	code.
+	* w32heap.c (_heap_init, _heap_term): Remove dead MSVC-specific code.
 
 2012-03-25  Kenichi Handa  <handa@m17n.org>
 
