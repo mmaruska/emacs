@@ -1,3 +1,105 @@
+2012-04-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* notifications.el (notifications-notify): Fix docstring.
+
+2012-04-02  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases): Another addition.
+
+2012-04-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-gvfs.el (tramp-gvfs-send-command): Apply
+	`tramp-compat-call-process' instead of `tramp-local-call-process'.
+	Reported by Magnus Henoch <magnus.henoch@gmail.com>.
+
+2012-04-01  Chong Yidong  <cyd@gnu.org>
+
+	* files.el (file-in-directory-p): Rename from file-subdir-of-p.
+	Handle root directory properly.
+	(copy-directory): Caller changed.
+
+	* dired-aux.el (dired-copy-file-recursive, dired-create-files):
+	* net/tramp.el (tramp-file-name-for-operation): Callers changed.
+
+2012-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* term/xterm.el (xterm-extra-capabilities): Doc fix.
+
+	* language/indian.el ("Devanagari"): Fix typo.  (Bug#11103)
+
+	* calendar/calendar.el (calendar-window-list)
+	(calendar-hide-window): Restore.  (Bug#11140)
+	(calendar-exit): Use calendar-window-list, calendar-hide-window again.
+
+	* emacs-lisp/edebug.el (edebug-unwrap-results): Doc fix.
+
+2012-03-30  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* dired-aux.el (dired-copy-file-recursive, dired-create-files):
+	Check if file is a symlink (Bug#10489).
+
+	* files.el (copy-directory): Likewise.
+
+2012-03-30  Chong Yidong  <cyd@gnu.org>
+
+	* image.el (imagemagick-types-inhibit)
+	(imagemagick-register-types): Doc fix.
+
+2012-03-30  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* ispell.el (ispell-get-extended-character-mode): Disable
+	extended-char-mode for hunspell. hunspell does not support it and
+	treats ~word as ordinary words in pipe mode.
+
+2012-03-30  Glenn Morris  <rgm@gnu.org>
+
+	* tutorial.el (help-with-tutorial): Ensure local variables don't
+	happen to make the buffer read-only.  (Bug#11127)
+
+2012-03-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-indent-line): Use `noindent' in strings.
+	(perl-calculate-indent): Return `noindent' in strings.
+
+2012-03-28  Sam Steingold  <sds@gnu.org>
+
+	* calendar/calendar.el (calendar-exit): Use `quit-windows-on'
+	instead of the broken adhockery which does not prevent calendar
+	buffers from being displayed at random after exit.
+	(calendar-window-list, calendar-hide-window): Remove the broken
+	adhockery.
+
+2012-03-28  Glenn Morris  <rgm@gnu.org>
+
+	* replace.el (query-replace-map): Doc fix.
+
+2012-03-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* vc/vc-git.el (vc-git-state): Don't try to match all of the diff
+	contents.  (Bug#11109)
+
+2012-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/avl-tree.el (avl-tree--enter-balance): Fix paren typo
+	(bug#11077).
+	(avl-tree--check, avl-tree--check-node): New funs.
+
+2012-03-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (switch-to-visible-buffer): New option.
+	(switch-to-prev-buffer, switch-to-next-buffer):
+	Observe switch-to-visible-buffer.  Make sure that checking for a window
+	showing a buffer already is done on the same frame.
+
+2012-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (mail-host-address): Doc fix.
+
+2012-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-constants-vector): Allow more
+	than 197 variables.
+
 2012-03-26  Ami Fischman  <ami@fischman.org>
 
 	* vc/vc-git.el (vc-git-state): Avoid unnecessarily locking.
@@ -12,8 +114,7 @@
 2012-03-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (install): Use $(DIRNAME)_same-dir.tst instead
-	of same-dir.tst, to avoid stepping on other (parallel) Make job's
-	toes.
+	of same-dir.tst, to avoid stepping on other (parallel) Make job's toes.
 
 2012-03-25  Chong Yidong  <cyd@gnu.org>
 
