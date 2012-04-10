@@ -1,3 +1,51 @@
+2012-04-09  Chong Yidong  <cyd@gnu.org>
+
+	* customize.texi (Variable Definitions): Remove user-variable-p.
+
+	* commands.texi (Interactive Codes):
+	* help.texi (Accessing Documentation):
+	* minibuf.texi (High-Level Completion): Callers changed.
+
+2012-04-06  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf.texi (Programmed Completion): Document metadata method.
+	(Completion Variables): Document completion-category-overrides.
+
+2012-04-05  Chong Yidong  <cyd@gnu.org>
+
+	* anti.texi (Antinews): Rewrite for Emacs 23.
+
+2012-04-04  Chong Yidong  <cyd@gnu.org>
+
+	* minibuf.texi (Programmed Completion): Remove obsolete variable
+	completion-annotate-function.
+	(Completion Variables): Rename from Completion Styles.  Document
+	completion-extra-properties.  Document completion-styles-alist
+	change.
+	(Reading File Names): minibuffer-local-filename-must-match-map is
+	not used anymore.
+	(Minibuffer Completion): Document completing-read-function.
+	(Completion in Buffers): completion-at-point-functions can return
+	properties recognized in completion-extra-properties.
+
+	* display.texi (Delayed Warnings): New node.
+
+	* os.texi (Notifications): Copyedits.
+
+2012-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (Notifications): Copyedits.
+
+2012-04-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* os.texi (Terminal-Specific): Fix typo.
+	(Notifications): New section.
+
+	* elisp.texi (Top):
+	* vol1.texi (Top):
+	* vol2.texi (Top): Add "Notifications" and "Dynamic Libraries"
+	menu entries.
+
 2012-04-01  Chong Yidong  <cyd@gnu.org>
 
 	* files.texi (Kinds of Files): file-subdir-of-p renamed to

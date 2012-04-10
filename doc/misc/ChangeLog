@@ -1,3 +1,43 @@
+2012-04-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add
+	emacs-gnutls.
+	($(infodir)/emacs-gnutls, emacs-gnutls.dvi): New targets.
+
+2012-04-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* Makefile.in: Add emacs-gnutls.texi to build.
+
+	* emacs-gnutls.texi: Add documentation for the GnuTLS integration.
+
+2012-04-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Secret Service API): Edit further and give examples.
+	(Secret Service API): Adjust @samp to @code for collection names.
+
+2012-04-04  Glenn Morris  <rgm@gnu.org>
+
+	* auth.texi (Secret Service API): Copyedits.
+	(Help for developers): Fill in some missing function doc-strings.
+	(Help for users, Help for developers)
+	(GnuPG and EasyPG Assistant Configuration): Markup fixes.
+
+2012-04-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* auth.texi (Secret Service API): Add the missing text.
+
+2012-04-04  Chong Yidong  <cyd@gnu.org>
+
+	* message.texi (Using PGP/MIME): Note that epg is now the default.
+
+	* gnus.texi: Reduce references to obsolete pgg library.
+	(Security): Note that epg is now the default.
+
+	* gnus-faq.texi (FAQ 8-2): Mention EasyPG.
+
+	* nxml-mode.texi (Completion): C-RET is no longer bound to
+	nxml-complete.
+
 2012-04-01  Jambunathan K  <kjambunathan@gmail.com>
 
 	* org.texi (Customizing tables in ODT export): Correct few errors.
