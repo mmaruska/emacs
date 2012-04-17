@@ -1,3 +1,22 @@
+2012-04-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.in (AC_CHECK_FUNCS):
+	Add getpwent, endpwent, getgrent, endgrent. (Bug#7900)
+
+2012-04-16  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (NS_HAVE_NSINTEGER): Remove unnecessary variable.
+
+	* configure.in: Remove X libs workaround for old autoconf.
+
+2012-04-12  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.in: Warn that Cygwin 1.5 is unsupported.  (Bug#10398)
+
+2012-04-11  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (GNUSTEP_CFLAGS): Rename from C_SWITCH_X_SYSTEM.
+
 2012-04-10  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Conditionally generate admin/unidata/Makefile.
@@ -2300,7 +2319,7 @@
 
 2010-03-12  Eli Zaretskii  <eliz@gnu.org>
 
-	These changes remove termcap.c from the build on Posix platforms.
+	These changes remove termcap.c from the build on POSIX platforms.
 	* configure.in <AC_CHECK_HEADERS>: Remove termcap.h.
 
 	* configure: Regenerated.
