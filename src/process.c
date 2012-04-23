@@ -4405,12 +4405,9 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	  while (!detect_input_pending ());
 
 	  /* If there is unread keyboard input, also return.  */
-#if 0
-          /* mmc: 2006/10  Why did I disable it? Did I do it? */
 	  if (read_kbd != 0
 	      && requeued_events_pending_p ())
 	    break;
-#endif
 
 	  if (! EMACS_TIME_NEG_P (timer_delay) && time_limit != -1)
 	    {
