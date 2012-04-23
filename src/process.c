@@ -4795,6 +4795,11 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	 obey it now if we should.  */
       if (read_kbd || ! NILP (wait_for_cell))
 	do_pending_window_change (0);
+#if 1                           /* mmc: I decided to test with this: (new)*/
+      /* mmc: I need to redisplay if any emacs-window is damaged */
+      if (do_display)
+        redisplay_preserve_echo_area (12);
+#endif
 
       /* Check for data from a process.  */
       if (no_avail || nfds == 0)

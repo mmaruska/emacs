@@ -730,6 +730,77 @@ xg_set_icon_from_xpm_data (FRAME_PTR f, const char **data)
 }
 #endif /* USE_GTK */
 
+#if 1
+static void
+x_set_window_group(f, new_value, old_value)
+     struct frame *f;
+     Lisp_Object new_value, old_value;
+{
+
+  /* mmc: Is this correct? */
+  CHECK_NUMBER (new_value);
+  f->output_data.x->wm_hints.flags |= WindowGroupHint;
+  f->output_data.x->wm_hints.window_group = XINT (new_value); /* FRAME_X_DISPLAY_INFO(f)->client_leader_window */
+
+  BLOCK_INPUT;
+  XSetWMHints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+	       &f->output_data.x->wm_hints);
+  UNBLOCK_INPUT;
+}
+
+
+DEFUN ("set-frame-group", Fset_frame_group_leader, Sset_frame_group_leader,
+       1, 2, 0,
+       doc: /* Tell the X Window Manager that frame FRAME is in the group Group.
+Group is usually a window id of another X window.
+If omitted, FRAME defaults to the currently selected frame.  */)
+        (frame, id)
+     Lisp_Object frame;
+     Lisp_Object id;
+{
+  if (NILP (frame))
+    frame = selected_frame;
+
+  CHECK_LIVE_FRAME (frame);
+
+  CHECK_NUMBER (id);
+
+  /* We are making X call. Asynchronous/signal-driver input must not be invoked now. */
+  BLOCK_INPUT;
+  struct frame *f = XFRAME (frame);
+  /* mmc:  */
+  if (1) /* FRAME_X_DISPLAY_INFO(f)->client_leader_window != 0)*/
+    {
+      f->output_data.x->wm_hints.flags |= WindowGroupHint;
+      f->output_data.x->wm_hints.window_group = XINT (id); /* FRAME_X_DISPLAY_INFO(f)->client_leader_window */
+    }
+  XSetWMHints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+	       &f->output_data.x->wm_hints);
+
+  UNBLOCK_INPUT;
+  return Qnil;
+}
+
+
+DEFUN ("frame-group", Fframe_group_leader, Sframe_group_leader,
+       1, 1, 0,
+       doc: /* return the group of the frame FRAME.
+Group is a hint for the Window manager, and it is usually a window ID
+of existing window. */)
+        (frame)
+     Lisp_Object frame;
+{
+  if (NILP (frame))
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame);
+
+  struct frame *f = XFRAME (frame);
+  return make_number (f->output_data.x->wm_hints.window_group);
+}
+#endif
+
+
+
 
 /* Functions called only from `x_set_frame_param'
    to set individual parameters.
@@ -1847,6 +1918,12 @@ hack_wm_protocols (FRAME_PTR f, Widget widget)
 		       XA_ATOM, 32, PropModeAppend,
 		       (unsigned char *) props, count);
   }
+#if 0
+  /* mmc:    So this is not used!  it's in #ifdef USE_X_TOOLKIT, but search below*/
+  XChangeProperty (dpy, w, FRAME_X_DISPLAY_INFO (f)->Xatom_wm_client_machine,
+		       XA_ATOM, 8, PropModeReplace, /* mmc: ?? */
+		       (unsigned char *) "linux11", 1);
+#endif
   UNBLOCK_INPUT;
 }
 #endif
@@ -2748,6 +2825,13 @@ x_window (struct frame *f)
 		 f->output_data.x->current_cursor
                  = f->output_data.x->text_cursor);
 
+#if 0
+  /* mmc: */
+  XChangeProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                   FRAME_X_DISPLAY_INFO (f)->Xatom_wm_client_machine,
+                   XA_STRING, 8, PropModeReplace, /* mmc: ?? */
+                   (unsigned char *) "linux11", strlen("linux11"));
+#endif
   UNBLOCK_INPUT;
 
   if (FRAME_X_WINDOW (f) == 0)
@@ -5833,6 +5917,7 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_alpha,
   x_set_sticky,
   x_set_tool_bar_position,
+  x_set_window_group,
 };
 
 void
