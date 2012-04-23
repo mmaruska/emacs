@@ -565,7 +565,7 @@ make_terminal_frame (struct terminal *terminal)
   sprintf (name, "F%"pMd, tty_frame_count);
   f->name = build_string (name);
 
-  f->visible = 1;		/* FRAME_SET_VISIBLE wd set frame_garbaged. */
+  f->visible = 1;		/* FRAME_SET_VISIBLE will set frame_garbaged. */
   f->async_visible = 1;		/* Don't let visible be cleared later. */
   f->terminal = terminal;
   f->terminal->reference_count++;
