@@ -378,6 +378,11 @@ emacs_lucid_confflags := ${confflags}
 emacs_lucid_confflags += --with-x=yes
 emacs_lucid_confflags += --with-x-toolkit=lucid
 
+# emacs-xlib
+emacs_xlib_confflags := ${confflags}
+emacs_lucid_confflags += --with-x=yes
+emacs_lucid_confflags += --with-x-toolkit=no
+
 distrib_id := $(shell lsb_release -s -i)
 distrib_name := $(shell lsb_release -s -c)
 
@@ -435,7 +440,16 @@ emacs-lucid-stamp:
 
 	touch $@
 
-debian-clean:
+emacs-xlib: bootstrap emacs-xlib-stamp
+emacs-xlib-stamp:
+	dh_testdir
+
+	$(call emacs_build,${emacs_xlib_confflags},xlib-emacs)
+	${build_cmd} distclean
+
+	touch $@
+
+debian-clean: debian/control
 	dh_testdir
 	dh_testroot
 
