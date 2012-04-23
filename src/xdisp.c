@@ -27671,11 +27671,79 @@ expose_area (struct window *w, struct glyph_row *row, XRectangle *r,
 	  ++last;
 	}
 
-      /* Repaint.  */
-      if (last > first)
+      /* Repaint.  */    /* mmc: what does it mean? */
+      if (last > first) {
+#if DEBUG
+        fprintf(stderr, "%s: mmc  repaint?\n", __FUNCTION__);
+#endif
 	draw_glyphs (w, first_x - start_x, row, area,
 		     first - row->glyphs[area], last - row->glyphs[area],
 		     DRAW_NORMAL_TEXT, 0);
+    }
+
+#if 0
+      else
+#endif
+
+        /* mmc: So this is my code/idea entirely! */
+
+        if ( 1 /*(x < r->x + r->width) */
+            && (area == TEXT_AREA))
+        {
+          /* intersect the 2 rectangles:
+           *    | exposed & redrawn
+           *    | rectangle      |
+           *----+----------------+-----+
+           *  G |   matrix row   |     |  glyph_row!
+           *----+----------------+-----+
+           *    | redrawn        |
+           *    | Rectangle      |
+           *    +----------------+
+           */
+          /* fill_area (x, r->x) */
+
+          /* fixme: what's the window coordinate? */
+          XRectangle glyph_row; /* the gap after the last glyph: */
+          XRectangle missing_background;
+          glyph_row.x = x;  /* row->x + row->pixel_width; */
+          glyph_row.y = row->y;
+          glyph_row.width = (window_box_left_offset (w, area+1) - glyph_row.x);
+          glyph_row.height = row->phys_height;
+
+          /* i don't understand  */
+          if (glyph_row.height <row->visible_height)
+            glyph_row.height = row->visible_height;
+          /* row->descent + row->phys_ascent /*row->ascent*/;
+#if 0
+          fprintf(stderr, "%s: mmc wants to repaint empty area: window is at %d,%d\n", __FUNCTION__,
+                  WINDOW_LEFT_EDGE_X(w), WINDOW_TOP_EDGE_LINE(w));
+
+
+          fprintf(stderr, "the glyph row is %dx%d @ %d,%d.  visible height: %d, extra_line_spacing %d\n",
+                  glyph_row.width, glyph_row.height,
+                  glyph_row.x, glyph_row.y,
+                  row->visible_height,
+                  row->extra_line_spacing);
+#endif
+          /* mmc: This is for the space after glyphs, which is still in the
+                  exposed rectangle. */
+          if (x_intersect_rectangles (r, &glyph_row, &missing_background))
+            {
+              struct frame *f = XFRAME (WINDOW_FRAME (w));
+#if 0
+              fprintf(stderr, "%s: mmc   missing background\n", __FUNCTION__);
+#endif
+              XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                              f->output_data.x->reverse_gc, /* normal_gc */
+                              missing_background.x + WINDOW_LEFT_EDGE_X(w),
+                              missing_background.y + WINDOW_TOP_EDGE_Y(w),
+                              missing_background.width,
+                              missing_background.height + row->extra_line_spacing);
+            }
+#if 0
+          fprintf(stderr, "%s: no need to repaint: last x=%d, rx=%d\n", __FUNCTION__, x, r->x);
+#endif
+        }
     }
 }
 
