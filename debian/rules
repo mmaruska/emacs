@@ -385,6 +385,7 @@ check-distribution:
 	@if [ ! "${distrib_id}" = "Debian" ]; then			\
 		echo "Building on ${distrib_id} ${distrib_name}" ;	\
 		echo "Disabling Debian-specific patches." ;		\
+		[ ! -e debian/patches/series ] ||                         \
 		sed -i "/^debian-emacs-bugmail/d"			\
 			debian/patches/series ;				\
 	fi
