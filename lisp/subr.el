@@ -678,7 +678,6 @@ Subkeymaps may be modified but are not canonicalized."
     ;; Process the bindings starting from the end.
     (dolist (binding (prog1 bindings (setq bindings ())))
       (let* ((key (car binding))
-             (item (cdr binding))
              (oldbind (assq key bindings)))
         (push (if (not oldbind)
                   ;; The normal case: no duplicate bindings.
@@ -1889,8 +1888,7 @@ Used from `delayed-warnings-hook' (which see)."
         (push warning collapsed)))
     (setq delayed-warnings-list (nreverse collapsed))))
 
-;; At present this is only really useful for Emacs internals.
-;; Document in the lispref if it becomes generally useful.
+;; At present this is only used for Emacs internals.
 ;; Ref http://lists.gnu.org/archive/html/emacs-devel/2012-02/msg00085.html
 (defvar delayed-warnings-hook '(collapse-delayed-warnings
                                 display-delayed-warnings)
@@ -2121,7 +2119,7 @@ by doing (clear-string STRING)."
             ;; Turn off electricity.
             (set (make-local-variable 'post-self-insert-hook) nil)
             (add-hook 'after-change-functions
-                      (lambda (beg end len)
+                      (lambda (beg end _len)
                         (clear-this-command-keys)
                         (setq beg (min end (max (minibuffer-prompt-end)
                                                 beg)))
@@ -2309,6 +2307,8 @@ is nil and `use-dialog-box' is non-nil."
         (discard-input))))
     (let ((ret (eq answer 'act)))
       (unless noninteractive
+        ;; FIXME this prints one too many spaces, since prompt
+        ;; already ends in a space.  Eg "... (y or n)  y".
         (message "%s %s" prompt (if ret "y" "n")))
       ret)))
 

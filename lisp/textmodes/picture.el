@@ -31,7 +31,7 @@
 ;;; Code:
 
 (defgroup picture nil
-  "Picture mode --- editing using quarter-plane screen model."
+  "Editing text-based pictures (\"ASCII art\")."
   :prefix "picture-"
   :group 'wp)
 
@@ -242,8 +242,7 @@ Use \"\\[command-apropos] picture-movement\" to see commands which control motio
 	     (spacing (when (display-graphic-p frame)
 			(or (with-current-buffer (window-buffer window)
 			      line-spacing)
-			    (frame-parameter frame 'line-spacing))))
-	     rows cols)
+			    (frame-parameter frame 'line-spacing)))))
 	(cond ((floatp spacing)
 	       (setq spacing (truncate (* spacing char-ht))))
 	      ((null spacing)

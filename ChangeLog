@@ -1,3 +1,55 @@
+2012-04-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.in (dbus_validate_bus_name, dbus_validate_path)
+	(dbus_validate_interface, dbus_validate_member): Check also for
+	these library functions
+
+2012-04-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in (doug_lea_malloc): Check for __malloc_initialize_hook.
+	With glibc 2.14 or later, when compiled with GCC 4.7.0's
+	-Werror=deprecated-declarations flag, use of hooks like
+	__malloc_initialize_hook causes compilation to fail because these
+	hooks are deprecated.  Modify 'configure' to check for these hooks too.
+	Simplify the 'configure' code to test for all the hooks at once.
+	(emacs_cv_var___after_morecore_hook): Remove, replacing with ...
+	(emacs_cv_var_doug_lea_malloc): ... this new var.
+
+2012-04-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Sync from gnulib version 4f11d6bebc3098c64ffde27079ab0d0cecfd0cdc
+	dated 2011-10-07.  Regenerating from current gnulib would be a
+	pervasive change, and currently the trunk isn't open to such changes.
+	* configure.in (WARN_CFLAGS): Remove; no longer needed now
+	that gnulib does it.
+	* lib/gnulib.mk, m4/gl-comp.m4: Regenerate.
+
+2012-04-21  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* m4/gl-comp.m4: Update.  (Bug#11285)
+
+2012-04-20  Ludovic Courtès  <ludo@gnu.org>
+
+	* configure.in: Don't use the -R option (Bug#11251).
+
+2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	configure: new option --enable-gcc-warnings (Bug#11207)
+	I have been using this change for many months in my private copy
+	of Emacs, and have used it to find several bugs.  It's mature
+	enough to publish now.
+	* Makefile.in (GNULIB_MODULES): Add warnings, manywarnings.
+	* configure.in: Support --enable-gcc-warnings, in the style of
+	other GNU packages such as coreutils.
+	(C_WARNINGS_SWITCH): Remove, replacing with...
+	(WARN_CFLAGS, GNULIB_WARN_CFLAGS): New variable.
+	(PKG_CHECK_MODULES, C_SWITCH_X_SITE): Use -isystem rather than -I,
+	when including system files with GCC.
+	* etc/NEWS: Mention --enable-gcc-warnings.
+	* INSTALL (DETAILED BUILDING AND INSTALLATION): Likewise.
+	* lib/Makefile.am (AM_CFLAGS): New macro.
+	* m4/manywarnings.m4, m4/warnings.m4: New files, from gnulib.
+
 2012-04-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* configure.in (AC_CHECK_FUNCS):
