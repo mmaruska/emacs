@@ -33596,6 +33596,55 @@ expose_area (struct window *w, struct glyph_row *row, const Emacs_Rectangle *r,
 		     first - row->glyphs[area], last - row->glyphs[area],
 		     DRAW_NORMAL_TEXT, 0);
     }
+
+  /* mmc: So this is my code/idea entirely! */
+
+  if ( 1 /*(x < r->x + r->width) */
+       && (area == TEXT_AREA))
+    {
+      /* intersect the 2 rectangles:
+       *	| exposed & redrawn
+       *	| rectangle	 |
+       *----+----------------+-----+
+       *  G |   matrix row	 |     |  glyph_row!
+       *----+----------------+-----+
+       *	| redrawn	 |
+       *	| Rectangle	 |
+       *	+----------------+
+       */
+
+      /* I need to draw the part without glyphs.*/
+
+
+      /* fill_area (x, r->x) */
+
+      /* fixme: what's the window coordinate? */
+      XRectangle glyph_row; /* the gap after the last glyph: */
+      XRectangle missing_background;
+
+      glyph_row.x = x;  /* row->x + row->pixel_width; */
+      glyph_row.y = row->y;
+      glyph_row.width = (window_box_left_offset (w, area+1) - glyph_row.x);
+
+      glyph_row.height = row->phys_height;
+      /* I don't understand	 */
+      if (glyph_row.height <row->visible_height)
+	glyph_row.height = row->visible_height;
+
+      /* row->descent + row->phys_ascent /*row->ascent*/;
+      /* mmc: This is for the space after glyphs, which is still in the
+	 exposed rectangle. */
+      if (x_intersect_rectangles (r, &glyph_row, &missing_background))
+	{
+	  struct frame *f = XFRAME (WINDOW_FRAME (w));
+	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			  f->output_data.x->reverse_gc, /* normal_gc */
+			  missing_background.x + WINDOW_LEFT_EDGE_X(w),
+			  missing_background.y + WINDOW_TOP_EDGE_Y(w),
+			  missing_background.width,
+			  missing_background.height + row->extra_line_spacing);
+	}
+    }
 }
 
 
