@@ -22,6 +22,13 @@ so we will look at it and add it to the manual.
 
 
 * Installation Changes in Emacs 24.2
+
+** New configure option '--enable-gcc-warnings', intended for developers.
+If building with GCC, this enables compile-time checks that warn about
+possibly-questionable C code.  On a recent GNU system there should be
+no warnings; on older and on non-GNU systems the generated warnings
+may be useful.
+
 
 * Startup Changes in Emacs 24.2
 
@@ -46,6 +53,10 @@ automatically when setting `imagemagick-types-inhibit'.
 *** Setting `imagemagick-types-inhibit' to t now disables the use of
 ImageMagick to view images, set
 
+** String values for `initial-buffer-choice' also apply to emacsclient
+frames, if emacsclient is only told to open a new frame without
+specifying any file to visit or expression to evaluate.
+
 
 * Editing Changes in Emacs 24.2
 
@@ -63,7 +74,9 @@ character when doing minibuffer filename prompts.
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
 
-** which-function-mode now applies to all applicable major modes by default.
+** Customize
+
+*** `custom-reset-button-menu' now defaults to t.
 
 ** erc will look up server/channel names via auth-source and use the
 channel keys found, if any.
@@ -75,6 +88,38 @@ shared key for Emacs Server.
 closing brackets to be aligned with the line of the opening bracket.
 
 ** FIXME something happened to ses.el, 2012-04-17.
+
+** which-function-mode now applies to all applicable major modes by default.
+
+** D-Bus
+
++++
+*** New variables `dbus-compiled-version' and `dbus-runtime-version'.
+
++++
+*** The D-Bus object manager interface is implemented.
+
++++
+*** Variables of type :(u)int32 and :(u)int64 accept floating points,
+if their value does not fit into Emacs's integer range.
+
++++
+*** The function `dbus-call-method' works non-blocking now, it can be
+interrupted by C-g.  `dbus-call-method-non-blocking' is obsolete.
+
++++
+*** Signals can be sent also as unicast message.
+
++++
+*** The argument list of `dbus-register-signal' has been extended,
+according to the new match rule types of D-Bus.  See the manual for
+details.
+
++++
+*** `dbus-init-bus' supports private connections.
+
++++
+*** There is a new function `dbus-setenv'.
 
 ** Obsolete packages:
 
@@ -92,6 +137,9 @@ closing brackets to be aligned with the line of the opening bracket.
 Only variables defined using `defcustom' are considered user options.
 The function `user-variable-p' is now an obsolete alias for
 `custom-variable-p'.
+
+** `face-spec-set' no longer sets frame-specific attributes when the
+third argument is a frame (that usage was obsolete since Emacs 22.2).
 
 
 * Lisp changes in Emacs 24.2
