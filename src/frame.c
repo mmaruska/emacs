@@ -1164,6 +1164,7 @@ make_terminal_frame (struct terminal *terminal)
 
   SET_FRAME_VISIBLE (f, 1);
 
+  f->visible = 1;		/* SET_FRAME_VISIBLE will set frame_garbaged global aggregator. */
   f->terminal = terminal;
   f->terminal->reference_count++;
 #ifdef MSDOS
