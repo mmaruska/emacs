@@ -5766,8 +5766,9 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	 obey it now if we should.  */
       if (read_kbd || ! NILP (wait_for_cell))
 	do_pending_window_change (0);
-#if 1                           /* mmc: I decided to test with this: (new)*/
+#if 0 /* mmc: I decided to test with this: (new)*/
       /* mmc: I need to redisplay if any emacs-window is damaged */
+      /* 2012-04-23 this now breaks (C-g inside minibuffer) */
       if (do_display)
         redisplay_preserve_echo_area (12);
 #endif
