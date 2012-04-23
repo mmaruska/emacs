@@ -548,7 +548,7 @@ make_terminal_frame (struct terminal *terminal)
 
   fset_name (f, make_formatted_string (name, "F%"pMd, ++tty_frame_count));
 
-  f->visible = 1;		/* FRAME_SET_VISIBLE wd set frame_garbaged. */
+  f->visible = 1;		/* FRAME_SET_VISIBLE will set frame_garbaged. */
   f->async_visible = 1;		/* Don't let visible be cleared later. */
   f->terminal = terminal;
   f->terminal->reference_count++;
