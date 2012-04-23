@@ -136,7 +136,8 @@ movemail_bin := usr/lib/emacs/${runtime_ver}/${target}/movemail
 main_dir_info_files := $(shell grep '^$$(infodir)/' doc/misc/Makefile.in | \
 	sed -e "s%\$$(infodir)/\([^:]*\).*$$%\1%" | sort) emacs eintr elisp
 
-PACKAGES=${bin_name} ${bin_name}-nox ${bin_name}-lucid ${bin_name}-xlib ${bin_name}-el ${bin_name}-common ${bin_name}-bin-common ${bin_name}-gtk ${bin_name}-dbg
+# ${bin_name} ${bin_name}-nox ${bin_name}-lucid
+PACKAGES=${bin_name}-xlib ${bin_name}-el ${bin_name}-common ${bin_name}-bin-common ${bin_name}-gtk ${bin_name}-dbg
 
 # Build directories
 EMACS_COMMON = $(CURDIR)/debian/${bin_name}-common
@@ -409,7 +410,8 @@ check-distribution:
 
 build-indep build-arch build: check-distribution build-stamp
 
-build-stamp: bootstrap emacs-nox emacs-lucid emacs-xlib emacs
+# mmc: # emacs-nox emacs-lucid
+build-stamp: bootstrap emacs-xlib emacs
 	dh_testdir
 	touch $@
 
