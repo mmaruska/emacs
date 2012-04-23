@@ -136,7 +136,7 @@ movemail_bin := usr/lib/emacs/${runtime_ver}/${target}/movemail
 main_dir_info_files := $(shell grep '^$$(infodir)/' doc/misc/Makefile.in | \
 	sed -e "s%\$$(infodir)/\([^:]*\).*$$%\1%" | sort) emacs eintr elisp
 
-PACKAGES=${bin_name} ${bin_name}-nox ${bin_name}-lucid ${bin_name}-el ${bin_name}-common ${bin_name}-bin-common ${bin_name}-gtk ${bin_name}-dbg
+PACKAGES=${bin_name} ${bin_name}-nox ${bin_name}-lucid ${bin_name}-xlib ${bin_name}-el ${bin_name}-common ${bin_name}-bin-common ${bin_name}-gtk ${bin_name}-dbg
 
 # Build directories
 EMACS_COMMON = $(CURDIR)/debian/${bin_name}-common
@@ -144,6 +144,7 @@ EMACS_BIN_COMMON = $(CURDIR)/debian/${bin_name}-bin-common
 EMACS = $(CURDIR)/debian/${bin_name}
 EMACS_NOX = $(CURDIR)/debian/${bin_name}-nox
 EMACS_LUCID = $(CURDIR)/debian/${bin_name}-lucid
+EMACS_XLIB = $(CURDIR)/debian/${bin_name}-xlib
 EMACS_EL = $(CURDIR)/debian/${bin_name}-el
 
 local_lpath := /etc/${bin_name}:/etc/emacs
@@ -178,6 +179,10 @@ NONPERSISTENT_AUTOGEN_FILES := \
   debian/${bin_name}-lucid.postinst \
   debian/${bin_name}-lucid.prerm \
   debian/${bin_name}-lucid.overrides.lintian \
+  debian/${bin_name}-xlib.preinst \
+  debian/${bin_name}-xlib.postinst \
+  debian/${bin_name}-xlib.prerm \
+  debian/${bin_name}-xlib.overrides.lintian \
   debian/${bin_name}-common.postinst \
   debian/${bin_name}-common.prerm \
   debian/${bin_name}-common.overrides.lintian \
@@ -263,6 +268,10 @@ debian/${bin_name}-nox.%: pkg_name := ${bin_name}-nox
 debian/${bin_name}-lucid.%: xsupport := "lucid"
 debian/${bin_name}-lucid.%: pkg_name := ${bin_name}-lucid
 
+debian/${bin_name}-xlib.%: xsupport := "xlib"
+debian/${bin_name}-xlib.%: pkg_name := ${bin_name}-xlib
+
+
 debian/${bin_name}-common.%: pkg_name := ${bin_name}-common
 
 debian/${bin_name}-bin-common.%: pkg_name := ${bin_name}-bin-common
@@ -277,6 +286,9 @@ debian/${bin_name}-nox.%: debian/emacs.%
 	${expand_file_subst_vars}
 
 debian/${bin_name}-lucid.%: debian/emacs.%
+	${expand_file_subst_vars}
+
+debian/${bin_name}-xlib.%: debian/emacs.%
 	${expand_file_subst_vars}
 
 debian/${bin_name}-el.%: debian/emacs-el.%
@@ -378,6 +390,11 @@ emacs_lucid_confflags := ${confflags}
 emacs_lucid_confflags += --with-x=yes
 emacs_lucid_confflags += --with-x-toolkit=lucid
 
+# emacs-xlib
+emacs_xlib_confflags := ${confflags}
+emacs_xlib_confflags += --with-x=yes
+emacs_xlib_confflags += --with-x-toolkit=no
+
 distrib_id := $(shell lsb_release -s -i)
 distrib_name := $(shell lsb_release -s -c)
 
@@ -392,7 +409,7 @@ check-distribution:
 
 build-indep build-arch build: check-distribution build-stamp
 
-build-stamp: bootstrap emacs-nox emacs-lucid emacs
+build-stamp: bootstrap emacs-nox emacs-lucid emacs-xlib emacs
 	dh_testdir
 	touch $@
 
@@ -435,7 +452,16 @@ emacs-lucid-stamp:
 
 	touch $@
 
-debian-clean:
+emacs-xlib: bootstrap emacs-xlib-stamp
+emacs-xlib-stamp:
+	dh_testdir
+
+	$(call emacs_build,${emacs_xlib_confflags},xlib-emacs)
+	${build_cmd} distclean
+
+	touch $@
+
+debian-clean: debian/control
 	dh_testdir
 	dh_testroot
 
@@ -454,7 +480,7 @@ clean: debian-clean
 	[ ! -f configure ] || CFLAGS="${CFLAGS}" ./configure ${emacs_confflags}
 	[ ! -f Makefile ] || $(MAKE) maintainer-clean
 
-	rm -f src/{gtk,nox,lucid}-emacs
+	rm -f src/{gtk,nox,lucid,xlib}-emacs
 
 	# Remove byte compiled files
 	find -name "*.elc" | xargs --no-run-if-empty rm
@@ -626,6 +652,13 @@ install: build $(DEBPKGFILES)
 	$(call inst_binary,lucid-emacs,$(EMACS_LUCID),${bin_name}-lucid)
 	$(call inst_manpage,$(EMACS_LUCID),${bin_name},${bin_name}-lucid,${bin_name}-lucid)
 	$(call inst_overrides,lintian,$(EMACS_LUCID),${bin_name}-lucid)
+
+	# emacs-xlib (preparation)
+
+	$(call inst_binary,xlib-emacs,$(EMACS_XLIB),${bin_name}-xlib)
+	$(call inst_manpage,$(EMACS_XLIB),${bin_name},${bin_name}-xlib,${bin_name}-xlib)
+	$(call inst_overrides,lintian,$(EMACS_XLIB),${bin_name}-xlib)
+
 
 	##################################################
 	# emacs-el (preparation)
