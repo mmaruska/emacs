@@ -4780,7 +4780,8 @@ x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
           = focus_frame ? focus_frame->output_data.x->focus_state : 0;
 
         if (event->xcrossing.detail != NotifyInferior
-            && event->xcrossing.focus
+            && event->xcrossing.focus /* The window is the focused one! */
+            && focus_frame
             && ! (focus_state & FOCUS_EXPLICIT))
           x_focus_changed ((event->type == EnterNotify ? FocusIn : FocusOut),
 			   FOCUS_IMPLICIT,
