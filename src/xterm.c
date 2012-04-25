@@ -3525,21 +3525,34 @@ x_detect_focus_change (struct x_display_info *dpyinfo, XEvent *event, struct inp
         int focus_state
           = focus_frame ? focus_frame->output_data.x->focus_state : 0;
 
+        /* mmc: is this Emacs implementing auto-raise? */
         if (event->xcrossing.detail != NotifyInferior
-            && event->xcrossing.focus
+            && event->xcrossing.focus /* The window is the focused one! */
+            && focus_frame
             && ! (focus_state & FOCUS_EXPLICIT))
+          {
           x_focus_changed ((event->type == EnterNotify ? FocusIn : FocusOut),
 			   FOCUS_IMPLICIT,
 			   dpyinfo, frame, bufp);
+          }
       }
       break;
 
     case FocusIn:
     case FocusOut:
-      x_focus_changed (event->type,
-		       (event->xfocus.detail == NotifyPointer ?
-			FOCUS_IMPLICIT : FOCUS_EXPLICIT),
-		       dpyinfo, frame, bufp);
+      /* mmc: NotifyPointer means the mouse is over an emacs X window
+       * while the focus is changed. That
+       * does NOT indicate we changed focus to it!
+       * Example: Mouse is over the Ediff control panel, while we change
+       * "workspace"
+       */
+      if (event->xfocus.detail != NotifyPointer)
+              /* I would do it only if the 2 X frames are associated.
+                 We focus A, and raise B which is related to A. */
+        x_focus_changed (event->type,
+                         (event->xfocus.detail == NotifyPointer ?
+                          FOCUS_IMPLICIT : FOCUS_EXPLICIT),
+                         dpyinfo, frame, bufp);
       break;
 
     case ClientMessage:
