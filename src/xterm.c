@@ -10291,6 +10291,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       { "WM_CONFIGURE_DENIED", &dpyinfo->Xatom_wm_configure_denied },
       { "WM_MOVED", &dpyinfo->Xatom_wm_window_moved },
       { "WM_CLIENT_LEADER", &dpyinfo->Xatom_wm_client_leader },
+      { "WM_CLIENT_MACHINE", &dpyinfo->Xatom_wm_client_machine },
       { "Editres", &dpyinfo->Xatom_editres },
       { "CLIPBOARD", &dpyinfo->Xatom_CLIPBOARD },
       { "TIMESTAMP", &dpyinfo->Xatom_TIMESTAMP },
