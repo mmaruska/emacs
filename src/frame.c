@@ -101,6 +101,7 @@ static Lisp_Object Qwindow_id;
 #ifdef HAVE_X_WINDOWS
 static Lisp_Object Qouter_window_id;
 #endif
+Lisp_Object Qwindow_group;
 Lisp_Object Qparent_id;
 Lisp_Object Qtitle, Qname;
 static Lisp_Object Qexplicit_name;
@@ -2717,6 +2718,7 @@ static const struct frame_parm_table frame_parms[] =
   {"alpha",			&Qalpha},
   {"sticky",			&Qsticky},
   {"tool-bar-position",		&Qtool_bar_position},
+  {"window-group",              &Qwindow_group}, /* Hint for Window Manager  */
 };
 
 #ifdef WINDOWSNT
@@ -4263,6 +4265,7 @@ syms_of_frame (void)
   DEFSYM (Qouter_window_id, "outer-window-id");
 #endif
   DEFSYM (Qparent_id, "parent-id");
+  DEFSYM (Qwindow_group, "window-group");
   DEFSYM (Qx, "x");
   DEFSYM (Qw32, "w32");
   DEFSYM (Qpc, "pc");
