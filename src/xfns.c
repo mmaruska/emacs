@@ -2308,6 +2308,12 @@ hack_wm_protocols (struct frame *f, Widget widget)
 		       XA_ATOM, 32, PropModeAppend,
 		       (unsigned char *) props, count);
   }
+#if 0
+  /* mmc:    So this is not used!  it's in #ifdef USE_X_TOOLKIT, but search below*/
+  XChangeProperty (dpy, w, FRAME_X_DISPLAY_INFO (f)->Xatom_wm_client_machine,
+		       XA_ATOM, 8, PropModeReplace, /* mmc: ?? */
+		       (unsigned char *) "linux11", 1);
+#endif
   unblock_input ();
 }
 #endif
@@ -3334,6 +3340,13 @@ x_window (struct frame *f)
 		 f->output_data.x->current_cursor
                  = f->output_data.x->text_cursor);
 
+#if 0
+  /* mmc: */
+  XChangeProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                   FRAME_X_DISPLAY_INFO (f)->Xatom_wm_client_machine,
+                   XA_STRING, 8, PropModeReplace, /* mmc: ?? */
+                   (unsigned char *) "linux11", strlen("linux11"));
+#endif
   unblock_input ();
 
   if (FRAME_X_WINDOW (f) == 0)
