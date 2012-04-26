@@ -4801,7 +4801,14 @@ x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
       if (event->xfocus.mode == NotifyGrab ||
           event->xfocus.mode == NotifyUngrab)
         return;
-      x_focus_changed (event->type,
+      /* NotifyPointer means the mouse is over an emacs X window
+       * while the focus is changed. That
+       * does NOT indicate we intended to Focus to the emacs frame!
+       * Example: Mouse is (incidentally) over the Ediff control panel,
+       * while we change "workspace"
+       */
+      if (event->xfocus.detail != NotifyPointer)
+        x_focus_changed (event->type,
 		       (event->xfocus.detail == NotifyPointer ?
 			FOCUS_IMPLICIT : FOCUS_EXPLICIT),
 		       dpyinfo, frame, bufp);
