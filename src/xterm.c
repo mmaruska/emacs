@@ -4812,6 +4812,12 @@ x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
 		       (event->xfocus.detail == NotifyPointer ?
 			FOCUS_IMPLICIT : FOCUS_EXPLICIT),
 		       dpyinfo, frame, bufp);
+      else {
+#ifdef DEBUG_EVENTS
+        fprintf(stderr, "%s: NotifyPointer -- skipping x_focus_changed !\n",
+                __FUNCTION__);
+#endif
+      }
       break;
 
     case ClientMessage:
