@@ -98,6 +98,16 @@ Description: The GNU Emacs editor (with X support by lucid/athena toolkit)
  GNU Emacs is the extensible self-documenting text editor.
  This package contains a version of Emacs compiled with lucid toolkit.
 
+Package: @BIN_NAME@-xlib
+Architecture: any
+Pre-Depends: dpkg (>= 1.15.6)
+Depends: @BIN_NAME@-bin-common (= ${binary:Version}), ${shlibs:Depends},
+         ${misc:Depends}
+Provides: @BIN_NAME@, emacsen, editor, info-browser, mail-reader, news-reader
+Description: The GNU Emacs editor (with X support by plain xlib)
+ GNU Emacs is the extensible self-documenting text editor.
+ This package contains a version of Emacs compiled with plain xlib.
+
 Package: @BIN_NAME@-el
 Architecture: all
 Pre-Depends: dpkg (>= 1.15.6)
