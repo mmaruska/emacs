@@ -6887,7 +6887,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
               || event.xconfigure.width != FRAME_PIXEL_WIDTH (f)
               || event.xconfigure.height != FRAME_PIXEL_HEIGHT (f))
             {
-#if 0
+#if 1
         /* mmc: is this enough?
            I think the core is in invalidate_window_matrices ... in dispnew.c */
               SET_FRAME_GARBAGED (f);
