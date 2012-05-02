@@ -1,3 +1,30 @@
+2012-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* viper.texi: Make direntry shorter (also it is no longer "newest").
+
+	* emacs-gnutls.texi, ert.texi, org.texi:
+	Fix dircategory, direntry to match info/dir.
+
+	* faq.texi: Convert @inforefs to @xrefs.
+	Fix some malformed cross-references.
+	(File-name conventions): Shorten section name to avoid overfull line.
+	(How to add fonts): Use smallexample to avoid overfull lines.
+
+2012-05-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Help for users): Update for .gpg file being second.
+
+2012-04-27  Ippei Furuhashi  <top.tuna+orgmode@gmail.com>  (tiny change)
+
+	* org.texi (Agenda commands): Fix two typos: give corresponding
+	function names, according to `org-agenda-view-mode-dispatch'.
+
+2012-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Major packages and programs): Remove section.
+	There is no point listing 6 packages (cf etc/MORE.STUFF).
+	(Finding Emacs and related packages): Move "Spell-checkers" here.
+
 2012-04-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Version): New node.

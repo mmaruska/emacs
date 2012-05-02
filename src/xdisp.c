@@ -383,11 +383,21 @@ static Lisp_Object Qline_height;
 #define IT_OVERFLOW_NEWLINE_INTO_FRINGE(it) 0
 #endif /* HAVE_WINDOW_SYSTEM */
 
-/* Test if the display element loaded in IT is a space or tab
-   character.  This is used to determine word wrapping.  */
+/* Test if the display element loaded in IT, or the underlying buffer
+   or string character, is a space or a TAB character.  This is used
+   to determine where word wrapping can occur.  */
 
-#define IT_DISPLAYING_WHITESPACE(it)				\
-  (it->what == IT_CHARACTER && (it->c == ' ' || it->c == '\t'))
+#define IT_DISPLAYING_WHITESPACE(it)					\
+  ((it->what == IT_CHARACTER && (it->c == ' ' || it->c == '\t'))	\
+   || ((STRINGP (it->string)						\
+	&& (SREF (it->string, IT_STRING_BYTEPOS (*it)) == ' '		\
+	    || SREF (it->string, IT_STRING_BYTEPOS (*it)) == '\t'))	\
+       || (it->s							\
+	   && (it->s[IT_BYTEPOS (*it)] == ' '				\
+	       || it->s[IT_BYTEPOS (*it)] == '\t'))			\
+       || (IT_BYTEPOS (*it) < ZV_BYTE					\
+	   && (*BYTE_POS_ADDR (IT_BYTEPOS (*it)) == ' '			\
+	       || *BYTE_POS_ADDR (IT_BYTEPOS (*it)) == '\t'))))		\
 
 /* Name of the face used to highlight trailing whitespace.  */
 
@@ -1265,6 +1275,11 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
     }
 
   SET_TEXT_POS_FROM_MARKER (top, w->start);
+  /* Scrolling a minibuffer window via scroll bar when the echo area
+     shows long text sometimes resets the minibuffer contents behind
+     our backs.  */
+  if (CHARPOS (top) > ZV)
+    SET_TEXT_POS (top, BEGV, BEGV_BYTE);
 
   /* Compute exact mode line heights.  */
   if (WINDOW_WANTS_MODELINE_P (w))
@@ -1370,6 +1385,7 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
 		  Lisp_Object startpos, endpos;
 		  EMACS_INT start, end;
 		  struct it it3;
+		  int it3_moved;
 
 		  /* Find the first and the last buffer positions
 		     covered by the display string.  */
@@ -1426,6 +1442,15 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
 		     begins.  */
 		  start_display (&it3, w, top);
 		  move_it_to (&it3, -1, 0, top_y, -1, MOVE_TO_X | MOVE_TO_Y);
+		  /* If it3_moved stays zero after the 'while' loop
+		     below, that means we already were at a newline
+		     before the loop (e.g., the display string begins
+		     with a newline), so we don't need to (and cannot)
+		     inspect the glyphs of it3.glyph_row, because
+		     PRODUCE_GLYPHS will not produce anything for a
+		     newline, and thus it3.glyph_row stays at its
+		     stale content it got at top of the window.  */
+		  it3_moved = 0;
 		  /* Finally, advance the iterator until we hit the
 		     first display element whose character position is
 		     CHARPOS, or until the first newline from the
@@ -1437,6 +1462,7 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
 		      if (IT_CHARPOS (it3) == charpos
 			  || ITERATOR_AT_END_OF_LINE_P (&it3))
 			break;
+		      it3_moved = 1;
 		      set_iterator_to_next (&it3, 0);
 		    }
 		  top_x = it3.current_x - it3.pixel_width;
@@ -1447,7 +1473,8 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
 		     display string, move back over the glyphs
 		     produced from the string, until we find the
 		     rightmost glyph not from the string.  */
-		  if (IT_CHARPOS (it3) != charpos && EQ (it3.object, string))
+		  if (it3_moved
+		      && IT_CHARPOS (it3) != charpos && EQ (it3.object, string))
 		    {
 		      struct glyph *g = it3.glyph_row->glyphs[TEXT_AREA]
 					+ it3.glyph_row->used[TEXT_AREA];

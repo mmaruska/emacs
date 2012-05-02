@@ -1,3 +1,41 @@
+2012-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (@copying): Only print EDITION in the TeX version.
+
+	* search.texi (Regexp Search): Just say "Emacs".
+
+	* display.texi (Auto Scrolling):
+	Reword to avoid repetition and improve page break.
+
+	* xresources.texi (Resources):
+	* mule.texi (Language Environments):
+	* misc.texi (Amusements):
+	* maintaining.texi (VC Change Log):
+	* frames.texi (Fonts):
+	* custom.texi (Specifying File Variables, Minibuffer Maps):
+	* cmdargs.texi (Initial Options):
+	* building.texi (Flymake):
+	Reword to remove/reduce some overly long/short lines.
+
+2012-04-27  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi: Some fixes for detailed menu.
+
+	* emacs.texi: Add "et al." to authors.
+
+	* ack.texi, basic.texi, buffers.texi, building.texi:
+	* calendar.texi, cmdargs.texi, commands.texi, custom.texi:
+	* dired.texi, display.texi, emerge-xtra.texi, files.texi:
+	* fortran-xtra.texi, help.texi, kmacro.texi, mini.texi, misc.texi:
+	* msdog-xtra.texi, picture-xtra.texi, programs.texi, rmail.texi:
+	* search.texi, trouble.texi, windows.texi:
+	Use Texinfo recommended convention for quotes+punctuation.
+
+2012-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Bidirectional Editing): Improve indexing.
+	Minor wording tweaks.
+
 2012-04-15  Chong Yidong  <cyd@gnu.org>
 
 	* misc.texi (emacsclient Options): More clarifications.
@@ -9194,7 +9232,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2012  Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2012 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

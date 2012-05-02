@@ -37,6 +37,7 @@ Regenerate the pdf versions in etc/refcards/.
 What paper size are the English versions supposed to be on?
 On Debian testing, the packages texlive-lang-czechslovak and
 texlive-lang-polish will let you generate the cs-* and sk-* pdfs.
+(You may need texlive-lang-cyrillic, texlive-lang-german for others.)
 The Makefile rules did not work for me, I had to use something like:
 csplain -output-format=pdf cs-refcard
 
@@ -61,7 +62,7 @@ sk	Miroslav Vaško
 
 ** Consider bumping customize-changed-options-previous-release.
 
-** cusver-check from admin.el cam help find new defcustoms missing
+** cusver-check from admin.el can help find new defcustoms missing
 :version tags.
 
 * BUGS
@@ -229,7 +230,7 @@ syntax.texi       cyd
 text.texi         cyd
 tips.texi         rgm
 variables.texi    cyd
-windows.texi      
+windows.texi      rgm (skimmed)
 
 
 Local variables:
