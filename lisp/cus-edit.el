@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
-;; Copyright (C) 1996-1997, 1999-2012  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2012 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -1131,7 +1131,7 @@ If OTHER-WINDOW is non-nil, display in another window."
 
 ;;;###autoload
 (defun customize-option (symbol)
-  "Customize SYMBOL, which must be a user option variable."
+  "Customize SYMBOL, which must be a user option."
   (interactive (custom-variable-prompt))
   (unless symbol
     (error "No variable specified"))
@@ -1147,7 +1147,7 @@ If OTHER-WINDOW is non-nil, display in another window."
 
 ;;;###autoload
 (defun customize-option-other-window (symbol)
-  "Customize SYMBOL, which must be a user option variable.
+  "Customize SYMBOL, which must be a user option.
 Show the buffer in another window, but don't select it."
   (interactive (custom-variable-prompt))
   (unless symbol
@@ -1201,9 +1201,10 @@ the official name of the package, such as MH-E or Gnus.")
 ;;;###autoload
 (defun customize-changed-options (&optional since-version)
   "Customize all settings whose meanings have changed in Emacs itself.
-This includes new user option variables and faces, and new
-customization groups, as well as older options and faces whose meanings
-or default values have changed since the previous major Emacs release.
+This includes new user options and faces, and new customization
+groups, as well as older options and faces whose meanings or
+default values have changed since the previous major Emacs
+release.
 
 With argument SINCE-VERSION (a string), customize all settings
 that were added or redefined since that version."
@@ -1411,7 +1412,7 @@ suggest to customize that face, if it's customizable."
 
 ;;;###autoload
 (defun customize-apropos (pattern &optional type)
-  "Customize all loaded options, faces and groups matching PATTERN.
+  "Customize loaded options, faces and groups matching PATTERN.
 PATTERN can be a word, a list of words (separated by spaces),
 or a regexp (using some regexp special characters).  If it is a word,
 search for matches for that word as a substring.  If it is a list of words,
@@ -1419,62 +1420,50 @@ search for matches for any two (or more) of those words.
 
 If TYPE is `options', include only options.
 If TYPE is `faces', include only faces.
-If TYPE is `groups', include only groups.
-If TYPE is t (interactively, with prefix arg), include variables
-that are not customizable options, as well as faces and groups
-\(but we recommend using `apropos-variable' instead)."
-  (interactive (list (apropos-read-pattern "symbol") current-prefix-arg))
+If TYPE is `groups', include only groups."
+  (interactive (list (apropos-read-pattern "symbol") nil))
   (require 'apropos)
+  (unless (memq type '(nil options faces groups))
+    (error "Invalid setting type %s" (symbol-name type)))
   (apropos-parse-pattern pattern)
   (let (found)
     (mapatoms
      `(lambda (symbol)
 	(when (string-match apropos-regexp (symbol-name symbol))
-	  ,(if (not (memq type '(faces options)))
+	  ,(if (memq type '(nil groups))
 	       '(if (get symbol 'custom-group)
 		    (push (list symbol 'custom-group) found)))
-	  ,(if (not (memq type '(options groups)))
+	  ,(if (memq type '(nil faces))
 	       '(if (custom-facep symbol)
 		    (push (list symbol 'custom-face) found)))
-	  ,(if (not (memq type '(groups faces)))
+	  ,(if (memq type '(nil options))
 	       `(if (and (boundp symbol)
 			 (eq (indirect-variable symbol) symbol)
 			 (or (get symbol 'saved-value)
-			     (custom-variable-p symbol)
-			     ,(if (not (memq type '(nil options)))
-				  '(get symbol 'variable-documentation))))
+			     (custom-variable-p symbol)))
 		    (push (list symbol 'custom-variable) found))))))
-    (if (not found)
-	(error "No %s matching %s"
-	       (if (eq type t)
-		   "items"
-		 (format "customizable %s"
-			 (if (memq type '(options faces groups))
-			     (symbol-name type)
-			   "items")))
-	       pattern)
-      (custom-buffer-create
-       (custom-sort-items found t custom-buffer-order-groups)
-       "*Customize Apropos*"))))
+    (unless found
+      (error "No customizable %s matching %s" (symbol-name type) pattern))
+    (custom-buffer-create
+     (custom-sort-items found t custom-buffer-order-groups)
+     "*Customize Apropos*")))
 
 ;;;###autoload
-(defun customize-apropos-options (regexp &optional arg)
-  "Customize all loaded customizable options matching REGEXP.
-With prefix ARG, include variables that are not customizable options
-\(but it is better to use `apropos-variable' if you want to find those)."
-  (interactive "sCustomize options (regexp): \nP")
-  (customize-apropos regexp (or arg 'options)))
+(defun customize-apropos-options (regexp &optional ignored)
+  "Customize all loaded customizable options matching REGEXP."
+  (interactive (list (apropos-read-pattern "options")))
+  (customize-apropos regexp 'options))
 
 ;;;###autoload
 (defun customize-apropos-faces (regexp)
   "Customize all loaded faces matching REGEXP."
-  (interactive "sCustomize faces (regexp): \n")
+  (interactive (list (apropos-read-pattern "faces")))
   (customize-apropos regexp 'faces))
 
 ;;;###autoload
 (defun customize-apropos-groups (regexp)
   "Customize all loaded groups matching REGEXP."
-  (interactive "sCustomize groups (regexp): \n")
+  (interactive (list (apropos-read-pattern "groups")))
   (customize-apropos regexp 'groups))
 
 ;;; Buffer.
@@ -1602,13 +1591,12 @@ Otherwise use brackets."
   (let ((init-file (or custom-file user-init-file)))
     ;; Insert verbose help at the top of the custom buffer.
     (when custom-buffer-verbose-help
-      (widget-insert (if init-file
-			 "To apply changes, use the Save or Set buttons."
-		       "Custom settings cannot be saved; maybe you started Emacs with `-q'.")
-		     "\nFor details, see ")
+      (unless init-file
+	(widget-insert "Custom settings cannot be saved; maybe you started Emacs with `-q'.\n"))
+      (widget-insert "For help using this buffer, see ")
       (widget-create 'custom-manual
-		     :tag "Saving Customizations"
-		     "(emacs)Saving Customizations")
+		     :tag "Easy Customization"
+		     "(emacs)Easy Customization")
       (widget-insert " in the ")
       (widget-create 'custom-manual
 		     :tag "Emacs manual"
@@ -2472,15 +2460,15 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   "Return documentation of VARIABLE for use in Custom buffer.
 Normally just return the docstring.  But if VARIABLE automatically
 becomes buffer local when set, append a message to that effect."
-  (if (and (local-variable-if-set-p variable)
-	   (or (not (local-variable-p variable))
-	       (with-temp-buffer
-		 (local-variable-if-set-p variable))))
-      (concat (documentation-property variable 'variable-documentation)
+  (format "%s%s" (documentation-property variable 'variable-documentation)
+	  (if (and (local-variable-if-set-p variable)
+		   (or (not (local-variable-p variable))
+		       (with-temp-buffer
+			 (local-variable-if-set-p variable))))
 	      "\n
 This variable automatically becomes buffer-local when set outside Custom.
-However, setting it through Custom sets the default value.")
-    (documentation-property variable 'variable-documentation)))
+However, setting it through Custom sets the default value."
+	    "")))
 
 (define-widget 'custom-variable 'custom
   "A widget for displaying a Custom variable.

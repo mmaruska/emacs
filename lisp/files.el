@@ -2340,8 +2340,8 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ("\\.dbk\\'" . xml-mode)
      ("\\.dtd\\'" . sgml-mode)
      ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
-     ("\\.js\\'" . js-mode)		; javascript-mode would be better
-     ("\\.json\\'" . js-mode)
+     ("\\.js\\'" . javascript-mode)
+     ("\\.json\\'" . javascript-mode)
      ("\\.[ds]?vh?\\'" . verilog-mode)
      ;; .emacs or .gnus or .viper following a directory delimiter in
      ;; Unix, MSDOG or VMS syntax.
@@ -3642,7 +3642,8 @@ and `file-local-variables-alist', without applying them."
   (when (and enable-local-variables
 	     (not (file-remote-p (or (buffer-file-name) default-directory))))
     ;; Find the variables file.
-    (let ((variables-file (dir-locals-find-file (or (buffer-file-name) default-directory)))
+    (let ((variables-file (dir-locals-find-file
+                           (or (buffer-file-name) default-directory)))
 	  (class nil)
 	  (dir-name nil))
       (cond

@@ -1,3 +1,436 @@
+2012-05-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-yank-current-message): Use the encoding of
+	the yanked message in preference to the default value of
+	buffer-file-coding-system.
+
+2012-05-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer--action-function-custom-type): Fix
+	entry.
+
+2012-05-02  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-defs.el (c-version): Update to 5.32.3.
+
+2012-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* cus-start.el (suggest-key-bindings): Remove, now it is in Lisp.
+
+	* eshell/esh-cmd.el (eshell-debug-command): Doc fix.  Add :set.
+
+	* cus-edit.el (custom-variable-documentation): Simplify with format.
+
+2012-05-01  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (suggest-key-bindings, execute-extended-command):
+	Move from keyboard.c.
+
+2012-05-01  Chong Yidong  <cyd@gnu.org>
+
+	* follow.el: Eliminate advice.
+	(set-process-filter, process-filter, sit-for): Advice deleted.
+	(follow-mode-off-hook): Obsolete hook removed.
+	(follow-avoid-tail-recenter-p, follow-process-filter-alist):
+	Vars deleted.
+	(follow-auto): Use a :set function.
+	(follow-mode): Rewritten.  Don't advise process filters.
+	(follow-switch-to-current-buffer-all, follow-scroll-up)
+	(follow-scroll-down): Assume follow-mode is bound.
+	(follow-comint-scroll-to-bottom)
+	(follow-align-compilation-windows): New functions.
+	(follow--window-sorter): New function.
+	(follow-all-followers): Use it to explicitly sort windows by their
+	positions; don't make assumptions about next-window order.
+	(follow-windows-start-end, follow-delete-other-windows-and-split)
+	(follow-calc-win-start): Doc fix.
+	(follow-windows-aligned-p, follow-select-if-visible): Don't call
+	vertical-motion unnecessarily.
+	(follow-adjust-window): New function.
+	(follow-post-command-hook): Use it.
+	(follow-call-set-process-filter, follow-call-process-filter)
+	(follow-intercept-process-output, follow-tidy-process-filter-alist)
+	(follow-stop-intercept-process-output, follow-generic-filter):
+	Functions deleted.
+	(follow-scroll-bar-toolkit-scroll, follow-scroll-bar-drag)
+	(follow-scroll-bar-scroll-up, follow-scroll-bar-scroll-down):
+	New functions, replacing advice on scroll-bar-* commands.
+	(follow-mwheel-scroll): New function (Bug#4112).
+
+	* comint.el (comint-adjust-point): New function.
+	(comint-postoutput-scroll-to-bottom): Use it.
+	Call follow-comint-scroll-to-bottom for Follow mode buffers.
+
+2012-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* term/AT386.el, term/apollo.el, term/bobcat.el, term/cygwin.el:
+	* term/iris-ansi.el, term/linux.el, term/lk201.el, term/news.el:
+	* term/screen.el, term/vt102.el, term/vt125.el, term/vt200.el:
+	* term/vt201.el, term/vt220.el, term/vt240.el, term/vt300.el:
+	* term/vt320.el, term/vt400.el, term/vt420.el, term/wyse50.el:
+	Remove no-byte-compile setting.
+
+2012-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-table-with-quoting): Fix compatibility
+	all-completions code to not return a number in the last cdr.
+
+2012-04-30  Leo Liu  <sdl.web@gmail.com>
+
+	* ibuf-ext.el (ibuffer-diff-buffer-with-file-1): Avoid buffer
+	read-only error.
+
+2012-04-29  Chong Yidong  <cyd@gnu.org>
+
+	* follow.el (follow-calc-win-end): Rewrite to handle partial
+	screen lines correctly (Bug#8390).
+	(follow-avoid-tail-recenter): Minor cleanup.
+
+2012-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Avoid the obsolete `assoc' package.
+	* speedbar.el (speedbar-refresh): Avoid adelete.
+	(speedbar-file-lists): Simplify and avoid aput.
+	* man.el (Man--sections, Man--refpages): New vars, replacing
+	Man-sections-alist and Man-refpages-alist.
+	(Man-build-section-alist, Man-build-references-alist):
+	Use them; avoid aput.
+	(Man--last-section, Man--last-refpage): New vars.
+	(Man-follow-manual-reference): Use them.
+	Use the `default' arg of completing-read.
+	(Man-goto-section): Idem.  Move prompt to the `interactive' spec.
+
+2012-04-27  Chong Yidong  <cyd@gnu.org>
+
+	* vc/diff.el (diff-sentinel): Go to bob (Bug#10259).
+
+	* startup.el (x-apply-session-resources): New function.
+
+	* term/ns-win.el (ns-initialize-window-system):
+	* term/w32-win.el (w32-initialize-window-system):
+	* term/x-win.el (x-initialize-window-system): Use it to properly
+	set menu-bar-mode and other vars from X resources, even if the
+	initial frame is not a window-system frame (Bug#2299).
+
+	* subr.el (read-key): Avoid running filter function when setting
+	up temporary tool bar entries (Bug#9922).
+
+2012-04-27  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* vc/vc-git.el (vc-git-state): Fix regexp matching diff output.
+	(Bug#11344)
+
+2012-04-27  Chong Yidong  <cyd@gnu.org>
+
+	* select.el (xselect--encode-string): New function, split from
+	xselect-convert-to-string.
+	(xselect-convert-to-string): Use it.
+	(xselect-convert-to-filename, xselect-convert-to-os)
+	(xselect-convert-to-host, xselect-convert-to-user): Ensure that
+	returned strings are properly encoded (Bug#11315).
+
+2012-04-27  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (delete-active-region): Move to killing custom group.
+
+2012-04-27  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* progmodes/which-func.el (which-func-current): Quote %
+	characters for mode-line processing.
+
+2012-04-27  Chong Yidong  <cyd@gnu.org>
+
+	* xml.el (xml-parse-region, xml-parse-tag): Avoid errors due to
+	reaching eob (Bug#11286).
+
+2012-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb-control-level): New variable.
+	(gdb): Make it buffer-local and init to zero.
+	(gdb-control-commands-regexp): New variable.
+	(gdb-send): Don't wrap in "-interpreter-exec console" if
+	gdb-control-level is positive.  Increment gdb-control-level
+	whenever the command matches gdb-control-commands-regexp, and
+	decrement it each time the command is "end".  (Bug#11279)
+
+2012-04-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (adjust-window-trailing-edge, enlarge-window)
+	(shrink-window, window-resize):
+	* mouse.el (mouse-drag-line): Fix resizing of minibuffer
+	windows (Bug#11276).
+
+2012-04-27  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/pascal.el (pascal--extra-indent): Rename from ind, to
+	fix "missing prefix" warning.  All callers changed.
+
+2012-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/assoc.el: Move to obsolete/.
+
+2012-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/assoc.el (aget): Fix dynamic-scoping issue (bug#11352).
+
+	* term/ns-win.el (ns-define-service):
+	* progmodes/pascal.el (pascal-goto-defun):
+	* progmodes/js.el (js--read-tab):
+	* progmodes/etags.el (tags-lazy-completion-table):
+	* emacs-lisp/syntax.el (syntax-propertize-via-font-lock):
+	* emacs-lisp/ewoc.el (ewoc--wrap):
+	* emacs-lisp/assoc.el (aput, adelete, amake):
+	* doc-view.el (doc-view-convert-current-doc):
+	* vc/diff.el (diff-no-select): Replace lexical-let by lexical-binding.
+
+2012-04-26  Chong Yidong  <cyd@gnu.org>
+
+	* image.el (image-type-from-buffer): Only return supported image
+	type (Bug#9045).
+
+	* vc/diff-mode.el (diff-beginning-of-hunk): Return a meaningful
+	value, for symmetry with diff-end-of-hunk.
+	(diff-split-hunk, diff-find-source-location)
+	(diff-ignore-whitespace-hunk, diff-refine-hunk): Use it.
+	(diff-bounds-of-hunk, diff-bounds-of-file): New functions.
+	(diff-restrict-view, diff-hunk-kill, diff-file-kill): Use them to
+	compute the relevant hunk or file properly (Bug#6005).
+	(diff-file-junk-re): Add bzr's "modified file" tag (Bug#6041).
+
+2012-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-mtn.el:
+	* vc/vc-hg.el:
+	* vc/vc-git.el:
+	* vc/vc-dir.el:
+	* vc/vc-cvs.el:
+	* vc/vc-bzr.el:
+	* vc/vc-arch.el:
+	* vc/vc.el: Replace lexical-let by lexical-binding.
+	* minibuffer.el (lazy-completion-table): Avoid ((λ ...) ...).
+	* emacs-lisp/cl-macs.el (lexical-let): Fix use in lexical-binding.
+	* emacs-lisp/cconv.el (cconv-analyse-form): Warn use of ((λ ...) ...).
+
+2012-04-26  Chong Yidong  <cyd@gnu.org>
+
+	* vc/diff-mode.el (diff-undo): New command (Bug#5302).
+	(diff-mode-shared-map): Bind it to / and [remap undo].
+
+	* vc/ediff-wind.el (ediff-setup-windows-default): New function.
+	(ediff-window-setup-function): Use it as the default, to set up
+	windows based on whether the current frame is graphical (Bug#2138).
+	(ediff-choose-window-setup-function-automatically): Make obsolete.
+
+	* vc/ediff-init.el: Always define ediff-pixel-width/height.
+
+2012-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ffap.el: Remove old code for obsolete package.
+	(ffap-complete-as-file-p): Remove.
+
+	Use completion-table-with-quoting for comint and pcomplete.
+	* comint.el (comint--unquote&requote-argument)
+	(comint--unquote-argument, comint--requote-argument): New functions.
+	(comint--unquote&expand-filename, comint-unquote-filename): Obsolete.
+	(comint-quote-filename): Use regexp-opt-charset.
+	(comint--common-suffix, comint--common-quoted-suffix)
+	(comint--table-subvert): Remove.
+	(comint-unquote-function, comint-requote-function): New vars.
+	(comint--complete-file-name-data): Use them with
+	completion-table-with-quoting.
+	* pcmpl-unix.el (pcomplete/scp): Use completion-table-subvert.
+	* pcomplete.el (pcomplete-arg-quote-list)
+	(pcomplete-quote-arg-hook, pcomplete-quote-argument): Obsolete.
+	(pcomplete-unquote-argument-function): Default to non-nil.
+	(pcomplete-unquote-argument): Simplify.
+	(pcomplete--common-quoted-suffix): Remove.
+	(pcomplete-requote-argument-function): New var.
+	(pcomplete--common-suffix): New function.
+	(pcomplete-completions-at-point): Use completion-table-with-quoting
+	and completion-table-subvert.
+
+	* minibuffer.el: Use completion-table-with-quoting for read-file-name.
+	(minibuffer--double-dollars): Preserve properties.
+	(completion--sifn-requote): New function.
+	(completion--file-name-table): Rewrite using it and c-t-with-quoting.
+
+	* minibuffer.el: Add support for completion of quoted/escaped data.
+	(completion-table-with-quoting, completion-table-subvert): New funs.
+	(completion--twq-try, completion--twq-all): New functions.
+	(completion--nth-completion): New function.
+	(completion-try-completion, completion-all-completions): Use it.
+
+2012-04-25  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/python.el (python-pdbtrack-get-source-buffer):
+	Use compilation-message if available to find real filename.
+
+2012-04-25  Chong Yidong  <cyd@gnu.org>
+
+	* vc/diff-mode.el (diff-setup-whitespace): New function.
+	(diff-mode): Use it.
+
+	* vc/diff.el (diff-sentinel):
+	* vc/vc.el (vc-diff-finish): Call diff-setup-whitespace to assign
+	Whitespace mode variables based on diff style (Bug#8612).
+
+2012-04-25  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/python.el (python-send-region): Add suffix .py to the
+	temp file.
+
+	* files.el (auto-mode-alist): Use javascript-mode instead.
+
+2012-04-25  Alex Harsanyi  <AlexHarsanyi@gmail.com>
+
+	Sync with soap-client repository.  Support SOAP simpleType (Bug#10331).
+
+	* soap-client.el (soap-resolve-references-for-sequence-type)
+	(soap-resolve-references-for-array-type): Hack to prevent self
+	references, see Bug#9.
+	(soap-parse-envelope): Report the contents of the 'detail' node
+	when receiving a fault reply.
+	(soap-parse-envelope): Report the contents of the entire 'detail' node.
+
+	* soap-inspect.el (soap-sample-value-for-simple-type)
+	(soap-inspect-simple-type): New function.
+
+	* soap-client.el (soap-simple-type): New struct.
+	(soap-default-xsd-types, soap-default-soapenc-types)
+	(soap-decode-basic-type, soap-encode-basic-type):
+	support unsignedInt and double basic types.
+	(soap-resolve-references-for-simple-type)
+	(soap-parse-simple-type, soap-encode-simple-type): New function.
+	(soap-parse-schema): Parse xsd:simpleType declarations.
+
+	* soap-client.el (soap-default-xsd-types)
+	(soap-default-soapenc-types): Add integer, byte and anyURI types.
+	(soap-parse-complex-type-complex-content): Use `soap-wk2l' to find
+	the local name of "soapenc:Array".
+	(soap-decode-basic-type, soap-encode-basic-type): Support encoding
+	decoding integer, byte and anyURI xsd types.
+
+2012-04-25  Chong Yidong  <cyd@gnu.org>
+
+	* cus-edit.el (custom-buffer-create-internal): Update header text.
+
+2012-04-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb-init-1): Condition Windows-specific
+	settings on 'system-type', not on 'window-system'.  On MS-Windows,
+	set interactive-mode on in GDB.
+
+2012-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el: Simplify last change, and cleanup code.
+	(ruby-syntax-propertize-regexp): Remove.
+	(ruby-syntax-propertize-function): Split regexp into chunks.
+	Match following code directly.
+
+2012-04-24  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el: Handle Cucumber defs (bug#6286).
+	(ruby-syntax-propertize-regexp): New function.
+	(ruby-syntax-propertize-function): Use it to handle regexp not preceded
+	by a special keyword.
+
+	* progmodes/ruby-mode.el: Handle general delimited literals (bug#6286).
+	(ruby-syntax-general-delimiters-goto-beg)
+	(ruby-syntax-propertize-general-delimiters): New functions.
+	(ruby-syntax-propertize-function): Use them to handle GDL.
+	(ruby-font-lock-keywords): Move old handling of GDL...
+	(ruby-font-lock-syntactic-keywords): .. to here.
+	(ruby-calculate-indent): Adjust indentation for GDL.
+
+2012-04-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* notifications.el (top): Remove unneeded declarations.
+	(notifications-specification-version): Change to "1.2".
+	(notifications-interface, notifications-notify-method)
+	(notifications-close-notification-method): Fix docstring.
+	(notifications-get-capabilities-method): New defconst.
+	(notifications-notify): Add :action-items, :resident and
+	:transient hints.  Change "image_data" to "image-data" and
+	"image_path" to "image-path".
+	(notifications-get-capabilities): New defun.
+
+2012-04-24  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/python.el: Move hideshow setup to the end.
+
+2012-04-24  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (handle-select-window): Clear echo area since this is
+	no more done by read_char (Bug#11304).
+
+2012-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ibuffer.el (ibuffer-mode-map): Bind `/ m' to filter-used-mode
+	and `/ M' to filter-derived-mode.
+	* ibuf-ext.el (ibuffer-list-buffer-modes): Simplify; avoid add-to-list.
+	(ibuffer-filter-by-mode, ibuffer-filter-by-used-mode)
+	(ibuffer-mark-by-mode): Use default rather than initial-input.
+	(ibuffer-filter-by-derived-mode): Autoload and require-match.
+
+2012-04-24  Ivan Andrus  <darthandrus@gmail.com>  (tiny change)
+
+	* ibuf-ext.el (ibuffer-list-buffer-modes): Add `include-parents' arg.
+	(ibuffer-filter-by-derived-mode): New filter.
+	* ibuffer.el (ibuffer-mode-map): Bind to `/ w'.
+
+2012-04-23  Andreas Politz  <politza@fh-trier.de>
+
+	* subr.el (accept-change-group): Fix arg usage (Bug#6095).
+
+2012-04-23  Chong Yidong  <cyd@gnu.org>
+
+	* cus-edit.el (customize-apropos, customize-apropos-options):
+	Disable matching of non-option variables (Bug#11176).
+	(customize-option, customize-option-other-window)
+	(customize-changed-options): Doc fix.
+	(customize-apropos-options, customize-apropos-faces)
+	(customize-apropos-groups): Use apropos-read-pattern (Bug#11124).
+
+	* apropos.el (apropos-read-pattern): Make prompt less cryptic.
+	Fix word list splitting (Bug#11132).
+	(apropos-symbol, apropos-keybinding, apropos-label)
+	(apropos-property, apropos-function-button)
+	(apropos-variable-button, apropos-misc-button): New faces.
+	(apropos-symbol-face, apropos-keybinding-face)
+	(apropos-label-face, apropos-property-face, apropos-match-face):
+	Variables removed (Bug#8396).
+	(apropos-library-button, apropos-format-plist, apropos-print)
+	(apropos-print-doc, apropos-describe-plist): Callers changed.
+
+2012-04-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/xesam.el (xesam-mode-map): Use let-bound map in
+	initialization.  (Bug#11292)
+
+2012-04-23  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	Preserve ispell session localwords when switching back to
+	original buffer.
+
+	* ispell.el (ispell-buffer-session-localwords): New buffer-local
+	variable to hold buffer session localwords.
+	(ispell-kill-ispell): add option 'clear to delete session
+	localwords.
+	(ispell-command-loop, ispell-change-dictionary)
+	(ispell-buffer-local-words): Preserve session localwords when
+	needed.
+
+	* flyspell.el (flyspell-process-localwords, flyspell-do-correct):
+	Preserve session localwords when needed.
+
+2012-04-23  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* ispell.el (ispell-insert-word) Remove unneeded function using
+	obsolete `translation-table-for-input'.
+	(ispell-word, ispell-process-line, ispell-complete-word):
+	Use plain `insert' instead of removed `ispell-insert-word'.
+
 2012-04-22  Chong Yidong  <cyd@gnu.org>
 
 	* cus-edit.el (custom-variable-menu)
@@ -14,8 +447,8 @@
 	Move functions from C to Lisp.  Make non-blocking method calls
 	the default.  Implement further D-Bus standard interfaces.
 
-	* net/dbus.el (dbus-message-internal): Declare function.  Remove
-	unneeded function declarations.
+	* net/dbus.el (dbus-message-internal): Declare function.
+	Remove unneeded function declarations.
 	(defvar dbus-message-type-invalid, dbus-message-type-method-call)
 	(dbus-message-type-method-return, dbus-message-type-error)
 	(dbus-message-type-signal): Declare variables.  Remove local
@@ -31,8 +464,8 @@
 	(dbus-register-signal, dbus-register-method): New defuns, moved
 	from dbusbind.c
 	(dbus-call-method-handler, dbus-setenv)
-	(dbus-get-all-managed-objects, dbus-managed-objects-handler): New
-	defuns.
+	(dbus-get-all-managed-objects, dbus-managed-objects-handler):
+	New defuns.
 	(dbus-call-method-non-blocking): Make it an obsolete function.
 	(dbus-unregister-object, dbus-unregister-service)
 	(dbus-handle-event, dbus-register-property)
@@ -157,8 +590,8 @@
 
 2012-04-20  Chong Yidong  <cyd@gnu.org>
 
-	* progmodes/gdb-mi.el (gdb-inferior-io--maybe-delete-pty): New
-	function to call delete-process on the gdb-inferior buffer's pty.
+	* progmodes/gdb-mi.el (gdb-inferior-io--maybe-delete-pty):
+	New function to call delete-process on the gdb-inferior buffer's pty.
 	(gdb-reset): Use it, instead of relying on kill-buffer to kill the
 	pty process (Bug#11273).
 	(gdb-update): New arg to suppress talking to the gdb process.
@@ -189,8 +622,8 @@
 	(c-comment-indent, c-scan-conditionals, c-indent-defun)
 	(c-context-line-break): Bind case-fold-search to nil.
 
-	* progmodes/cc-mode.el (c-font-lock-fontify-region): Bind
-	case-fold-search to nil.
+	* progmodes/cc-mode.el (c-font-lock-fontify-region):
+	Bind case-fold-search to nil.
 
 2012-04-20  Chong Yidong  <cyd@gnu.org>
 
@@ -941,8 +1374,8 @@
 
 2012-03-30  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
-	* ispell.el (ispell-get-extended-character-mode): Disable
-	extended-char-mode for hunspell.  hunspell does not support it
+	* ispell.el (ispell-get-extended-character-mode):
+	Disable extended-char-mode for hunspell.  hunspell does not support it
 	and treats ~word as ordinary words in pipe mode.
 
 2012-03-30  Glenn Morris  <rgm@gnu.org>

@@ -2023,7 +2023,10 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
            (let ((map (make-sparse-keymap)))
              ;; Don't hide the menu-bar and tool-bar entries.
              (define-key map [menu-bar] (lookup-key global-map [menu-bar]))
-             (define-key map [tool-bar] (lookup-key global-map [tool-bar]))
+             (define-key map [tool-bar]
+	       ;; This hack avoids evaluating the :filter (Bug#9922).
+	       (or (cdr (assq 'tool-bar global-map))
+		   (lookup-key global-map [tool-bar])))
              map))
 	  (aref	(catch 'read-key (read-key-sequence-vector prompt nil t)) 0))
       (cancel-timer timer)
@@ -2391,7 +2394,7 @@ to `accept-change-group' or `cancel-change-group'."
 This finishes the change group by accepting its changes as final."
   (dolist (elt handle)
     (with-current-buffer (car elt)
-      (if (eq elt t)
+      (if (eq (cdr elt) t)
 	  (setq buffer-undo-list t)))))
 
 (defun cancel-change-group (handle)

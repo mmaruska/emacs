@@ -29,6 +29,9 @@ possibly-questionable C code.  On a recent GNU system there should be
 no warnings; on older and on non-GNU systems the generated warnings
 may be useful.
 
+---
+** Emacs uses libtinfo in preference to libncurses, if available.
+
 
 * Startup Changes in Emacs 24.2
 
@@ -74,12 +77,35 @@ character when doing minibuffer filename prompts.
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
 
+** New `derived-mode' filter for Ibuffer, bound to `/ M'.
+`/ m' is now bound to filter by used-mode, which used to be bound to `/ M'.
+
+** Apropos
+
+*** The faces used by Apropos are now directly customizable.
+These faces are named `apropos-symbol', `apropos-keybinding', and so on;
+see the `apropos' Custom group for details.
+
+**** The old options whose values specified faces to use were removed
+(i.e. `apropos-symbol-face', `apropos-keybinding-face', etc.).
+
 ** Customize
 
 *** `custom-reset-button-menu' now defaults to t.
 
+*** Non-option variables are never matched in `customize-apropos' and
+`customize-apropos-options' (i.e. the prefix argument does nothing for
+these commands now).
+
 ** erc will look up server/channel names via auth-source and use the
 channel keys found, if any.
+
+** Follow mode
+
+*** The obsolete variable `follow-mode-off-hook' has been removed.
+
+*** Follow mode no longer works by using advice.
+The option `follow-intercept-processes' has been removed.
 
 ** The `server-auth-key' variable can be used to set a permanent
 shared key for Emacs Server.
@@ -121,7 +147,17 @@ details.
 +++
 *** There is a new function `dbus-setenv'.
 
++++
+** notifications.el supports now version 1.2 of the Notifications API.
+The function `notifications-get-capabilities' returns the supported
+server properties.
+
 ** Obsolete packages:
+
+*** assoc.el
+In most cases, assoc+member+push+delq work just as well.
+And in any case it's just a terrible package: ugly semantics, terrible
+inefficiency, and not namespace-clean.
 
 *** mailpost.el
 
@@ -141,8 +177,21 @@ The function `user-variable-p' is now an obsolete alias for
 ** `face-spec-set' no longer sets frame-specific attributes when the
 third argument is a frame (that usage was obsolete since Emacs 22.2).
 
++++
+** The arguments of `dbus-register-signal' are no longer just strings,
+but keywords or keyword-string pairs.  The old argument list will
+still be supported for Emacs 24.x.
+
 
 * Lisp changes in Emacs 24.2
+
+** Completion
+
+*** New function `completion-table-with-quoting' to handle completion
+in the presence of quoting, such as file completion in shell buffers.
+
+*** New function `completion-table-subvert' to use an existing completion
+table, but with a different prefix.
 
 * Changes in Emacs 24.2 on non-free operating systems
 
@@ -794,7 +843,7 @@ by default.
 (Its name is misleading, since it has nothing to do with MIME
 attachments.)  The old name is now an obsolete alias to the new name.
 
-** MH-E has been upgraded to MH-E version 8.3.1.
+** MH-E has been updated to MH-E version 8.3.1.
 See MH-E-NEWS for details.
 
 ** Modula-2 mode provides auto-indentation.
@@ -805,6 +854,9 @@ See MH-E-NEWS for details.
 Completion is now performed via `completion-at-point', bound to C-M-i
 or M-TAB.  If `nxml-bind-meta-tab-to-complete-flag' is non-nil (the
 default), this performs tag completion.
+
+** Org mode has been updated to version 7.8.09.
+See ORG-NEWS for details.
 
 ** Prolog mode has been completely revamped, with lots of additional
 functionality such as more intelligent indentation, electricity,
@@ -1188,6 +1240,8 @@ So do `defcustom' and other forms that call `defvar' as a subroutine.
 
 *** New function `special-variable-p' to check whether a variable is
 declared as dynamically bound.
+
+*** The form ((lambda ...) ...) is deprecated.
 
 ** An Emacs Lisp testing tool is now included.
 Emacs Lisp developers can use this tool to write automated tests for

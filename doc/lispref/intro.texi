@@ -33,8 +33,12 @@ Lisp that have counterparts in many programming languages, and later
 chapters describe features that are peculiar to Emacs Lisp or relate
 specifically to editing.
 
-  This is edition @value{VERSION} of the GNU Emacs Lisp Reference
-Manual, corresponding to Emacs version @value{EMACSVER}.
+  This is
+@iftex
+edition @value{VERSION} of
+@end iftex
+the @cite{GNU Emacs Lisp Reference Manual},
+corresponding to Emacs version @value{EMACSVER}.
 
 @menu
 * Caveats::             Flaws and a request for help.
@@ -146,7 +150,7 @@ printer'' refer to those routines in Lisp that convert textual
 representations of Lisp objects into actual Lisp objects, and vice
 versa.  @xref{Printed Representation}, for more details.  You, the
 person reading this manual, are thought of as ``the programmer'' and are
-addressed as ``you.''  ``The user'' is the person who uses Lisp
+addressed as ``you''.  ``The user'' is the person who uses Lisp
 programs, including those you write.
 
 @cindex typographic conventions
@@ -219,7 +223,7 @@ the examples in this manual, this is indicated with @samp{@result{}}:
 @end example
 
 @noindent
-You can read this as ``@code{(car '(1 2))} evaluates to 1.''
+You can read this as ``@code{(car '(1 2))} evaluates to 1''.
 
   When a form is a macro call, it expands into a new form for Lisp to
 evaluate.  We show the result of the expansion with
