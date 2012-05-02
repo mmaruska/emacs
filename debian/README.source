@@ -1,0 +1,14 @@
+To build emacs-snapshot from Git repository, you need to generate some
+missing files from the debian/ directory. Just call:
+
+$ ./debian/rules debian/control
+$ ./debian/rules debian/copyright
+$ ./debian/rules debian/patches/series
+
+To have the patches generated correctly, the rules file wants you to
+have a "trunk" branch that is the Emacs trunk branch. You can create
+it with git since it's included in the repository:
+
+$ git branch trunk origin/trunk
+
+ -- Julien Danjou <acid@debian.org>, Wed,  2 May 2012 09:33:14 +0200

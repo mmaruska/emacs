@@ -1,6 +1,7 @@
 emacs-snapshot (2:20120502-1) unstable; urgency=low
 
   * New snapshot
+  * Add README.source
 
  -- Julien Danjou <acid@debian.org>  Wed, 02 May 2012 09:28:12 +0200
 
