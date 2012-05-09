@@ -1,3 +1,17 @@
+2012-05-05  Jim Meyering  <meyering@redhat.com>
+
+	* lib-src/pop.c (pop_stat, pop_list, pop_multi_first, pop_last):
+	NUL-terminate the error buffer (Bug#11372).
+
+2012-05-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (min): Undef before redefining it.
+
+2012-05-02  Jim Meyering  <jim@meyering.net>
+
+	* emacsclient.c (send_to_emacs): Avoid invalid strcpy upon partial
+	send (Bug#11374).
+
 2012-04-29  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* make-docfile.c (scan_lisp_file) [DEBUG]: Also skip if and
@@ -7,7 +21,7 @@
 
 	* emacsclient.c (decode_options): Move -t -n corner case handling
 	into server.el (Bug#11102).
-	(main): Send -tty to Emacs under more circumstanced (Bug#8314).
+	(main): Send -tty to Emacs under more circumstances (Bug#8314).
 
 2012-04-18  Paul Eggert  <eggert@cs.ucla.edu>
 

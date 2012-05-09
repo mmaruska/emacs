@@ -1,3 +1,82 @@
+2012-05-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (new_child): Force Windows to reserve only 64KB of
+	stack for each reader_thread, instead of defaulting to 8MB
+	determined by the linker.  This avoids failures in creating
+	subprocesses on Windows 7, see the discussion in this thread:
+	http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00119.html.
+
+2012-05-07  Jérémy Compostella  <jeremy.compostella@gmail.com>
+
+	Fix up display of the *Minibuf-0* buffer in the mini window.
+	* keyboard.c (read_char): Don't clear the echo area if there's no
+	message to clear.
+	* xdisp.c (redisplay_internal): Redisplay the mini window (with the
+	contents of *Minibuf-0*) if there's no message displayed in its stead.
+
+2012-05-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (XD_DEBUG_MESSAGE): Don't print message twice in
+	batch mode.
+
+2012-05-06  Chong Yidong  <cyd@gnu.org>
+
+	* lisp.mk (lisp): Update.
+
+2012-05-05  Jim Meyering  <meyering@redhat.com>
+
+	* w32font.c (fill_in_logfont): NUL-terminate a string (Bug#11372).
+
+2012-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data.c (PUT_ERROR): New macro.
+	(syms_of_data): Use it.  Add new error type `user-error'.
+	* undo.c (user_error): New function.
+	(Fprimitive_undo): Use it.
+	* print.c (print_error_message): Adjust print style for `user-error'.
+	* keyboard.c (user_error): New function.
+	(Fexit_recursive_edit, Fabort_recursive_edit): Use it.
+
+2012-05-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Do not limit current-time-string to years 1000..9999.
+	* editfns.c (TM_YEAR_IN_ASCTIME_RANGE): Remove.
+	(Fcurrent_time_string): Support any year that is supported by the
+	underlying localtime representation.  Don't use asctime, as it
+	has undefined behavior for years outside the range -999..9999.
+
+2012-05-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix race conditions involving setenv, gmtime, localtime, asctime.
+	Without this fix, interrupts could mess up code that uses these
+	nonreentrant functions, since setting TZ invalidates existing
+	tm_zone or tzname values, and since most of these functions return
+	pointers to static storage.
+	* editfns.c (format_time_string, Fdecode_time, Fencode_time)
+	(Fcurrent_time_string, Fcurrent_time_zone, Fset_time_zone_rule):
+	Grow the critical sections to include not just invoking
+	localtime/gmtime, but also accessing these functions' results
+	including their tm_zone values if any, and any related TZ setting.
+	(format_time_string): Last arg is now struct tm *, not struct tm **,
+	so that the struct tm is saved in the critical section.
+	All callers changed.  Simplify allocation of initial buffer, partly
+	motivated by the fact that memory allocation needs to be outside
+	the critical section.
+
+2012-05-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* intervals.c (adjust_intervals_for_insertion): Initialize `newi'
+	with RESET_INTERVAL.
+
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer):
+	Remove duplicated buffer name initialization.
+
+2012-05-02  Jim Meyering  <jim@meyering.net>
+
+	* xterm.c (x_term_init): Use memcpy instead of strncpy (Bug#11373).
+
+	* xfns.c (x_window): Use xstrdup (Bug#11375).
+
 2012-05-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (pos_visible_p): If already at a newline from the
@@ -187,7 +266,7 @@
 	(xd_close_bus): Rename from Fdbus_close_bus.  Not needed on Lisp
 	level.
 	(Fdbus_init_bus): New optional arg PRIVATE.  Cache address.
-	Return number of recounts.
+	Return number of refcounts.
 	(Fdbus_get_unique_name): Make stronger parameter check.
 	(Fdbus_message_internal): New defun.
 	(Fdbus_call_method, Fdbus_call_method_asynchronously)

@@ -1,17 +1,33 @@
+2012-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .dir-locals.el (log-edit-mode): Enable gnu-style checks.
+
+2012-05-08  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: No more doc/lispref/*.el.
+
+2012-05-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Fix quoting bugs.
+
+2012-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (INFO_EXT, INFO_OPTS): New output variables.
+
 2012-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LD_SWITCH_SYSTEM): Don't try to defeat
+	the choices made by FreeBSD and NetBSD.  (Bug#10313)
+
+	* Makefile.in (INFO_FILES): Remove variable.
+	(INFO_NONMISC): New variable.
+	(install-arch-indep, uninstall): Don't use $INFO_FILES.
 
 	* Makefile.in (uninstall): Remove useless-use-of-for; that for
 	some reason caused problems on an old Solaris.
 
 	* Makefile.in (install-arch-indep, uninstall):
 	Ensure that INSTALL-type commands are run from top-level.
-
-	* Makefile.in (INFO_FILES): Add emacs-gnutls; accidentally
-	omitted from 2012-04-12 backport from trunk.
-
-	* info/dir: Make some entries consistent with the source texi files.
-
-	* configure.in (LIBS_TERMCAP): Fix netbsd logic, broken 2012-03-04.
 
 	* info/dir: Make some entries consistent with the source texi files.
 

@@ -865,6 +865,12 @@ with the `--without-makeinfo' option to build without the manuals.] )
 fi
 AC_SUBST(HAVE_MAKEINFO)
 
+dnl Just so that there is only a single place we need to edit.
+INFO_EXT=.info
+INFO_OPTS=--no-split
+AC_SUBST(INFO_EXT)
+AC_SUBST(INFO_OPTS)
+
 dnl Add our options to ac_link now, after it is set up.
 
 if test x$GCC = xyes; then
@@ -951,7 +957,9 @@ case "$opsys" in
    ## Let `ld' find image libs and similar things in /usr/local/lib.
    ## The system compiler, GCC, has apparently been modified to not
    ## look there, contrary to what a stock GCC would do.
-   LD_SWITCH_SYSTEM=-L/usr/local/lib
+### It's not our place to do this.  See bug#10313#17.
+###   LD_SWITCH_SYSTEM=-L/usr/local/lib
+      :
    ;;
 
   gnu-linux)
@@ -960,7 +968,9 @@ case "$opsys" in
    ;;
 
   netbsd)
-   LD_SWITCH_SYSTEM="-Wl,-rpath,/usr/pkg/lib -L/usr/pkg/lib -Wl,-rpath,/usr/local/lib -L/usr/local/lib"
+### It's not our place to do this.  See bug#10313#17.
+###   LD_SWITCH_SYSTEM="-Wl,-rpath,/usr/pkg/lib -L/usr/pkg/lib -Wl,-rpath,/usr/local/lib -L/usr/local/lib"
+      :
    ;;
 
   openbsd)
@@ -2909,7 +2919,7 @@ case "$opsys" in
   ##  option to use it.
   darwin) LIBS_TERMCAP="-lncurses" ;;
 
-  gnu*) [ "x$LIBS_TERMCAP" = x ] && LIBS_TERMCAP="-lncurses" ;;
+  gnu*) test -z "$LIBS_TERMCAP" && LIBS_TERMCAP="-lncurses" ;;
 
   freebsd)
     AC_MSG_CHECKING([whether FreeBSD is new enough to use terminfo])
@@ -2931,7 +2941,7 @@ fail;
     ;;
 
   netbsd)
-    if [ "x$LIBS_TERMCAP" != "x-lterminfo" ]; then
+    if test "x$LIBS_TERMCAP" != "x-lterminfo"; then
       TERMINFO=no
       LIBS_TERMCAP="-ltermcap"
     fi
