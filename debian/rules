@@ -216,9 +216,6 @@ define expand_file_subst_vars
 	    -e "s%@NOMINAL_VERSION@%${nominal_ver}%g" \
 	    -e "s%@X_SUPPORT@%${xsupport}%g" \
 	    -e "s%@BIN_PRIORITY@%${bin_priority}%g" \
-	    -e "s%@INFO_EMACSDIR@%${info_emacsdir}%g" \
-	    -e "s%@INFO_FILES@%${main_dir_info_files}%g" \
-	    -e "s%@INFO_TITLE@%${info_title}%g" \
 	    -e "s%@MENU_TITLE@%${menu_title}%g" \
 	    -e "s%@TARGET@%${target}%g" \
 	    -e "s%@FLAVOUR_DESC@% (${flav_desc})%g" \
