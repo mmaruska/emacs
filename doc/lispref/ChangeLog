@@ -1,3 +1,11 @@
+2012-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (Loading Non-ASCII): Replace the obsolete "unibyte: t"
+	with "coding: raw-text".
+	Concept of multibyte sessions no longer exists.
+
+	* files.texi (File Locks): Mention create-lockfiles option.
+
 2012-05-09  Glenn Morris  <rgm@gnu.org>
 
 	* vol1.texi, vol2.texi: Remove files.

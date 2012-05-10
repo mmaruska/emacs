@@ -1,3 +1,46 @@
+2012-05-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xgselect.c (xg_select): Put maxfds+1 into a var.
+	This is slightly clearer, and pacifies Ubuntu 12.04 gcc.
+
+	* sound.c (DEFAULT_ALSA_SOUND_DEVICE): Define only if HAVE_ALSA.
+
+2012-05-10  Dave Abrahams  <dave@boostpro.com>
+
+	* filelock.c (syms_of_filelock): New boolean create-lockfiles.
+	(lock_file): If create_lockfiles is 0, do nothing.  (Bug#11227)
+
+2012-05-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_registered_buses): New internal Lisp object.
+	Rename all occurences of Vdbus_registered_buses to xd_registered_buses.
+	(syms_of_dbusbind): Remove declaration of Vdbus_registered_buses.
+	Initialize xd_registered_buses.
+
+2012-05-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Untag more efficiently if USE_LSB_TAG.
+	This is based on a proposal by YAMAMOTO Mitsuharu in
+	<http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg01876.html>.
+	For an admittedly artificial (nth 8000 longlist) benchmark on
+	Fedora 15 x86-64, this yields a 25% CPU speedup.  Also, it shrinks
+	Emacs's overall text size by 1%.
+	* lisp.h (XUNTAG): New macro.
+	(XCONS, XVECTOR, XSTRING, XSYMBOL, XFLOAT, XMISC, XPROCESS, XWINDOW)
+	(XTERMINAL, XSUBR, XBUFFER, XCHAR_TABLE, XSUB_CHAR_TABLE, XBOOL_VECTOR)
+	(XSETTYPED_PSEUDOVECTOR, XHASH_TABLE, TYPED_PSEUDOVECTORP): Use it.
+	* eval.c (Fautoload):
+	* font.h (XFONT_SPEC, XFONT_ENTITY, XFONT_OBJECT):
+	* frame.h (XFRAME): Use XUNTAG.
+
+	Port recent dbusbind.c changes to 32-bit --with-wide-int.
+	* dbusbind.c (xd_append_arg, xd_retrieve_arg, Fdbus_message_internal):
+	Remove unportable assumptions about print widths of types like
+	dbus_uint32_t.
+	(xd_get_connection_address, Fdbus_init_bus): Cast Emacs integer to
+	intptr_t when converting between pointer and integer, to avoid GCC
+	warnings about wrong width.
+
 2012-05-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (new_child): Force Windows to reserve only 64KB of
