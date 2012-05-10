@@ -1,6 +1,7 @@
 emacs-snapshot (2:20120510-1) UNRELEASED; urgency=low
 
   * New snapshot
+  * Update README.source
 
  -- Julien Danjou <acid@debian.org>  Thu, 10 May 2012 09:45:19 +0200
 
