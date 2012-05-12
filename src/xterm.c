@@ -6906,18 +6906,16 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end,
        that many pixels tall.  */
     end += VERTICAL_SCROLL_BAR_MIN_HANDLE;
 
-    /* Draw the empty space above the handle.  Note that we can't clear
-       zero-height areas; that means "clear to end of window."  */
-    if ((inside_width > 0) && (start > 0))
-      x_clear_area1 (FRAME_X_DISPLAY (f), w,
-		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
-		    VERTICAL_SCROLL_BAR_TOP_BORDER,
-		    inside_width, start, False);
+    /* mmc: I changed the order:
+     * First draw the colored handle, and then the
+     * top & bottom parts (using the other color). */
 
     /* Change to proper foreground color if one is specified.  */
-    if (f->output_data.x->scroll_bar_foreground_pixel != -1)
-      XSetForeground (FRAME_X_DISPLAY (f), gc,
-		      f->output_data.x->scroll_bar_foreground_pixel);
+    XSetForeground (FRAME_X_DISPLAY (f), gc,
+                    (f->output_data.x->scroll_bar_foreground_pixel != -1)?
+                    f->output_data.x->scroll_bar_foreground_pixel:
+                    WhitePixel(FRAME_X_DISPLAY (f),  DefaultScreen(FRAME_X_DISPLAY (f)))
+      );
 
     /* Draw the handle itself.  */
     XFillRectangle (FRAME_X_DISPLAY (f), w, gc,
@@ -6931,13 +6929,49 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end,
       XSetForeground (FRAME_X_DISPLAY (f), gc,
 		      FRAME_FOREGROUND_PIXEL (f));
 
+    /* Draw the empty space above the handle.  Note that we can't clear
+       zero-height areas; that means "clear to end of window."  */
+    if (0 < start){
+
+      XFillRectangle(FRAME_X_DISPLAY (f), w,
+                     gc,
+                     VERTICAL_SCROLL_BAR_LEFT_BORDER,
+                     VERTICAL_SCROLL_BAR_TOP_BORDER,
+                     inside_width, start);
+    }
+
     /* Draw the empty space below the handle.  Note that we can't
        clear zero-height areas; that means "clear to end of window." */
     if ((inside_width > 0) && (end < inside_height))
-      x_clear_area1 (FRAME_X_DISPLAY (f), w,
+      {
+        XFillRectangle(FRAME_X_DISPLAY (f), w,
+                       gc,
+                       VERTICAL_SCROLL_BAR_LEFT_BORDER,
+                       VERTICAL_SCROLL_BAR_TOP_BORDER + end,
+                       inside_width, inside_height - end);
+      }
+
+    /* The borders of the scrollbar  */
+    XSetForeground (FRAME_X_DISPLAY (f), gc,
+                    FRAME_BACKGROUND_PIXEL(f));
+
+    XFillRectangle (FRAME_X_DISPLAY (f), w, f->output_data.x->reverse_gc,
+		    /* x, y, width, height */
+		    0, 0,
 		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
-		    VERTICAL_SCROLL_BAR_TOP_BORDER + end,
-		    inside_width, inside_height - end, False);
+                    inside_height);
+
+    XFillRectangle (FRAME_X_DISPLAY (f), w, gc,
+		    /* x, y, width, height */
+		    VERTICAL_SCROLL_BAR_LEFT_BORDER + inside_width,
+                    0,
+                    VERTICAL_SCROLL_BAR_LEFT_BORDER + 10, /* I suppose it's symetric */
+                    inside_height);
+
+    /* Restore the foreground color of the GC if we changed it above.  */
+    if (f->output_data.x->scroll_bar_foreground_pixel != -1)
+      XSetForeground (FRAME_X_DISPLAY (f), gc,
+		      FRAME_FOREGROUND_PIXEL(f));
   }
 
   unblock_input ();
