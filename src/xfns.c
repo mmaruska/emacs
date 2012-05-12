@@ -1020,6 +1020,68 @@ xg_set_icon_from_xpm_data (struct frame *f, const char **data)
 }
 #endif /* USE_GTK */
 
+static void
+x_set_window_group(struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
+{
+
+  CHECK_NUMBER (new_value);
+  f->output_data.x->wm_hints.flags |= WindowGroupHint;
+  f->output_data.x->wm_hints.window_group = XINT (new_value);
+  /* FRAME_X_DISPLAY_INFO(f)->client_leader_window */
+
+  block_input ();
+  XSetWMHints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+	       &f->output_data.x->wm_hints);
+  unblock_input ();
+}
+
+
+DEFUN ("set-frame-group", Fset_frame_group_leader, Sset_frame_group_leader,
+       1, 2, 0,
+       doc: /* Tell the X Window Manager that frame FRAME is in the group Group.
+Group is usually a window id of another X window.
+If omitted, FRAME defaults to the currently selected frame.  */)
+     (Lisp_Object frame, Lisp_Object id)
+{
+  struct frame *f;
+  if (NILP (frame))
+    frame = selected_frame;
+
+  CHECK_LIVE_FRAME (frame);
+
+  CHECK_NUMBER (id);
+
+  block_input ();
+  f = XFRAME (frame);
+  if (1) /* (FRAME_X_DISPLAY_INFO(f)->client_leader_window != 0)*/
+    {
+      f->output_data.x->wm_hints.flags |= WindowGroupHint;
+      f->output_data.x->wm_hints.window_group = XINT (id); /* FRAME_X_DISPLAY_INFO(f)->client_leader_window */
+    }
+  XSetWMHints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+	       &f->output_data.x->wm_hints);
+
+  unblock_input ();
+  return Qnil;
+}
+
+
+DEFUN ("frame-group", Fframe_group_leader, Sframe_group_leader,
+       1, 1, 0,
+       doc: /* return the group of the frame FRAME.
+Group is a hint for the Window manager, and it is usually a window ID
+of existing window. */)
+        (Lisp_Object frame)
+{
+  struct frame *f;
+  if (NILP (frame))
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame);
+
+  f = XFRAME (frame);
+  return make_number (f->output_data.x->wm_hints.window_group);
+}
+
 
 /* Functions called only from `gui_set_frame_parameters'
    to set individual parameters.
@@ -7795,6 +7857,7 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_z_group,
   x_set_override_redirect,
   gui_set_no_special_glyphs,
+  x_set_window_group,
 };
 
 void
