@@ -5175,7 +5175,7 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end, int rebuild
 
     /* The borders of the scrollbar  */
     XSetForeground (FRAME_X_DISPLAY (f), gc,
-                    f->output_data.x->background_pixel);
+                    FRAME_BACKGROUND_PIXEL(f));
 
     XFillRectangle (FRAME_X_DISPLAY (f), w, f->output_data.x->reverse_gc,
 		    /* x, y, width, height */
@@ -5193,7 +5193,7 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end, int rebuild
     /* Restore the foreground color of the GC if we changed it above.  */
     if (f->output_data.x->scroll_bar_foreground_pixel != -1)
       XSetForeground (FRAME_X_DISPLAY (f), gc,
-		      f->output_data.x->foreground_pixel);
+		      FRAME_FOREGROUND_PIXEL(f));
 
   }
 
@@ -6901,6 +6901,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
               || event.xconfigure.width != FRAME_PIXEL_WIDTH (f)
               || event.xconfigure.height != FRAME_PIXEL_HEIGHT (f))
             {
+              change_frame_size (f, rows, columns, 0, 1, 0); /* delay! */
 #if 1
         /* mmc: is this enough?
            I think the core is in invalidate_window_matrices ... in dispnew.c */
