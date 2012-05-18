@@ -730,39 +730,50 @@ not the very same deplacement command."
   "Return non-nil if we should check the word before point.
 More precisely, it applies to the word that was before point
 before the current command."
-  (cond
-   ((or (not (numberp flyspell-pre-point))
-	(not (bufferp flyspell-pre-buffer))
-	(not (buffer-live-p flyspell-pre-buffer)))
-    nil)
-   ((and (eq flyspell-pre-pre-point flyspell-pre-point)
-	 (eq flyspell-pre-pre-buffer flyspell-pre-buffer))
-    nil)
-   ((or (and (= flyspell-pre-point (- (point) 1))
-	     (eq (char-syntax (char-after flyspell-pre-point)) ?w))
-	(= flyspell-pre-point (point))
-	(= flyspell-pre-point (+ (point) 1)))
-    nil)
-   ((and (symbolp this-command)
-	 (not executing-kbd-macro)
-	 (or (get this-command 'flyspell-delayed)
-	     (and (get this-command 'flyspell-deplacement)
-		  (eq flyspell-previous-command this-command)))
-	 (or (= (current-column) 0)
-	     (= (current-column) flyspell-pre-column)
-	     ;; If other post-command-hooks change the buffer,
-	     ;; flyspell-pre-point can lie past eob (bug#468).
-	     (null (char-after flyspell-pre-point))
-	     (eq (char-syntax (char-after flyspell-pre-point)) ?w)))
-    nil)
-   ((not (eq (current-buffer) flyspell-pre-buffer))
-    t)
-   ((not (and (numberp flyspell-word-cache-start)
-	      (numberp flyspell-word-cache-end)))
-    t)
-   (t
-    (or (< flyspell-pre-point flyspell-word-cache-start)
-	(> flyspell-pre-point flyspell-word-cache-end)))))
+  (let ((ispell-otherchars (ispell-get-otherchars)))
+    (cond
+     ((or (not (numberp flyspell-pre-point))
+	  (not (bufferp flyspell-pre-buffer))
+	  (not (buffer-live-p flyspell-pre-buffer)))
+      nil)
+     ((and (eq flyspell-pre-pre-point flyspell-pre-point)
+	   (eq flyspell-pre-pre-buffer flyspell-pre-buffer))
+      nil)
+     ((or (and (= flyspell-pre-point (- (point) 1))
+	       (or (eq (char-syntax (char-after flyspell-pre-point)) ?w)
+		   (and (not (string= "" ispell-otherchars))
+			(string-match-p
+			 ispell-otherchars
+			 (buffer-substring-no-properties
+			  flyspell-pre-point (1+ flyspell-pre-point))))))
+	  (= flyspell-pre-point (point))
+	  (= flyspell-pre-point (+ (point) 1)))
+      nil)
+     ((and (symbolp this-command)
+	   (not executing-kbd-macro)
+	   (or (get this-command 'flyspell-delayed)
+	       (and (get this-command 'flyspell-deplacement)
+		    (eq flyspell-previous-command this-command)))
+	   (or (= (current-column) 0)
+	       (= (current-column) flyspell-pre-column)
+	       ;; If other post-command-hooks change the buffer,
+	       ;; flyspell-pre-point can lie past eob (bug#468).
+	       (null (char-after flyspell-pre-point))
+	       (or (eq (char-syntax (char-after flyspell-pre-point)) ?w)
+		   (and (not (string= "" ispell-otherchars))
+			(string-match-p
+			 ispell-otherchars
+			 (buffer-substring-no-properties
+			  flyspell-pre-point (1+ flyspell-pre-point)))))))
+      nil)
+     ((not (eq (current-buffer) flyspell-pre-buffer))
+      t)
+     ((not (and (numberp flyspell-word-cache-start)
+		(numberp flyspell-word-cache-end)))
+      t)
+     (t
+      (or (< flyspell-pre-point flyspell-word-cache-start)
+	  (> flyspell-pre-point flyspell-word-cache-end))))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    The flyspell after-change-hook, store the change position. In    */
@@ -806,30 +817,33 @@ Mostly we check word delimiters."
   "Return t when the word at `point' has to be checked.
 The answer depends of several criteria.
 Mostly we check word delimiters."
-  (cond
-   ((<= (- (point-max) 1) (point-min))
-    ;; the buffer is not filled enough
-    nil)
-   ((and (and (> (current-column) 0)
-	      (not (eq (current-column) flyspell-pre-column)))
-	 (save-excursion
-	   (backward-char 1)
-	   (and (looking-at (flyspell-get-not-casechars))
-		(or flyspell-consider-dash-as-word-delimiter-flag
-		    (not (looking-at "-"))))))
-    ;; yes because we have reached or typed a word delimiter.
-    t)
-   ((symbolp this-command)
+  (let ((ispell-otherchars (ispell-get-otherchars)))
     (cond
-     ((get this-command 'flyspell-deplacement)
-      (not (eq flyspell-previous-command this-command)))
-     ((get this-command 'flyspell-delayed)
-      ;; the current command is not delayed, that
-      ;; is that we must check the word now
-      (and (not unread-command-events)
-	   (sit-for flyspell-delay)))
-     (t t)))
-   (t t)))
+     ((<= (- (point-max) 1) (point-min))
+      ;; the buffer is not filled enough
+      nil)
+     ((and (and (> (current-column) 0)
+		(not (eq (current-column) flyspell-pre-column)))
+	   (save-excursion
+	     (backward-char 1)
+	     (and (looking-at (flyspell-get-not-casechars))
+		  (or (string= "" ispell-otherchars)
+		      (not (looking-at ispell-otherchars)))
+		  (or flyspell-consider-dash-as-word-delimiter-flag
+		      (not (looking-at "-"))))))
+      ;; yes because we have reached or typed a word delimiter.
+      t)
+     ((symbolp this-command)
+      (cond
+       ((get this-command 'flyspell-deplacement)
+	(not (eq flyspell-previous-command this-command)))
+       ((get this-command 'flyspell-delayed)
+	;; the current command is not delayed, that
+	;; is that we must check the word now
+	(and (not unread-command-events)
+	     (sit-for flyspell-delay)))
+       (t t)))
+     (t t))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-debug-signal-no-check ...                               */
@@ -859,7 +873,8 @@ Mostly we check word delimiters."
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-debug-signal-word-checked ()
   (setq debug-on-error t)
-  (let ((oldbuf (current-buffer))
+  (let ((ispell-otherchars (ispell-get-otherchars))
+	(oldbuf (current-buffer))
         (point  (point)))
     (with-current-buffer (get-buffer-create "*flyspell-debug*")
       (insert "WORD:\n")
@@ -880,6 +895,8 @@ Mostly we check word delimiters."
 				     (save-excursion
 				       (backward-char 1)
 				       (and (and (looking-at (flyspell-get-not-casechars)) 1)
+					    (or (string= "" ispell-otherchars)
+						(not (looking-at ispell-otherchars)))
 					    (and (or flyspell-consider-dash-as-word-delimiter-flag
 						     (not (looking-at "\\-"))) 2))))))
 			  c))))
@@ -895,6 +912,8 @@ Mostly we check word delimiters."
 				       (save-excursion
 					 (backward-char 1)
 					 (and (looking-at (flyspell-get-not-casechars))
+					      (or (string= "" ispell-otherchars)
+						  (not (looking-at ispell-otherchars)))
 					      (or flyspell-consider-dash-as-word-delimiter-flag
 						  (not (looking-at "\\-"))))))))
 			    c))
