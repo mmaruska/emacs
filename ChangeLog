@@ -1,4 +1,63 @@
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LEIM_INSTALLDIR):
+	Rename to leimdir, treat like lispdir.
+
+2012-05-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make merging from gnulib a script, not a makefile action.
+	Putting it in a makefile has some problems with reflection, as
+	merging from gnulib updates 'configure', which can update the makefile.
+	Putting it in a standalone script breaks this loop.
+	* Makefile.in (gnulib_srcdir, $(gnulib_srcdir), DOS_gnulib_comp.m4)
+	(GNULIB_MODULES, GNULIB_TOOL_FLAGS, sync-from-gnulib):
+	Remove, moving the actions to the script admin/merge-gnulib.
+
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep, install-doc, install-info)
+	(uninstall): Scrap superfluous subshells.
+
+2012-05-19  Ulrich Mueller  <ulm@gentoo.org>
+
+	* Makefile.in (install-etc): Respect DESTDIR.  (Bug#11518)
+
+2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in (AC_CHECK_FUNCS): Remove XSetWMProtocols,
+	getdomainname, mblen (twice), mbrlen (twice), mbsinit, ualarm,
+	getsockopt, setsockopt, mremap, mempcpy.
+
+	* configure.in (machine): Do not set to 'vax', since src/m/vax.h
+	is being removed.
+	(AC_CHECK_FUNCS): Remove ftime.
+
+2012-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep): Remove unneeded subshell.
+
+	* Makefile.in (install-arch-indep): Remove unneeded chmod.
+	Set permissions of lisp/subdirs.el.
+
+	* Makefile.in (SUBDIR): Add leim.  Update users.
+
+	* Makefile.in (lib, lib-src, lisp): Check cd return value.
+
+	* Makefile.in (leim): No need to set PARALLEL.
+
 2012-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep, install-info, install-man):
+	Simplify some one-sided ifs.
+
+	* Makefile.in: Install only the relevant DOC file.
+	(install-arch-indep): Delete etc/DOC*.
+	(install-doc): No more need to delete etc/DOC.
+
+	* Makefile.in (install-arch-indep): Split into several rules.
+	(install-doc, innstall-info, install-man): New rules.
+
+	* configure.in (mandir): May as well include it in the NS app bundle.
 
 	* configure.in (INSTALL_ARCH_INDEP_EXTRA): New output variable.
 	* Makefile.in (INSTALL_ARCH_INDEP_EXTRA): New, set by configure.
