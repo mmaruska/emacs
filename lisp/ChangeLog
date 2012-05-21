@@ -1,3 +1,54 @@
+2012-05-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hi-lock.el (hi-lock-face-defaults): Move obsolete before definition.
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Simplify Maven regexp, and make sure the file can't start with a space
+	(bug#11517).
+
+2012-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (setwins, setwins_almost, setwins_for_subdirs):
+	Scrap superfluous subshells.
+
+2012-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-root-dir): New var.
+	(byte-compile-warning-prefix, batch-byte-compile-file): Use it.
+
+2012-05-19  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-ensure-consistent-units): New variable.
+
+	* calc/calc-units.el (math-consistent-units-p)
+	(math-check-unit-consistency): New functions.
+	(calc-quick-units, calc-convert-units):
+	Use `math-check-unit-consistency' when `calc-ensure-consistent-units'
+	is non-nil.
+	(calc-extract-units): Fix typo.
+
+2012-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-bzr.el (vc-bzr-state-heuristic): Save match-data around sha1.
+
+	* textmodes/flyspell.el: Commenting style, plus code simplifications.
+	(flyspell-default-deplacement-commands): Don't spell check after
+	repeated window/frame switches (e.g. triggered by mouse-movement).
+	(flyspell-delay-commands, flyspell-deplacement-commands): Use mapc.
+	(flyspell-debug-signal-word-checked): Simplify and fit in 80 cols.
+	(flyspell-casechars-cache, flyspell-ispell-casechars-cache)
+	(flyspell-not-casechars-cache, flyspell-ispell-not-casechars-cache):
+	Remove unused vars.
+	(flyspell-get-casechars, flyspell-get-not-casechars):
+	Simplify; Don't bother removing a ] just to add it back.
+	* textmodes/ispell.el (ispell-program-name): Use executable-find.
+
+2012-05-18  Rüdiger Sonderfeld <ruediger@c-plusplus.de>
+
+	* calc/calc-lang.el (math-C-parse-bess, math-C-parse-fma):
+	New functions.
+	(math-function-table):  Add support for more C functions.
+
 2012-05-18  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
 	* flyspell.el (flyspell-check-pre-word-p, flyspell-check-word-p)

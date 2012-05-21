@@ -1,3 +1,15 @@
+2012-05-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make merging from gnulib a script, not a makefile action.
+	* merge-gnulib: New script, with actions moved here from
+	../Makefile.in.
+
+2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* CPP-DEFINES (HAVE_GETDOMAINNAME): Remove.
+
+	* CPP-DEFINES (HAVE_FTIME): Remove.
+
 2012-05-02  Glenn Morris  <rgm@gnu.org>
 
 	* bzrmerge.el (bzrmerge-skip-regexp): Add "Auto-commit".
