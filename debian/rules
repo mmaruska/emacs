@@ -298,6 +298,7 @@ endef
 
 emacs_inst = (${MAKE} install					\
 		INSTALL_STRIP="-s"				\
+		INSTALL_ARCH_INDEP_EXTRA=			\
 		prefix=${1}/usr					\
 		sharedstatedir=${1}/var/lib			\
 		localstatedir=${1}/var				\
