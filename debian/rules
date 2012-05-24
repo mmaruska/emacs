@@ -635,12 +635,6 @@ install: build $(DEBPKGFILES)
 
 	##################################################
 	# Final emacs-common clean ups
-
-	# We install the DOC file in emacs-common.  It used to be in
-	# the binary packages but it turns out that it's identical
-	# for all packages on all archs, and prevents installation
-	# of concurrent subflavors.  (But let's just keep one.)
-	rm -f $(EMACS_COMMON)/usr/share/emacs/${runtime_ver}/etc/DOC-${runtime_ver}.2
 	find $(EMACS_COMMON) -name "*.el.gz" -exec rm -f {} \;
 
 binary-indep: build install
