@@ -552,6 +552,9 @@ install: build $(DEBPKGFILES)
 	# Remove extra license files
 	rm -f $(EMACS_COMMON)/usr/share/emacs/${runtime_ver}/{etc,lisp}/COPYING
 
+	# Install doc manually
+	$(INSTALL) etc/DOC $(EMACS_COMMON)/usr/share/emacs/${runtime_ver}/etc/DOC-${runtime_ver}.1
+
 	##################################################
 	# emacs-bin-common (preparation)
 
