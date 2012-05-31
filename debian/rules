@@ -308,6 +308,7 @@ emacs_inst = (${MAKE} install					\
 		locallisppath=${local_lpath_install})
 
 define emacs_build
+	$(MAKE) clean
 	# Build emacs
 	CFLAGS="${CFLAGS}" ./configure ${1}
 	${build_cmd}
