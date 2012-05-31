@@ -738,13 +738,16 @@ x_after_update_window_line (struct glyph_row *desired_row)
     {
       int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
 
+#if 0      /* mmc: test! */
       BLOCK_INPUT;
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    0, y, width, height, False);
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+      /* mmc: converted from x_clear_area */
+      x_fill_frame_area_bg(f,
+		    0, y, width, height);
+      x_fill_frame_area_bg(f,
 		    FRAME_PIXEL_WIDTH (f) - width,
-		    y, width, height, False);
+		    y, width, height);
       UNBLOCK_INPUT;
+#endif
     }
 }
 
@@ -2955,6 +2958,20 @@ x_clear_area (Display *dpy, Window window, int x, int y, int width, int height, 
   XClearArea (dpy, window, x, y, width, height, exposures);
 }
 
+/* mmc:*/
+void
+x_fill_frame_area_bg (struct frame *f, int x, int y, int width, int height)
+{
+  xassert (width > 0 && height > 0);
+  if (f && (f->output_data.x) && f->output_data.x->reverse_gc)
+    XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                    f->output_data.x->reverse_gc, x, y, width, height);
+  else {
+    fprintf(stderr, "%s: no frame given, or the frame does "
+            "not have reverse_gc -> XClearArea cannot be emulated\n",
+            __FUNCTION__);
+  }
+}
 
 /* Clear an entire frame.  */
 
@@ -2971,7 +2988,10 @@ x_clear_frame (struct frame *f)
      follow an explicit cursor_to.  */
   BLOCK_INPUT;
 
-  XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+  /* The following calls have been commented out because they do not
+     seem to accomplish anything, apart from causing flickering during
+     window resize.  */
+  /* XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f)); */
 
   /* We have to clear the scroll bars.  If we have changed colors or
      something like that, then they should be notified.  */
@@ -3499,7 +3519,8 @@ x_detect_focus_change (struct x_display_info *dpyinfo, XEvent *event, struct inp
           = focus_frame ? focus_frame->output_data.x->focus_state : 0;
 
         if (event->xcrossing.detail != NotifyInferior
-            && event->xcrossing.focus
+            && event->xcrossing.focus /* The window is the focused one! */
+            && focus_frame
             && ! (focus_state & FOCUS_EXPLICIT))
           x_focus_changed ((event->type == EnterNotify ? FocusIn : FocusOut),
 			   FOCUS_IMPLICIT,
@@ -3509,10 +3530,23 @@ x_detect_focus_change (struct x_display_info *dpyinfo, XEvent *event, struct inp
 
     case FocusIn:
     case FocusOut:
-      x_focus_changed (event->type,
-		       (event->xfocus.detail == NotifyPointer ?
-			FOCUS_IMPLICIT : FOCUS_EXPLICIT),
-		       dpyinfo, frame, bufp);
+      /* NotifyPointer means the mouse is over an emacs X window
+       * while the focus is changed. That
+       * does NOT indicate we intended to Focus to the emacs frame!
+       * Example: Mouse is (incidentally) over the Ediff control panel,
+       * while we change "workspace"
+       */
+      if (event->xfocus.detail != NotifyPointer)
+        x_focus_changed (event->type,
+                         (event->xfocus.detail == NotifyPointer ?
+                          FOCUS_IMPLICIT : FOCUS_EXPLICIT),
+                         dpyinfo, frame, bufp);
+      else {
+#ifdef DEBUG_EVENTS
+        fprintf(stderr, "%s: NotifyPointer -- skipping x_focus_changed !\n",
+                __FUNCTION__);
+#endif
+      }
       break;
 
     case ClientMessage:
@@ -4951,21 +4985,22 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
     a.background_pixel = f->output_data.x->scroll_bar_background_pixel;
     if (a.background_pixel == -1)
       a.background_pixel = FRAME_BACKGROUND_PIXEL (f);
+    a.background_pixmap = None;
 
     a.event_mask = (ButtonPressMask | ButtonReleaseMask
 		    | ButtonMotionMask | PointerMotionHintMask
 		    | ExposureMask);
     a.cursor = FRAME_X_DISPLAY_INFO (f)->vertical_scroll_bar_cursor;
 
-    mask = (CWBackPixel | CWEventMask | CWCursor);
+    mask = (CWBackPixmap | CWEventMask | CWCursor);
 
     /* Clear the area of W that will serve as a scroll bar.  This is
        for the case that a window has been split horizontally.  In
        this case, no clear_frame is generated to reduce flickering.  */
     if (width > 0 && height > 0)
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    left, top, width,
-		    window_box_height (w), False);
+      x_fill_frame_area_bg(f,
+                           left, top, width,
+                           window_box_height (w));
 
     window = XCreateWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			    /* Position and size of scroll bar.  */
@@ -5096,20 +5131,15 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end, int rebuild
        that many pixels tall.  */
     end += VERTICAL_SCROLL_BAR_MIN_HANDLE;
 
-    /* Draw the empty space above the handle.  Note that we can't clear
-       zero-height areas; that means "clear to end of window."  */
-    if (0 < start)
-      x_clear_area (FRAME_X_DISPLAY (f), w,
-		    /* x, y, width, height, and exposures.  */
-		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
-		    VERTICAL_SCROLL_BAR_TOP_BORDER,
-		    inside_width, start,
-		    False);
+    /* mmc: I changed the order: First i draw the colored handle, and then the
+     *  differently (but equally) colored top & bottom parts. */
 
     /* Change to proper foreground color if one is specified.  */
-    if (f->output_data.x->scroll_bar_foreground_pixel != -1)
-      XSetForeground (FRAME_X_DISPLAY (f), gc,
-		      f->output_data.x->scroll_bar_foreground_pixel);
+    XSetForeground (FRAME_X_DISPLAY (f), gc,
+                    (f->output_data.x->scroll_bar_foreground_pixel != -1)?
+                    f->output_data.x->scroll_bar_foreground_pixel:
+                    WhitePixel(FRAME_X_DISPLAY (f),  DefaultScreen(FRAME_X_DISPLAY (f)))
+      );
 
     /* Draw the handle itself.  */
     XFillRectangle (FRAME_X_DISPLAY (f), w, gc,
@@ -5123,15 +5153,48 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end, int rebuild
       XSetForeground (FRAME_X_DISPLAY (f), gc,
 		      FRAME_FOREGROUND_PIXEL (f));
 
+    /* Draw the empty space above the handle.  Note that we can't clear
+       zero-height areas; that means "clear to end of window."  */
+    if (0 < start){
+
+      XFillRectangle(FRAME_X_DISPLAY (f), w,
+                     gc,
+                     VERTICAL_SCROLL_BAR_LEFT_BORDER,
+                     VERTICAL_SCROLL_BAR_TOP_BORDER,
+                     inside_width, start);
+    }
+
     /* Draw the empty space below the handle.  Note that we can't
        clear zero-height areas; that means "clear to end of window." */
-    if (end < inside_height)
-      x_clear_area (FRAME_X_DISPLAY (f), w,
-		    /* x, y, width, height, and exposures.  */
+    if (end < inside_height) {
+      XFillRectangle(FRAME_X_DISPLAY (f), w,
+                     gc,
+                     VERTICAL_SCROLL_BAR_LEFT_BORDER,
+                     VERTICAL_SCROLL_BAR_TOP_BORDER + end,
+                     inside_width, inside_height - end);
+    }
+
+    /* The borders of the scrollbar  */
+    XSetForeground (FRAME_X_DISPLAY (f), gc,
+                    FRAME_BACKGROUND_PIXEL(f));
+
+    XFillRectangle (FRAME_X_DISPLAY (f), w, f->output_data.x->reverse_gc,
+		    /* x, y, width, height */
+		    0, 0,
 		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
-		    VERTICAL_SCROLL_BAR_TOP_BORDER + end,
-		    inside_width, inside_height - end,
-		    False);
+                    inside_height);
+
+    XFillRectangle (FRAME_X_DISPLAY (f), w, gc,
+		    /* x, y, width, height */
+		    VERTICAL_SCROLL_BAR_LEFT_BORDER + inside_width,
+                    0,
+                    VERTICAL_SCROLL_BAR_LEFT_BORDER + 10, /* I suppose it's symetric */
+                    inside_height);
+
+    /* Restore the foreground color of the GC if we changed it above.  */
+    if (f->output_data.x->scroll_bar_foreground_pixel != -1)
+      XSetForeground (FRAME_X_DISPLAY (f), gc,
+		      FRAME_FOREGROUND_PIXEL(f));
 
   }
 
@@ -6292,6 +6355,15 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
              (x_dispatch_event), for example when a dialog is up.  */
           if (! f->async_iconified)
             SET_FRAME_GARBAGED (f);
+          else {
+            /* mmc: see above: if emacs mapped the frame/window,
+               it was VISIBLE_P, so if WM unmaps it, we mark it as
+               async_iconified. This simple fact means the frame *is*
+               not saved!.
+            */
+             SET_FRAME_GARBAGED (f);
+          }
+
 
           /* Check if fullscreen was specified before we where mapped the
              first time, i.e. from the command line. */
@@ -6830,8 +6902,12 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
               || event.xconfigure.width != FRAME_PIXEL_WIDTH (f)
               || event.xconfigure.height != FRAME_PIXEL_HEIGHT (f))
             {
-              change_frame_size (f, rows, columns, 0, 1, 0);
+              change_frame_size (f, rows, columns, 0, 1, 0); /* delay! */
+#if 1
+        /* mmc: is this enough?
+           I think the core is in invalidate_window_matrices ... in dispnew.c */
               SET_FRAME_GARBAGED (f);
+#endif
               cancel_mouse_face (f);
             }
 
@@ -7422,8 +7498,12 @@ x_define_frame_cursor (struct frame *f, Cursor cursor)
 static void
 x_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 {
+#if 1				/* mmc: */
+  x_fill_frame_area_bg(f,x, y, width, height);
+#else
   x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		x, y, width, height, False);
+#endif
 #ifdef USE_GTK
   /* Must queue a redraw, because scroll bars might have been cleared.  */
   if (FRAME_GTK_WIDGET (f))
@@ -10287,6 +10367,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       { "WM_CONFIGURE_DENIED", &dpyinfo->Xatom_wm_configure_denied },
       { "WM_MOVED", &dpyinfo->Xatom_wm_window_moved },
       { "WM_CLIENT_LEADER", &dpyinfo->Xatom_wm_client_leader },
+      { "WM_CLIENT_MACHINE", &dpyinfo->Xatom_wm_client_machine },
       { "Editres", &dpyinfo->Xatom_editres },
       { "CLIPBOARD", &dpyinfo->Xatom_CLIPBOARD },
       { "TIMESTAMP", &dpyinfo->Xatom_TIMESTAMP },
