@@ -1,6 +1,7 @@
 emacs-snapshot (2:20120531-1) unstable; urgency=low
 
   * New snapshot
+  * Switch part of rules to dh7
 
  -- Julien Danjou <acid@debian.org>  Thu, 31 May 2012 09:58:53 +0200
 
