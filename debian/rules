@@ -637,7 +637,7 @@ override_dh_install: build $(DEBPKGFILES)
 	find $(EMACS_COMMON) -name "*.el.gz" -exec rm -f {} \;
 
 override_dh_installemacsen:
-	dh_installemacsen --priority=00
+	dh_installemacsen --flavor=emacs-snapshot --priority=00
 
 override_dh_strip:
 	dh_strip --dbg-package=emacs-snapshot-dbg
