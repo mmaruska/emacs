@@ -29,6 +29,9 @@ possibly-questionable C code.  On a recent GNU system there should be
 no warnings; on older and on non-GNU systems the generated warnings
 may be useful.
 
+** The configure option '--disable-maintainer-mode' has been removed,
+as it was confusingly-named and rarely useful.
+
 ---
 ** Emacs uses libtinfo in preference to libncurses, if available.
 
@@ -68,7 +71,9 @@ ImageMagick to view images.  You must call imagemagick-register-types
 afterwards if you do not use customize to change this.
 
 *** The new variable `imagemagick-types-enable' also affects which
-ImageMagick types are treated as images.
+ImageMagick types are treated as images.  The function
+`imagemagick-filter-types' returns the list of types that will be
+treated as images.
 
 ** String values for `initial-buffer-choice' also apply to emacsclient
 frames, if emacsclient is only told to open a new frame without
