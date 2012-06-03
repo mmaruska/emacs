@@ -1,28 +1,145 @@
+2012-06-03  Chong Yidong  <cyd@gnu.org>
+
+	* bindings.el: Remove explicit help text from format-mode-line.
+	It is now supplied by mode-line-default-help-echo.
+	(mode-line-front-space, mode-line-end-spaces)
+	(mode-line-misc-info): New variables.
+	(mode-line-modes, mode-line-position): Move the default value to
+	the variable definition.
+	(mode-line-default-help-echo): New defcustom.
+
+2012-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (execute-extended-command): Set real-this-command
+	(bug#11506).
+
+2012-06-02  Chong Yidong  <cyd@gnu.org>
+
+	Remove incorrect uses of "modeline" in comments, docstrings, and
+	function/variable names (Bug#10329).
+
+	* cus-edit.el (mode-line):
+	* dframe.el (dframe-mouse-hscroll):
+	* emacs-lisp/re-builder.el:
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	* frame.el (set-frame-name):
+	* help.el (lookup-minor-mode-from-indicator):
+	* net/rcirc.el (rcirc-activity-string, rcirc-short-buffer-name):
+	* progmodes/cc-cmds.el (c-toggle-auto-newline)
+	(c-toggle-hungry-state):
+	* progmodes/antlr-mode.el (antlr-language-alist):
+	* progmodes/idlw-shell.el (idlwave-shell-electric-stop-line-face):
+	* progmodes/vhdl-mode.el (vhdl-mode):
+	* progmodes/which-func.el (which-func, which-func-cleanup-function):
+	* term/ns-win.el (ns-face-at-pos):
+	* term/sup-mouse.el (sup-mouse-report):
+	* textmodes/flyspell.el (flyspell-mode-line-string):
+	* textmodes/ispell.el (ispell-highlight-face):
+	* textmodes/reftex-global.el:
+	* vc/vc-arch.el (vc-arch-mode-line-string):
+	* vc/vc-cvs.el (vc-cvs-mode-line-string):
+	* vc/vc-git.el (vc-git-mode-line-string):
+	* vc/vc-hooks.el (vc-display-status)
+	(vc-default-mode-line-string):
+	* vc/vc-mtn.el (vc-mtn-mode-line-string): Doc fixes.
+
+	* ansi-color.el (ansi-color-faces-vector): Change default faces.
+
+	* dired.el (dired-sort-set-mode-line): Rename from
+	dired-sort-set-modeline.  All callers changed.
+
+	* eshell/esh-mode.el (eshell-status-in-mode-line): Rename from
+	eshell-status-in-modeline.
+
+	* foldout.el (foldout-mode-line-string): Rename from
+	foldout-modeline-string.  All callers changed.
+	(foldout-update-mode-line): Rename from foldout-update-modeline.
+
+	* subr.el (redraw-modeline): Make into obsolete alias.
+
+	* calendar/timeclock.el (timeclock-mode-line-display): Rename from
+	timeclock-modeline-display.  Make old name an alias.
+	(timeclock-update-mode-line): Likewise.  All callers changed.
+	(timeclock-mode-line-display): No need to check before using
+	add-hook.
+	(timeclock-relative, timeclock-day-over-hook)
+	(timeclock-use-elapsed, timeclock-mode-string)
+	(timeclock-mode-line-display): Doc fix, "modeline" -> "mode line".
+
+	* emulation/crisp.el (crisp-mode-mode-line-string): Rename from
+	crisp-mode-modeline-string.
+
+	* play/solitaire.el (solitaire-build-mode-line): Rename from
+	solitaire-build-modeline.  All callers changed.
+
+	* play/zone.el (zone-hiding-mode-line): Rename from
+	zone-hiding-modeline.  All callers changed.
+	(zone): Remove unusued `modeline-hidden-level' property.
+
+	* progmodes/xscheme.el (xscheme-mode-line-initialize): Rename from
+	xscheme-modeline-initialize.  All callers changed.
+
+	* strokes.el (strokes-lighter): Rename from
+	strokes-modeline-string.
+
+	* textmodes/sgml-mode.el (html-face-tag-alist)
+	(html-tag-face-alist): Use mode-line face instead of obsolete
+	alias modeline.
+
+2012-06-02  Stefan Merten  <smerten@oekonux.de>
+
+	* textmodes/rst.el: Always require `cl'.
+	(rst-mode-map): Fix meaning of C-M-a / C-M-e.
+
+2012-06-02  Chong Yidong  <cyd@gnu.org>
+
+	* image.el (imagemagick-enabled-types): Rename from
+	imagemagick-types-enable.  Add many more types.
+	(imagemagick-types-inhibit): Change default to nil.
+	(imagemagick-filter-types): Caller changed.
+
+2012-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el: Use backquotes.
+	(cl-transform-function-property): Use eval-and-compile rather than
+	abusing `require'.
+	(defstruct): Use declare-function instead of with-no-warnings.
+
+	* emacs-lisp/bytecomp.el: Fix last change (bug#11594).
+	(byte-compile-output-docform): Re-add the print-circle bindings.
+	(byte-compile-fix-header): Use #$ just because it's shorter.
+	(byte-compile-output-file-form): Remove defun/defmacro.
+
+2012-06-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* simple.el (choose-completion): Remove now obsolete binding for
+	owindow.
+
+2012-06-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-check-for-regexp): Search from buffer end,
+	in order to avoid "Stack overflow in regexp matcher".
+
 2012-05-31  Glenn Morris  <rgm@gnu.org>
 
 	* image.el: For clarity, call imagemagick-register-types at
 	top-level, rather than relying on a custom :initialize.
 	(imagemagick-types-enable): New option.  (Bug#11557)
-	(imagemagick-register-types): Respect imagemagick-types-inhibit.
+	(imagemagick-filter-types): New function.  (Bug#7406)
+	(imagemagick-register-types): Use imagemagick-filter-types.
 	If disabling support, remove elements altogether rather
 	than using an impossible regexp.
 	(imagemagick-types-inhibit): Give it the default init function.
 
 2012-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* emacs-lisp/bytecomp.el (byte-compile-fix-header): Handle
-	arbitrary file name lengths (Bug#11585).
+	* emacs-lisp/bytecomp.el (byte-compile-fix-header):
+	Handle arbitrary file name lengths (Bug#11585).
 
 2012-05-31  Martin Rudalics  <rudalics@gmx.at>
 
 	* desktop.el (desktop-read): Clear previous and next buffers for
 	all windows and bury *Messages* buffer (bug#11556).
-
-2012-05-31  Eli Zaretskii  <eliz@gnu.org>
-
-	* mail/sendmail.el (mail-yank-region): Recognize
-	rmail-yank-current-message in addition to insert-buffer.  Fixes
-	mail-mode's "C-c C-r" that otherwise does nothing when invoked in
 
 2012-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 

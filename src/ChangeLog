@@ -1,3 +1,53 @@
+2012-06-03  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (calc_pixel_width_or_height): Use Fbuffer_local_value.
+	(note_mode_line_or_margin_highlight): If there is no help echo,
+	use mode-line-default-help-echo.  Handle the case where the mouse
+	position is past the end of the mode line string.
+
+	* buffer.c (buffer_local_value_1): New function, split from
+	Fbuffer_local_value; can return Qunbound.
+	(Fbuffer_local_value): Use it.
+	(Vmode_line_format): Docstring tweaks.
+
+2012-06-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c (system_process_attributes): Improve comment.
+
+2012-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c: Export real-this-command to Elisp.
+	(syms_of_keyboard): Rename real_this_command to Vreal_this_command
+	and DEFVAR it.  Update all users.
+
+2012-06-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* minibuf.c (Fassoc_string): Remove duplicate declaration.
+
+	* sysdep.c (system_process_attributes) [SOLARIS2 && HAVE_PROCFS]:
+	Convert pctcpu and pctmem to Lisp float properly.
+	Let the compiler fold better, as 100.0/0x8000 is exact.
+
+2012-06-02  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* alloc.c (CONS_BLOCK_SIZE): Account for padding at the end of
+	cons_block.
+
+2012-06-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xfns.c (x_set_tool_bar_lines) [USE_GTK]: Adjust to bitfield change.
+
+2012-06-01  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	For a 'struct window', replace some Lisp_Object fields to
+	bitfields where appropriate, remove unused fields.
+	* window.h (struct window): Remove unused 'last_mark_x' and
+	'last_mark_y' fields.  Rename 'mini_p' field to 'mini',
+	change it's type from Lisp_Object to bitfield.
+	Change type of 'force_start', 'optional_new_start',
+	'last_had_star', 'update_mode_line' and 'start_at_line_beg'
+	fields from Lisp_Object to bitfield. Adjust users accordingly.
+
 2012-05-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Pacify gcc -Wdouble-precision when using Xaw.
