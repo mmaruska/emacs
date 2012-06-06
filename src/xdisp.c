@@ -1,6 +1,6 @@
 /* Display generation from window structure and buffer text.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2012  Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-1995, 1997-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21012,8 +21012,7 @@ decode_mode_spec_coding (Lisp_Object coding_system, register char *buf, int eol_
 
   if (!VECTORP (val))		/* Not yet decided.  */
     {
-      if (multibyte)
-	*buf++ = '-';
+      *buf++ = multibyte ? '-' : ' ';
       if (eol_flag)
 	eoltype = eol_mnemonic_undecided;
       /* Don't mention EOL conversion if it isn't decided.  */
@@ -21026,8 +21025,9 @@ decode_mode_spec_coding (Lisp_Object coding_system, register char *buf, int eol_
       attrs = AREF (val, 0);
       eolvalue = AREF (val, 2);
 
-      if (multibyte)
-	*buf++ = XFASTINT (CODING_ATTR_MNEMONIC (attrs));
+      *buf++ = multibyte
+	? XFASTINT (CODING_ATTR_MNEMONIC (attrs))
+	: ' ';
 
       if (eol_flag)
 	{
@@ -26967,12 +26967,12 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
   int dx, dy, width, height;
   ptrdiff_t charpos;
   Lisp_Object string, object = Qnil;
-  Lisp_Object pos, help;
+  Lisp_Object pos IF_LINT (= Qnil), help;
 
   Lisp_Object mouse_face;
   int original_x_pixel = x;
   struct glyph * glyph = NULL, * row_start_glyph = NULL;
-  struct glyph_row *row;
+  struct glyph_row *row IF_LINT (= 0);
 
   if (area == ON_MODE_LINE || area == ON_HEADER_LINE)
     {
@@ -27066,7 +27066,7 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 	  if (STRINGP (string))
 	    help = Fget_text_property (pos, Qhelp_echo, string);
 
-	  if (STRINGP (help))
+	  if (!NILP (help))
 	    {
 	      help_echo_string = help;
 	      XSETWINDOW (help_echo_window, w);
@@ -28745,7 +28745,9 @@ It can be one of
  both             - show both, text below image
  both-horiz       - show text to the right of the image
  text-image-horiz - show text to the left of the image
- any other        - use system default or image if no system default.  */);
+ any other        - use system default or image if no system default.
+
+This variable only affects the GTK+ toolkit version of Emacs.  */);
   Vtool_bar_style = Qnil;
 
   DEFVAR_INT ("tool-bar-max-label-size", tool_bar_max_label_size,
