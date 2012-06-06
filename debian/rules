@@ -435,6 +435,7 @@ override_dh_auto_install:
 		mandir=${EMACS_COMMON}/usr/share/man \
 		locallisppath=${local_lpath_install}
 
+override_dh_install-indep:
 	##################################################
 	# emacs-el (preparation)
 
@@ -446,9 +447,9 @@ override_dh_auto_install:
 	##################################################
 	# Final emacs-common clean ups
 	find $(EMACS_COMMON) -name "*.el.gz" -exec rm -f {} \;
-
 	rm -f $(EMACS_COMMON)/usr/bin/{emacs,emacs-*}
 
+override_dh_install-arch:
 	# lisp path directories
 	$(INSTALL) -d $(EMACS_COMMON)/etc/${bin_name}/site-start.d
 	$(INSTALL) -d $(EMACS_COMMON)/usr/share/${bin_name}
