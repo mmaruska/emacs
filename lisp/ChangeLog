@@ -1,3 +1,108 @@
+2012-06-06  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-rcs.el (vc-rcs-rcs2log-program): New.
+	(vc-rcs-update-changelog): Use it.
+
+	* emacs-lisp/authors.el (authors-fixed-entries): Remove vcdiff
+
+	* vc/vc-sccs.el (vc-sccs-write-revision): New function.
+	(vc-sccs-workfile-unchanged-p): Use vc-sccs-write-revision.
+	(vc-sccs-diff): Replace use of the external vcdiff script.
+
+2012-06-05  Glenn Morris  <rgm@gnu.org>
+
+	* ledit.el: Move to obsolete/.
+
+2012-06-05  Sam Steingold  <sds@gnu.org>
+
+	* calendar/calendar.el (calendar-exit): reinstate the 2012-03-28
+	patch (Bug#11140).
+
+2012-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-list/cust-print.el: Move to obsolete.
+
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Tolerate errors during
+	compiler-macro expansion.
+
+	Add native compiler-macro support.
+	* emacs-lisp/macroexp.el (macroexpand-all-1):
+	Support compiler-macros directly.  Properly follow aliases and apply
+	the compiler macros more thoroughly.
+	* emacs-lisp/cl.el: Don't copy compiler-macro properties any more since
+	macroexpand now properly follows aliases.
+	* emacs-lisp/cl-macs.el (toplevel, cl-define-compiler-macro)
+	(cl-compiler-macroexpand): Use new prop.
+	* emacs-lisp/byte-opt.el (featurep): Optimize earlier.
+
+	* emacs-lisp/cl-lib.el (custom-print-functions): Add alias.
+
+2012-06-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (get-lru-window, get-mru-window, get-largest-window):
+	New argument NOT-SELECTED to avoid picking the selected window.
+	(window--display-buffer-1, window--display-buffer-2): Replace by
+	new function window--display-buffer
+	(display-buffer-same-window, display-buffer-reuse-window)
+	(display-buffer-pop-up-frame, display-buffer-pop-up-window):
+	Use window--display-buffer.
+	(display-buffer-use-some-window): Remove temporary dedication
+	hack by calling get-lru-window and get-largest-window with
+	NOT-SELECTED argument non-nil.  Call window--display-buffer.
+
+2012-06-05  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-sccs.el (vc-sccs-workfile-unchanged-p):
+	Replace external vcdiff script.
+
+2012-06-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-lib.el (cl-values, cl-values-list): Fix up last change.
+
+2012-06-04  Chong Yidong  <cyd@gnu.org>
+
+	* image.el (imagemagick-types-inhibit): Revert last change.
+	Add INFO and M.
+	(imagemagick-enabled-types): Remove CIN and EPS*.
+
+2012-06-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-lib.el: Rename from cl.el.
+	* emacs-lisp/cl.el: New compatibility file.
+	* emacs-lisp/cl-lib.el, emacs-lisp/cl-seq.el, emacs-lisp/cl-macs.el:
+	* emacs-lisp/cl-extra.el: Rename all top-level functions and variables
+	to obey the "cl-" prefix.
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Adjust to new name.
+
+2012-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases): Addition.
+
+	* cus-start.el (tool-bar-style, tool-bar-max-label-size):
+	Fix :version.
+
+2012-06-03  Stefan Merten  <smerten@oekonux.de>
+
+	* textmodes/rst.el: Add comments.
+	(rst-transition, rst-adornment): New faces.
+	(rst-adornment-faces-alist): Make default safe to reevaluate.
+	Fixes
+	http://sourceforge.net/tracker/?func=detail&atid=422030&aid=3479603&group_id=38414.
+	Improve customization tags.
+	(rst-define-level-faces): Clarify meaning.
+
+2012-06-03  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/compile.el (compilation-mode-line-fail)
+	(compilation-mode-line-run, compilation-mode-line-exit):
+	New faces.
+	(compilation-start, compilation-handle-exit): Use them (Bug#11032).
+
+2012-06-03  Jack Duthen  <duthen.mac.01@gmail.com>  (tiny change)
+
+	* progmodes/which-func.el (which-func-update-ediff-windows):
+	New function.  Use it in ediff-select-hook (Bug#11478).
+
 2012-06-03  Chong Yidong  <cyd@gnu.org>
 
 	* bindings.el: Remove explicit help text from format-mode-line.
@@ -7,6 +112,14 @@
 	(mode-line-modes, mode-line-position): Move the default value to
 	the variable definition.
 	(mode-line-default-help-echo): New defcustom.
+	(mode-line-mule-info-help-echo, mode-line-read-only-help-echo)
+	(mode-line-modified-help-echo): New functions.
+	(mode-line-mule-info, mode-line-modified): Use them.
+	(mode-line-eol-desc, propertized-buffer-identification):
+	Consistency fixes for help text.
+	(mode-line-coding-system-map): Allow using mouse-3 to invoke
+	set-buffer-file-coding-system (Bug#289).
+	(mode-line-mule-info-help-echo): Update help text.
 
 2012-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 

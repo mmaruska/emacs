@@ -1,3 +1,28 @@
+2012-06-06  Chong Yidong  <cyd@gnu.org>
+
+	* buffer.c (word_wrap): Doc fix.
+
+2012-06-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Pacify gcc -Wall.
+
+2012-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* xdisp.c (tool-bar-style): Doc fix.
+
+2012-06-03  Ulrich Müller  <ulm@gentoo.org>
+
+	* Makefile.in (PAXCTL): Define.
+	(temacs$(EXEEXT)): Disable memory randomization for the temacs
+	binary via PaX flags if the paxctl utility is available.
+	(emacs$(EXEEXT), bootstrap-emacs$(EXEEXT)):
+	Restore PaX flags to their default.  (Bug#11398)
+
+2012-06-03  Chong Yidong  <cyd@gnu.org>
+
+	* xdisp.c (decode_mode_spec_coding): Display a space for a unibyte
+	buffer (Bug#11226).
+
 2012-06-03  Chong Yidong  <cyd@gnu.org>
 
 	* xdisp.c (calc_pixel_width_or_height): Use Fbuffer_local_value.
