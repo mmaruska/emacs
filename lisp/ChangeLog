@@ -1,5 +1,43 @@
 2012-06-06  Glenn Morris  <rgm@gnu.org>
 
+	* mail/emacsbug.el (report-emacs-bug): Add relevant EMACS env-vars.
+	Only print environment variables if set.
+
+2012-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el: Don't require CL since we don't use it.
+	(macroexp--cons): Rename from maybe-cons.
+	(macroexp--accumulate): Rename from macroexp-accumulate.
+	(macroexp--all-forms): Rename from macroexpand-all-forms.
+	(macroexp--all-clauses): Rename from macroexpand-all-clauses.
+	(macroexp--expand-all): Rename from macroexpand-all-1.
+
+2012-06-06  Sam Steingold  <sds@gnu.org>
+
+	* calendar/calendar.el (calendar-in-read-only-buffer):
+	Call `special-mode' to enable the standard read-only keybindings.
+
+2012-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Don't spam the output
+	with "loading" messages (bug#11635).
+
+2012-06-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (enable-remote-dir-locals): New option.
+	(hack-dir-local-variables): Use it.  (Bug#1933, Bug#6731)
+
+	* net/tramp-compat.el (tramp-compat-temporary-file-directory):
+	Ensure, that the temp directory is local.
+
+	* net/tramp-sh.el (tramp-sh-handle-write-region): Let-bind
+	`temporary-file-directory'.
+
+	* progmodes/python.el (python-send-region): Ensure, that the
+	temporary file is created also in the remote case.
+
+2012-06-06  Glenn Morris  <rgm@gnu.org>
+
 	* vc/vc-rcs.el (vc-rcs-rcs2log-program): New.
 	(vc-rcs-update-changelog): Use it.
 
