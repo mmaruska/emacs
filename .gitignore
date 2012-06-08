@@ -15,3 +15,6 @@ makefile
 
 /bin/
 /site-lisp/
+debian/control
+debian/copyright
+debian/patches
