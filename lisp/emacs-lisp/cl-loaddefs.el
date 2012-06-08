@@ -3,16 +3,15 @@
 ;;; Code:
 
 
-;;;### (autoloads (cl-prettyexpand cl-macroexpand-all cl-remprop
-;;;;;;  cl-do-remf cl-set-getf cl-getf cl-get cl-tailp cl-list-length
-;;;;;;  cl-nreconc cl-revappend cl-concatenate cl-subseq cl-float-limits
-;;;;;;  cl-random-state-p cl-make-random-state cl-random cl-signum
-;;;;;;  cl-rem cl-mod cl-round cl-truncate cl-ceiling cl-floor cl-isqrt
-;;;;;;  cl-lcm cl-gcd cl-progv-before cl-set-frame-visible-p cl-map-overlays
-;;;;;;  cl-map-intervals cl-map-keymap-recursively cl-notevery cl-notany
-;;;;;;  cl-every cl-some cl-mapcon cl-mapcan cl-mapl cl-maplist cl-map
-;;;;;;  cl-mapcar-many cl-equalp cl-coerce) "cl-extra" "cl-extra.el"
-;;;;;;  "acc0000b09b27fb51f5ba23a4b9254e2")
+;;;### (autoloads (cl-prettyexpand cl-remprop cl-do-remf cl-set-getf
+;;;;;;  cl-getf cl-get cl-tailp cl-list-length cl-nreconc cl-revappend
+;;;;;;  cl-concatenate cl-subseq cl-float-limits cl-random-state-p
+;;;;;;  cl-make-random-state cl-random cl-signum cl-rem cl-mod cl-round
+;;;;;;  cl-truncate cl-ceiling cl-floor cl-isqrt cl-lcm cl-gcd cl-progv-before
+;;;;;;  cl-set-frame-visible-p cl-map-overlays cl-map-intervals cl-map-keymap-recursively
+;;;;;;  cl-notevery cl-notany cl-every cl-some cl-mapcon cl-mapcan
+;;;;;;  cl-mapl cl-maplist cl-map cl-mapcar-many cl-equalp cl-coerce)
+;;;;;;  "cl-extra" "cl-extra.el" "fecce2e361fd06364d2ffd8c0d482cd0")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'cl-coerce "cl-extra" "\
@@ -82,8 +81,6 @@ Return true if PREDICATE is false of every element of SEQ or SEQs.
 Return true if PREDICATE is false of some element of SEQ or SEQs.
 
 \(fn PREDICATE SEQ...)" nil nil)
-
-(defalias 'cl-map-keymap 'map-keymap)
 
 (autoload 'cl-map-keymap-recursively "cl-extra" "\
 
@@ -248,28 +245,6 @@ Remove from SYMBOL's plist the property PROPNAME and its value.
 
 \(fn SYMBOL PROPNAME)" nil nil)
 
-(defalias 'cl-gethash 'gethash)
-
-(defalias 'cl-puthash 'puthash)
-
-(defalias 'cl-remhash 'remhash)
-
-(defalias 'cl-clrhash 'clrhash)
-
-(defalias 'cl-maphash 'maphash)
-
-(defalias 'cl-make-hash-table 'make-hash-table)
-
-(defalias 'cl-hash-table-p 'hash-table-p)
-
-(defalias 'cl-hash-table-count 'hash-table-count)
-
-(autoload 'cl-macroexpand-all "cl-extra" "\
-Expand all macro calls through a Lisp FORM.
-This also does some trivial optimizations to make the form prettier.
-
-\(fn FORM &optional ENV)" nil nil)
-
 (autoload 'cl-prettyexpand "cl-extra" "\
 
 
@@ -281,15 +256,14 @@ This also does some trivial optimizations to make the form prettier.
 ;;;;;;  cl-assert cl-check-type cl-typep cl-deftype cl-struct-setf-expander
 ;;;;;;  cl-defstruct cl-define-modify-macro cl-callf2 cl-callf cl-letf*
 ;;;;;;  cl-letf cl-rotatef cl-shiftf cl-remf cl-do-pop cl-psetf cl-setf
-;;;;;;  cl-get-setf-method cl-defsetf cl-define-setf-method cl-declare
+;;;;;;  cl-get-setf-method cl-defsetf cl-define-setf-expander cl-declare
 ;;;;;;  cl-the cl-locally cl-multiple-value-setq cl-multiple-value-bind
-;;;;;;  cl-lexical-let* cl-lexical-let cl-symbol-macrolet cl-macrolet
-;;;;;;  cl-labels cl-flet cl-progv cl-psetq cl-do-all-symbols cl-do-symbols
-;;;;;;  cl-dotimes cl-dolist cl-do* cl-do cl-loop cl-return-from
-;;;;;;  cl-return cl-block cl-etypecase cl-typecase cl-ecase cl-case
-;;;;;;  cl-load-time-value cl-eval-when cl-destructuring-bind cl-function
-;;;;;;  cl-defmacro cl-defun cl-gentemp cl-gensym) "cl-macs" "cl-macs.el"
-;;;;;;  "f3973150add70d26cadb8530147dfc99")
+;;;;;;  cl-symbol-macrolet cl-macrolet cl-labels cl-flet cl-progv
+;;;;;;  cl-psetq cl-do-all-symbols cl-do-symbols cl-dotimes cl-dolist
+;;;;;;  cl-do* cl-do cl-loop cl-return-from cl-return cl-block cl-etypecase
+;;;;;;  cl-typecase cl-ecase cl-case cl-load-time-value cl-eval-when
+;;;;;;  cl-destructuring-bind cl-function cl-defmacro cl-defun cl-gentemp
+;;;;;;  cl-gensym) "cl-macs" "cl-macs.el" "4c0f605e3c7454488cc9d498b611f422")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl-gensym "cl-macs" "\
@@ -510,10 +484,7 @@ a `let' form, except that the list of symbols can be computed at run-time.
 
 (autoload 'cl-flet "cl-macs" "\
 Make temporary function definitions.
-This is an analogue of `let' that operates on the function cell of FUNC
-rather than its value cell.  The FORMs are evaluated with the specified
-function definitions in place, then the definitions are undone (the FUNCs
-go back to their previous definitions, or lack thereof).
+Like `cl-labels' but the definitions are not recursive.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)" nil t)
 
@@ -521,8 +492,7 @@ go back to their previous definitions, or lack thereof).
 
 (autoload 'cl-labels "cl-macs" "\
 Make temporary function bindings.
-This is like `cl-flet', except the bindings are lexical instead of dynamic.
-Unlike `cl-flet', this macro is fully compliant with the Common Lisp standard.
+The bindings can be recursive.  Assumes the use of `lexical-binding'.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)" nil t)
 
@@ -544,26 +514,6 @@ by EXPANSION, and (setq NAME ...) will act like (cl-setf EXPANSION ...).
 \(fn ((NAME EXPANSION) ...) FORM...)" nil t)
 
 (put 'cl-symbol-macrolet 'lisp-indent-function '1)
-
-(autoload 'cl-lexical-let "cl-macs" "\
-Like `let', but lexically scoped.
-The main visible difference is that lambdas inside BODY will create
-lexical closures as in Common Lisp.
-
-\(fn BINDINGS BODY)" nil t)
-
-(put 'cl-lexical-let 'lisp-indent-function '1)
-
-(autoload 'cl-lexical-let* "cl-macs" "\
-Like `let*', but lexically scoped.
-The main visible difference is that lambdas inside BODY, and in
-successive bindings within BINDINGS, will create lexical closures
-as in Common Lisp.  This is similar to the behavior of `let*' in
-Common Lisp.
-
-\(fn BINDINGS BODY)" nil t)
-
-(put 'cl-lexical-let* 'lisp-indent-function '1)
 
 (autoload 'cl-multiple-value-bind "cl-macs" "\
 Collect multiple return values.
@@ -611,7 +561,7 @@ See Info node `(cl)Declarations' for details.
 
 \(fn &rest SPECS)" nil t)
 
-(autoload 'cl-define-setf-method "cl-macs" "\
+(autoload 'cl-define-setf-expander "cl-macs" "\
 Define a `cl-setf' method.
 This method shows how to handle `cl-setf's to places of the form (NAME ARGS...).
 The argument forms ARGS are bound according to ARGLIST, as if NAME were
@@ -624,7 +574,7 @@ form.  See `cl-defsetf' for a simpler way to define most setf-methods.
 
 (autoload 'cl-defsetf "cl-macs" "\
 Define a `cl-setf' method.
-This macro is an easy-to-use substitute for `cl-define-setf-method' that works
+This macro is an easy-to-use substitute for `cl-define-setf-expander' that works
 well for simple place forms.  In the simple `cl-defsetf' form, `cl-setf's of
 the form (cl-setf (NAME ARGS...) VAL) are transformed to function or macro
 calls of the form (FUNC ARGS... VAL).  Example:

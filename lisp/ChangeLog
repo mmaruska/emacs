@@ -1,18 +1,108 @@
+2012-06-08  Sam Steingold  <sds@gnu.org>
+
+	* bindings.el (global-map): Bind XF86Forward to next-buffer and
+	XF86Back to previous-buffer.
+	(minibuffer-local-map): Bind them to next-history-element and
+	previous-history-element respectively.
+	* help-mode.el (help-mode-map): Bind them to help-go-forward and
+	help-go-back respectively.
+	* info.el (Info-mode-map): Bind them to Info-history-forward and
+	Info-history-back respectively.
+	These are the keys next to Up on the ThinkPad keyboard.
+
+2012-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Get rid of cl-lexical-let, keeping only lexical-let for compatibility.
+	* emacs-lisp/cl-macs.el: Provide itself.
+	(cl--labels-convert-cache): New var.
+	(cl--labels-convert): New function.
+	(cl-flet, cl-labels): New implementation with new semantics, relying on
+	lexical-binding.
+	* emacs-lisp/cl.el: Mark compatibility aliases as obsolete.
+	(cl-closure-vars, cl--function-convert-cache)
+	(cl--function-convert): Move from cl-macs.el.
+	(lexical-let, lexical-let*, flet, labels): Move from cl-macs.el and
+	rename by removing the "cl-" prefix.
+	* emacs-lisp/macroexp.el (macroexp-unprogn): New function.
+
+2012-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl.el (cl-macroexpand, cl-macro-environment)
+	(cl-macroexpand-all, cl-not-hash-table, cl-builtin-gethash)
+	(cl-builtin-remhash, cl-builtin-clrhash, cl-builtin-maphash)
+	(cl-map-keymap, cl-copy-tree, cl-gethash, cl-puthash, cl-remhash)
+	(cl-clrhash, cl-maphash, cl-make-hash-table, cl-hash-table-p)
+	(cl-hash-table-count): Add old compatibility aliases.
+
+	* emacs-lisp/cl-macs.el (cl-macro-environment): Remove var.
+	Use macroexpand-all-environment instead.
+	(cl--old-macroexpand): New var.
+	(cl--sm-macroexpand): New function.
+	(cl-symbol-macrolet): Use it during macro expansion.
+	(cl--function-convert-cache): New var.
+	(cl--function-convert): New function, extracted from
+	cl-macroexpand-all.
+	(cl-lexical-let): Use it.
+
+	* emacs-lisp/cl-lib.el (cl-macro-environment): Remove decl.
+	(cl-macroexpand): Move to cl-macs.el and rename to cl--sm-macroexpand.
+	(cl-member): Remove old alias.
+
+	* emacs-lisp/cl-extra.el (cl-map-keymap, cl-copy-tree)
+	(cl-not-hash-table, cl-builtin-gethash, cl-builtin-remhash)
+	(cl-builtin-clrhash, cl-builtin-maphash, cl-gethash, cl-puthash)
+	(cl-remhash, cl-clrhash, cl-maphash, cl-make-hash-table)
+	(cl-hash-table-p, cl-hash-table-count): Move to cl.el.
+	(cl-macroexpand-cmacs): Remove var.
+	(cl-macroexpand-all, cl-macroexpand-body): Remove funs.
+	Use macroexpand-all instead.
+
+2012-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexp-progn, macroexp-let*, macroexp-if)
+	(macroexp-let², macroexp--const-symbol-p, macroexp-const-p)
+	(macroexp-copyable-p): New functions and macros.
+	* emacs-lisp/edebug.el (edebug-unwrap):
+	* emacs-lisp/disass.el (disassemble-internal): Use macroexp-progn.
+	* emacs-lisp/pcase.el: Use macroexp-let*, macroexp-if, ...
+	(pcase--let*): Remove.
+	* emacs-lisp/bytecomp.el (byte-compile-const-symbol-p)
+	(byte-compile-constp): Remove.  Use macroexp--const-symbol-p and
+	macroexp-const-p instead.
+	* emacs-lisp/byte-opt.el: Use macroexp-const-p and macroexp-progn.
+
+	* emacs-lisp/cl-macs.el: Clean up the name space by using "cl--"
+	instead of "cl-" for internal definitions.  Use macroexp-const-p.
+	(cl-old-bc-file-form): Remove var.
+	(cl-const-exprs-p): Remove fun.
+	(cl-labels, cl-macrolet): Use backquote.
+	(cl-lexical-let): Use cl-symbol-macrolet.  Don't use cl-defun-expander.
+	(cl-defun-expander, cl-byte-compile-compiler-macro): Remove fun.
+	(cl-define-setf-expander): Rename from cl-define-setf-method.
+	* emacs-lisp/cl.el: Adjust alias for define-setf-method.
+
+	* international/mule-cmds.el: Don't require CL.
+	(view-hello-file): Don't use `letf'.
+
+2012-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tmm.el (tmm-prompt): Use string-prefix-p.
+	(tmm-completion-delete-prompt): Don't affect current-buffer outside.
+	(tmm-add-prompt): Use minibuffer-completion-help.
+	(tmm-delete-map): Remove.
+
+	* subr.el (kbd): Make it its own function.
+
 2012-06-07  Stefan Merten  <smerten@oekonux.de>
 
 	* textmodes/rst.el: Use `eval-when-compile' for requiring `cl.el'.
 	Silence compiler warnings.  Fix versions.
-
-	(rst-position-if, rst-position, rst-some, rst-signum): New
-	functions.
+	(rst-position-if, rst-position, rst-some, rst-signum): New functions.
 	(rst-shift-region, rst-adornment-level, rst-compute-tabs)
-	(rst-indent-line, rst-shift-region, rst-forward-line): Use new
-	functions.
-
+	(rst-indent-line, rst-shift-region, rst-forward-line): Use them.
 	(rst-package-emacs-version-alist): Correct Emacs version to
 	represent major merge with upstream.
-	(rst-transition, rst-adornment, rst-compile-toolsets): Fix
-	versions.
+	(rst-transition, rst-adornment, rst-compile-toolsets): Fix versions.
 
 2012-06-06  Glenn Morris  <rgm@gnu.org>
 
