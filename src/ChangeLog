@@ -1,3 +1,71 @@
+2012-06-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (XD_BASIC_DBUS_TYPE): Use dbus_type_is_valid and
+	dbus_type_is_basic if available.
+	(xd_extract_signed, xd_extract_unsigned): Rename from
+	extract_signed and extract_unsigned, respectively.  Adapt callers.
+
+2012-06-09  Chong Yidong  <cyd@gnu.org>
+
+	* xfaces.c (face_for_overlay_string): Handle face remapping (Bug#2066).
+
+	* fringe.c (Fset_fringe_bitmap_face): Handle the noninteractive
+	case (Bug#9752).
+
+2012-06-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c (vmessage): Treat frame message as multibyte.
+	Without this change, (let ((§ 1)) (make-variable-buffer-local '§))
+	would generate the diagnostic "Making \302\247 buffer-local while
+	let-bound!".
+
+2012-06-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (showing_window_margins_p): Undo last change, which
+	was done due to an inadvertent commit.
+	(adjust_frame_glyphs_for_frame_redisplay): Do call
+	showing_window_margins_p.
+
+2012-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fmake_var_non_special): New primitive.
+	(syms_of_eval): Defsubr it.
+	* lread.c (syms_of_lread): Mark `values' as lexically scoped.
+
+2012-06-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dispnew.c (showing_window_margins_p): Wrap in #if 0 to prevent unused
+	function warning (the only call is inside #if 0 since revno:108521).
+
+2012-06-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* alloc.c (allocate_vectorlike): Fix last change.
+
+2012-06-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Block-based vector allocation of small vectors.
+	* lisp.h (struct vectorlike_header): New field `nbytes',
+	adjust comment accordingly.
+	* alloc.c (enum mem_type): New type `MEM_TYPE_VECTOR_BLOCK'
+	to denote vector blocks. Adjust users (live_vector_p,
+	mark_maybe_pointer, valid_lisp_object_p) accordingly.
+	(COMMON_MULTIPLE): Move outside #if USE_LSB_TAG.
+	(VECTOR_BLOCK_SIZE, vroundup, VECTOR_BLOCK_BYTES),
+	(VBLOCK_BYTES_MIN, VBLOCK_BYTES_MAX, VECTOR_MAX_FREE_LIST_INDEX),
+	(VECTOR_FREE_LIST_FLAG, ADVANCE, VINDEX, SETUP_ON_FREE_LIST),
+	(VECTOR_SIZE, VECTOR_IN_BLOCK): New macros.
+	(roundup_size): New constant.
+	(struct vector_block): New data type.
+	(vector_blocks, vector_free_lists, zero_vector): New variables.
+	(all_vectors): Rename to `large_vectors'.
+	(allocate_vector_from_block, init_vectors, allocate_vector_from_block)
+	(sweep_vectors): New functions.
+	(allocate_vectorlike): Return `zero_vector' as the only vector of
+	0 items. Allocate new vector from block if vector size is less than
+	or equal to VBLOCK_BYTES_MAX.
+	(Fgarbage_collect): Move all vector sweeping code to sweep_vectors.
+	(init_alloc_once): Add call to init_vectors.
+
 2012-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Fmacroexpand): Stop if the macro returns the same form.
