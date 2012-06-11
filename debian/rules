@@ -260,9 +260,6 @@ debian/${bin_name}-common.%: pkg_name := ${bin_name}-common
 
 debian/${bin_name}-bin-common.%: pkg_name := ${bin_name}-bin-common
 
-debian/%.menu: debian/%.menu.in
-	${expand_file_subst_vars}
-
 debian/${bin_name}.%: debian/emacs.%
 	${expand_file_subst_vars}
 
