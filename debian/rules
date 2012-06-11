@@ -528,7 +528,6 @@ override_dh_install-indep:
 	##################################################
 	# Final emacs-common clean ups
 	find $(EMACS_COMMON) -name "*.el.gz" -exec rm -f {} \;
-	rm -f $(EMACS_COMMON)/usr/bin/{emacs,emacs-*}
 
 override_dh_install-arch:
 	##################################################
@@ -537,7 +536,7 @@ override_dh_install-arch:
 	# Move common binary to emacs-bin-common
 	$(INSTALL) -d $(EMACS_BIN_COMMON)/usr
 	mv $(EMACS_COMMON)/usr/bin $(EMACS_BIN_COMMON)/usr
-	rm -f $(EMACS_BIN_COMMON)/usr/bin/emacs-${runtime_ver}
+	rm -f $(EMACS_BIN_COMMON)/usr/bin/{emacs,emacs-*}
 	mv $(EMACS_COMMON)/usr/lib $(EMACS_BIN_COMMON)/usr
 	chown root.mail $(EMACS_BIN_COMMON)/${movemail_bin}
 	chmod g+s $(EMACS_BIN_COMMON)/${movemail_bin}
