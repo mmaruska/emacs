@@ -155,9 +155,9 @@ local_lpath_install := $(EMACS_COMMON)/$(subst :,:$(EMACS_COMMON)/,${local_lpath
 PERSISTENT_AUTOGEN_FILES := debian/control debian/copyright
 
 NONPERSISTENT_AUTOGEN_FILES := \
-  debian/bug.presubj \
-  debian/bug.script \
-  debian/bug.control \
+  debian/bug-presubj \
+  debian/bug-script \
+  debian/bug-control \
   debian/emacs.xpm \
   debian/emacsclient-${bin_name}.desktop \
   debian/${bin_name}.menu \
@@ -585,17 +585,6 @@ override_dh_install-arch:
 	$(call inst_manpage,$(EMACS_LUCID),${bin_name},${bin_name}-lucid,${bin_name}-lucid)
 	$(call inst_overrides,lintian,$(EMACS_LUCID),${bin_name}-lucid)
 
-	# Common stuff
-	# Install bug notices
-	for e in $(PACKAGES) emacs-el emacs-common emacs-bin-common; do \
-		$(INSTALL) -D -m 0644 debian/bug.presubj \
-			$(CURDIR)/debian/$$e/usr/share/bug/$$e/presubj ; \
-		$(INSTALL) -D -m 0755 debian/bug.script \
-			$(CURDIR)/debian/$$e/usr/share/bug/$$e/script ; \
-		$(INSTALL) -D -m 0644 debian/bug.control \
-			$(CURDIR)/debian/$$e/usr/share/bug/$$e/control ; \
-	done
-
 override_dh_installemacsen:
 	dh_installemacsen --flavor=emacs-snapshot --priority=00
 
@@ -607,6 +596,9 @@ override_dh_builddeb:
 
 override_dh_fixperms:
 	dh_fixperms -X${movemail_bin}
+
+override_dh_bugfiles:
+	dh_bugfiles -A
 
 override_dh_auto_test:
 
