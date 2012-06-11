@@ -61,8 +61,31 @@
 ;; memoize previous macro expansions to try and avoid recomputing them
 ;; over and over again.
 (defconst pcase--memoize (make-hash-table :weakness 'key :test 'eq))
+;; (defconst pcase--memoize-1 (make-hash-table :test 'eq))
+;; (defconst pcase--memoize-2 (make-hash-table :weakness 'key :test 'equal))
 
 (defconst pcase--dontcare-upats '(t _ dontcare))
+
+(def-edebug-spec
+  pcase-UPAT
+  (&or symbolp
+       ("or" &rest pcase-UPAT)
+       ("and" &rest pcase-UPAT)
+       ("`" pcase-QPAT)
+       ("guard" form)
+       ("let" pcase-UPAT form)
+       ("pred"
+        &or lambda-expr
+        ;; Punt on macros/special forms.
+        (functionp &rest form)
+        sexp)
+       sexp))
+
+(def-edebug-spec
+  pcase-QPAT
+  (&or ("," pcase-UPAT)
+       (pcase-QPAT . pcase-QPAT)
+       sexp))
 
 ;;;###autoload
 (defmacro pcase (exp &rest cases)
@@ -96,7 +119,7 @@ PRED patterns can refer to variables bound earlier in the pattern.
 E.g. you can match pairs where the cdr is larger than the car with a pattern
 like `(,a . ,(pred (< a))) or, with more checks:
 `(,(and a (pred numberp)) . ,(and (pred numberp) (pred (< a))))"
-  (declare (indent 1) (debug cl-case))  ;FIXME: edebug `guard' and vars.
+  (declare (indent 1) (debug (form &rest (pcase-UPAT body))))
   ;; We want to use a weak hash table as a cache, but the key will unavoidably
   ;; be based on `exp' and `cases', yet `cases' is a fresh new list each time
   ;; we're called so it'll be immediately GC'd.  So we use (car cases) as key
@@ -107,11 +130,34 @@ like `(,a . ,(pred (< a))) or, with more checks:
     (if (and (equal exp (car data)) (equal cases (cadr data)))
         ;; We have the right expansion.
         (cddr data)
+      ;; (when (gethash (car cases) pcase--memoize-1)
+      ;;   (message "pcase-memoize failed because of weak key!!"))
+      ;; (when (gethash (car cases) pcase--memoize-2)
+      ;;   (message "pcase-memoize failed because of eq test on %S"
+      ;;            (car cases)))
       (when data
         (message "pcase-memoize: equal first branch, yet different"))
       (let ((expansion (pcase--expand exp cases)))
-        (puthash (car cases) (cons exp (cons cases expansion)) pcase--memoize)
+        (puthash (car cases) `(,exp ,cases ,@expansion) pcase--memoize)
+        ;; (puthash (car cases) `(,exp ,cases ,@expansion) pcase--memoize-1)
+        ;; (puthash (car cases) `(,exp ,cases ,@expansion) pcase--memoize-2)
         expansion))))
+
+(defun pcase--let* (bindings body)
+  (cond
+   ((null bindings) (macroexp-progn body))
+   ((pcase--trivial-upat-p (caar bindings))
+    (macroexp-let* `(,(car bindings)) (pcase--let* (cdr bindings) body)))
+   (t
+    (let ((binding (pop bindings)))
+      (pcase--expand
+       (cadr binding)
+       `((,(car binding) ,(pcase--let* bindings body))
+         ;; We can either signal an error here, or just use `dontcare' which
+         ;; generates more efficient code.  In practice, if we use `dontcare'
+         ;; we will still often get an error and the few cases where we don't
+         ;; do not matter that much, so it's a better choice.
+         (dontcare nil)))))))
 
 ;;;###autoload
 (defmacro pcase-let* (bindings &rest body)
@@ -119,19 +165,14 @@ like `(,a . ,(pred (< a))) or, with more checks:
 BODY should be an expression, and BINDINGS should be a list of bindings
 of the form (UPAT EXP)."
   (declare (indent 1)
-           (debug ((&rest &or (sexp &optional form) symbolp) body)))
-  (cond
-   ((null bindings) (if (> (length body) 1) `(progn ,@body) (car body)))
-   ((pcase--trivial-upat-p (caar bindings))
-    `(let (,(car bindings)) (pcase-let* ,(cdr bindings) ,@body)))
-   (t
-    `(pcase ,(cadr (car bindings))
-       (,(caar bindings) (pcase-let* ,(cdr bindings) ,@body))
-       ;; We can either signal an error here, or just use `dontcare' which
-       ;; generates more efficient code.  In practice, if we use `dontcare' we
-       ;; will still often get an error and the few cases where we don't do not
-       ;; matter that much, so it's a better choice.
-       (dontcare nil)))))
+           (debug ((&rest (pcase-UPAT &optional form)) body)))
+  (let ((cached (gethash bindings pcase--memoize)))
+    ;; cached = (BODY . EXPANSION)
+    (if (equal (car cached) body)
+        (cdr cached)
+      (let ((expansion (pcase--let* bindings body)))
+        (puthash bindings (cons body expansion) pcase--memoize)
+        expansion))))
 
 ;;;###autoload
 (defmacro pcase-let (bindings &rest body)
@@ -154,7 +195,7 @@ of the form (UPAT EXP)."
       `(let ,(nreverse bindings) (pcase-let* ,matches ,@body)))))
 
 (defmacro pcase-dolist (spec &rest body)
-  (declare (indent 1))
+  (declare (indent 1) (debug ((pcase-UPAT form) body)))
   (if (pcase--trivial-upat-p (car spec))
       `(dolist ,spec ,@body)
     (let ((tmpvar (make-symbol "x")))
@@ -169,64 +210,62 @@ of the form (UPAT EXP)."
 (defun pcase--expand (exp cases)
   ;; (message "pid=%S (pcase--expand %S ...hash=%S)"
   ;;          (emacs-pid) exp (sxhash cases))
-  (let* ((defs (if (symbolp exp) '()
-                 (let ((sym (make-symbol "x")))
-                   (prog1 `((,sym ,exp)) (setq exp sym)))))
-         (seen '())
-         (codegen
-          (lambda (code vars)
-            (let ((prev (assq code seen)))
-              (if (not prev)
-                  (let ((res (pcase-codegen code vars)))
-                    (push (list code vars res) seen)
-                    res)
-                ;; Since we use a tree-based pattern matching
-                ;; technique, the leaves (the places that contain the
-                ;; code to run once a pattern is matched) can get
-                ;; copied a very large number of times, so to avoid
-                ;; code explosion, we need to keep track of how many
-                ;; times we've used each leaf and move it
-                ;; to a separate function if that number is too high.
-                ;;
-                ;; We've already used this branch.  So it is shared.
-                (let* ((code (car prev))         (cdrprev (cdr prev))
-                       (prevvars (car cdrprev))  (cddrprev (cdr cdrprev))
-                       (res (car cddrprev)))
-                  (unless (symbolp res)
-                    ;; This is the first repeat, so we have to move
-                    ;; the branch to a separate function.
-                    (let ((bsym
-                           (make-symbol (format "pcase-%d" (length defs)))))
-                      (push `(,bsym (lambda ,(mapcar #'car prevvars) ,@code)) defs)
-                      (setcar res 'funcall)
-                      (setcdr res (cons bsym (mapcar #'cdr prevvars)))
-                      (setcar (cddr prev) bsym)
-                      (setq res bsym)))
-                  (setq vars (copy-sequence vars))
-                  (let ((args (mapcar (lambda (pa)
-                                        (let ((v (assq (car pa) vars)))
-                                          (setq vars (delq v vars))
-                                          (cdr v)))
-                                      prevvars)))
-                    ;; If some of `vars' were not found in `prevvars', that's
-                    ;; OK it just means those vars aren't present in all
-                    ;; branches, so they can be used within the pattern
-                    ;; (e.g. by a `guard/let/pred') but not in the branch.
-                    ;; FIXME: But if some of `prevvars' are not in `vars' we
-                    ;; should remove them from `prevvars'!
-                    `(funcall ,res ,@args)))))))
-         (main
-          (pcase--u
-           (mapcar (lambda (case)
-                     `((match ,exp . ,(car case))
-                       ,(apply-partially
-                         (if (pcase--small-branch-p (cdr case))
-                             ;; Don't bother sharing multiple
-                             ;; occurrences of this leaf since it's small.
-                             #'pcase-codegen codegen)
-                         (cdr case))))
-                   cases))))
-    (if (null defs) main
+  (macroexp-let² macroexp-copyable-p val exp
+    (let* ((defs ())
+           (seen '())
+           (codegen
+            (lambda (code vars)
+              (let ((prev (assq code seen)))
+                (if (not prev)
+                    (let ((res (pcase-codegen code vars)))
+                      (push (list code vars res) seen)
+                      res)
+                  ;; Since we use a tree-based pattern matching
+                  ;; technique, the leaves (the places that contain the
+                  ;; code to run once a pattern is matched) can get
+                  ;; copied a very large number of times, so to avoid
+                  ;; code explosion, we need to keep track of how many
+                  ;; times we've used each leaf and move it
+                  ;; to a separate function if that number is too high.
+                  ;;
+                  ;; We've already used this branch.  So it is shared.
+                  (let* ((code (car prev))         (cdrprev (cdr prev))
+                         (prevvars (car cdrprev))  (cddrprev (cdr cdrprev))
+                         (res (car cddrprev)))
+                    (unless (symbolp res)
+                      ;; This is the first repeat, so we have to move
+                      ;; the branch to a separate function.
+                      (let ((bsym
+                             (make-symbol (format "pcase-%d" (length defs)))))
+                        (push `(,bsym (lambda ,(mapcar #'car prevvars) ,@code)) defs)
+                        (setcar res 'funcall)
+                        (setcdr res (cons bsym (mapcar #'cdr prevvars)))
+                        (setcar (cddr prev) bsym)
+                        (setq res bsym)))
+                    (setq vars (copy-sequence vars))
+                    (let ((args (mapcar (lambda (pa)
+                                          (let ((v (assq (car pa) vars)))
+                                            (setq vars (delq v vars))
+                                            (cdr v)))
+                                        prevvars)))
+                      ;; If some of `vars' were not found in `prevvars', that's
+                      ;; OK it just means those vars aren't present in all
+                      ;; branches, so they can be used within the pattern
+                      ;; (e.g. by a `guard/let/pred') but not in the branch.
+                      ;; FIXME: But if some of `prevvars' are not in `vars' we
+                      ;; should remove them from `prevvars'!
+                      `(funcall ,res ,@args)))))))
+           (main
+            (pcase--u
+             (mapcar (lambda (case)
+                       `((match ,val . ,(car case))
+                         ,(apply-partially
+                           (if (pcase--small-branch-p (cdr case))
+                               ;; Don't bother sharing multiple
+                               ;; occurrences of this leaf since it's small.
+                               #'pcase-codegen codegen)
+                           (cdr case))))
+                     cases))))
       (macroexp-let* defs main))))
 
 (defun pcase-codegen (code vars)
