@@ -365,14 +365,6 @@ emacs_lucid_confflags += --with-x-toolkit=lucid
 distrib_id := $(shell lsb_release -s -i)
 distrib_name := $(shell lsb_release -s -c)
 
-check-distribution:
-	@if [ ! "${distrib_id}" = "Debian" ]; then			\
-		echo "Building on ${distrib_id} ${distrib_name}" ;	\
-		echo "Disabling Debian-specific patches." ;		\
-		sed -i "/^debian-emacs-bugmail/d"			\
-			debian/patches/series ;				\
-	fi
-
 override_dh_auto_configure:
 
 override_dh_auto_build: src/nox-emacs src/lucid-emacs src/gtk-emacs $(DEBPKGFILES)
