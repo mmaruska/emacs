@@ -1,4 +1,4 @@
-;;; cl-lib.el --- Common Lisp extensions for Emacs
+;;; cl-lib.el --- Common Lisp extensions for Emacs  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993, 2001-2012  Free Software Foundation, Inc.
 
@@ -114,7 +114,7 @@ a future Emacs interpreter will be able to use it.")
 (defun cl-unload-function ()
   "Stop unloading of the Common Lisp extensions."
   (message "Cannot unload the feature `cl'")
-  ;; stop standard unloading!
+  ;; Stop standard unloading!
   t)
 
 ;;; Generalized variables.
@@ -185,19 +185,19 @@ an element already on the list.
 	(list 'setq place (cl-list* 'cl-adjoin x place keys)))
     (cl-list* 'cl-callf2 'cl-adjoin x place keys)))
 
-(defun cl-set-elt (seq n val)
+(defun cl--set-elt (seq n val)
   (if (listp seq) (setcar (nthcdr n seq) val) (aset seq n val)))
 
-(defsubst cl-set-nthcdr (n list x)
+(defsubst cl--set-nthcdr (n list x)
   (if (<= n 0) x (setcdr (nthcdr (1- n) list) x) list))
 
-(defun cl-set-buffer-substring (start end val)
+(defun cl--set-buffer-substring (start end val)
   (save-excursion (delete-region start end)
 		  (goto-char start)
 		  (insert val)
 		  val))
 
-(defun cl-set-substring (str start end val)
+(defun cl--set-substring (str start end val)
   (if end (if (< end 0) (cl-incf end (length str)))
     (setq end (length str)))
   (if (< start 0) (cl-incf start (length str)))
@@ -206,19 +206,10 @@ an element already on the list.
 	  (and (< end (length str)) (substring str end))))
 
 
-;;; Control structures.
-
-;; These macros are so simple and so often-used that it's better to have
-;; them all the time than to load them from cl-macs.el.
-
-(defun cl-map-extents (&rest cl-args)
-  (apply 'cl-map-overlays cl-args))
-
-
 ;;; Blocks and exits.
 
-(defalias 'cl-block-wrapper 'identity)
-(defalias 'cl-block-throw 'throw)
+(defalias 'cl--block-wrapper 'identity)
+(defalias 'cl--block-throw 'throw)
 
 
 ;;; Multiple values.
@@ -226,21 +217,23 @@ an element already on the list.
 ;; simulated.  Instead, cl-multiple-value-bind and friends simply expect
 ;; the target form to return the values as a list.
 
-(defalias 'cl-values #'list
+(defun cl--defalias (cl-f el-f &optional doc)
+  (defalias cl-f el-f doc)
+  (put cl-f 'byte-optimizer 'byte-compile-inline-expand))
+
+(cl--defalias 'cl-values #'list
   "Return multiple values, Common Lisp style.
 The arguments of `cl-values' are the values
 that the containing function should return.
 
 \(fn &rest VALUES)")
-(put 'cl-values 'byte-optimizer 'byte-compile-inline-expand)
 
-(defalias 'cl-values-list #'identity
+(cl--defalias 'cl-values-list #'identity
   "Return multiple values, Common Lisp style, taken from a list.
 LIST specifies the list of values
 that the containing function should return.
 
 \(fn LIST)")
-(put 'cl-values-list 'byte-optimizer 'byte-compile-inline-expand)
 
 (defsubst cl-multiple-value-list (expression)
   "Return a list of the multiple values produced by EXPRESSION.
@@ -269,9 +262,9 @@ one value."
 
 ;;; Declarations.
 
-(defvar cl-compiling-file nil)
-(defun cl-compiling-file ()
-  (or cl-compiling-file
+(defvar cl--compiling-file nil)
+(defun cl--compiling-file ()
+  (or cl--compiling-file
       (and (boundp 'byte-compile--outbuffer)
            (bufferp (symbol-value 'byte-compile--outbuffer))
 	   (equal (buffer-name (symbol-value 'byte-compile--outbuffer))
@@ -287,7 +280,7 @@ one value."
 (defmacro cl-declaim (&rest specs)
   (let ((body (mapcar (function (lambda (x) (list 'cl-proclaim (list 'quote x))))
 		      specs)))
-    (if (cl-compiling-file) (cl-list* 'cl-eval-when '(compile load eval) body)
+    (if (cl--compiling-file) (cl-list* 'cl-eval-when '(compile load eval) body)
       (cons 'progn body))))   ; avoid loading cl-macs.el for cl-eval-when
 
 
@@ -309,11 +302,11 @@ On Emacs versions that lack floating-point support, this function
 always returns nil."
   (and (numberp object) (not (integerp object))))
 
-(defun cl-plusp (number)
+(defsubst cl-plusp (number)
   "Return t if NUMBER is positive."
   (> number 0))
 
-(defun cl-minusp (number)
+(defsubst cl-minusp (number)
   "Return t if NUMBER is negative."
   (< number 0))
 
@@ -376,9 +369,9 @@ Call `cl-float-limits' to set this.")
 
 ;;; Sequence functions.
 
-(defalias 'cl-copy-seq 'copy-sequence)
+(cl--defalias 'cl-copy-seq 'copy-sequence)
 
-(declare-function cl-mapcar-many "cl-extra" (cl-func cl-seqs))
+(declare-function cl--mapcar-many "cl-extra" (cl-func cl-seqs))
 
 (defun cl-mapcar (cl-func cl-x &rest cl-rest)
   "Apply FUNCTION to each element of SEQ, and make a list of the results.
@@ -389,148 +382,167 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 \n(fn FUNCTION SEQ...)"
   (if cl-rest
       (if (or (cdr cl-rest) (nlistp cl-x) (nlistp (car cl-rest)))
-	  (cl-mapcar-many cl-func (cons cl-x cl-rest))
+	  (cl--mapcar-many cl-func (cons cl-x cl-rest))
 	(let ((cl-res nil) (cl-y (car cl-rest)))
 	  (while (and cl-x cl-y)
 	    (push (funcall cl-func (pop cl-x) (pop cl-y)) cl-res))
 	  (nreverse cl-res)))
     (mapcar cl-func cl-x)))
 
-(defalias 'cl-svref 'aref)
+(cl--defalias 'cl-svref 'aref)
 
 ;;; List functions.
 
-(defalias 'cl-first 'car)
-(defalias 'cl-second 'cadr)
-(defalias 'cl-rest 'cdr)
-(defalias 'cl-endp 'null)
+(cl--defalias 'cl-first 'car)
+(cl--defalias 'cl-second 'cadr)
+(cl--defalias 'cl-rest 'cdr)
+(cl--defalias 'cl-endp 'null)
 
-(defun cl-third (x)
-  "Return the cl-third element of the list X."
-  (car (cdr (cdr x))))
+(cl--defalias 'cl-third 'cl-caddr "Return the third element of the list X.")
+(cl--defalias 'cl-fourth 'cl-cadddr "Return the fourth element of the list X.")
 
-(defun cl-fourth (x)
-  "Return the cl-fourth element of the list X."
-  (nth 3 x))
-
-(defun cl-fifth (x)
-  "Return the cl-fifth element of the list X."
+(defsubst cl-fifth (x)
+  "Return the fifth element of the list X."
   (nth 4 x))
 
-(defun cl-sixth (x)
-  "Return the cl-sixth element of the list X."
+(defsubst cl-sixth (x)
+  "Return the sixth element of the list X."
   (nth 5 x))
 
-(defun cl-seventh (x)
-  "Return the cl-seventh element of the list X."
+(defsubst cl-seventh (x)
+  "Return the seventh element of the list X."
   (nth 6 x))
 
-(defun cl-eighth (x)
-  "Return the cl-eighth element of the list X."
+(defsubst cl-eighth (x)
+  "Return the eighth element of the list X."
   (nth 7 x))
 
-(defun cl-ninth (x)
-  "Return the cl-ninth element of the list X."
+(defsubst cl-ninth (x)
+  "Return the ninth element of the list X."
   (nth 8 x))
 
-(defun cl-tenth (x)
-  "Return the cl-tenth element of the list X."
+(defsubst cl-tenth (x)
+  "Return the tenth element of the list X."
   (nth 9 x))
 
 (defun cl-caaar (x)
   "Return the `car' of the `car' of the `car' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (car (car (car x))))
 
 (defun cl-caadr (x)
   "Return the `car' of the `car' of the `cdr' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (car (car (cdr x))))
 
 (defun cl-cadar (x)
   "Return the `car' of the `cdr' of the `car' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (car (cdr (car x))))
 
 (defun cl-caddr (x)
   "Return the `car' of the `cdr' of the `cdr' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (car (cdr (cdr x))))
 
 (defun cl-cdaar (x)
   "Return the `cdr' of the `car' of the `car' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (cdr (car (car x))))
 
 (defun cl-cdadr (x)
   "Return the `cdr' of the `car' of the `cdr' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (cdr (car (cdr x))))
 
 (defun cl-cddar (x)
   "Return the `cdr' of the `cdr' of the `car' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (cdr (cdr (car x))))
 
 (defun cl-cdddr (x)
   "Return the `cdr' of the `cdr' of the `cdr' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (cdr (cdr (cdr x))))
 
 (defun cl-caaaar (x)
   "Return the `car' of the `car' of the `car' of the `car' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (car (car (car (car x)))))
 
 (defun cl-caaadr (x)
   "Return the `car' of the `car' of the `car' of the `cdr' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (car (car (car (cdr x)))))
 
 (defun cl-caadar (x)
   "Return the `car' of the `car' of the `cdr' of the `car' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (car (car (cdr (car x)))))
 
 (defun cl-caaddr (x)
   "Return the `car' of the `car' of the `cdr' of the `cdr' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (car (car (cdr (cdr x)))))
 
 (defun cl-cadaar (x)
   "Return the `car' of the `cdr' of the `car' of the `car' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (car (cdr (car (car x)))))
 
 (defun cl-cadadr (x)
   "Return the `car' of the `cdr' of the `car' of the `cdr' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (car (cdr (car (cdr x)))))
 
 (defun cl-caddar (x)
   "Return the `car' of the `cdr' of the `cdr' of the `car' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (car (cdr (cdr (car x)))))
 
 (defun cl-cadddr (x)
   "Return the `car' of the `cdr' of the `cdr' of the `cdr' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (car (cdr (cdr (cdr x)))))
 
 (defun cl-cdaaar (x)
   "Return the `cdr' of the `car' of the `car' of the `car' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (cdr (car (car (car x)))))
 
 (defun cl-cdaadr (x)
   "Return the `cdr' of the `car' of the `car' of the `cdr' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (cdr (car (car (cdr x)))))
 
 (defun cl-cdadar (x)
   "Return the `cdr' of the `car' of the `cdr' of the `car' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (cdr (car (cdr (car x)))))
 
 (defun cl-cdaddr (x)
   "Return the `cdr' of the `car' of the `cdr' of the `cdr' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (cdr (car (cdr (cdr x)))))
 
 (defun cl-cddaar (x)
   "Return the `cdr' of the `cdr' of the `car' of the `car' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (cdr (cdr (car (car x)))))
 
 (defun cl-cddadr (x)
   "Return the `cdr' of the `cdr' of the `car' of the `cdr' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (cdr (cdr (car (cdr x)))))
 
 (defun cl-cdddar (x)
   "Return the `cdr' of the `cdr' of the `cdr' of the `car' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (cdr (cdr (cdr (car x)))))
 
 (defun cl-cddddr (x)
   "Return the `cdr' of the `cdr' of the `cdr' of the `cdr' of X."
+  (declare (compiler-macro cl--compiler-macro-cXXr))
   (cdr (cdr (cdr (cdr x)))))
 
 ;;(defun last* (x &optional n)
@@ -557,7 +569,6 @@ Thus, `(cl-list* A B C D)' is equivalent to `(nconc (list A B C) D)', or to
 		  (last (nthcdr (- n 2) copy)))
 	     (setcdr last (car (cdr last)))
 	     (cons arg copy)))))
-(autoload 'cl--compiler-macro-list* "cl-macs")
 
 (defun cl-ldiff (list sublist)
   "Return a copy of LIST with the tail SUBLIST removed."
@@ -574,10 +585,6 @@ The elements of LIST are not copied, just the list structure itself."
 	(while (consp list) (push (pop list) res))
 	(prog1 (nreverse res) (setcdr res list)))
     (car list)))
-
-(defun cl-maclisp-member (item list)
-  (while (and list (not (equal item (car list)))) (setq list (cdr list)))
-  list)
 
 ;; Autoloaded, but we have not loaded cl-loaddefs yet.
 (declare-function cl-floor "cl-extra" (x &optional y))
@@ -598,7 +605,6 @@ Otherwise, return LIST unmodified.
 	((or (equal cl-keys '(:test equal)) (null cl-keys))
 	 (if (member cl-item cl-list) cl-list (cons cl-item cl-list)))
 	(t (apply 'cl--adjoin cl-item cl-list cl-keys))))
-(autoload 'cl--compiler-macro-adjoin "cl-macs")
 
 (defun cl-subst (cl-new cl-old cl-tree &rest cl-keys)
   "Substitute NEW for OLD everywhere in TREE (non-destructively).
@@ -607,13 +613,13 @@ Return a copy of TREE with all elements `eql' to OLD replaced by NEW.
 \n(fn NEW OLD TREE [KEYWORD VALUE]...)"
   (if (or cl-keys (and (numberp cl-old) (not (integerp cl-old))))
       (apply 'cl-sublis (list (cons cl-old cl-new)) cl-tree cl-keys)
-    (cl-do-subst cl-new cl-old cl-tree)))
+    (cl--do-subst cl-new cl-old cl-tree)))
 
-(defun cl-do-subst (cl-new cl-old cl-tree)
+(defun cl--do-subst (cl-new cl-old cl-tree)
   (cond ((eq cl-tree cl-old) cl-new)
 	((consp cl-tree)
-	 (let ((a (cl-do-subst cl-new cl-old (car cl-tree)))
-	       (d (cl-do-subst cl-new cl-old (cdr cl-tree))))
+	 (let ((a (cl--do-subst cl-new cl-old (car cl-tree)))
+	       (d (cl--do-subst cl-new cl-old (cdr cl-tree))))
 	   (if (and (eq a (car cl-tree)) (eq d (cdr cl-tree)))
 	       cl-tree (cons a d))))
 	(t cl-tree)))
