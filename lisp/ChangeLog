@@ -1,3 +1,45 @@
+2012-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (latex-indent): Recognize tex-verbatim at EOB
+	as well (bug#11646).
+
+	* loadup.el: Count byte-code functions as well.
+
+	* emacs-lisp/byte-opt.el (featurep): Move compiler-macro...
+	* emacs-lisp/bytecomp.el (featurep): ...here (bug#11692).
+
+	* emacs-lisp/autoload.el (make-autoload): Accept nil doc-string-elt
+	(bug#11649).  Add cl-defun and cl-defmacro.
+
+2012-06-13  Drew Adams  <drew.adams@oracle.com>
+
+	* help-mode.el (help-bookmark-make-record, help-bookmark-jump):
+	Fix last change.
+
+2012-06-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-call-method): Use timeout for `read-event'.
+	Otherwise, it blocks in batch mode.
+
+2012-06-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-mode.el (bookmark-make-record-default): Declare.
+
+2012-06-13  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/package.el (list-packages): Compute a list of
+	packages that are newly-available since the last list-packages
+	invocation.
+	(package-menu--new-package-list): New var.
+	(package-menu--generate, package-menu--print-info)
+	(package-menu--status-predicate, package-menu-mark-install):
+	Handle new status label "new".
+
+2012-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-remf): Fix error in recent
+	conversion to backquotes.
+
 2012-06-12  Chong Yidong  <cyd@gnu.org>
 
 	* emacs-lisp/edebug.el (edebug-inhibit-emacs-lisp-mode-bindings):
@@ -110,13 +152,13 @@
 	gid as real numbers.  They could run out of integer range on cygwin.
 	(tramp-do-copy-or-rename-file-out-of-band): Better trace format.
 	(tramp-sh-handle-expand-file-name): Handle hops.
-	(tramp-open-connection-setup-interactive-shell): Use
-	`tramp-cleanup'.  Move check for busyboxes ...
-	(tramp-find-shell): ... here.  Simplify implementation.  Set
-	"remote-shell" property also for alternative shells.
-	(tramp-remote-coding-commands): Check "test -c /dev/stdout".  If
-	failing, a regular file would be written otherwise.  Reported by
-	Dmitry Kurochkin <dmitry.kurochkin@gmail.com>.
+	(tramp-open-connection-setup-interactive-shell):
+	Use `tramp-cleanup'.  Move check for busyboxes ...
+	(tramp-find-shell): ... here.  Simplify implementation.
+	Set "remote-shell" property also for alternative shells.
+	(tramp-remote-coding-commands): Check "test -c /dev/stdout".
+	If failing, a regular file would be written otherwise.
+	Reported by Dmitry Kurochkin <dmitry.kurochkin@gmail.com>.
 	(tramp-find-inline-encoding): Cache the coding commands in the
 	process cache.  Apply test command on the remote side, if defined.
 	(tramp-find-inline-compress): Cache the compress commands in the
@@ -124,15 +166,15 @@
 	(tramp-compute-multi-hops): Save `tramp-default-proxies-alist'
 	when requested.  Handle hops.
 	(tramp-current-connection): New defvar.
-	(tramp-maybe-open-connection): Use `tramp-cleanup'.  Throw
-	`suppress', if there was a failed connection shortly before.
+	(tramp-maybe-open-connection): Use `tramp-cleanup'.
+	Throw `suppress', if there was a failed connection shortly before.
 	Handle user interrupt.  (Bug#10187)
-	(tramp-get-inline-compress, tramp-get-inline-coding): Read
-	connection properties from the process cache.
+	(tramp-get-inline-compress, tramp-get-inline-coding):
+	Read connection properties from the process cache.
 
 	* net/tramp-smb.el (tramp-smb-server-version)
-	(tramp-smb-wrong-passwd-regexp, tramp-smb-actions-with-tar): New
-	defconsts.
+	(tramp-smb-wrong-passwd-regexp, tramp-smb-actions-with-tar):
+	New defconsts.
 	(tramp-smb-prompt): Extend for powershell prompt.
 	(tramp-smb-file-name-handler-alist): Add handlers for
 	`process-file', `shell-command' and `start-file-process'.
@@ -146,17 +188,17 @@
 	Implement using "tar".  By this, time-stamps are preserved.
 	(tramp-smb-handle-copy-file): Handle also the case of directories.
 	(tramp-smb-do-file-attributes-with-stat)
-	(tramp-smb-get-file-entries, tramp-smb-get-cifs-capabilities): Use
-	`tramp-get-connection-buffer').
+	(tramp-smb-get-file-entries, tramp-smb-get-cifs-capabilities):
+	Use `tramp-get-connection-buffer').
 	(tramp-smb-handle-rename-file): Use "rename", when source and
 	target are on the same share.
-	(tramp-smb-maybe-open-connection): Handle wrong passwords.  Use
-	`tramp-smb-server-version'.
+	(tramp-smb-maybe-open-connection): Handle wrong passwords.
+	Use `tramp-smb-server-version'.
 	(tramp-smb-wait-for-output): Remove prompt.
 
 	* net/tramp.el (top): Require 'cl.
-	(tramp-methods, tramp-rsh-end-of-line): Remove
-	`tramp-password-end-of-line' from docstring.
+	(tramp-methods, tramp-rsh-end-of-line):
+	Remove `tramp-password-end-of-line' from docstring.
 	(tramp-save-ad-hoc-proxies): New defcustom.
 	(tramp-completion-function-alist): Adapt docstring.
 	(tramp-default-password-end-of-line): Remove defcustom.
@@ -176,8 +218,8 @@
 	`tramp-message-show-message' here, because this suppresses also
 	error buffers.
 	(tramp-error-with-buffer): Suppress buffer view, if
-	`tramp-message-show-message' is nil.  Use
-	`tramp-get-connection-buffer'.
+	`tramp-message-show-message' is nil.
+	Use `tramp-get-connection-buffer'.
 	(tramp-cleanup): New defun.
 	(tramp-rfn-eshadow-update-overlay): Let-bind `non-essential' to `t'.
 	(tramp-file-name-handler): If `debug-on-error' is set, propagate
@@ -195,8 +237,8 @@
 	(tramp-action-password): ... here.
 	(tramp-mode-string-to-int, tramp-local-host-p)
 	(tramp-make-tramp-temp-file, tramp-read-passwd)
-	(tramp-clear-passwd, tramp-time-less-p, tramp-time-diff): Set
-	tramp-autoload cookie.
+	(tramp-clear-passwd, tramp-time-less-p, tramp-time-diff):
+	Set tramp-autoload cookie.
 
 	* net/trampver.el: Update release number.
 
