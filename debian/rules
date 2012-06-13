@@ -585,6 +585,9 @@ override_dh_install-arch:
 	$(call inst_manpage,$(EMACS_LUCID),${bin_name},${bin_name}-lucid,${bin_name}-lucid)
 	$(call inst_overrides,lintian,$(EMACS_LUCID),${bin_name}-lucid)
 
+override_dh_installemacsen:
+	dh_installemacsen --flavor=emacs-snapshot --priority=00
+
 override_dh_strip:
 	dh_strip --dbg-package=emacs-snapshot-dbg
 
