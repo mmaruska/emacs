@@ -1,5 +1,20 @@
 2012-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el: Require cl-lib.
+	(file-name-non-special): Replace case -> cl-case.
+
+	* emacs-lisp/cl-macs.el (cl-defstruct): Don't add print-func.
+
+	* emacs-lisp/edebug.el (edebug-read-function): Remove old incorrect
+	mapping from #' to function*.
+
+2012-06-13  Chong Yidong  <cyd@gnu.org>
+
+	* mouse.el (mouse-drag-track): Do not set the mark if the user
+	releases the mouse without selecting anything (Bug#11588).
+
+2012-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* textmodes/tex-mode.el (latex-indent): Recognize tex-verbatim at EOB
 	as well (bug#11646).
 
