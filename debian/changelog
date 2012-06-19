@@ -1,4 +1,4 @@
-emacs-snapshot (2:20120531-1) release; urgency=low
+emacs-snapshot (2:20120619-1) release; urgency=low
 
   [ Julien Danjou ]
   * New snapshot
@@ -32,7 +32,34 @@ emacs-snapshot (2:20120531-1) release; urgency=low
   * WM_CLIENT_MACHINE
   * fix a comment
 
- -- Michal Maruska <mmaruska@gmail.com>  Thu, 31 May 2012 20:34:27 +0200
+  [ Michael Olson ]
+  * Info-default-directory-list includes /usr/share/info/emacs-snapshot
+
+  [ Rob Browning ]
+  * Define a Debian-specific Emacs flavor
+
+  [ Romain Francoise ]
+  * `mail-from-style' is set to 'system-default by default
+  * M-x report-emacs-bug includes the package version
+
+  [ Julien Danjou ]
+  * Debian-related items were added to the Help menu
+
+  [ Romain Francoise ]
+  * (describe-copying) uses /usr/share/common-licenses/GPL
+  * Emacs is built without RPATH.
+
+  [ Rob Browning ]
+  * (emacs-version) has been modified to indicate Debian modifications
+
+  [ Romain Francoise ]
+  * Some documentation references to /usr/local have been changed to /usr
+  * Emacs now invokes the correct xmlstarlet executable on Debian systems.
+
+  [ Julien Danjou ]
+  * Set org-ditaa-jar-path correctly
+
+ -- Michal Maruska <mmaruska@gmail.com>  Tue, 19 Jun 2012 10:45:22 +0200
 
 emacs-snapshot (2:20120523-1) unstable; urgency=low
 
