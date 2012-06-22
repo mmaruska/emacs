@@ -1,4 +1,4 @@
-;;; python.el --- Python's flying circus support for Emacs
+;;; python.el --- Python's flying circus support for Emacs -*- coding: utf-8 -*-
 
 ;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
 
@@ -50,7 +50,7 @@
 ;; (`python-nav-forward-sentence', `python-nav-backward-sentence'
 ;; respectively).  Extra functions `python-nav-sentence-start' and
 ;; `python-nav-sentence-end' are included to move to the beginning and
-;; to the end of a setence while taking care of multiline definitions.
+;; to the end of a sentence while taking care of multiline definitions.
 ;; `python-nav-jump-to-defun' is provided and allows jumping to a
 ;; function or class definition quickly in the current buffer.
 
@@ -126,7 +126,7 @@
 ;;        "VIRTUAL_ENV=/path/to/env/"))
 ;; (python-shell-exec-path . ("/path/to/env/bin/"))
 
-;; Since the above is cumbersome and can be programatically
+;; Since the above is cumbersome and can be programmatically
 ;; calculated, the variable `python-shell-virtualenv-path' is
 ;; provided.  When this variable is set with the path of the
 ;; virtualenv to use, `process-environment' and `exec-path' get proper
@@ -308,29 +308,31 @@
 
 (eval-when-compile
   (defconst python-rx-constituents
-    (list
-     `(block-start          . ,(rx symbol-start
+    `((block-start          . ,(rx symbol-start
                                    (or "def" "class" "if" "elif" "else" "try"
                                        "except" "finally" "for" "while" "with")
                                    symbol-end))
-     `(decorator            . ,(rx line-start (* space) ?@ (any letter ?_)
+      (decorator            . ,(rx line-start (* space) ?@ (any letter ?_)
                                    (* (any word ?_))))
-     `(defun                . ,(rx symbol-start (or "def" "class") symbol-end))
-     `(if-name-main         . ,(rx line-start "if" (+ space) "__name__"
+      (defun                . ,(rx symbol-start (or "def" "class") symbol-end))
+      (if-name-main         . ,(rx line-start "if" (+ space) "__name__"
                                    (+ space) "==" (+ space)
                                    (any ?' ?\") "__main__" (any ?' ?\")
                                    (* space) ?:))
-     `(symbol-name          . ,(rx (any letter ?_) (* (any word ?_))))
-     `(open-paren           . ,(rx (or "{" "[" "(")))
-     `(close-paren          . ,(rx (or "}" "]" ")")))
-     `(simple-operator      . ,(rx (any ?+ ?- ?/ ?& ?^ ?~ ?| ?* ?< ?> ?= ?%)))
-     `(not-simple-operator  . ,(rx
+      (symbol-name          . ,(rx (any letter ?_) (* (any word ?_))))
+      (open-paren           . ,(rx (or "{" "[" "(")))
+      (close-paren          . ,(rx (or "}" "]" ")")))
+      (simple-operator      . ,(rx (any ?+ ?- ?/ ?& ?^ ?~ ?| ?* ?< ?> ?= ?%)))
+      ;; FIXME: rx should support (not simple-operator).
+      (not-simple-operator  . ,(rx
                                 (not
                                  (any ?+ ?- ?/ ?& ?^ ?~ ?| ?* ?< ?> ?= ?%))))
-     `(operator             . ,(rx (or "+" "-" "/" "&" "^" "~" "|" "*" "<" ">"
+      ;; FIXME: Use regexp-opt.
+      (operator             . ,(rx (or "+" "-" "/" "&" "^" "~" "|" "*" "<" ">"
                                        "=" "%" "**" "//" "<<" ">>" "<=" "!="
                                        "==" ">=" "is" "not")))
-     `(assignment-operator  . ,(rx (or "=" "+=" "-=" "*=" "/=" "//=" "%=" "**="
+      ;; FIXME: Use regexp-opt.
+      (assignment-operator  . ,(rx (or "=" "+=" "-=" "*=" "/=" "//=" "%=" "**="
                                        ">>=" "<<=" "&=" "^=" "|="))))
     "Additional Python specific sexps for `python-rx'"))
 
@@ -426,7 +428,7 @@ This variant of `rx' supports common python named REGEXPS."
            ;; Extra:
            "__all__" "__doc__" "__name__" "__package__")
           symbol-end) . font-lock-builtin-face)
-    ;; asignations
+    ;; assignments
     ;; support for a = b = c = 5
     (,(lambda (limit)
         (let ((re (python-rx (group (+ (any word ?. ?_)))
@@ -703,7 +705,7 @@ START is the buffer position where the sexp starts."
           ('inside-string
            (goto-char context-start)
            (current-indentation))
-          ;; After backslash we have several posibilities
+          ;; After backslash we have several possibilities.
           ('after-backslash
            (cond
             ;; Check if current line is a dot continuation.  For this
@@ -758,12 +760,12 @@ START is the buffer position where the sexp starts."
                  (current-column))))
             (t
              (forward-line -1)
-             (goto-char (python-info-beginning-of-backlash))
+             (goto-char (python-info-beginning-of-backslash))
              (if (save-excursion
                    (and
                     (forward-line -1)
                     (goto-char
-                     (or (python-info-beginning-of-backlash) (point)))
+                     (or (python-info-beginning-of-backslash) (point)))
                     (python-info-line-ends-backslash-p)))
                  ;; The two previous lines ended in a backslash so we must
                  ;; respect previous line indentation.
@@ -776,7 +778,7 @@ START is the buffer position where the sexp starts."
           ;; correctly
           ('inside-paren
            (cond
-            ;; If current line closes the outtermost open paren use the
+            ;; If current line closes the outermost open paren use the
             ;; current indentation of the context-start line.
             ((save-excursion
                (skip-syntax-forward "\s" (line-end-position))
@@ -1261,7 +1263,7 @@ Restart the python shell after changing this variable for it to take effect."
 
 (defcustom python-shell-send-setup-max-wait 5
   "Seconds to wait for process output before code setup.
-If output is received before the especified time then control is
+If output is received before the specified time then control is
 returned in that moment and not after waiting."
   :type 'integer
   :group 'python
@@ -1569,10 +1571,10 @@ there for compatibility with CEDET.")
     (get-buffer-process proc-buffer-name)))
 
 (define-obsolete-function-alias
-  'python-proc 'python-shell-internal-get-or-create-process "23.3")
+  'python-proc 'python-shell-internal-get-or-create-process "24.2")
 
 (define-obsolete-variable-alias
-  'python-buffer 'python-shell-internal-buffer "23.3")
+  'python-buffer 'python-shell-internal-buffer "24.2")
 
 (defun python-shell-send-string (string &optional process msg)
   "Send STRING to inferior Python PROCESS.
@@ -1627,10 +1629,10 @@ Returns the output.  See `python-shell-send-string-no-output'."
    (python-shell-internal-get-or-create-process) nil))
 
 (define-obsolete-function-alias
-  'python-send-receive 'python-shell-internal-send-string "23.3")
+  'python-send-receive 'python-shell-internal-send-string "24.2")
 
 (define-obsolete-function-alias
-  'python-send-string 'python-shell-internal-send-string "23.3")
+  'python-send-string 'python-shell-internal-send-string "24.2")
 
 (defun python-shell-send-region (start end)
   "Send the region delimited by START and END to inferior Python process."
@@ -1811,7 +1813,7 @@ completions on the current context."
                (overlay-start comint-last-prompt-overlay)
                (overlay-end comint-last-prompt-overlay))))
            (completion-context
-            ;; Check wether a prompt matches a pdb string, an import statement
+            ;; Check whether a prompt matches a pdb string, an import statement
             ;; or just the standard prompt and use the correct
             ;; python-shell-completion-*-code string
             (cond ((and (> (length python-shell-completion-pdb-string-code) 0)
@@ -2146,6 +2148,7 @@ the if condition."
   "Define a `python-mode' skeleton using NAME DOC and SKEL.
 The skeleton will be bound to python-skeleton-NAME and will
 be added to `python-mode-abbrev-table'."
+  (declare (indent 2))
   (let* ((name (symbol-name name))
          (function-name (intern (concat "python-skeleton-" name))))
     `(progn
@@ -2156,11 +2159,11 @@ be added to `python-mode-abbrev-table'."
          ,(or doc
               (format "Insert %s statement." name))
          ,@skel))))
-(put 'python-skeleton-define 'lisp-indent-function 2)
 
 (defmacro python-define-auxiliary-skeleton (name doc &optional &rest skel)
   "Define a `python-mode' auxiliary skeleton using NAME DOC and SKEL.
 The skeleton will be bound to python-skeleton-NAME."
+  (declare (indent 2))
   (let* ((name (symbol-name name))
          (function-name (intern (concat "python-skeleton--" name)))
          (msg (format
@@ -2176,7 +2179,6 @@ The skeleton will be bound to python-skeleton-NAME."
        (unless (y-or-n-p ,msg)
          (signal 'quit t))
        ,@skel)))
-(put 'python-define-auxiliary-skeleton 'lisp-indent-function 2)
 
 (python-define-auxiliary-skeleton else nil)
 
@@ -2474,7 +2476,7 @@ It can contain a \"%s\" which will be replaced with the root name."
 
 (defun python-imenu-make-element-tree (element-list full-element plain-index)
   "Make a tree from plain alist of module names.
-ELEMENT-LIST is the defun name splitted by \".\" and FULL-ELEMENT
+ELEMENT-LIST is the defun name split by \".\" and FULL-ELEMENT
 is the same thing, the difference is that FULL-ELEMENT remains
 untouched in all recursive calls.
 Argument PLAIN-INDEX is the calculated plain index used to build the tree."
@@ -2497,7 +2499,7 @@ Argument PLAIN-INDEX is the calculated plain index used to build the tree."
               (push (cons subelement-name subelement-point)
                     python-imenu-index-alist)
             (when (not (listp (cdr path-ref)))
-              ;; Modifiy root cdr to be a list
+              ;; Modify root cdr to be a list.
               (setcdr path-ref
                       (list (cons (format python-imenu-subtree-root-label
                                           (car path-ref))
@@ -2644,8 +2646,8 @@ With optional argument LINE-NUMBER, check that line instead."
       (when (equal (char-before) ?\\)
         (point-marker)))))
 
-(defun python-info-beginning-of-backlash (&optional line-number)
-  "Return the point where the backlashed line start.
+(defun python-info-beginning-of-backslash (&optional line-number)
+  "Return the point where the backslashed line start.
 Optional argument LINE-NUMBER forces the line number to check against."
   (save-excursion
     (save-restriction
@@ -2800,7 +2802,7 @@ Optional argument DIRECTION defines the direction to move to."
 
 
 ;;;###autoload
-(define-derived-mode python-mode fundamental-mode "Python"
+(define-derived-mode python-mode prog-mode "Python"
   "Major mode for editing Python files.
 
 \\{python-mode-map}

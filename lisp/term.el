@@ -919,11 +919,12 @@ is buffer-local."
 (defvar overflow-newline-into-fringe)
 
 (defun term-window-width ()
-  (if (featurep 'xemacs)
-      (1- (window-width))
-    (if (and window-system overflow-newline-into-fringe)
-	(window-width)
-      (1- (window-width)))))
+  (if (and (not (featurep 'xemacs))
+	   (display-graphic-p)
+	   overflow-newline-into-fringe
+	   (/= (frame-parameter nil 'right-fringe) 0))
+      (window-width)
+    (1- (window-width))))
 
 
 (put 'term-mode 'mode-class 'special)
@@ -963,7 +964,7 @@ is buffer-local."
   (setq term-ansi-face-already-done t)
   (setq term-ansi-current-bg-color 0))
 
-(defun term-mode ()
+(define-derived-mode term-mode fundamental-mode "Term"
   "Major mode for interacting with an inferior interpreter.
 The interpreter name is same as buffer name, sans the asterisks.
 
@@ -1007,56 +1008,38 @@ Commands in line mode:
 \\{term-mode-map}
 
 Entry to this mode runs the hooks on `term-mode-hook'."
-  (interactive)
-  ;; Do not remove this.  All major modes must do this.
-  (kill-all-local-variables)
-  (setq major-mode 'term-mode)
-  (setq mode-name "Term")
-  (use-local-map term-mode-map)
   ;; we do not want indent to sneak in any tabs
   (setq indent-tabs-mode nil)
   (setq buffer-display-table term-display-table)
-  (make-local-variable 'term-home-marker)
-  (setq term-home-marker (copy-marker 0))
+  (set (make-local-variable 'term-home-marker) (copy-marker 0))
+  (set (make-local-variable 'term-height) (1- (window-height)))
+  (set (make-local-variable 'term-width) (term-window-width))
+  (set (make-local-variable 'term-last-input-start) (make-marker))
+  (set (make-local-variable 'term-last-input-end) (make-marker))
+  (set (make-local-variable 'term-last-input-match) "")
+  (set (make-local-variable 'term-command-hook)
+       (symbol-function 'term-command-hook))
+
+  ;; These local variables are set to their local values:
   (make-local-variable 'term-saved-home-marker)
-  (make-local-variable 'term-height)
-  (make-local-variable 'term-width)
-  (setq term-width (term-window-width))
-  (setq term-height (1- (window-height)))
   (make-local-variable 'term-terminal-parameter)
   (make-local-variable 'term-saved-cursor)
-  (make-local-variable 'term-last-input-start)
-  (setq term-last-input-start (make-marker))
-  (make-local-variable 'term-last-input-end)
-  (setq term-last-input-end (make-marker))
-  (make-local-variable 'term-last-input-match)
-  (setq term-last-input-match "")
-  (make-local-variable 'term-prompt-regexp) ; Don't set; default
-  (make-local-variable 'term-input-ring-size) ; ...to global val.
+  (make-local-variable 'term-prompt-regexp)
+  (make-local-variable 'term-input-ring-size)
   (make-local-variable 'term-input-ring)
   (make-local-variable 'term-input-ring-file-name)
-  (or (and (boundp 'term-input-ring) term-input-ring)
-      (setq term-input-ring (make-ring term-input-ring-size)))
   (make-local-variable 'term-input-ring-index)
-  (or (and (boundp 'term-input-ring-index) term-input-ring-index)
-      (setq term-input-ring-index nil))
-
-  (make-local-variable 'term-command-hook)
-  (setq term-command-hook (symbol-function 'term-command-hook))
+  (unless term-input-ring
+    (setq term-input-ring (make-ring term-input-ring-size)))
 
   ;; I'm not sure these saves are necessary but, since I
   ;; haven't tested the whole thing on a net connected machine with
   ;; a properly configured ange-ftp, I've decided to be conservative
   ;; and put them in. -mm
 
-  (make-local-variable 'term-ansi-at-host)
-  (setq term-ansi-at-host (system-name))
-
-  (make-local-variable 'term-ansi-at-dir)
-  (setq term-ansi-at-dir default-directory)
-
-  (make-local-variable 'term-ansi-at-message)
-  (setq term-ansi-at-message nil)
+  (set (make-local-variable 'term-ansi-at-host) (system-name))
+  (set (make-local-variable 'term-ansi-at-dir) default-directory)
+  (set (make-local-variable 'term-ansi-at-message) nil)
 
   ;; For user tracking purposes -mm
   (make-local-variable 'ange-ftp-default-user)
@@ -1089,8 +1072,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (make-local-variable 'term-current-row)
   (make-local-variable 'term-log-buffer)
   (make-local-variable 'term-scroll-start)
-  (make-local-variable 'term-scroll-end)
-  (setq term-scroll-end term-height)
+  (set (make-local-variable 'term-scroll-end) term-height)
   (make-local-variable 'term-scroll-with-delete)
   (make-local-variable 'term-pager-count)
   (make-local-variable 'term-pager-old-local-map)
@@ -1112,15 +1094,15 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (make-local-variable 'term-ptyp)
   (make-local-variable 'term-exec-hook)
   (make-local-variable 'term-vertical-motion)
-  (make-local-variable 'term-pending-delete-marker)
-  (setq term-pending-delete-marker (make-marker))
+  (set (make-local-variable 'term-pending-delete-marker) (make-marker))
   (make-local-variable 'term-current-face)
   (term-ansi-reset)
-  (make-local-variable 'term-pending-frame)
-  (setq term-pending-frame nil)
+  (set (make-local-variable 'term-pending-frame) nil)
   ;; Cua-mode's keybindings interfere with the term keybindings, disable it.
   (set (make-local-variable 'cua-mode) nil)
-  (run-mode-hooks 'term-mode-hook)
+
+  (set (make-local-variable 'font-lock-defaults) '(nil t))
+
   (when (featurep 'xemacs)
     (set-buffer-menubar
      (append current-menubar (list term-terminal-menu))))
@@ -1165,9 +1147,9 @@ Entry to this mode runs the hooks on `term-mode-hook'."
     found))
 
 (defun term-check-size (process)
-  (when (or (/= term-height (1- (window-height)))
+  (when (or (/= term-height (window-text-height))
 	    (/= term-width (term-window-width)))
-    (term-reset-size (1- (window-height)) (term-window-width))
+    (term-reset-size (window-text-height) (term-window-width))
     (set-process-window-size process term-height term-width)))
 
 (defun term-send-raw-string (chars)
@@ -1192,21 +1174,21 @@ without any interpretation."
 (defun term-send-raw-meta ()
   (interactive)
   (let ((char last-input-event))
-    (when (symbolp last-input-event)
+    (when (symbolp char)
       ;; Convert `return' to C-m, etc.
       (let ((tmp (get char 'event-symbol-elements)))
-	(when tmp
-	  (setq char (car tmp)))
-	(when (symbolp char)
-	  (setq tmp (get char 'ascii-character))
-	  (when tmp
-	    (setq char tmp)))))
-    (setq char (event-basic-type char))
-    (term-send-raw-string (if (and (numberp char)
-				   (> char 127)
-				   (< char 256))
-			      (make-string 1 char)
-			    (format "\e%c" char)))))
+	(if tmp (setq char (car tmp)))
+	(and (symbolp char)
+	     (setq tmp (get char 'ascii-character))
+	     (setq char tmp))))
+    (when (numberp char)
+      (let ((base (event-basic-type char))
+	    (mods (delq 'meta (event-modifiers char))))
+	(if (memq 'control mods)
+	    (setq mods (delq 'shift mods)))
+	(term-send-raw-string
+	 (format "\e%c"
+		 (event-convert-list (append mods (list base)))))))))
 
 (defun term-mouse-paste (click)
   "Insert the primary selection at the position clicked on."
@@ -2603,13 +2585,13 @@ See `term-prompt-regexp'."
     ;; from the last character on the line, set the face for the chars
     ;; to default.
     (when (> (point) point-at-eol)
-      (put-text-property point-at-eol (point) 'face 'default))))
+      (put-text-property point-at-eol (point) 'font-lock-face 'default))))
 
 ;; Insert COUNT copies of CHAR in the default face.
 (defun term-insert-char (char count)
   (let ((old-point (point)))
     (insert-char char count)
-    (put-text-property old-point (point) 'face 'default)))
+    (put-text-property old-point (point) 'font-lock-face 'default)))
 
 (defun term-current-row ()
   (cond (term-current-row)
@@ -2710,10 +2692,8 @@ See `term-prompt-regexp'."
 	   (str-length (length str)))
       (save-selected-window
 
-	;; Let's handle the messages. -mm
-
-        (let* ((newstr (term-handle-ansi-terminal-messages str)))
-          (when (not (eq str newstr))
+        (let ((newstr (term-handle-ansi-terminal-messages str)))
+          (unless (eq str newstr)
 	    (setq handled-ansi-message t
 		  str newstr)))
         (setq str-length (length str))
@@ -2723,18 +2703,19 @@ See `term-prompt-regexp'."
 	  (delete-region term-pending-delete-marker (process-mark proc))
 	  (set-marker term-pending-delete-marker nil))
 
+	(when (/= (point) (process-mark proc))
+	  (setq save-point (point-marker)))
+
+	;; Note if the window size has changed.  We used to reset
+	;; point too, but that gives incorrect results (Bug#4635).
 	(if (eq (window-buffer) (current-buffer))
 	    (progn
 	      (setq term-vertical-motion (symbol-function 'vertical-motion))
 	      (term-check-size proc))
 	  (setq term-vertical-motion
 		(symbol-function 'term-buffer-vertical-motion)))
-
 	(setq save-marker (copy-marker (process-mark proc)))
-
-	(when (/= (point) (process-mark proc))
-	  (setq save-point (point-marker))
-	  (goto-char (process-mark proc)))
+	(goto-char (process-mark proc))
 
 	(save-restriction
 	  ;; If the buffer is in line mode, and there is a partial
@@ -2834,7 +2815,7 @@ See `term-prompt-regexp'."
 			  (setq term-current-column nil)
 
 			  (put-text-property old-point (point)
-					     'face term-current-face)
+					     'font-lock-face term-current-face)
 			  ;; If the last char was written in last column,
 			  ;; back up one column, but remember we did so.
 			  ;; Thus we emulate xterm/vt100-style line-wrapping.
@@ -3734,7 +3715,7 @@ all pending output has been dealt with."))
       (when wrapped
 	(insert ? ))
       (insert ?\n)
-      (put-text-property saved-point (point) 'face 'default)
+      (put-text-property saved-point (point) 'font-lock-face 'default)
       (goto-char saved-point))))
 
 (defun term-erase-in-display (kind)
@@ -3782,7 +3763,7 @@ if KIND is 1, erase from home to point; else erase from home to point-max."
     ;; from the last character on the line, set the face for the chars
     ;; to default.
     (when (>= (point) pnt-at-eol)
-      (put-text-property pnt-at-eol (point) 'face 'default))
+      (put-text-property pnt-at-eol (point) 'font-lock-face 'default))
     (when (> save-eol (point))
       (delete-region (point) save-eol))
     (goto-char save-point)

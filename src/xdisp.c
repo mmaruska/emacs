@@ -281,8 +281,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "termchar.h"
 #include "dispextern.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "charset.h"
 #include "indent.h"
 #include "commands.h"
@@ -3691,7 +3691,8 @@ handle_face_prop (struct it *it)
       int i;
       Lisp_Object from_overlay
 	= (it->current.overlay_string_index >= 0
-	   ? it->string_overlays[it->current.overlay_string_index]
+	   ? it->string_overlays[it->current.overlay_string_index
+				 % OVERLAY_STRING_CHUNK_SIZE]
 	   : Qnil);
 
       /* See if we got to this string directly or indirectly from
@@ -3705,7 +3706,8 @@ handle_face_prop (struct it *it)
 	  {
 	    if (it->stack[i].current.overlay_string_index >= 0)
 	      from_overlay
-		= it->string_overlays[it->stack[i].current.overlay_string_index];
+		= it->string_overlays[it->stack[i].current.overlay_string_index
+				      % OVERLAY_STRING_CHUNK_SIZE];
 	    else if (! NILP (it->stack[i].from_overlay))
 	      from_overlay = it->stack[i].from_overlay;
 
@@ -8354,9 +8356,9 @@ move_it_in_display_line_to (struct it *it,
 			  /* On graphical terminals, newlines may
 			     "overflow" into the fringe if
 			     overflow-newline-into-fringe is non-nil.
-			     On text-only terminals, newlines may
-			     overflow into the last glyph on the
-			     display line.*/
+			     On text terminals, newlines may overflow
+			     into the last glyph on the display
+			     line.*/
 			  if (!FRAME_WINDOW_P (it->f)
 			      || IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 			    {
@@ -10819,7 +10821,8 @@ static Lisp_Object mode_line_string_face_prop;
 static Lisp_Object Vmode_line_unwind_vector;
 
 static Lisp_Object
-format_mode_line_unwind_data (struct buffer *obuf,
+format_mode_line_unwind_data (struct frame *target_frame,
+			      struct buffer *obuf,
 			      Lisp_Object owin,
 			      int save_proptrans)
 {
@@ -10831,7 +10834,7 @@ format_mode_line_unwind_data (struct buffer *obuf,
   Vmode_line_unwind_vector = Qnil;
 
   if (NILP (vector))
-    vector = Fmake_vector (make_number (8), Qnil);
+    vector = Fmake_vector (make_number (10), Qnil);
 
   ASET (vector, 0, make_number (mode_line_target));
   ASET (vector, 1, make_number (MODE_LINE_NOPROP_LEN (0)));
@@ -10846,6 +10849,15 @@ format_mode_line_unwind_data (struct buffer *obuf,
     tmp = Qnil;
   ASET (vector, 6, tmp);
   ASET (vector, 7, owin);
+  if (target_frame)
+    {
+      /* Similarly to `with-selected-window', if the operation selects
+	 a window on another frame, we must restore that frame's
+	 selected window, and (for a tty) the top-frame.  */
+      ASET (vector, 8, target_frame->selected_window);
+      if (FRAME_TERMCAP_P (target_frame))
+	ASET (vector, 9, FRAME_TTY (target_frame)->top_frame);
+    }
 
   return vector;
 }
@@ -10853,6 +10865,10 @@ format_mode_line_unwind_data (struct buffer *obuf,
 static Lisp_Object
 unwind_format_mode_line (Lisp_Object vector)
 {
+  Lisp_Object old_window = AREF (vector, 7);
+  Lisp_Object target_frame_window = AREF (vector, 8);
+  Lisp_Object old_top_frame = AREF (vector, 9);
+
   mode_line_target = XINT (AREF (vector, 0));
   mode_line_noprop_ptr = mode_line_noprop_buf + XINT (AREF (vector, 1));
   mode_line_string_list = AREF (vector, 2);
@@ -10861,9 +10877,26 @@ unwind_format_mode_line (Lisp_Object vector)
   mode_line_string_face = AREF (vector, 4);
   mode_line_string_face_prop = AREF (vector, 5);
 
-  if (!NILP (AREF (vector, 7)))
-    /* Select window before buffer, since it may change the buffer.  */
-    Fselect_window (AREF (vector, 7), Qt);
+  /* Select window before buffer, since it may change the buffer.  */
+  if (!NILP (old_window))
+    {
+      /* If the operation that we are unwinding had selected a window
+	 on a different frame, reset its frame-selected-window.  For a
+	 text terminal, reset its top-frame if necessary.  */
+      if (!NILP (target_frame_window))
+	{
+	  Lisp_Object frame
+	    = WINDOW_FRAME (XWINDOW (target_frame_window));
+
+	  if (!EQ (frame, WINDOW_FRAME (XWINDOW (old_window))))
+	    Fselect_window (target_frame_window, Qt);
+
+	  if (!NILP (old_top_frame) && !EQ (old_top_frame, frame))
+	    Fselect_frame (old_top_frame, Qt);
+	}
+
+      Fselect_window (old_window, Qt);
+    }
 
   if (!NILP (AREF (vector, 6)))
     {
@@ -10979,7 +11012,7 @@ x_consider_frame_title (Lisp_Object frame)
 	 mode_line_noprop_buf; then display the title.  */
       record_unwind_protect (unwind_format_mode_line,
 			     format_mode_line_unwind_data
-			        (current_buffer, selected_window, 0));
+			       (f, current_buffer, selected_window, 0));
 
       Fselect_window (f->selected_window, Qt);
       set_buffer_internal_1 (XBUFFER (XWINDOW (f->selected_window)->buffer));
@@ -11007,8 +11040,6 @@ x_consider_frame_title (Lisp_Object frame)
 }
 
 #endif /* not HAVE_WINDOW_SYSTEM */
-
-
 
 
 /***********************************************************************
@@ -13315,6 +13346,12 @@ redisplay_internal (void)
 	{
 	  struct frame *f = XFRAME (frame);
 
+	  /* We don't have to do anything for unselected terminal
+	     frames.  */
+	  if ((FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
+	      && !EQ (FRAME_TTY (f)->top_frame, frame))
+	    continue;
+
 	  if (FRAME_WINDOW_P (f) || FRAME_TERMCAP_P (f) || f == sf)
 	    {
 	      if (! EQ (frame, selected_frame))
@@ -13935,16 +13972,13 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 		    break;
 		  }
 		/* See if we've found a better approximation to
-		   POS_BEFORE or to POS_AFTER.  Note that we want the
-		   first (leftmost) glyph of all those that are the
-		   closest from below, and the last (rightmost) of all
-		   those from above.  */
+		   POS_BEFORE or to POS_AFTER.  */
 		if (0 > dpos && dpos > pos_before - pt_old)
 		  {
 		    pos_before = glyph->charpos;
 		    glyph_before = glyph;
 		  }
-		else if (0 < dpos && dpos <= pos_after - pt_old)
+		else if (0 < dpos && dpos < pos_after - pt_old)
 		  {
 		    pos_after = glyph->charpos;
 		    glyph_after = glyph;
@@ -14028,7 +14062,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 		    pos_before = glyph->charpos;
 		    glyph_before = glyph;
 		  }
-		else if (0 < dpos && dpos <= pos_after - pt_old)
+		else if (0 < dpos && dpos < pos_after - pt_old)
 		  {
 		    pos_after = glyph->charpos;
 		    glyph_after = glyph;
@@ -14260,6 +14294,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	     the cursor is not on this line.  */
 	  if (cursor == NULL
 	      && (row->reversed_p ? glyph <= end : glyph >= end)
+	      && (row->reversed_p ? end > glyphs_end : end < glyphs_end)
 	      && STRINGP (end->object)
 	      && row->continued_p)
 	    return 0;
@@ -14289,6 +14324,21 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
  compute_x:
   if (cursor != NULL)
     glyph = cursor;
+  else if (glyph == glyphs_end
+	   && pos_before == pos_after
+	   && STRINGP ((row->reversed_p
+			? row->glyphs[TEXT_AREA] + row->used[TEXT_AREA] - 1
+			: row->glyphs[TEXT_AREA])->object))
+    {
+      /* If all the glyphs of this row came from strings, put the
+	 cursor on the first glyph of the row.  This avoids having the
+	 cursor outside of the text area in this very rare and hard
+	 use case.  */
+      glyph =
+	row->reversed_p
+	? row->glyphs[TEXT_AREA] + row->used[TEXT_AREA] - 1
+	: row->glyphs[TEXT_AREA];
+    }
   if (x < 0)
     {
       struct glyph *g;
@@ -20104,7 +20154,7 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
   it.paragraph_embedding = L2R;
 
   record_unwind_protect (unwind_format_mode_line,
-			 format_mode_line_unwind_data (NULL, Qnil, 0));
+			 format_mode_line_unwind_data (NULL, NULL, Qnil, 0));
 
   mode_line_target = MODE_LINE_DISPLAY;
 
@@ -20805,7 +20855,8 @@ are the selected window and the WINDOW's buffer).  */)
      and set that to nil so that we don't alter the outer value.  */
   record_unwind_protect (unwind_format_mode_line,
 			 format_mode_line_unwind_data
-			     (old_buffer, selected_window, 1));
+			   (XFRAME (WINDOW_FRAME (XWINDOW (window))),
+			    old_buffer, selected_window, 1));
   mode_line_proptrans_alist = Qnil;
 
   Fselect_window (window, Qt);

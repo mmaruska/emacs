@@ -1230,7 +1230,8 @@ only return the directory part of FILE."
 	;; see if same user has logged in to other hosts; if so then prompt
 	;; with the password that was used there.
 	(t
-	 (let* ((other (ange-ftp-get-host-with-passwd user))
+	 (let* ((enable-recursive-minibuffers t)
+		(other (ange-ftp-get-host-with-passwd user))
 		(passwd (if other
 
 			    ;; found another machine with the same user.
@@ -1774,6 +1775,10 @@ good, skip, fatal, or unknown."
 
 (defun ange-ftp-gwp-start (host user name args)
   "Login to the gateway machine and fire up an FTP process."
+  ;; If `non-essential' is non-nil, don't reopen a new connection.  It
+  ;; will be catched in Tramp.
+  (when non-essential
+    (throw 'non-essential 'non-essential))
   (let (;; It would be nice to make process-connection-type nil,
 	;; but that doesn't work: ftp never responds.
 	;; Can anyone find a fix for that?
@@ -1905,6 +1910,10 @@ been queued with no result.  CONT will still be called, however."
   "Spawn a new FTP process ready to connect to machine HOST and give it NAME.
 If HOST is only FTP-able through a gateway machine then spawn a shell
 on the gateway machine to do the FTP instead."
+  ;; If `non-essential' is non-nil, don't reopen a new connection.  It
+  ;; will be catched in Tramp.
+  (when non-essential
+    (throw 'non-essential 'non-essential))
   (let* ((use-gateway (ange-ftp-use-gateway-p host))
 	 (use-smart-ftp (and (not ange-ftp-gateway-host)
 			     (ange-ftp-use-smart-gateway-p host)))
@@ -2123,6 +2132,11 @@ Create a new process if needed."
 	 (proc (get-process name)))
     (if (and proc (memq (process-status proc) '(run open)))
 	proc
+      ;; If `non-essential' is non-nil, don't reopen a new connection.  It
+      ;; will be catched in Tramp.
+      (when non-essential
+	(throw 'non-essential 'non-essential))
+
       ;; Must delete dead process so that new process can reuse the name.
       (if proc (delete-process proc))
       (let ((pass (ange-ftp-quote-string
