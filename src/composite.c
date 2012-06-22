@@ -25,8 +25,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <setjmp.h>
 #include "lisp.h"
-#include "buffer.h"
 #include "character.h"
+#include "buffer.h"
 #include "coding.h"
 #include "intervals.h"
 #include "window.h"
@@ -240,13 +240,13 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
 	for (i = 0; i < nchars; i++)
 	  {
 	    FETCH_STRING_CHAR_ADVANCE (ch, string, charpos, bytepos);
-	    XVECTOR (key)->contents[i] = make_number (ch);
+	    ASET (key, i, make_number (ch));
 	  }
       else
 	for (i = 0; i < nchars; i++)
 	  {
 	    FETCH_CHAR_ADVANCE (ch, charpos, bytepos);
-	    XVECTOR (key)->contents[i] = make_number (ch);
+	    ASET (key, i, make_number (ch));
 	  }
     }
   else

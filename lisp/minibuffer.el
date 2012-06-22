@@ -461,7 +461,7 @@ for use at QPOS."
            (last (last completions)))
         (when (consp last) (setcdr last nil))
         completions))
-        
+
      ((eq action 'completion--unquote)
       (let ((ustring (funcall unquote string))
             (uprefix (funcall unquote (substring string 0 pred))))

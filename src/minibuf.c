@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "commands.h"
+#include "character.h"
 #include "buffer.h"
 #include "dispextern.h"
 #include "keyboard.h"
@@ -1034,12 +1035,20 @@ Fifth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
   (Lisp_Object prompt, Lisp_Object initial_input, Lisp_Object history, Lisp_Object default_value, Lisp_Object inherit_input_method)
 {
   Lisp_Object val;
+  ptrdiff_t count = SPECPDL_INDEX ();
+
+  /* Just in case we're in a recursive minibuffer, make it clear that the
+     previous minibuffer's completion table does not apply to the new
+     minibuffer.
+     FIXME: `minibuffer-completion-table' should be buffer-local instead.  */
+  specbind (Qminibuffer_completion_table, Qnil);
+
   val = Fread_from_minibuffer (prompt, initial_input, Qnil,
 			       Qnil, history, default_value,
 			       inherit_input_method);
   if (STRINGP (val) && SCHARS (val) == 0 && ! NILP (default_value))
     val = CONSP (default_value) ? XCAR (default_value) : default_value;
-  return val;
+  return unbind_to (count, val);
 }
 
 DEFUN ("read-no-blanks-input", Fread_no_blanks_input, Sread_no_blanks_input, 1, 3, 0,
@@ -1265,7 +1274,7 @@ is used to further constrain the set of candidates.  */)
     {
       collection = check_obarray (collection);
       obsize = ASIZE (collection);
-      bucket = XVECTOR (collection)->contents[idx];
+      bucket = AREF (collection, idx);
     }
 
   while (1)
@@ -1300,7 +1309,7 @@ is used to further constrain the set of candidates.  */)
 	    break;
 	  else
 	    {
-	      bucket = XVECTOR (collection)->contents[idx];
+	      bucket = AREF (collection, idx);
 	      continue;
 	    }
 	}
@@ -1528,7 +1537,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
     {
       collection = check_obarray (collection);
       obsize = ASIZE (collection);
-      bucket = XVECTOR (collection)->contents[idx];
+      bucket = AREF (collection, idx);
     }
 
   while (1)
@@ -1563,7 +1572,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
 	    break;
 	  else
 	    {
-	      bucket = XVECTOR (collection)->contents[idx];
+	      bucket = AREF (collection, idx);
 	      continue;
 	    }
 	}
@@ -1771,7 +1780,7 @@ the values STRING, PREDICATE and `lambda'.  */)
 	{
 	  for (i = ASIZE (collection) - 1; i >= 0; i--)
 	    {
-	      tail = XVECTOR (collection)->contents[i];
+	      tail = AREF (collection, i);
 	      if (SYMBOLP (tail))
 		while (1)
 		  {

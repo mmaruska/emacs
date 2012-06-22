@@ -1,3 +1,27 @@
+2012-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Rename infodir to buildinfodir throughout.  (Bug#11737)
+
+2012-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* functions.texi (Defining Functions):
+	* macros.texi (Defining Macros): Un-define the return value of `defun',
+	`defmacro' and `defalias'.
+
+2012-06-17  Chong Yidong  <cyd@gnu.org>
+
+	* elisp.texi: Remove urlcolor setting.
+
+2012-06-17  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Face Attributes): Copyedits.  Add a few cindex entries.
+	Overlining no longer behaves exactly like underlining.
+
+2012-06-16  Aurelien Aptel  <aurelien.aptel@gmail.com>
+
+	* display.texi (Face Attributes):
+	Document wave-style underline face attribute.
+
 2012-06-11  Chong Yidong  <cyd@gnu.org>
 
 	* display.texi (ImageMagick Images): ImageMagick now supports the
