@@ -91,9 +91,7 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #  define NDEBUG		/* disable assert */
 #endif
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif /* !HAVE_CONFIG_H */
+#include <config.h>
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE 1		/* enables some compiler checks on GNU */
@@ -113,10 +111,6 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # include <fcntl.h>
 # include <sys/param.h>
 # include <io.h>
-# ifndef HAVE_CONFIG_H
-#   define DOS_NT
-#   include <sys/config.h>
-# endif
 #else
 # define MSDOS FALSE
 #endif /* MSDOS */
@@ -167,14 +161,6 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # include <getopt.h>
 #endif /* NO_LONG_OPTIONS */
 
-#ifndef HAVE_CONFIG_H		/* this is a standalone compilation */
-# ifdef __CYGWIN__         	/* compiling on Cygwin */
-			     !!! NOTICE !!!
- the regex.h distributed with Cygwin is not compatible with etags, alas!
-If you want regular expression support, you should delete this notice and
-	      arrange to use the GNU regex.h and regex.c.
-# endif
-#endif
 #include <regex.h>
 
 /* Define CTAGS to make the program "ctags" compatible with the usual one.
@@ -366,9 +352,9 @@ static void analyse_regex (char *);
 static void free_regexps (void);
 static void regex_tag_multiline (void);
 static void error (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
-static void suggest_asking_for_help (void) NO_RETURN;
-void fatal (const char *, const char *) NO_RETURN;
-static void pfatal (const char *) NO_RETURN;
+static _Noreturn void suggest_asking_for_help (void);
+_Noreturn void fatal (const char *, const char *);
+static _Noreturn void pfatal (const char *);
 static void add_node (node *, node **);
 
 static void init (void);
@@ -389,8 +375,16 @@ static char *savenstr (const char *, int);
 static char *savestr (const char *);
 static char *etags_strchr (const char *, int);
 static char *etags_strrchr (const char *, int);
+#ifdef HAVE_STRCASECMP
+#define etags_strcasecmp(x,y) strcasecmp ((x), (y))
+#else
 static int etags_strcasecmp (const char *, const char *);
+#endif
+#ifdef HAVE_STRNCASECMP
+#define etags_strncasecmp(x,y,z) strncasecmp ((x), (y), (z))
+#else
 static int etags_strncasecmp (const char *, const char *, int);
+#endif
 static char *etags_getcwd (void);
 static char *relative_filename (char *, char *);
 static char *absolute_filename (char *, char *);
@@ -6320,6 +6314,7 @@ etags_strchr (register const char *sp, register int c)
   return NULL;
 }
 
+#ifndef HAVE_STRCASECMP
 /*
  * Compare two strings, ignoring case for alphabetic characters.
  *
@@ -6338,7 +6333,9 @@ etags_strcasecmp (register const char *s1, register const char *s2)
 	  ? lowcase (*s1) - lowcase (*s2)
 	  : *s1 - *s2);
 }
+#endif /* HAVE_STRCASECMP */
 
+#ifndef HAVE_STRNCASECMP
 /*
  * Compare two strings, ignoring case for alphabetic characters.
  * Stop after a given number of characters
@@ -6361,6 +6358,7 @@ etags_strncasecmp (register const char *s1, register const char *s2, register in
 	    ? lowcase (*s1) - lowcase (*s2)
 	    : *s1 - *s2);
 }
+#endif /* HAVE_STRCASECMP */
 
 /* Skip spaces (end of string is not space), return new pointer. */
 static char *

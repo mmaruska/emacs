@@ -64,6 +64,13 @@ been adding them there, put them somewhere else, eg site-lisp.
 
 * Changes in Emacs 24.2
 
+** The function `current-time' now returns extended-format time stamps
+(HIGH LOW USEC PSEC) that use picosecond resolution; the PSEC
+component is new.  PSEC is typically a multiple of 1000 on current
+machines.  Other functions that use this format, such as
+file-attributes and format-time-string, have been changed accordingly.
+Old-format time stamps are still accepted.
+
 ** New functions `system-users', `system-groups' return lists of the user
 name, group names known to the system (where possible).
 
@@ -418,6 +425,12 @@ Only variables defined using `defcustom' are considered user options.
 The function `user-variable-p' is now an obsolete alias for
 `custom-variable-p'.
 
++++
+** The return values of `defalias', `defun' and `defmacro' have changed,
+and are now undefined.  For backwards compatibility, defun and
+defmacro currently return the name of the newly defined function/macro
+but this should not be relied upon.
+
 ** `face-spec-set' no longer sets frame-specific attributes when the
 third argument is a frame (that usage was obsolete since Emacs 22.2).
 
@@ -434,7 +447,8 @@ still be supported for Emacs 24.x.
 
 * Lisp changes in Emacs 24.2
 
-** The return value of `defalias' has changed and is now undefined.
+** CL-style generalized variables are now in core Elisp.
+`setf' is autoloaded and `push' and `pop' accept generalized variables.
 
 ** `defun' also accepts a (declare DECLS) form, like `defmacro'.
 The interpretation of the DECLS is determined by `defun-declarations-alist'.

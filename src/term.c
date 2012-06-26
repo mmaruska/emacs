@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <ctype.h>
 #include <errno.h>
 #include <sys/file.h>
+#include <sys/time.h>
 #include <unistd.h>
 #include <signal.h>
 #include <setjmp.h>
@@ -85,11 +86,11 @@ static void clear_tty_hooks (struct terminal *terminal);
 static void set_tty_hooks (struct terminal *terminal);
 static void dissociate_if_controlling_tty (int fd);
 static void delete_tty (struct terminal *);
-static void maybe_fatal (int must_succeed, struct terminal *terminal,
-			 const char *str1, const char *str2, ...)
-  NO_RETURN ATTRIBUTE_FORMAT_PRINTF (3, 5) ATTRIBUTE_FORMAT_PRINTF (4, 5);
-static void vfatal (const char *str, va_list ap)
-  NO_RETURN ATTRIBUTE_FORMAT_PRINTF (1, 0);
+static _Noreturn void maybe_fatal (int must_succeed, struct terminal *terminal,
+				   const char *str1, const char *str2, ...)
+  ATTRIBUTE_FORMAT_PRINTF (3, 5) ATTRIBUTE_FORMAT_PRINTF (4, 5);
+static _Noreturn void vfatal (const char *str, va_list ap)
+  ATTRIBUTE_FORMAT_PRINTF (1, 0);
 
 
 #define OUTPUT(tty, a)                                          \
@@ -1850,8 +1851,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 	len = 1;
       else if (len > 4)
 	len = 4;
-      sprintf (buf, "[%.*s]", len, str);
-      len += 2;
+      len = sprintf (buf, "[%.*s]", len, str);
       str = buf;
     }
   else
@@ -2611,6 +2611,18 @@ term_mouse_movement (FRAME_PTR frame, Gpm_Event *event)
   return 0;
 }
 
+/* Return the Time that corresponds to T.  Wrap around on overflow.  */
+static Time
+timeval_to_Time (struct timeval const *t)
+{
+  Time s_1000, ms;
+
+  s_1000 = t->tv_sec;
+  s_1000 *= 1000;
+  ms = t->tv_usec / 1000;
+  return s_1000 + ms;
+}
+
 /* Return the current position of the mouse.
 
    Set *f to the frame the mouse is in, or zero if the mouse is in no
@@ -2630,7 +2642,6 @@ term_mouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
 		     Lisp_Object *y, Time *timeptr)
 {
   struct timeval now;
-  Time sec, usec;
 
   *fp = SELECTED_FRAME ();
   (*fp)->mouse_moved = 0;
@@ -2641,9 +2652,7 @@ term_mouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
   XSETINT (*x, last_mouse_x);
   XSETINT (*y, last_mouse_y);
   gettimeofday(&now, 0);
-  sec = now.tv_sec;
-  usec = now.tv_usec;
-  *timeptr = (sec * 1000) + (usec / 1000);
+  *timeptr = timeval_to_Time (&now);
 }
 
 /* Prepare a mouse-event in *RESULT for placement in the input queue.
@@ -2667,7 +2676,7 @@ term_mouse_click (struct input_event *result, Gpm_Event *event,
       }
     }
   gettimeofday(&now, 0);
-  result->timestamp = (now.tv_sec * 1000) + (now.tv_usec / 1000);
+  result->timestamp = timeval_to_Time (&now);
 
   if (event->type & GPM_UP)
     result->modifiers = up_modifier;
@@ -3596,7 +3605,6 @@ delete_tty (struct terminal *terminal)
   xfree (tty->termcap_strings_buffer);
   xfree (tty->termcap_term_buffer);
 
-  memset (tty, 0, sizeof (struct tty_display_info));
   xfree (tty);
 }
 

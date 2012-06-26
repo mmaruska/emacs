@@ -68,6 +68,10 @@ typedef Pixmap XImagePtr;
 typedef XImagePtr XImagePtr_or_DC;
 #endif
 
+#ifdef HAVE_WINDOW_SYSTEM
+# include "systime.h"
+#endif
+
 #ifndef HAVE_WINDOW_SYSTEM
 typedef int Cursor;
 #define No_Cursor (0)
@@ -2780,7 +2784,7 @@ struct image
 {
   /* The time in seconds at which the image was last displayed.  Set
      in prepare_image_for_display.  */
-  time_t timestamp;
+  EMACS_TIME timestamp;
 
   /* Pixmaps of the image.  */
   Pixmap pixmap, mask;
@@ -3212,7 +3216,11 @@ void unload_color (struct frame *, unsigned long);
 char *choose_face_font (struct frame *, Lisp_Object *, Lisp_Object,
                         int *);
 void prepare_face_for_display (struct frame *, struct face *);
+#ifdef HAVE_STRCASECMP
+#define xstrcasecmp(x,y) strcasecmp ((x), (y))
+#else
 int xstrcasecmp (const char *, const char *);
+#endif
 int lookup_named_face (struct frame *, Lisp_Object, int);
 int lookup_basic_face (struct frame *, int);
 int smaller_face (struct frame *, int, int);

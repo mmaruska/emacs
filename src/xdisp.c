@@ -9365,12 +9365,10 @@ message_dolog (const char *m, ptrdiff_t nbytes, int nlflag, int multibyte)
 		    {
 		      char dupstr[sizeof " [ times]"
 				  + INT_STRLEN_BOUND (printmax_t)];
-		      int duplen;
 
 		      /* If you change this format, don't forget to also
 			 change message_log_check_duplicate.  */
-		      sprintf (dupstr, " [%"pMd" times]", dups);
-		      duplen = strlen (dupstr);
+		      int duplen = sprintf (dupstr, " [%"pMd" times]", dups);
 		      TEMP_SET_PT_BOTH (Z - 1, Z_BYTE - 1);
 		      insert_1 (dupstr, duplen, 1, 0, 1);
 		    }
@@ -29077,18 +29075,20 @@ start_hourglass (void)
 {
 #if defined (HAVE_WINDOW_SYSTEM)
   EMACS_TIME delay;
-  int secs = DEFAULT_HOURGLASS_DELAY, usecs = 0;
 
   cancel_hourglass ();
 
-  if (NUMBERP (Vhourglass_delay))
-    {
-      double duration = extract_float (Vhourglass_delay);
-      if (0 < duration)
-	duration_to_sec_usec (duration, &secs, &usecs);
-    }
+  if (INTEGERP (Vhourglass_delay)
+      && XINT (Vhourglass_delay) > 0)
+    EMACS_SET_SECS_NSECS (delay,
+			  min (XINT (Vhourglass_delay), TYPE_MAXIMUM (time_t)),
+			  0);
+  else if (FLOATP (Vhourglass_delay)
+	   && XFLOAT_DATA (Vhourglass_delay) > 0)
+    delay = EMACS_TIME_FROM_DOUBLE (XFLOAT_DATA (Vhourglass_delay));
+  else
+    EMACS_SET_SECS_NSECS (delay, DEFAULT_HOURGLASS_DELAY, 0);
 
-  EMACS_SET_SECS_USECS (delay, secs, usecs);
   hourglass_atimer = start_atimer (ATIMER_RELATIVE, delay,
 				   show_hourglass, NULL);
 #endif

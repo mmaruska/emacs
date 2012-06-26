@@ -1,3 +1,19 @@
+2012-06-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* processes.texi (Asynchronous Processes): Make the pty vs pipe
+	discussion more prominent.
+
+2012-06-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* commands.texi (Misc Events): Document the language-change event.
+
+2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Support higher-resolution time stamps (Bug#9000).
+	* os.texi (Time of Day, Time Parsing, Processor Run Time, Idle Timers):
+	* processes.texi (System Processes):
+	Time stamp resolution is now picosecond, not microsecond.
+
 2012-06-21  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Rename infodir to buildinfodir throughout.  (Bug#11737)
