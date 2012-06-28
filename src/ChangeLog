@@ -1,3 +1,115 @@
+2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* dispextern.h (GLYPH_DEBUG): Now defined in config.h if
+	enabled with --enable-checking=[all,glyphs] configure option.
+	Fix GLYPH_DEBUG usage assuming that it may be undefined,
+	adjust comments accordingly.
+	* dispnew.c: Fix GLYPH_DEBUG usage assuming that it may be
+	undefined, adjust comments accordingly.
+	* image.c: Likewise.
+	* scroll.c: Likewise.
+	* w32fns.c: Likewise.
+	* w32term.c: Likewise.
+	* xdisp.c: Likewise.
+	* xfaces.c: Likewise.
+	* xfns.c: Likewise.
+	* xterm.c: Likewise.
+
+2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Generalize run-time debugging checks.
+	* dispextern.h (XASSERTS): Remove.
+	* fontset.c (xassert): Remove.
+	Convert from xassert to eassert.
+	* alloc.c: Convert from xassert to eassert.
+	* bidi.c: Likewise.
+	* dispnew.c: Likewise.
+	* fns.c: Likewise.
+	* fringe.c: Likewise.
+	* ftfont.c: Likewise.
+	* gtkutil.c: Likewise.
+	* image.c: Likewise.
+	* keyboard.c: Likewise.
+	* menu.c: Likewise.
+	* process.c: Likewise.
+	* scroll.c: Likewise.
+	* sound.c: Likewise.
+	* term.c: Likewise.
+	* w32console.c: Likewise.
+	* w32fns.c: Likewise.
+	* w32term.c: Likewise.
+	* window.c: Likewise.
+	* xdisp.c: Likewise.
+	* xfaces.c: Likewise.
+	* xfns.c: Likewise.
+	* xselect.c: Likewise.
+	* xterm.c: Likewise.
+
+2012-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fns.c (maybe_resize_hash_table): Output message when growing the
+	purify-hashtable.
+
+2012-06-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (allocate_string_data): Remove dead code.
+	* xsettings.c (XSETTINGS_FONT_NAME): Move under HAVE_XFT to
+	avoid GCC warning about unused macro.
+
+2012-06-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (allocate_string): Omit intervals initialization.
+	* alloc.c (make_uninit_multibyte_string): Initialize intervals
+	as in make_pure_string and make_pure_c_string.
+
+2012-06-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (allocate_string):  Fix last change.
+
+2012-06-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (allocate_string):  Remove two redundant calls
+	to memset, add explicit initialization where appropriate.
+
+2012-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* lisp.mk (lisp): Remove paths.elc.
+
+2012-06-27  Chong Yidong  <cyd@gnu.org>
+
+	* doc.c (Fsubstitute_command_keys): Fix punctuation.
+
+2012-06-26  John Wiegley  <johnw@newartisans.com>
+
+	* unexmacosx.c (copy_data_segment): Add two section names used
+	on Mac OS X Lion: __mod_init_func and __mod_term_func.
+
+	* alloc.c (mark_memory): Do not check with -faddress-sanitizer
+	when building with Clang.
+
+2012-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fapply): Allow calling it with a single argument.
+
+2012-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (strcasecmp, strncasecmp) [_MSC_VER]: Redirect to
+	_stricmp and _strnicmp.
+	(HAVE_STRCASECMP, HAVE_STRNCASECMP): Define to 1.
+
+2012-06-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (allocate_window): Zero out non-Lisp part of newly
+	allocated window.
+	(allocate_process): Likewise for new process.
+	(allocate_terminal): Change to use offsetof.
+	(allocate_frame): Likewise.
+	* frame.c (make_frame): Omit redundant initialization.
+	* window.c (make_parent_window): Use memset.
+	(make_window): Omit redundant initialization.
+	* process.c (make_process): Omit redundant initialization.
+	* terminal.c (create_terminal): Likewise.
+
 2012-06-26  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* term.c (delete_tty): Remove redundant call to memset.

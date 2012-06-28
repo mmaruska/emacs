@@ -1,3 +1,89 @@
+2012-06-28  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (completion-list-mode-finish):
+	Don't use toggle-read-only.  (Since completion-list-mode has
+	a special mode-class, it wasn't doing anything extra anyway.)
+
+2012-06-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make inlining of other-mode interpreted functions work (bug#11799).
+	* emacs-lisp/bytecomp.el (byte-compile--refiy-function): New fun.
+	(byte-compile): Use it to fix compilation of lexical-binding closures.
+	* emacs-lisp/byte-opt.el (byte-compile-inline-expand): Compile the
+	function, if needed.
+
+2012-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-mode.el (help-make-xrefs): Don't just withstand
+	cyclic-variable-indirection but any error in documentation-property.
+
+	* loadup.el (purify-flag): Pre-grow the hash-table to reduce the
+	memory use.
+	* bindings.el (bindings--define-key): New function.
+	* vc/vc-hooks.el, replace.el, menu-bar.el, international/mule-cmds.el:
+	* emacs-lisp/lisp-mode.el, buff-menu.el, bookmark.el:
+	* bindings.el: Use it to purecopy define-key bindings.
+
+	* textmodes/rst.el (rst-adornment-faces-alist): Avoid copy-list.
+
+	* emacs-lisp/cl.el (flet): Mark obsolete.
+	* emacs-lisp/cl-macs.el (cl-flet*): New macro.
+	* vc/vc-rcs.el (vc-rcs-annotate-command, vc-rcs-parse):
+	* progmodes/js.el (js-c-fill-paragraph):
+	* progmodes/ebrowse.el (ebrowse-switch-member-buffer-to-sibling-class)
+	(ebrowse-switch-member-buffer-to-derived-class):
+	* play/5x5.el (5x5-solver): Use cl-flet.
+
+	* emacs-lisp/cl.el: Use lexical-binding.  Fix flet (bug#11780).
+	(cl--symbol-function): New macro.
+	(cl--letf, cl--letf*): Use it.
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-pretty-mode-name):
+	Strip "toggle-" if any.
+
+2012-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* info.el (Info-default-directory-list): Move here from paths.el.
+	* paths.el: Remove file, which is now empty.
+	* loadup.el: No longer load "paths".
+
+	* custom.el (custom-initialize-delay): Doc fix.
+
+	* eshell/em-alias.el, eshell/em-banner.el, eshell/em-basic.el:
+	* eshell/em-cmpl.el, eshell/em-dirs.el, eshell/em-glob.el:
+	* eshell/em-hist.el, eshell/em-ls.el, eshell/em-pred.el:
+	* eshell/em-prompt.el, eshell/em-rebind.el, eshell/em-script.el:
+	* eshell/em-smart.el, eshell/em-term.el, eshell/em-unix.el:
+	* eshell/em-xtra.el: Replace eshell-defgroup with "(progn (defgroup".
+	* eshell/eshell.el (eshell-defgroup): Remove alias.
+
+2012-06-27  Chong Yidong  <cyd@gnu.org>
+
+	* help.el (help-enable-auto-load): New variable.
+
+	* help-fns.el (help-fns--autoloaded-p): New function.
+	(describe-function-1): Refer to a function as "autoloaded" if it
+	was autoloaded at any time in the past.  Perform autoloading if
+	help-enable-auto-load is non-nil.
+
+2012-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (compile, compile-always): Depend on
+	update-subdirs, not on subdirs.el.  Otherwise, several different
+	sub-targets of 'bootstrap' running in parallel could
+	simultaneously write to subdirs.el, producing a garbled file.
+
+2012-06-26  Sam Steingold  <sds@gnu.org>
+
+	* files.el (file-name-base): New convenience function.
+	* autoinsert.el, cus-dep.el, doc-view.el, image-dired.el:
+	* woman.el, eshell/esh-cmd.el, progmodes/ada-xref.el:
+	* progmodes/cc-defs.el, progmodes/cperl-mode.el:
+	* progmodes/flymake.el, progmodes/gud.el, progmodes/idlwave.el:
+	* textmodes/ispell.el, textmodes/reftex-ref.el:
+	* textmodes/tex-mode.el: Use it.
+	Did not touch cedet and org because they are maintained elsewhere.
+
 2012-06-26  Martin Rudalics  <rudalics@gmx.at>
 
 	* calendar/calendar.el (calendar-exit): Don't try to delete or

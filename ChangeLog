@@ -1,3 +1,35 @@
+2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.in: Add glyphs category to --enable-checking option.
+	(GLYPH_DEBUG): Define if glyphs debugging is enabled.
+
+2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.in (ENABLE_CHECKING): Update comment.
+
+2012-06-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in: Don't check for sys/select.h, sys/time.h, utime.h.
+	Emacs proper no longer uses these headers, and can rely on Gnulib
+	for these checks.
+
+	Merge from gnulib.
+	* m4/getopt.m4: Copy new version from gnulib, incorporating:
+	getopt-posix: No longer guarantee that option processing is resettable.
+
+2012-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Only check for paxctl on gnu-linux.  (Bug#11398#26)
+
+	* INSTALL: Remove references to paths.el.
+
+2012-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in ($(GNULIBOBJS)): Depend on stamp_BLD.  This
+	replaces separate dependency for each object file, which required
+	the same object file to be mentioned twice, causing failures in
+	parallel builds.
+
 2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Clean out last vestiges of the old HAVE_CONFIG_H stuff.

@@ -1,4 +1,4 @@
-;;; cl.el --- Compatibility aliases for the old CL library.
+;;; cl.el --- Compatibility aliases for the old CL library.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2012  Free Software Foundation, Inc.
 
@@ -235,7 +235,6 @@
                multiple-value-bind
                symbol-macrolet
                macrolet
-               flet
                progv
                psetq
                do-all-symbols
@@ -450,13 +449,25 @@ Common Lisp.
       (setq body (list `(lexical-let (,(pop bindings)) ,@body))))
     (car body)))
 
+(defmacro cl--symbol-function (symbol)
+  "Like `symbol-function' but return `cl--unbound' if not bound."
+  ;; (declare (gv-setter (lambda (store)
+  ;;                       `(if (eq ,store 'cl--unbound)
+  ;;                            (fmakunbound ,symbol) (fset ,symbol ,store)))))
+  `(if (fboundp ,symbol) (symbol-function ,symbol) 'cl--unbound))
+(gv-define-setter cl--symbol-function (store symbol)
+  `(if (eq ,store 'cl--unbound) (fmakunbound ,symbol) (fset ,symbol ,store)))
+
+
 ;; This should really have some way to shadow 'byte-compile properties, etc.
 (defmacro flet (bindings &rest body)
-  "Make temporary function definitions.
-This is an analogue of `let' that operates on the function cell of FUNC
-rather than its value cell.  The FORMs are evaluated with the specified
-function definitions in place, then the definitions are undone (the FUNCs
-go back to their previous definitions, or lack thereof).
+  "Make temporary overriding function definitions.
+This is an analogue of a dynamically scoped `let' that operates on the function
+cell of FUNCs rather than their value cell.
+If you want the Common-Lisp style of `flet', you should use `cl-flet'.
+The FORMs are evaluated with the specified function definitions in place,
+then the definitions are undone (the FUNCs go back to their previous
+definitions, or lack thereof).
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1) (debug cl-flet))
@@ -482,6 +493,7 @@ will not work - use `labels' instead" (symbol-name (car x))))
                 (list `(symbol-function ',(car x)) func)))
             bindings)
      ,@body))
+(make-obsolete 'flet "Use either `cl-flet' or `letf'."  "24.2")
 
 (defmacro labels (bindings &rest body)
   "Make temporary function bindings.
@@ -507,7 +519,7 @@ Unlike `flet', this macro is fully compliant with the Common Lisp standard.
 
 ;; Generalized variables are provided by gv.el, but some details are
 ;; not 100% compatible: not worth the trouble to add them to cl-lib.el, but we
-;; still to support old users of cl.el.
+;; still need to support old users of cl.el.
 
 ;; FIXME: `letf' is unsatisfactory because it does not really "restore" the
 ;; previous state.  If the getter/setter loses information, that info is
@@ -543,6 +555,8 @@ Unlike `flet', this macro is fully compliant with the Common Lisp standard.
                                 (funcall setter vold)))
                        binds))))
     (let ((binding (car bindings)))
+      (if (eq (car-safe (car binding)) 'symbol-function)
+          (setcar (car binding) 'cl--symbol-function))
       (gv-letplace (getter setter) (car binding)
         (macroexp-let2 nil vnew (cadr binding)
           (if (symbolp (car binding))
@@ -579,7 +593,9 @@ the PLACE is not modified before executing BODY.
           ;; Special-case for simple variables.
           (macroexp-let* (list (if (cdr binding) binding
                                 (list (car binding) (car binding))))
-                        (cl--letf* (cdr bindings) body))
+                         (cl--letf* (cdr bindings) body))
+        (if (eq (car-safe (car binding)) 'symbol-function)
+            (setcar (car binding) 'cl--symbol-function))
         (gv-letplace (getter setter) (car binding)
           (macroexp-let2 macroexp-copyable-p vnew (cadr binding)
             (macroexp-let2 nil vold getter
@@ -736,7 +752,7 @@ from ARGLIST using FUNC: (define-modify-macro incf (&optional (n 1)) +)"
 ;; This is just kept for compatibility with code byte-compiled by Emacs-20.
 
 ;; No idea if this might still be needed.
-(defun cl-not-hash-table (x &optional y &rest z)
+(defun cl-not-hash-table (x &optional y &rest _z)
   (declare (obsolete nil "24.2"))
   (signal 'wrong-type-argument (list 'cl-hash-table-p (or y x))))
 

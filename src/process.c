@@ -353,7 +353,7 @@ static struct fd_callback_data
 void
 add_read_fd (int fd, fd_callback func, void *data)
 {
-  xassert (fd < MAXDESC);
+  eassert (fd < MAXDESC);
   add_keyboard_wait_descriptor (fd);
 
   fd_callback_info[fd].func = func;
@@ -366,7 +366,7 @@ add_read_fd (int fd, fd_callback func, void *data)
 void
 delete_read_fd (int fd)
 {
-  xassert (fd < MAXDESC);
+  eassert (fd < MAXDESC);
   delete_keyboard_wait_descriptor (fd);
 
   fd_callback_info[fd].condition &= ~FOR_READ;
@@ -383,7 +383,7 @@ delete_read_fd (int fd)
 void
 add_write_fd (int fd, fd_callback func, void *data)
 {
-  xassert (fd < MAXDESC);
+  eassert (fd < MAXDESC);
   FD_SET (fd, &write_mask);
   if (fd > max_input_desc)
     max_input_desc = fd;
@@ -400,7 +400,7 @@ delete_write_fd (int fd)
 {
   int lim = max_input_desc;
 
-  xassert (fd < MAXDESC);
+  eassert (fd < MAXDESC);
   FD_CLR (fd, &write_mask);
   fd_callback_info[fd].condition &= ~FOR_WRITE;
   if (fd_callback_info[fd].condition == 0)
@@ -625,35 +625,18 @@ make_process (Lisp_Object name)
   printmax_t i;
 
   p = allocate_process ();
-
-  p->infd = -1;
-  p->outfd = -1;
-  p->tick = 0;
-  p->update_tick = 0;
-  p->pid = 0;
-  p->pty_flag = 0;
-  p->raw_status_new = 0;
+  /* Initialize Lisp data.  Note that allocate_process initializes all
+     Lisp data to nil, so do it only for slots which should not be nil.  */
   p->status = Qrun;
   p->mark = Fmake_marker ();
-  p->kill_without_query = 0;
-  p->write_queue = Qnil;
 
-#ifdef ADAPTIVE_READ_BUFFERING
-  p->adaptive_read_buffering = 0;
-  p->read_output_delay = 0;
-  p->read_output_skip = 0;
-#endif
+  /* Initialize non-Lisp data.  Note that allocate_process zeroes out all
+     non-Lisp data, so do it only for slots which should not be zero.  */
+  p->infd = -1;
+  p->outfd = -1;
 
 #ifdef HAVE_GNUTLS
   p->gnutls_initstage = GNUTLS_STAGE_EMPTY;
-  /* Default log level.  */
-  p->gnutls_log_level = 0;
-  /* GnuTLS handshakes attempted for this connection.  */
-  p->gnutls_handshakes_tried = 0;
-  p->gnutls_p = 0;
-  p->gnutls_state = NULL;
-  p->gnutls_x509_cred = NULL;
-  p->gnutls_anon_cred = NULL;
 #endif
 
   /* If name is already in use, modify it until it is unused.  */
