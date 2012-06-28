@@ -20,9 +20,7 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <setjmp.h>
 #include <lisp.h>
@@ -75,7 +73,6 @@ static widget_value *merge_widget_value (widget_value *,
                                          widget_value *,
                                          int, int *);
 static void instantiate_widget_instance (widget_instance *);
-static int my_strcasecmp (const char *, const char *);
 static void safe_free_str (char *);
 static void free_widget_value_tree (widget_value *);
 static widget_value *copy_widget_value_tree (widget_value *,
@@ -115,10 +112,14 @@ safe_strdup (const char *s)
   return result;
 }
 
+#ifdef HAVE_STRCASECMP
+#define lwlib_strcasecmp(x,y) strcasecmp ((x), (y))
+#else
+
 /* Like strcmp but ignore differences in case.  */
 
 static int
-my_strcasecmp (const char *s1, const char *s2)
+lwlib_strcasecmp (const char *s1, const char *s2)
 {
   while (1)
     {
@@ -134,6 +135,7 @@ my_strcasecmp (const char *s1, const char *s2)
 	return 0;
     }
 }
+#endif /* HAVE_STRCASECMP */
 
 static void
 safe_free_str (char *s)
@@ -731,7 +733,7 @@ find_in_table (const char *type, const widget_creation_entry *table)
 {
   const widget_creation_entry* cur;
   for (cur = table; cur->type; cur++)
-    if (!my_strcasecmp (type, cur->type))
+    if (!lwlib_strcasecmp (type, cur->type))
       return cur->function;
   return NULL;
 }

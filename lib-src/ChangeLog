@@ -1,3 +1,51 @@
+2012-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (lisp2): Remove paths.el.
+
+2012-06-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Clean out last vestiges of the old HAVE_CONFIG_H stuff.
+	* Makefile.in (BASE_CFLAGS):
+	* makefile.w32-in (LOCAL_FLAGS): Remove -DHAVE_CONFIG_H.
+	* etags.c, hexl.c, pop.c: Include <config.h> unconditionally.
+	* etags.c (DOS_NT):
+	* pop.c (MAIL_USE_POP, h_errno):
+	Remove code that was conditioned on !HAVE_CONFIG_H.
+
+2012-06-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* etags.c (etags_strcasecmp, etags_strncasecmp): Define to
+	library functions strcasecmp and strncasecmp if available.
+
+2012-06-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Switch from NO_RETURN to C11's _Noreturn (Bug#11750).
+	* ebrowse.c (usage, version):
+	* emacsclient.c (print_help_and_exit, fail):
+	* etags.c (suggest_asking_for_help, fatal, pfatal):
+	* hexl.c (usage):
+	* make-docfile.c (fatal):
+	* movemail.c (fatal, pfatal_with_name, pfatal_and_delete):
+	* update-game-score.c (usage):
+	* ebrowse.c (usage, version):
+	* emacsclient.c (print_help_and_exit, fail):
+	Use _Noreturn rather than NO_RETURN.
+	No need for separate decl merely because of _Noreturn.
+
+2012-06-24  Samuel Bronson  <naesten@gmail.com>  (tiny change)
+
+	* emacsclient.c (set_local_socket): Fix compiler warning (Bug#7838).
+
+2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Support higher-resolution time stamps (Bug#9000).
+	* Makefile.in (LIB_CLOCK_GETTIME): New macro.
+	(profile${EXEEXT}): Use it.
+	* profile.c: Include inttypes.h, intprops.h.
+	(time_string): Size conservatively; do not guess size.
+	(get_time): Now prints nanoseconds.
+	(gettimeofday): Remove replacement function; gnulib now does this.
+
 2012-06-08  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* make-docfile.c (search_lisp_doc_at_eol): Unget last read

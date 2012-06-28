@@ -28,8 +28,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-
 (defvar font-lock-keywords)
 
 (defgroup backup nil
@@ -782,10 +780,10 @@ one or more of those symbols."
     (read-file-name-internal string pred action))
    ((eq (car-safe action) 'boundaries)
     (let ((suffix (cdr action)))
-      (list* 'boundaries
-             (length (file-name-directory string))
-             (let ((x (file-name-directory suffix)))
-               (if x (1- (length x)) (length suffix))))))
+      `(boundaries
+        ,(length (file-name-directory string))
+        ,@(let ((x (file-name-directory suffix)))
+            (if x (1- (length x)) (length suffix))))))
    (t
     (let ((names '())
           ;; If we have files like "foo.el" and "foo.elc", we could load one of
@@ -4085,6 +4083,12 @@ the value is \"\"."
         (if period
             "")))))
 
+(defun file-name-base (&optional filename)
+  "Return the base name of the FILENAME: no directory, no extension.
+FILENAME defaults to `buffer-file-name'."
+  (file-name-sans-extension
+   (file-name-nondirectory (or filename (buffer-file-name)))))
+
 (defcustom make-backup-file-name-function nil
   "A function to use instead of the default `make-backup-file-name'.
 A value of nil gives the default `make-backup-file-name' behavior.
@@ -4857,18 +4861,21 @@ properties or buffer state) and make changes, temporarily bind
              (not buffer-read-only)))  ; If buffer-read-only is set correctly,
       nil			       ; do nothing.
     ;; Toggle.
-    (cond
-     ((and buffer-read-only view-mode)
-      (View-exit-and-edit)
-      (make-local-variable 'view-read-only)
-      (setq view-read-only t))		; Must leave view mode.
-     ((and (not buffer-read-only) view-read-only
-	   ;; If view-mode is already active, `view-mode-enter' is a nop.
-	   (not view-mode)
-           (not (eq (get major-mode 'mode-class) 'special)))
-      (view-mode-enter))
-     (t (setq buffer-read-only (not buffer-read-only))
-        (force-mode-line-update)))))
+    (progn
+      (cond
+       ((and buffer-read-only view-mode)
+	(View-exit-and-edit)
+	(make-local-variable 'view-read-only)
+	(setq view-read-only t))		; Must leave view mode.
+       ((and (not buffer-read-only) view-read-only
+	     ;; If view-mode is already active, `view-mode-enter' is a nop.
+	     (not view-mode)
+	     (not (eq (get major-mode 'mode-class) 'special)))
+	(view-mode-enter))
+       (t (setq buffer-read-only (not buffer-read-only))
+	  (force-mode-line-update))))
+    (message "Read-only %s for this buffer"
+	     (if buffer-read-only "enabled" "disabled"))))
 
 (defun insert-file (filename)
   "Insert contents of file FILENAME into buffer after point.
@@ -6461,19 +6468,19 @@ only these files will be asked to be saved."
 			   "/"
 			 (substring (car pair) 2)))))
 	(setq file-arg-indices (cdr file-arg-indices))))
-    (cl-case method
-      (identity (car arguments))
-      (add (concat "/:" (apply operation arguments)))
-      (insert-file-contents
+    (pcase method
+      (`identity (car arguments))
+      (`add (concat "/:" (apply operation arguments)))
+      (`insert-file-contents
        (let ((visit (nth 1 arguments)))
          (prog1
              (apply operation arguments)
            (when (and visit buffer-file-name)
              (setq buffer-file-name (concat "/:" buffer-file-name))))))
-      (unquote-then-quote
+      (`unquote-then-quote
        (let ((buffer-file-name (substring buffer-file-name 2)))
          (apply operation arguments)))
-      (t
+      (_
        (apply operation arguments)))))
 
 ;; Symbolic modes and read-file-modes.

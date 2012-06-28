@@ -109,13 +109,6 @@ enum sound_attr
   SOUND_ATTR_SENTINEL
 };
 
-#ifdef HAVE_ALSA
-static void alsa_sound_perror (const char *, int) NO_RETURN;
-#endif
-static void sound_perror (const char *) NO_RETURN;
-static void sound_warning (const char *);
-static int parse_sound (Lisp_Object, Lisp_Object *);
-
 /* END: Common Definitions */
 
 /* BEGIN: Non Windows Definitions */
@@ -320,7 +313,7 @@ static int do_play_sound (const char *, unsigned long);
 
 /* Like perror, but signals an error.  */
 
-static void
+static _Noreturn void
 sound_perror (const char *msg)
 {
   int saved_errno = errno;
@@ -740,7 +733,7 @@ vox_configure (struct sound_device *sd)
 {
   int val;
 
-  xassert (sd->fd >= 0);
+  eassert (sd->fd >= 0);
 
   /* On GNU/Linux, it seems that the device driver doesn't like to be
      interrupted by a signal.  Block the ones we know to cause
@@ -909,7 +902,7 @@ vox_write (struct sound_device *sd, const char *buffer, ptrdiff_t nbytes)
 #define DEFAULT_ALSA_SOUND_DEVICE "default"
 #endif
 
-static void
+static _Noreturn void
 alsa_sound_perror (const char *msg, int err)
 {
   error ("%s: %s", msg, snd_strerror (err));
@@ -969,7 +962,7 @@ alsa_configure (struct sound_device *sd)
   struct alsa_params *p = (struct alsa_params *) sd->data;
   snd_pcm_uframes_t buffer_size;
 
-  xassert (p->handle != 0);
+  eassert (p->handle != 0);
 
   err = snd_pcm_hw_params_malloc (&p->hwparams);
   if (err < 0)

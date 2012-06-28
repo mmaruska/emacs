@@ -251,7 +251,7 @@ AC_ARG_ENABLE(checking,
 		 enable only specific categories of checks.
 		 Categories are: all,yes,no.
 		 Flags are: stringbytes, stringoverrun, stringfreelist,
-		 xmallocoverrun, conslist])],
+		 xmallocoverrun, conslist, glyphs])],
 [ac_checking_flags="${enableval}"],[])
 IFS="${IFS= 	}"; ac_save_IFS="$IFS"; IFS="$IFS,"
 for check in $ac_checking_flags
@@ -264,19 +264,22 @@ do
 	                ac_gc_check_string_overrun= ;
 	                ac_gc_check_string_free_list= ;
 	                ac_xmalloc_overrun= ;
-	                ac_gc_check_cons_list= ;;
+	                ac_gc_check_cons_list= ;
+			ac_check_glyphs= ;;
 	all)		ac_enable_checking=1 ;
 			ac_gc_check_stringbytes=1 ;
 	                ac_gc_check_string_overrun=1 ;
 	                ac_gc_check_string_free_list=1 ;
 	                ac_xmalloc_overrun=1 ;
-	                ac_gc_check_cons_list=1 ;;
+	                ac_gc_check_cons_list=1 ;
+			ac_check_glyphs=1 ;;
 	# these enable particular checks
 	stringbytes) 	ac_gc_check_stringbytes=1 ;;
 	stringoverrun) 	ac_gc_check_string_overrun=1 ;;
 	stringfreelist) ac_gc_check_string_free_list=1 ;;
 	xmallocoverrun)	ac_xmalloc_overrun=1 ;;
 	conslist)	ac_gc_check_cons_list=1 ;;
+	glyphs)		ac_check_glyphs=1 ;;
 	*)	AC_MSG_ERROR(unknown check category $check) ;;
 	esac
 done
@@ -284,7 +287,7 @@ IFS="$ac_save_IFS"
 
 if test x$ac_enable_checking != x ; then
   AC_DEFINE(ENABLE_CHECKING, 1,
-[Enable expensive run-time checking of data types?])
+[Define to 1 if expensive run-time data type and consistency checks are enabled.])
 fi
 if test x$ac_gc_check_stringbytes != x ; then
   AC_DEFINE(GC_CHECK_STRING_BYTES, 1,
@@ -307,6 +310,10 @@ fi
 if test x$ac_gc_check_cons_list != x ; then
   AC_DEFINE(GC_CHECK_CONS_LIST, 1,
 [Define this to check for errors in cons list.])
+fi
+if test x$ac_check_glyphs != x ; then
+  AC_DEFINE(GLYPH_DEBUG, 1,
+[Define this to enable glyphs debugging code.])
 fi
 
 AC_ARG_ENABLE(check-lisp-object-type,
@@ -699,9 +706,11 @@ AC_PATH_PROG(INSTALL_INFO, install-info, :,
   $PATH$PATH_SEPARATOR/usr/sbin$PATH_SEPARATOR/sbin)
 dnl Don't use GZIP, which is used by gzip for additional parameters.
 AC_PATH_PROG(GZIP_PROG, gzip)
-AC_PATH_PROG(PAXCTL, paxctl,,
-  [$PATH$PATH_SEPARATOR/sbin$PATH_SEPARATOR/usr/sbin])
 
+if test $opsys = gnu-linux; then
+  AC_PATH_PROG(PAXCTL, paxctl,,
+    [$PATH$PATH_SEPARATOR/sbin$PATH_SEPARATOR/usr/sbin])
+fi
 
 ## Need makeinfo >= 4.7 (?) to build the manuals.
 AC_PATH_PROG(MAKEINFO, makeinfo, no)
@@ -1069,6 +1078,13 @@ case $opsys in
 esac
 
 
+# Configure gnulib before invoking PKG_CHECK_MODULES, as the latter might
+# for example add -lrt to RSVG_LIBS, which would then cause gnulib to
+# incorrectly conclude that -lrt is not needed to link clock_gettime.
+gl_ASSERT_NO_GNULIB_POSIXCHECK
+gl_ASSERT_NO_GNULIB_TESTS
+gl_INIT
+
 AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
 
 dnl This function definition taken from Gnome 2.0
@@ -1179,7 +1195,6 @@ fi
 
 dnl checks for header files
 AC_CHECK_HEADERS_ONCE(
-  sys/select.h sys/time.h utime.h
   linux/version.h sys/systeminfo.h
   stdio_ext.h fcntl.h coff.h pty.h
   sys/vlimit.h sys/resource.h
@@ -1211,26 +1226,6 @@ if test $ac_cv_have_decl_sys_siglist != yes; then
 fi
 AC_HEADER_SYS_WAIT
 
-dnl Some systems have utime.h but don't declare the struct anyplace.
-AC_CACHE_CHECK(for struct utimbuf, emacs_cv_struct_utimbuf,
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#ifdef TIME_WITH_SYS_TIME
-#include <sys/time.h>
-#include <time.h>
-#else
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#else
-#include <time.h>
-#endif
-#endif
-#ifdef HAVE_UTIME_H
-#include <utime.h>
-#endif]], [[static struct utimbuf x; x.actime = x.modtime;]])],
-  emacs_cv_struct_utimbuf=yes, emacs_cv_struct_utimbuf=no))
-if test $emacs_cv_struct_utimbuf = yes; then
-  AC_DEFINE(HAVE_STRUCT_UTIMBUF, 1, [Define to 1 if `struct utimbuf' is declared by <utime.h>.])
-fi
-
 dnl Check for speed_t typedef.
 AC_CACHE_CHECK(for speed_t, emacs_cv_speed_t,
   [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <termios.h>]], [[speed_t x = 1;]])],
@@ -1238,23 +1233,6 @@ AC_CACHE_CHECK(for speed_t, emacs_cv_speed_t,
 if test $emacs_cv_speed_t = yes; then
   AC_DEFINE(HAVE_SPEED_T, 1,
   	   [Define to 1 if `speed_t' is declared by <termios.h>.])
-fi
-
-AC_CACHE_CHECK(for struct timeval, emacs_cv_struct_timeval,
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#ifdef TIME_WITH_SYS_TIME
-#include <sys/time.h>
-#include <time.h>
-#else
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#else
-#include <time.h>
-#endif
-#endif]], [[static struct timeval x; x.tv_sec = x.tv_usec;]])],
-  emacs_cv_struct_timeval=yes, emacs_cv_struct_timeval=no))
-HAVE_TIMEVAL=$emacs_cv_struct_timeval
-if test $emacs_cv_struct_timeval = yes; then
-  AC_DEFINE(HAVE_TIMEVAL, 1, [Define to 1 if `struct timeval' is declared by <sys/time.h>.])
 fi
 
 AC_CACHE_CHECK(for struct exception, emacs_cv_struct_exception,
@@ -2690,7 +2668,7 @@ esac
 AC_SUBST(BLESSMAIL_TARGET)
 
 
-AC_CHECK_FUNCS_ONCE(gethostname \
+AC_CHECK_FUNCS(gethostname \
 rename closedir mkdir rmdir getrusage get_current_dir_name \
 random lrand48 logb frexp fmod rint cbrt setsid \
 strerror fpathconf select euidaccess getpagesize setlocale \
@@ -2701,6 +2679,7 @@ gai_strerror mkstemp getline getdelim fsync sync \
 difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
+strcasecmp strncasecmp \
 cfmakeraw cfsetspeed copysign __executable_start)
 
 dnl Cannot use AC_CHECK_FUNCS
@@ -2721,10 +2700,10 @@ AC_FUNC_FSEEKO
 AC_FUNC_GETPGRP
 
 # UNIX98 PTYs.
-AC_CHECK_FUNCS_ONCE(grantpt)
+AC_CHECK_FUNCS(grantpt)
 
 # PTY-related GNU extensions.
-AC_CHECK_FUNCS_ONCE(getpt)
+AC_CHECK_FUNCS(getpt)
 
 # Check this now, so that we will NOT find the above functions in ncurses.
 # That is because we have not set up to link ncurses in lib-src.
@@ -2981,7 +2960,7 @@ AC_SUBST(KRB5LIB)
 AC_SUBST(DESLIB)
 AC_SUBST(KRB4LIB)
 
-AC_CHECK_FUNCS_ONCE(tzset)
+AC_CHECK_FUNCS(tzset)
 AC_MSG_CHECKING(whether localtime caches TZ)
 AC_CACHE_VAL(emacs_cv_localtime_cache,
 [if test x$ac_cv_func_tzset = xyes; then
@@ -3019,33 +2998,6 @@ if test $emacs_cv_localtime_cache = yes; then
 	    [Define to 1 if localtime caches TZ.])
 fi
 
-if test "x$HAVE_TIMEVAL" = xyes; then
-  AC_CHECK_FUNCS(gettimeofday)
-  if test $ac_cv_func_gettimeofday = yes; then
-    AC_CACHE_CHECK(whether gettimeofday can accept two arguments,
-		   emacs_cv_gettimeofday_two_arguments,
-    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#ifdef TIME_WITH_SYS_TIME
-#include <sys/time.h>
-#include <time.h>
-#else
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#else
-#include <time.h>
-#endif
-#endif]],
-      [[struct timeval time;
-       gettimeofday (&time, 0);]])],
-      emacs_cv_gettimeofday_two_arguments=yes,
-      emacs_cv_gettimeofday_two_arguments=no)])
-    if test $emacs_cv_gettimeofday_two_arguments = no; then
-      AC_DEFINE(GETTIMEOFDAY_ONE_ARGUMENT, 1,
-		[Define to 1 if gettimeofday accepts only one argument.])
-    fi
-  fi
-fi
-
 ok_so_far=yes
 AC_CHECK_FUNC(socket, , ok_so_far=no)
 if test $ok_so_far = yes; then
@@ -3075,7 +3027,7 @@ fi
 
 AC_FUNC_FORK
 
-AC_CHECK_FUNCS_ONCE(snprintf)
+AC_CHECK_FUNCS(snprintf)
 
 dnl Adapted from Haible's version.
 AC_CACHE_CHECK([for nl_langinfo and CODESET], emacs_cv_langinfo_codeset,
@@ -3118,7 +3070,7 @@ case $opsys in
 esac
 
 dnl SIGIO exists, but the feature doesn't work in the way Emacs needs.
-dnl See eg <http://article.gmane.org/gmane.os.openbsd.ports/46831>. 
+dnl See eg <http://article.gmane.org/gmane.os.openbsd.ports/46831>.
 case $opsys in
   hpux* | irix6-5 | openbsd | sol2* | unixware )
     AC_DEFINE(BROKEN_SIGIO, 1, [Define if SIGIO should not be used.])
@@ -3376,11 +3328,6 @@ AC_SUBST(CYGWIN_OBJ)
 AC_SUBST(PRE_ALLOC_OBJ)
 AC_SUBST(POST_ALLOC_OBJ)
 
-# Configure gnulib here, now that we know LIBS.
-gl_ASSERT_NO_GNULIB_POSIXCHECK
-gl_ASSERT_NO_GNULIB_TESTS
-gl_INIT
-
 case "$opsys" in
   aix4-2) LD_SWITCH_SYSTEM_TEMACS="-Wl,-bnodelcsect" ;;
 
@@ -3597,13 +3544,6 @@ AH_BOTTOM([
 
 #include <string.h>
 #include <stdlib.h>
-
-#if defined __GNUC__ && (__GNUC__ > 2 \
-                         || (__GNUC__ == 2 && __GNUC_MINOR__ >= 5))
-#define NO_RETURN	__attribute__ ((__noreturn__))
-#else
-#define NO_RETURN	/* nothing */
-#endif
 
 #if __GNUC__ >= 3  /* On GCC 3.0 we might get a warning.  */
 #define NO_INLINE __attribute__((noinline))

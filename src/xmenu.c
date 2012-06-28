@@ -392,8 +392,6 @@ x_menu_wait_for_event (void *data)
          )
     {
       EMACS_TIME next_time = timer_check (), *ntp;
-      long secs = EMACS_SECS (next_time);
-      long usecs = EMACS_USECS (next_time);
       SELECT_TYPE read_fds;
       struct x_display_info *dpyinfo;
       int n = 0;
@@ -407,19 +405,18 @@ x_menu_wait_for_event (void *data)
           XFlush (dpyinfo->display);
         }
 
-      if (secs < 0 && usecs < 0)
+      if (! EMACS_TIME_VALID_P (next_time))
         ntp = 0;
       else
         ntp = &next_time;
 
 #ifdef HAVE_GTK3
-      /* Gtk3 have arrows on menus when they don't fit.  When the pointer is
-         over an arrow, a timeout scrolls it a bit.  Use xg_select so that
-         timeout gets triggered.  */
-
-      xg_select (n + 1, &read_fds, (SELECT_TYPE *)0, (SELECT_TYPE *)0, ntp);
+      /* Gtk3 have arrows on menus when they don't fit.  When the
+	 pointer is over an arrow, a timeout scrolls it a bit.  Use
+	 xg_select so that timeout gets triggered.  */
+      xg_select (n + 1, &read_fds, NULL, NULL, ntp, NULL);
 #else
-      select (n + 1, &read_fds, (SELECT_TYPE *)0, (SELECT_TYPE *)0, ntp);
+      pselect (n + 1, &read_fds, NULL, NULL, ntp, NULL);
 #endif
     }
 }
@@ -1732,7 +1729,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 		save_wv->next = wv;
 	      else
 		first_wv->contents = wv;
-	      wv->name = pane_string;
+	      wv->name = (char *) pane_string;
 	      if (keymaps && !NILP (prefix))
 		wv->name++;
 	      wv->value = 0;
@@ -2063,7 +2060,7 @@ xdialog_show (FRAME_PTR f,
     pane_string = (NILP (pane_name)
 		   ? "" : SSDATA (pane_name));
     prev_wv = xmalloc_widget_value ();
-    prev_wv->value = pane_string;
+    prev_wv->value = (char *) pane_string;
     if (keymaps && !NILP (prefix))
       prev_wv->name++;
     prev_wv->enabled = 1;

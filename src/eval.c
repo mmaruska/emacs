@@ -131,7 +131,6 @@ int handling_signal;
 Lisp_Object inhibit_lisp_code;
 
 static Lisp_Object funcall_lambda (Lisp_Object, ptrdiff_t, Lisp_Object *);
-static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;
 static int interactive_p (int);
 static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
 static Lisp_Object Ffetch_bytecode (Lisp_Object);
@@ -1111,10 +1110,10 @@ internal_catch (Lisp_Object tag, Lisp_Object (*func) (Lisp_Object), Lisp_Object 
 
    This is used for correct unwinding in Fthrow and Fsignal.  */
 
-static void
+static _Noreturn void
 unwind_to_catch (struct catchtag *catch, Lisp_Object value)
 {
-  register int last_time;
+  int last_time;
 
   /* Save the value in the tag.  */
   catch->val = value;
@@ -2243,7 +2242,7 @@ eval_sub (Lisp_Object form)
   return val;
 }
 
-DEFUN ("apply", Fapply, Sapply, 2, MANY, 0,
+DEFUN ("apply", Fapply, Sapply, 1, MANY, 0,
        doc: /* Call FUNCTION with our remaining args, using our last arg as list of args.
 Then return the value FUNCTION returns.
 Thus, (apply '+ 1 2 '(3 4)) returns 10.

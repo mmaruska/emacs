@@ -197,8 +197,6 @@ static off_t data_segment_old_fileoff = 0;
 
 static struct segment_command *data_segment_scp;
 
-static void unexec_error (const char *format, ...) NO_RETURN;
-
 /* Read N bytes from infd into memory starting at address DEST.
    Return true if successful, false otherwise.  */
 static int
@@ -275,7 +273,7 @@ unexec_copy (off_t dest, off_t src, ssize_t count)
 
 /* Debugging and informational messages routines.  */
 
-static void
+static _Noreturn void
 unexec_error (const char *format, ...)
 {
   va_list ap;
@@ -848,6 +846,8 @@ copy_data_segment (struct load_command *lc)
 	       || strncmp (sectp->sectname, "__cfstring", 16) == 0
 	       || strncmp (sectp->sectname, "__gcc_except_tab", 16) == 0
 	       || strncmp (sectp->sectname, "__program_vars", 16) == 0
+	       || strncmp (sectp->sectname, "__mod_init_func", 16) == 0
+	       || strncmp (sectp->sectname, "__mod_term_func", 16) == 0
 	       || strncmp (sectp->sectname, "__objc_", 7) == 0)
 	{
 	  if (!unexec_copy (sectp->offset, old_file_offset, sectp->size))

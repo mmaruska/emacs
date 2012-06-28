@@ -1,3 +1,260 @@
+2012-06-28  Julien Danjou  <julien@danjou.info>
+
+	* term.el (term-handle-colors-array): Use a set of new faces to
+	color the terminal.  Also uses :inverse-video property.
+	(term-default-fg-color): Set to nil by default, deprecate in favor
+	of `term-face'.
+	(term-default-bg-color): Set to nil by default, deprecate in favor
+	of `term-face'.
+	(term-current-face): Use `term-face' by default.
+	(term-bold-attribute): Variable deleted.
+
+2012-06-28  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (completion-list-mode-finish):
+	Don't use toggle-read-only.  (Since completion-list-mode has
+	a special mode-class, it wasn't doing anything extra anyway.)
+
+2012-06-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make inlining of other-mode interpreted functions work (bug#11799).
+	* emacs-lisp/bytecomp.el (byte-compile--refiy-function): New fun.
+	(byte-compile): Use it to fix compilation of lexical-binding closures.
+	* emacs-lisp/byte-opt.el (byte-compile-inline-expand): Compile the
+	function, if needed.
+
+2012-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-mode.el (help-make-xrefs): Don't just withstand
+	cyclic-variable-indirection but any error in documentation-property.
+
+	* loadup.el (purify-flag): Pre-grow the hash-table to reduce the
+	memory use.
+	* bindings.el (bindings--define-key): New function.
+	* vc/vc-hooks.el, replace.el, menu-bar.el, international/mule-cmds.el:
+	* emacs-lisp/lisp-mode.el, buff-menu.el, bookmark.el:
+	* bindings.el: Use it to purecopy define-key bindings.
+
+	* textmodes/rst.el (rst-adornment-faces-alist): Avoid copy-list.
+
+	* emacs-lisp/cl.el (flet): Mark obsolete.
+	* emacs-lisp/cl-macs.el (cl-flet*): New macro.
+	* vc/vc-rcs.el (vc-rcs-annotate-command, vc-rcs-parse):
+	* progmodes/js.el (js-c-fill-paragraph):
+	* progmodes/ebrowse.el (ebrowse-switch-member-buffer-to-sibling-class)
+	(ebrowse-switch-member-buffer-to-derived-class):
+	* play/5x5.el (5x5-solver): Use cl-flet.
+
+	* emacs-lisp/cl.el: Use lexical-binding.  Fix flet (bug#11780).
+	(cl--symbol-function): New macro.
+	(cl--letf, cl--letf*): Use it.
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-pretty-mode-name):
+	Strip "toggle-" if any.
+
+2012-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* info.el (Info-default-directory-list): Move here from paths.el.
+	* paths.el: Remove file, which is now empty.
+	* loadup.el: No longer load "paths".
+
+	* custom.el (custom-initialize-delay): Doc fix.
+
+	* eshell/em-alias.el, eshell/em-banner.el, eshell/em-basic.el:
+	* eshell/em-cmpl.el, eshell/em-dirs.el, eshell/em-glob.el:
+	* eshell/em-hist.el, eshell/em-ls.el, eshell/em-pred.el:
+	* eshell/em-prompt.el, eshell/em-rebind.el, eshell/em-script.el:
+	* eshell/em-smart.el, eshell/em-term.el, eshell/em-unix.el:
+	* eshell/em-xtra.el: Replace eshell-defgroup with "(progn (defgroup".
+	* eshell/eshell.el (eshell-defgroup): Remove alias.
+
+2012-06-27  Chong Yidong  <cyd@gnu.org>
+
+	* help.el (help-enable-auto-load): New variable.
+
+	* help-fns.el (help-fns--autoloaded-p): New function.
+	(describe-function-1): Refer to a function as "autoloaded" if it
+	was autoloaded at any time in the past.  Perform autoloading if
+	help-enable-auto-load is non-nil.
+
+2012-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (compile, compile-always): Depend on
+	update-subdirs, not on subdirs.el.  Otherwise, several different
+	sub-targets of 'bootstrap' running in parallel could
+	simultaneously write to subdirs.el, producing a garbled file.
+
+2012-06-26  Sam Steingold  <sds@gnu.org>
+
+	* files.el (file-name-base): New convenience function.
+	* autoinsert.el, cus-dep.el, doc-view.el, image-dired.el:
+	* woman.el, eshell/esh-cmd.el, progmodes/ada-xref.el:
+	* progmodes/cc-defs.el, progmodes/cperl-mode.el:
+	* progmodes/flymake.el, progmodes/gud.el, progmodes/idlwave.el:
+	* textmodes/ispell.el, textmodes/reftex-ref.el:
+	* textmodes/tex-mode.el: Use it.
+	Did not touch cedet and org because they are maintained elsewhere.
+
+2012-06-26  Martin Rudalics  <rudalics@gmx.at>
+
+	* calendar/calendar.el (calendar-exit): Don't try to delete or
+	iconify last frame.  See:
+	http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00372.html
+
+2012-06-25  Jim Diamond  <Jim.Diamond@AcadiaU.ca>  (tiny change)
+
+	* server.el (server-process-filter): Remember dir in the
+	process's `server-client-directory' properties.
+
+2012-06-24  Chong Yidong  <cyd@gnu.org>
+
+	* xml.el (xml-parse-tag): Correctly handle comment embedded in
+	non-tag text.
+
+2012-06-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (COMPILE_FIRST): Synch with changes in revno:108688.
+
+2012-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-fns.el (describe-variable): Don't croak when doc is not found.
+	* vc/pcvs.el (cvs-retrieve-revision): Avoid toggle-read-only.
+	* menu-bar.el (menu-bar-line-wrapping-menu): Purecopy a tiny bit more.
+	* emacs-lisp/syntax.el (syntax-ppss): Simplify with new `if' place.
+	* emacs-lisp/smie.el (smie-next-sexp): CSE.
+	* emacs-lisp/macroexp.el (macroexp-let2): Fix edebug spec and avoid
+	((lambda ..) ..).
+	* emacs-lisp/eieio.el (eieio-oref, slot-value): Use simpler defsetf.
+
+2012-06-23  Chong Yidong  <cyd@gnu.org>
+
+	* info.el (Info-mouse-follow-link): Accept symbol values of
+	link-args.  Select window; suggested by Gerhard Kahl (Bug#11672).
+	(Info-fontify-node): Use Info-link-keymap for all navigation
+	buttons, with link-args property to perform the desired action.
+	(Info-link-keymap): Doc fix.
+	(Info-next-link-keymap, Info-prev-link-keymap)
+	(Info-up-link-keymap): Delete now-unused keymaps.
+
+2012-06-23  Chong Yidong  <cyd@gnu.org>
+
+	* mouse.el (mouse-drag-track): Deactivate the mark before popping.
+
+	* progmodes/python.el (python-skeleton-define): Mark abbrevs as
+	system abbrevs.
+
+	* ansi-color.el (ansi-color-apply-on-region): Doc fix.
+
+2012-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl--make-usage-args): Handle improper lists
+	(bug#11719).
+
+	* minibuffer.el (completion--twq-try): Try to fail more gracefully when
+	the requote function doesn't work properly (bug#11714).
+
+2012-06-23  Glenn Morris  <rgm@gnu.org>
+
+	* pcmpl-rpm.el (pcmpl-rpm-packages): Give status messages.
+
+2012-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Further GV/CL cleanups.
+	* emacs-lisp/gv.el (gv-get): Autoload functions to find their
+	gv-expander.
+	(gv--defun-declaration): New function.
+	(defun-declarations-alist): Use it.
+	(gv-define-modify-macro, gv-pushnew!, gv-inc!, gv-dec!): Remove.
+	(gv-place): Autoload.
+	* emacs-lisp/cl.el (cl--dotimes, cl--dolist): Remember subr.el's
+	original definition of dotimes and dolist.
+	* emacs-lisp/cl-macs.el (cl-expr-access-order): Remove unused.
+	(cl-dolist, cl-dotimes): Use `dolist' and `dotimes'.
+	* emacs-lisp/cl-lib.el: Move gv handlers from cl-macs to here.
+	(cl-fifth, cl-sixth, cl-seventh, cl-eighth)
+	(cl-ninth, cl-tenth): Move gv handler to the function's definition.
+	* emacs-lisp/cl-extra.el (cl-subseq, cl-get, cl-getf): Move gv handler
+	to the function's definition.
+	* Makefile.in (COMPILE_FIRST): Re-order to speed it up by about 50%.
+	* window.el:
+	* files.el:
+	* faces.el:
+	* env.el: Don't use CL.
+
+2012-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Support higher-resolution time stamps (Bug#9000).
+
+	* calendar/time-date.el (with-decoded-time-value): New arg
+	PICO-SYMBOL in VARLIST.  It's optional, for backward compatibility.
+	(encode-time-value): New optional arg PICO.  New type 3.
+	(time-to-seconds) [!float-time]: Support the new picoseconds
+	component if it's used.
+	(seconds-to-time, time-subtract, time-add):
+	Support ps-resolution time stamps as well.
+
+	* emacs-lisp/timer.el (timer): New component psecs.  All uses changed.
+	(timerp): Timer vectors now have length 9, not 8.
+	(timer--time): Support new-style (4-part) time stamps.
+	(timer-next-integral-multiple-of-time): Time stamps now have
+	picosecond resolution, so take a bit more care about rounding.
+	(timer-relative-time, timer-inc-time): New optional arg psecs.
+	(timer-set-time-with-usecs): Set psecs to 0.
+	(timer--activate): Check psecs component, too.
+
+	* proced.el (proced-time-lessp): Support ps-resolution stamps.
+
+2012-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* icomplete.el (icomplete-minibuffer-setup, icomplete-completions):
+	Move the non-essential binding to the post/pre-command-hook where it is
+	more obviously correct.
+
+	* subr.el (read-passwd): Don't use a history at all.
+	* savehist.el (savehist-save): Remove password saved accidentally
+	because of the above bug.
+
+2012-06-22  Bastien Guerry  <bzg@gnu.org>
+
+	* files.el (toggle-read-only): Display a message telling whether
+	the buffer is read-only or not (bug#11726).
+
+2012-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/gv.el: New file.
+	* subr.el (push, pop): Extend to generalized variables.
+	* loadup.el (macroexp): Unload if preloaded and uncompiled (bug#11657).
+	* emacs-lisp/cl-lib.el (cl-pop, cl-push, cl--set-nthcdr): Remove.
+	* emacs-lisp/cl-macs.el: Require gv.  Use gv-define-setter,
+	gv-define-simple-setter, and gv-define-expander.
+	Remove setf-methods defined in gv.  Rename cl-setf -> setf.
+	(cl-setf, cl-do-pop, cl-get-setf-method): Remove.
+	(cl-letf, cl-letf*, cl-define-modify-macro, cl-defsetf)
+	(cl-define-setf-expander, cl-struct-setf-expander): Move to cl.el.
+	(cl-remf, cl-shiftf, cl-rotatef, cl-callf, cl-callf2): Rewrite with
+	gv-letplace.
+	(cl-defstruct): Don't define setf-method any more.
+	* emacs-lisp/cl.el (flet): Don't autoload.
+	(cl--letf, letf, cl--letf*, letf*, cl--gv-adapt)
+	(define-setf-expander, defsetf, define-modify-macro)
+	(cl-struct-setf-expander): Move from cl-lib.el.
+	* emacs-lisp/syntax.el:
+	* emacs-lisp/ewoc.el:
+	* emacs-lisp/smie.el:
+	* emacs-lisp/cconv.el:
+	* emacs-lisp/timer.el: Rename cl-setf -> setf, cl-push -> push.
+	(timer--time): Use gv-define-simple-setter.
+	* emacs-lisp/macroexp.el (macroexp-let2): Rename from macroexp-let²
+	to avoid coding-system problems in subr.el.  Adjust all users.
+	(macroexp--maxsize, macroexp-small-p): New functions.
+	* emacs-lisp/bytecomp.el (byte-compile-file): Don't use cl-letf.
+	* scroll-bar.el (scroll-bar-mode):
+	* simple.el (auto-fill-mode, overwrite-mode, binary-overwrite-mode)
+	(normal-erase-is-backspace-mode): Don't use the `eq' place.
+	* winner.el (winner-configuration, winner-make-point-alist)
+	(winner-set-conf, winner-get-point, winner-set): Don't abuse letf.
+	* files.el (locate-file-completion-table): Avoid list*.
+
 2012-06-22  Chong Yidong  <cyd@gnu.org>
 
 	* dired-aux.el (dired-do-create-files): Doc fix (Bug#11327).
@@ -5,8 +262,8 @@
 	(dired-do-copy): Doc fix (Bug#11334).
 	(dired-mark-read-string): Doc fix (Bug#11553).
 
-	* dired.el (dired-recursive-copies, dired-recursive-deletes): Doc
-	fix (Bug#11326).
+	* dired.el (dired-recursive-copies, dired-recursive-deletes):
+	Doc fix (Bug#11326).
 	(dired-make-relative): Doc fix (Bug#11332).  Remove unused arg.
 	(dired-dwim-target): Doc fix.
 

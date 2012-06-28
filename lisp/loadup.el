@@ -61,7 +61,7 @@
 
 (if (eq t purify-flag)
     ;; Hash consing saved around 11% of pure space in my tests.
-    (setq purify-flag (make-hash-table :test 'equal)))
+    (setq purify-flag (make-hash-table :test 'equal :size 70000)))
 
 (message "Using load-path %s" load-path)
 
@@ -177,7 +177,6 @@
 (load "rfn-eshadow")
 
 (load "menu-bar")
-(load "paths")
 (load "emacs-lisp/lisp")
 (load "textmodes/page")
 (load "register")
@@ -251,6 +250,21 @@
 ;is generated.
 ;For other systems, you must edit ../src/Makefile.in.
 (load "site-load" t)
+
+;; ¡¡¡ Big Ugly Hack !!!
+;; src/boostrap-emacs is mostly used to compile .el files, so it needs
+;; macroexp, bytecomp, cconv, and byte-opt to be fast.  Generally this is done
+;; by compiling those files first, but this only makes a difference if those
+;; files are not preloaded.  As it so happens, macroexp.el tends to be
+;; accidentally preloaded in src/boostrap-emacs because cl.el and cl-macs.el
+;; require it.  So lets unload it here, if needed, to make sure the
+;; byte-compiled version is used.
+(if (or (not (fboundp 'macroexpand-all))
+        (byte-code-function-p (symbol-function 'macroexpand-all)))
+    nil
+  (fmakunbound 'macroexpand-all)
+  (setq features (delq 'macroexp features))
+  (autoload 'macroexpand-all "macroexp"))
 
 ;; Determine which last version number to use
 ;; based on the executables that now exist.

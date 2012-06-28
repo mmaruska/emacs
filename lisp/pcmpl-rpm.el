@@ -43,9 +43,11 @@
         (if (search-forward "--nosignature " nil t)
             (push "--nosignature" opts))))
     opts)
-  "List of extra options to add to an rpm query command."
+  "String, or list of strings, with extra options for an rpm query command."
   :version "24.2"
-  :type '(repeat string)
+  :type '(choice (const :tag "No options" nil)
+                 (string :tag "Single option")
+                 (repeat :tag "List of options" string))
   :group 'pcmpl-rpm)
 
 (defcustom pcmpl-rpm-cache t
@@ -65,8 +67,6 @@
 
 ;; Functions:
 
-;; This can be slow, so:
-;; Consider printing an explanatory message before running -qa.
 (defun pcmpl-rpm-packages ()
   "Return a list of all installed rpm packages."
   (if (and pcmpl-rpm-cache
@@ -74,11 +74,16 @@
            (let ((mtime (nth 5 (file-attributes pcmpl-rpm-cache-stamp-file))))
              (and mtime (not (time-less-p pcmpl-rpm-cache-time mtime)))))
       pcmpl-rpm-packages
+    (message "Getting list of installed rpms...")
     (setq pcmpl-rpm-cache-time (current-time)
           pcmpl-rpm-packages
           (split-string (apply 'pcomplete-process-result "rpm"
                                (append '("-q" "-a")
-                                       pcmpl-rpm-query-options))))))
+                                       (if (stringp pcmpl-rpm-query-options)
+                                           (list pcmpl-rpm-query-options)
+                                         pcmpl-rpm-query-options)))))
+    (message "Getting list of installed rpms...done")
+    pcmpl-rpm-packages))
 
 ;; Should this use pcmpl-rpm-query-options?
 ;; I don't think it would speed it up at all (?).

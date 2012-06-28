@@ -787,7 +787,7 @@ verify (INT_MAX <= PTRDIFF_MAX);
 void *
 xnmalloc (ptrdiff_t nitems, ptrdiff_t item_size)
 {
-  xassert (0 <= nitems && 0 < item_size);
+  eassert (0 <= nitems && 0 < item_size);
   if (min (PTRDIFF_MAX, SIZE_MAX) / item_size < nitems)
     memory_full (SIZE_MAX);
   return xmalloc (nitems * item_size);
@@ -800,7 +800,7 @@ xnmalloc (ptrdiff_t nitems, ptrdiff_t item_size)
 void *
 xnrealloc (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
 {
-  xassert (0 <= nitems && 0 < item_size);
+  eassert (0 <= nitems && 0 < item_size);
   if (min (PTRDIFF_MAX, SIZE_MAX) / item_size < nitems)
     memory_full (SIZE_MAX);
   return xrealloc (pa, nitems * item_size);
@@ -850,7 +850,7 @@ xpalloc (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
   ptrdiff_t nitems_incr_max = n_max - n;
   ptrdiff_t incr = max (nitems_incr_min, min (incr_estimate, nitems_incr_max));
 
-  xassert (0 < item_size && 0 < nitems_incr_min && 0 <= n && -1 <= nitems_max);
+  eassert (0 < item_size && 0 < nitems_incr_min && 0 <= n && -1 <= nitems_max);
   if (! pa)
     *nitems = 0;
   if (nitems_incr_max < incr)
@@ -1936,13 +1936,14 @@ allocate_string (void)
       int i;
 
       b = (struct string_block *) lisp_malloc (sizeof *b, MEM_TYPE_STRING);
-      memset (b, 0, sizeof *b);
       b->next = string_blocks;
       string_blocks = b;
 
       for (i = STRING_BLOCK_SIZE - 1; i >= 0; --i)
 	{
 	  s = b->strings + i;
+	  /* Every string on a free list should have NULL data pointer.  */
+	  s->data = NULL;
 	  NEXT_FREE_LISP_STRING (s) = string_free_list;
 	  string_free_list = s;
 	}
@@ -1957,9 +1958,6 @@ allocate_string (void)
   string_free_list = NEXT_FREE_LISP_STRING (s);
 
   MALLOC_UNBLOCK_INPUT;
-
-  /* Probably not strictly necessary, but play it safe.  */
-  memset (s, 0, sizeof *s);
 
   --total_free_strings;
   ++total_strings;
@@ -1993,9 +1991,9 @@ void
 allocate_string_data (struct Lisp_String *s,
 		      EMACS_INT nchars, EMACS_INT nbytes)
 {
-  struct sdata *data, *old_data;
+  struct sdata *data;
   struct sblock *b;
-  ptrdiff_t needed, old_nbytes;
+  ptrdiff_t needed;
 
   if (STRING_BYTES_MAX < nbytes)
     string_overflow ();
@@ -2003,8 +2001,6 @@ allocate_string_data (struct Lisp_String *s,
   /* Determine the number of bytes needed to store NBYTES bytes
      of string data.  */
   needed = SDATA_SIZE (nbytes);
-  old_data = s->data ? SDATA_OF_STRING (s) : NULL;
-  old_nbytes = GC_STRING_BYTES (s);
 
   MALLOC_BLOCK_INPUT;
 
@@ -2074,16 +2070,6 @@ allocate_string_data (struct Lisp_String *s,
   memcpy ((char *) data + needed, string_overrun_cookie,
 	  GC_STRING_OVERRUN_COOKIE_SIZE);
 #endif
-
-  /* If S had already data assigned, mark that as free by setting its
-     string back-pointer to null, and recording the size of the data
-     in it.  */
-  if (old_data)
-    {
-      SDATA_NBYTES (old_data) = old_nbytes;
-      old_data->string = NULL;
-    }
-
   consing_since_gc += needed;
 }
 
@@ -2234,7 +2220,7 @@ compact_small_strings (void)
   for (b = oldest_sblock; b; b = b->next)
     {
       end = b->next_free;
-      xassert ((char *) end <= (char *) b + SBLOCK_SIZE);
+      eassert ((char *) end <= (char *) b + SBLOCK_SIZE);
 
       for (from = &b->first_data; from < end; from = from_end)
 	{
@@ -2285,7 +2271,7 @@ compact_small_strings (void)
 	      /* Copy, and update the string's `data' pointer.  */
 	      if (from != to)
 		{
-		  xassert (tb != b || to < from);
+		  eassert (tb != b || to < from);
 		  memmove (to, from, nbytes + GC_STRING_EXTRA);
 		  to->string->data = SDATA_DATA (to);
 		}
@@ -2496,16 +2482,6 @@ make_specified_string (const char *contents,
 }
 
 
-/* Make a string from the data at STR, treating it as multibyte if the
-   data warrants.  */
-
-Lisp_Object
-build_string (const char *str)
-{
-  return make_string (str, strlen (str));
-}
-
-
 /* Return an unibyte Lisp_String set up to hold LENGTH characters
    occupying LENGTH bytes.  */
 
@@ -2537,6 +2513,7 @@ make_uninit_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes)
     return empty_multibyte_string;
 
   s = allocate_string ();
+  s->intervals = NULL_INTERVAL;
   allocate_string_data (s, nchars, nbytes);
   XSETSTRING (string, s);
   string_chars_consed += nbytes;
@@ -3288,44 +3265,53 @@ allocate_hash_table (void)
   return ALLOCATE_PSEUDOVECTOR (struct Lisp_Hash_Table, count, PVEC_HASH_TABLE);
 }
 
-
 struct window *
 allocate_window (void)
 {
-  return ALLOCATE_PSEUDOVECTOR (struct window, current_matrix, PVEC_WINDOW);
-}
+  struct window *w;
 
+  w = ALLOCATE_PSEUDOVECTOR (struct window, current_matrix, PVEC_WINDOW);
+  /* Users assumes that non-Lisp data is zeroed.  */
+  memset (&w->current_matrix, 0,
+	  sizeof (*w) - offsetof (struct window, current_matrix));
+  return w;
+}
 
 struct terminal *
 allocate_terminal (void)
 {
-  struct terminal *t = ALLOCATE_PSEUDOVECTOR (struct terminal,
-					      next_terminal, PVEC_TERMINAL);
-  /* Zero out the non-GC'd fields.  FIXME: This should be made unnecessary.  */
-  memset (&t->next_terminal, 0,
-	  (char*) (t + 1) - (char*) &t->next_terminal);
+  struct terminal *t;
 
+  t = ALLOCATE_PSEUDOVECTOR (struct terminal, next_terminal, PVEC_TERMINAL);
+  /* Users assumes that non-Lisp data is zeroed.  */
+  memset (&t->next_terminal, 0,
+	  sizeof (*t) - offsetof (struct terminal, next_terminal));
   return t;
 }
 
 struct frame *
 allocate_frame (void)
 {
-  struct frame *f = ALLOCATE_PSEUDOVECTOR (struct frame,
-					   face_cache, PVEC_FRAME);
-  /* Zero out the non-GC'd fields.  FIXME: This should be made unnecessary.  */
+  struct frame *f;
+
+  f = ALLOCATE_PSEUDOVECTOR (struct frame, face_cache, PVEC_FRAME);
+  /* Users assumes that non-Lisp data is zeroed.  */
   memset (&f->face_cache, 0,
-	  (char *) (f + 1) - (char *) &f->face_cache);
+	  sizeof (*f) - offsetof (struct frame, face_cache));
   return f;
 }
-
 
 struct Lisp_Process *
 allocate_process (void)
 {
-  return ALLOCATE_PSEUDOVECTOR (struct Lisp_Process, pid, PVEC_PROCESS);
-}
+  struct Lisp_Process *p;
 
+  p = ALLOCATE_PSEUDOVECTOR (struct Lisp_Process, pid, PVEC_PROCESS);
+  /* Users assumes that non-Lisp data is zeroed.  */
+  memset (&p->pid, 0,
+	  sizeof (*p) - offsetof (struct Lisp_Process, pid));
+  return p;
+}
 
 DEFUN ("make-vector", Fmake_vector, Smake_vector, 2, 2, 0,
        doc: /* Return a newly created vector of length LENGTH, with each element being INIT.
@@ -4622,6 +4608,12 @@ mark_maybe_pointer (void *p)
 
 static void
 mark_memory (void *start, void *end)
+#ifdef __clang__
+  /* Do not allow -faddress-sanitizer to check this function, since it
+     crosses the function stack boundary, and thus would yield many
+     false positives. */
+  __attribute__((no_address_safety_analysis))
+#endif
 {
   void **pp;
   int i;
@@ -5669,12 +5661,14 @@ See Info node `(elisp)Garbage Collection'.  */)
     }
 
   /* Accumulate statistics.  */
-  EMACS_GET_TIME (t2);
-  EMACS_SUB_TIME (t3, t2, t1);
   if (FLOATP (Vgc_elapsed))
-    Vgc_elapsed = make_float (XFLOAT_DATA (Vgc_elapsed) +
-			      EMACS_SECS (t3) +
-			      EMACS_USECS (t3) * 1.0e-6);
+    {
+      EMACS_GET_TIME (t2);
+      EMACS_SUB_TIME (t3, t2, t1);
+      Vgc_elapsed = make_float (XFLOAT_DATA (Vgc_elapsed)
+				+ EMACS_TIME_TO_DOUBLE (t3));
+    }
+
   gcs_done++;
 
   return Flist (sizeof total / sizeof *total, total);

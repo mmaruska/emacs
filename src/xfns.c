@@ -136,7 +136,7 @@ static Lisp_Object Qundefined_color;
 static Lisp_Object Qcompound_text, Qcancel_timer;
 Lisp_Object Qfont_param;
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
 static ptrdiff_t image_cache_refcount;
 static int dpyinfo_refcount;
 #endif
@@ -1881,10 +1881,9 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 
   /* Make a fontset name from the base font name.  */
   if (xic_default_fontset == base_fontname)
-    { /* There is no base font name, use the default.  */
-      ptrdiff_t len = strlen (base_fontname) + 2;
-      fontsetname = xmalloc (len);
-      memset (fontsetname, 0, len);
+    { 
+      /* There is no base font name, use the default.  */
+      fontsetname = xmalloc (strlen (base_fontname) + 2);
       strcpy (fontsetname, base_fontname);
     }
   else
@@ -1900,13 +1899,12 @@ xic_create_fontsetname (const char *base_fontname, int motif)
       for (i = 0; *p; p++)
 	if (*p == '-') i++;
       if (i != 14)
-	{ /* As the font name doesn't conform to XLFD, we can't
+	{
+	  /* As the font name doesn't conform to XLFD, we can't
 	     modify it to generalize it to allcs and allfamilies.
 	     Use the specified font plus the default.  */
-	  ptrdiff_t len =
-	    strlen (base_fontname) + strlen (xic_default_fontset) + 3;
-	  fontsetname = xmalloc (len);
-	  memset (fontsetname, 0, len);
+	  fontsetname = xmalloc (strlen (base_fontname)
+				 + strlen (xic_default_fontset) + 3);
 	  strcpy (fontsetname, base_fontname);
 	  strcat (fontsetname, sep);
 	  strcat (fontsetname, xic_default_fontset);
@@ -1956,7 +1954,6 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	  /* Build the font spec that matches all charsets.  */
 	  len = p - base_fontname + strlen (allcs) + 1;
 	  font_allcs = (char *) alloca (len);
-	  memset (font_allcs, 0, len);
 	  memcpy (font_allcs, base_fontname, p - base_fontname);
 	  strcat (font_allcs, allcs);
 
@@ -1964,7 +1961,6 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	     add-styles.  */
 	  len = p - p1 + strlen (allcs) + strlen (allfamilies) + 1;
 	  font_allfamilies = (char *) alloca (len);
-	  memset (font_allfamilies, 0, len);
 	  strcpy (font_allfamilies, allfamilies);
 	  memcpy (font_allfamilies + strlen (allfamilies), p1, p - p1);
 	  strcat (font_allfamilies, allcs);
@@ -1972,7 +1968,6 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	  /* Build the font spec that matches all.  */
 	  len = p - p2 + strlen (allcs) + strlen (all) + strlen (allfamilies) + 1;
 	  font_all = (char *) alloca (len);
-	  memset (font_all, 0, len);
 	  strcpy (font_all, allfamilies);
 	  strcat (font_all, all);
 	  memcpy (font_all + strlen (all) + strlen (allfamilies), p2, p - p2);
@@ -1982,7 +1977,6 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	  len = strlen (base_fontname) + strlen (font_allcs)
 	    + strlen (font_allfamilies) + strlen (font_all) + 5;
 	  fontsetname = xmalloc (len);
-	  memset (fontsetname, 0, len);
 	  strcpy (fontsetname, base_fontname);
 	  strcat (fontsetname, sep);
 	  strcat (fontsetname, font_allcs);
@@ -2503,7 +2497,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
        it is safe to free it while the frame exists.
        It isn't worth the trouble of arranging to free it
        when the frame is deleted.  */
-    tem = (char *) xstrdup (shell_position);
+    tem = xstrdup (shell_position);
     XtSetArg (gal[gac], XtNgeometry, tem); gac++;
     XtSetValues (shell_widget, gal, gac);
   }
@@ -2920,17 +2914,17 @@ unwind_create_frame (Lisp_Object frame)
   /* If frame is ``official'', nothing to do.  */
   if (NILP (Fmemq (frame, Vframe_list)))
     {
-#if GLYPH_DEBUG && XASSERTS
+#if defined GLYPH_DEBUG && defined ENABLE_CHECKING
       struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 #endif
 
       x_free_frame_resources (f);
       free_glyphs (f);
 
-#if GLYPH_DEBUG
+#if defined GLYPH_DEBUG && defined ENABLE_CHECKING
       /* Check that reference counts are indeed correct.  */
-      xassert (dpyinfo->reference_count == dpyinfo_refcount);
-      xassert (dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
+      eassert (dpyinfo->reference_count == dpyinfo_refcount);
+      eassert (dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
 #endif
       return Qt;
     }
@@ -3302,7 +3296,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 					"scrollBarBackground",
 					"ScrollBarBackground", 0);
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   image_cache_refcount =
     FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
   dpyinfo_refcount = dpyinfo->reference_count;
@@ -4736,7 +4730,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   x_default_parameter (f, parms, Qborder_color, build_string ("black"),
 		       "borderColor", "BorderColor", RES_TYPE_STRING);
 
-#if GLYPH_DEBUG
+#ifdef GLYPH_DEBUG
   image_cache_refcount =
     FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
   dpyinfo_refcount = dpyinfo->reference_count;
@@ -5962,10 +5956,10 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
   DEFVAR_LISP ("gtk-version-string", Vgtk_version_string,
                doc: /* Version info for GTK+.  */);
   {
-    char gtk_version[40];
-    g_snprintf (gtk_version, sizeof (gtk_version), "%u.%u.%u",
-                GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION);
-    Vgtk_version_string = make_pure_string (gtk_version, strlen (gtk_version), strlen (gtk_version), 0);
+    char gtk_version[sizeof ".." + 3 * INT_STRLEN_BOUND (int)];
+    int len = sprintf (gtk_version, "%d.%d.%d",
+		       GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION);
+    Vgtk_version_string = make_pure_string (gtk_version, len, len, 0);
   }
 #endif /* USE_GTK */
 

@@ -2466,10 +2466,12 @@ dos_rawgetc (void)
       sc = regs.h.ah;
 
       total_doskeys += 2;
-      ASET (recent_doskeys, recent_doskeys_index, make_number (c)), recent_doskeys_index++;
+      ASET (recent_doskeys, recent_doskeys_index, make_number (c));
+      recent_doskeys_index++;
       if (recent_doskeys_index == NUM_RECENT_DOSKEYS)
 	recent_doskeys_index = 0;
-      ASET (recent_doskeys, recent_doskeys_index, make_number (sc)), recent_doskeys_index++;
+      ASET (recent_doskeys, recent_doskeys_index, make_number (sc));
+      recent_doskeys_index++;
       if (recent_doskeys_index == NUM_RECENT_DOSKEYS)
 	recent_doskeys_index = 0;
 
@@ -4070,13 +4072,6 @@ sigprocmask (int how, const sigset_t *new_set, sigset_t *old_set)
 #ifndef HAVE_SELECT
 #include "sysselect.h"
 
-#ifndef EMACS_TIME_ZERO_OR_NEG_P
-#define EMACS_TIME_ZERO_OR_NEG_P(time)	\
-  ((long)(time).tv_sec < 0		\
-   || ((time).tv_sec == 0		\
-       && (long)(time).tv_usec <= 0))
-#endif
-
 /* This yields the rest of the current time slice to the task manager.
    It should be called by any code which knows that it has nothing
    useful to do except idle.
@@ -4145,12 +4140,12 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 
 	  /* When seconds wrap around, we assume that no more than
 	     1 minute passed since last `gettime'.  */
-	  if (EMACS_TIME_NEG_P (cldiff))
+	  if (EMACS_TIME_SIGN (cldiff) < 0)
 	    EMACS_SET_SECS (cldiff, EMACS_SECS (cldiff) + 60);
 	  EMACS_SUB_TIME (*timeout, *timeout, cldiff);
 
 	  /* Stop when timeout value crosses zero.  */
-	  if (EMACS_TIME_ZERO_OR_NEG_P (*timeout))
+	  if (EMACS_TIME_SIGN (*timeout) <= 0)
 	    return 0;
 	  cllast = clnow;
 	  dos_yield_time_slice ();

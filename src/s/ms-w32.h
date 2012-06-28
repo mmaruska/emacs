@@ -165,6 +165,14 @@ struct sigaction {
 #undef  HAVE_AIX_SMT_EXP
 #define USE_TOOLKIT_SCROLL_BARS 1
 
+/* MinGW has these in its library; MSVC doesn't.  */
+#ifdef _MSC_VER
+#define strcasecmp(s1,s2)  _stricmp(s1,s2)
+#define strncasecmp(s1,s2) _strnicmp(s1,s2)
+#endif
+#define HAVE_STRCASECMP 1
+#define HAVE_STRNCASECMP 1
+
 /* Define if you have the ANSI `strerror' function.
    Otherwise you must have the variable `char *sys_errlist[]'.  */
 #define HAVE_STRERROR 1
@@ -226,6 +234,7 @@ struct sigaction {
 #define rename  sys_rename
 #define rmdir   sys_rmdir
 #define select  sys_select
+#define pselect  sys_select
 #define sleep   sys_sleep
 #define strerror sys_strerror
 #undef unlink
@@ -294,6 +303,15 @@ typedef int pid_t;
 #undef  utime
 #define utime	  _utime
 #endif
+
+/* 'struct timespec' is used by time-related functions in lib/ and
+   elsewhere, but we don't use lib/time.h where the structure is
+   defined.  */
+struct timespec
+{
+  time_t	tv_sec;		/* seconds */
+  long int	tv_nsec;	/* nanoseconds */
+};
 
 /* This is hacky, but is necessary to avoid warnings about macro
    redefinitions using the SDK compilers.  */

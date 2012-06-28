@@ -64,6 +64,25 @@ been adding them there, put them somewhere else, eg site-lisp.
 
 * Changes in Emacs 24.2
 
+** Help changes
+
+*** `C-h f' (describe-function) can now perform autoloading.
+When this command is called for an autoloaded function whose docstring
+contains a key substitution construct, that function's library is
+automatically loaded, so that the documentation can be shown
+correctly.  To disable this, set `help-enable-auto-load' to nil.
+
+*** `C-h f' now reports previously-autoloaded functions as "autoloaded",
+even after their associated libraries have been loaded (and the
+autoloads have been redefined as functions).
+
+** The function `current-time' now returns extended-format time stamps
+(HIGH LOW USEC PSEC) that use picosecond resolution; the PSEC
+component is new.  PSEC is typically a multiple of 1000 on current
+machines.  Other functions that use this format, such as
+file-attributes and format-time-string, have been changed accordingly.
+Old-format time stamps are still accepted.
+
 ** New functions `system-users', `system-groups' return lists of the user
 name, group names known to the system (where possible).
 
@@ -140,6 +159,15 @@ character when doing minibuffer filename prompts.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.2
+
+** Term changes
+
+The variables `term-default-fg-color' and `term-default-bg-color' are
+now deprecated in favor of the `term-face' face, that you can
+customize.  Also, it is now possible to cutomize how are displayed the
+ANSI terminal colors and styles by cutomizing the corresponding
+`term-color-<COLOR>', `term-color-underline' and `term-color-bold'
+faces.
 
 ** CL's main entry is now (require 'cl-lib).
 `cl-lib' is like the old `cl' except that it uses the namespace cleanly,
@@ -418,6 +446,12 @@ Only variables defined using `defcustom' are considered user options.
 The function `user-variable-p' is now an obsolete alias for
 `custom-variable-p'.
 
++++
+** The return values of `defalias', `defun' and `defmacro' have changed,
+and are now undefined.  For backwards compatibility, defun and
+defmacro currently return the name of the newly defined function/macro
+but this should not be relied upon.
+
 ** `face-spec-set' no longer sets frame-specific attributes when the
 third argument is a frame (that usage was obsolete since Emacs 22.2).
 
@@ -434,7 +468,8 @@ still be supported for Emacs 24.x.
 
 * Lisp changes in Emacs 24.2
 
-** The return value of `defalias' has changed and is now undefined.
+** CL-style generalized variables are now in core Elisp.
+`setf' is autoloaded and `push' and `pop' accept generalized variables.
 
 ** `defun' also accepts a (declare DECLS) form, like `defmacro'.
 The interpretation of the DECLS is determined by `defun-declarations-alist'.
@@ -463,6 +498,8 @@ table, but with a different prefix.
 *** `current-time-string' no longer requires that its argument's year
 must be in the range 1000..9999.  It now works with any year supported
 by the underlying C implementation.
+
+** New function file-name-base.
 
 ** `automount-dir-prefix' is obsolete.
 ** `buffer-has-markers-at' is obsolete.
