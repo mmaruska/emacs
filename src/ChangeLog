@@ -1,3 +1,58 @@
+2012-06-29  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gnutls.c (emacs_gnutls_handshake):
+	Add QUIT to make the loop interruptible.
+
+2012-06-29  Glenn Morris  <rgm@gnu.org>
+
+	* charset.c (init_charset): Make lack of etc/charsets fatal.
+
+2012-06-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* editfns.c (region_limit): Fix type mismatch.
+
+2012-06-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* nsfns.m: Fix GLYPH_DEBUG usage assuming that it may be
+	undefined.  Convert from xassert to eassert.
+	* nsmenu.m: Convert from xassert to eassert.
+	* nsterm.m: Likewise.
+
+2012-06-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* editfns.c (region_limit): Clip to narrowing (bug#11770).
+
+2012-06-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Avoid integer overflow on scroll-left and scroll-right.
+	* window.c (HSCROLL_MAX): New macro.
+	(Fscroll_left, Fscroll_right): Avoid undefined behavior on integer
+	overflow when requested scroll falls outside ptrdiff_t range.
+
+2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* window.h (struct window): Change type of 'hscroll',
+	'min_hscroll' and 'last_point' from Lisp_Object to ptrdiff_t,
+	'last_modified' and 'last_overlay_modified' to EMACS_INT.
+	Adjust users accordingly.
+	* xdisp.c (try_cursor_movement): Replace type check with eassert.
+	* window.c (Fscroll_left, Fscroll_right): Change type of 'hscroll'
+	from EMACS_INT to ptrdiff_t.
+	(make_window): Omit redundant initialization.
+
+2012-06-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/regex.$(O)): Update dependencies.
+
+2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* window.h (struct window): Change type of 'use_time' and
+	'sequence_number' from Lisp_Object to int.
+	* frame.c (make_frame): Adjust users accordingly.
+	* print.c (print_object): Likewise.
+	* window.c (select_window, Fwindow_use_time, make_parent_window)
+	(make_window): Likewise.
+
 2012-06-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* dispextern.h (GLYPH_DEBUG): Now defined in config.h if

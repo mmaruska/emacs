@@ -331,8 +331,7 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
 
   if (NILP (norecord))
     {
-      ++window_select_count;
-      XSETFASTINT (w->use_time, window_select_count);
+      w->use_time = ++window_select_count;
       record_buffer (w->buffer);
     }
 
@@ -499,7 +498,7 @@ one.  The window with the lowest use time is the least recently
 selected one.  */)
   (Lisp_Object window)
 {
-  return decode_window (window)->use_time;
+  return make_number (decode_window (window)->use_time);
 }
 
 DEFUN ("window-total-height", Fwindow_total_height, Swindow_total_height, 0, 1, 0,
@@ -668,7 +667,7 @@ DEFUN ("window-hscroll", Fwindow_hscroll, Swindow_hscroll, 0, 1, 0,
 WINDOW must be a live window and defaults to the selected one.  */)
   (Lisp_Object window)
 {
-  return decode_window (window)->hscroll;
+  return make_number (decode_window (window)->hscroll);
 }
 
 DEFUN ("set-window-hscroll", Fset_window_hscroll, Sset_window_hscroll, 2, 2, 0,
@@ -687,10 +686,10 @@ window so that the location of point moves off-window.  */)
   hscroll = clip_to_bounds (0, XINT (ncol), PTRDIFF_MAX);
 
   /* Prevent redisplay shortcuts when changing the hscroll.  */
-  if (XINT (w->hscroll) != hscroll)
+  if (w->hscroll != hscroll)
     XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
 
-  w->hscroll = make_number (hscroll);
+  w->hscroll = hscroll;
   return ncol;
 }
 
@@ -1314,8 +1313,8 @@ if it isn't already recorded.  */)
 
   if (! NILP (update)
       && ! (! NILP (w->window_end_valid)
-	    && XFASTINT (w->last_modified) >= BUF_MODIFF (b)
-	    && XFASTINT (w->last_overlay_modified) >= BUF_OVERLAY_MODIFF (b))
+	    && w->last_modified >= BUF_MODIFF (b)
+	    && w->last_overlay_modified >= BUF_OVERLAY_MODIFF (b))
       && !noninteractive)
     {
       struct text_pos startp;
@@ -1398,8 +1397,8 @@ overriding motion of point in order to display at this exact start.  */)
   if (NILP (noforce))
     w->force_start = 1;
   w->update_mode_line = 1;
-  XSETFASTINT (w->last_modified, 0);
-  XSETFASTINT (w->last_overlay_modified, 0);
+  w->last_modified = 0;
+  w->last_overlay_modified = 0;
   if (!EQ (window, selected_window))
     windows_or_buffers_changed++;
 
@@ -1511,8 +1510,8 @@ Return nil if window display is not up-to-date.  In that case, use
   if (NILP (w->window_end_valid)
       || current_buffer->clip_changed
       || current_buffer->prevent_redisplay_optimizations_p
-      || XFASTINT (w->last_modified) < BUF_MODIFF (b)
-      || XFASTINT (w->last_overlay_modified) < BUF_OVERLAY_MODIFF (b))
+      || w->last_modified < BUF_MODIFF (b)
+      || w->last_overlay_modified < BUF_OVERLAY_MODIFF (b))
     return Qnil;
 
   if (NILP (line))
@@ -3003,7 +3002,7 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer, int run_hooks_p, int 
 	 Resetting hscroll and vscroll here is problematic for things like
 	 image-mode and doc-view-mode since it resets the image's position
 	 whenever we resize the frame.  */
-      w->hscroll = w->min_hscroll = make_number (0);
+      w->hscroll = w->min_hscroll = 0;
       w->vscroll = 0;
       set_marker_both (w->pointm, buffer, BUF_PT (b), BUF_PT_BYTE (b));
       set_marker_restricted (w->start,
@@ -3011,8 +3010,8 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer, int run_hooks_p, int 
 			     buffer);
       w->start_at_line_beg = 0;
       w->force_start = 0;
-      XSETFASTINT (w->last_modified, 0);
-      XSETFASTINT (w->last_overlay_modified, 0);
+      w->last_modified = 0;
+      w->last_overlay_modified = 0;
     }
   /* Maybe we could move this into the `if' but it's not obviously safe and
      I doubt it's worth the trouble.  */
@@ -3197,8 +3196,8 @@ temp_output_buffer_show (register Lisp_Object buf)
 	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (window)));
       Vminibuf_scroll_window = window;
       w = XWINDOW (window);
-      XSETFASTINT (w->hscroll, 0);
-      XSETFASTINT (w->min_hscroll, 0);
+      w->hscroll = 0;
+      w->min_hscroll = 0;
       set_marker_restricted_both (w->start, buf, BEG, BEG);
       set_marker_restricted_both (w->pointm, buf, BEG, BEG);
 
@@ -3245,13 +3244,12 @@ make_parent_window (Lisp_Object window, int horflag)
 
   o = XWINDOW (window);
   p = allocate_window ();
-  memcpy ((char *) p + sizeof (struct vectorlike_header), 
+  memcpy ((char *) p + sizeof (struct vectorlike_header),
 	  (char *) o + sizeof (struct vectorlike_header),
 	  sizeof (Lisp_Object) * VECSIZE (struct window));
   XSETWINDOW (parent, p);
 
-  ++sequence_number;
-  XSETFASTINT (p->sequence_number, sequence_number);
+  p->sequence_number = ++sequence_number;
 
   replace_window (window, parent, 1);
 
@@ -3288,12 +3286,6 @@ make_window (void)
   XSETFASTINT (w->new_normal, 0);
   w->start = Fmake_marker ();
   w->pointm = Fmake_marker ();
-  XSETFASTINT (w->hscroll, 0);
-  XSETFASTINT (w->min_hscroll, 0);
-  XSETFASTINT (w->use_time, 0);
-  ++sequence_number;
-  XSETFASTINT (w->sequence_number, sequence_number);
-  XSETFASTINT (w->last_point, 0);
   w->vertical_scroll_bar_type = Qt;
   XSETFASTINT (w->window_end_pos, 0);
   XSETFASTINT (w->window_end_vpos, 0);
@@ -3303,6 +3295,7 @@ make_window (void)
   w->nrows_scale_factor = w->ncols_scale_factor = 1;
   w->phys_cursor_type = -1;
   w->phys_cursor_width = -1;
+  w->sequence_number = ++sequence_number;
 
   /* Reset window_list.  */
   Vwindow_list = Qnil;
@@ -3492,8 +3485,8 @@ window_resize_apply (struct window *w, int horflag)
     }
 
   /* Clear out some redisplay caches.  */
-  XSETFASTINT (w->last_modified, 0);
-  XSETFASTINT (w->last_overlay_modified, 0);
+  w->last_modified = 0;
+  w->last_overlay_modified = 0;
 }
 
 
@@ -4025,8 +4018,8 @@ grow_mini_window (struct window *w, int delta)
       /* Grow the mini-window.  */
       XSETFASTINT (w->top_line, XFASTINT (r->top_line) + XFASTINT (r->total_lines));
       XSETFASTINT (w->total_lines, XFASTINT (w->total_lines) - XINT (value));
-      XSETFASTINT (w->last_modified, 0);
-      XSETFASTINT (w->last_overlay_modified, 0);
+      w->last_modified = 0;
+      w->last_overlay_modified = 0;
 
       adjust_glyphs (f);
       UNBLOCK_INPUT;
@@ -4061,8 +4054,8 @@ shrink_mini_window (struct window *w)
 	  XSETFASTINT (w->top_line, XFASTINT (r->top_line) + XFASTINT (r->total_lines));
 	  XSETFASTINT (w->total_lines, 1);
 
-	  XSETFASTINT (w->last_modified, 0);
-	  XSETFASTINT (w->last_overlay_modified, 0);
+	  w->last_modified = 0;
+	  w->last_overlay_modified = 0;
 
 	  adjust_glyphs (f);
 	  UNBLOCK_INPUT;
@@ -4289,8 +4282,8 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 					 w->buffer);
 		  w->start_at_line_beg = 1;
 		  w->update_mode_line = 1;
-		  XSETFASTINT (w->last_modified, 0);
-		  XSETFASTINT (w->last_overlay_modified, 0);
+		  w->last_modified = 0;
+		  w->last_overlay_modified = 0;
 		  /* Set force_start so that redisplay_window will run the
 		     window-scroll-functions.  */
 		  w->force_start = 1;
@@ -4435,8 +4428,8 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
       bytepos = XMARKER (w->start)->bytepos;
       w->start_at_line_beg = (pos == BEGV || FETCH_BYTE (bytepos - 1) == '\n');
       w->update_mode_line = 1;
-      XSETFASTINT (w->last_modified, 0);
-      XSETFASTINT (w->last_overlay_modified, 0);
+      w->last_modified = 0;
+      w->last_overlay_modified = 0;
       /* Set force_start so that redisplay_window will run the
 	 window-scroll-functions.  */
       w->force_start = 1;
@@ -4589,10 +4582,10 @@ window_scroll_line_based (Lisp_Object window, int n, int whole, int noerror)
 	  struct position posit
 	    = *compute_motion (startpos, 0, 0, 0,
 			       PT, ht, 0,
-			       -1, XINT (w->hscroll),
+			       -1, w->hscroll,
 			       0, w);
 	  window_scroll_preserve_vpos = posit.vpos;
-	  window_scroll_preserve_hpos = posit.hpos + XINT (w->hscroll);
+	  window_scroll_preserve_hpos = posit.hpos + w->hscroll;
 	}
 
       original_pos = Fcons (make_number (window_scroll_preserve_hpos),
@@ -4634,8 +4627,8 @@ window_scroll_line_based (Lisp_Object window, int n, int whole, int noerror)
       set_marker_restricted_both (w->start, w->buffer, pos, pos_byte);
       w->start_at_line_beg = !NILP (bolp);
       w->update_mode_line = 1;
-      XSETFASTINT (w->last_modified, 0);
-      XSETFASTINT (w->last_overlay_modified, 0);
+      w->last_modified = 0;
+      w->last_overlay_modified = 0;
       /* Set force_start so that redisplay_window will run
 	 the window-scroll-functions.  */
       w->force_start = 1;
@@ -4864,6 +4857,9 @@ specifies the window to scroll.  This takes precedence over
   return Qnil;
 }
 
+/* Scrolling amount must fit in both ptrdiff_t and Emacs fixnum.  */
+#define HSCROLL_MAX min (PTRDIFF_MAX, MOST_POSITIVE_FIXNUM)
+
 DEFUN ("scroll-left", Fscroll_left, Sscroll_left, 0, 2, "^P\np",
        doc: /* Scroll selected window display ARG columns left.
 Default for ARG is window width minus 2.
@@ -4876,15 +4872,14 @@ by this function.  This happens in an interactive call.  */)
   (register Lisp_Object arg, Lisp_Object set_minimum)
 {
   Lisp_Object result;
-  EMACS_INT hscroll;
+  ptrdiff_t hscroll;
   struct window *w = XWINDOW (selected_window);
-
-  if (NILP (arg))
-    XSETFASTINT (arg, window_body_cols (w) - 2);
-  else
-    arg = Fprefix_numeric_value (arg);
-
-  hscroll = XINT (w->hscroll) + XINT (arg);
+  EMACS_INT requested_arg = (NILP (arg)
+			     ? window_body_cols (w) - 2
+			     : XINT (Fprefix_numeric_value (arg)));
+  ptrdiff_t clipped_arg =
+    clip_to_bounds (- w->hscroll, requested_arg, HSCROLL_MAX - w->hscroll);
+  hscroll = w->hscroll + clipped_arg;
   result = Fset_window_hscroll (selected_window, make_number (hscroll));
 
   if (!NILP (set_minimum))
@@ -4905,15 +4900,14 @@ by this function.  This happens in an interactive call.  */)
   (register Lisp_Object arg, Lisp_Object set_minimum)
 {
   Lisp_Object result;
-  EMACS_INT hscroll;
+  ptrdiff_t hscroll;
   struct window *w = XWINDOW (selected_window);
-
-  if (NILP (arg))
-    XSETFASTINT (arg, window_body_cols (w) - 2);
-  else
-    arg = Fprefix_numeric_value (arg);
-
-  hscroll = XINT (w->hscroll) - XINT (arg);
+  EMACS_INT requested_arg = (NILP (arg)
+			     ? window_body_cols (w) - 2
+			     : XINT (Fprefix_numeric_value (arg)));
+  ptrdiff_t clipped_arg =
+    clip_to_bounds (w->hscroll - HSCROLL_MAX, requested_arg, w->hscroll);
+  hscroll = w->hscroll - clipped_arg;
   result = Fset_window_hscroll (selected_window, make_number (hscroll));
 
   if (!NILP (set_minimum))
@@ -5541,8 +5535,8 @@ the return value is nil.  Otherwise the value is t.  */)
 	  w->total_lines = p->total_lines;
 	  w->normal_cols = p->normal_cols;
 	  w->normal_lines = p->normal_lines;
-	  w->hscroll = p->hscroll;
-	  w->min_hscroll = p->min_hscroll;
+	  w->hscroll = XFASTINT (p->hscroll);
+	  w->min_hscroll = XFASTINT (p->min_hscroll);
 	  w->display_table = p->display_table;
 	  w->left_margin_cols = p->left_margin_cols;
 	  w->right_margin_cols = p->right_margin_cols;
@@ -5575,8 +5569,8 @@ the return value is nil.  Otherwise the value is t.  */)
 		}
 	    }
 
-	  XSETFASTINT (w->last_modified, 0);
-	  XSETFASTINT (w->last_overlay_modified, 0);
+	  w->last_modified = 0;
+	  w->last_overlay_modified = 0;
 
 	  /* Reinstall the saved buffer and pointers into it.  */
 	  if (NILP (p->buffer))
@@ -5815,7 +5809,7 @@ get_phys_cursor_glyph (struct window *w)
   if (!row->enabled_p)
     return NULL;
 
-  if (XINT (w->hscroll))
+  if (w->hscroll)
     {
       /* When the window is hscrolled, cursor hpos can legitimately be
 	 out of bounds, but we draw the cursor at the corresponding
@@ -5857,8 +5851,8 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
       p->total_lines = w->total_lines;
       p->normal_cols = w->normal_cols;
       p->normal_lines = w->normal_lines;
-      p->hscroll = w->hscroll;
-      p->min_hscroll = w->min_hscroll;
+      XSETFASTINT (p->hscroll, w->hscroll);
+      XSETFASTINT (p->min_hscroll, w->min_hscroll);
       p->display_table = w->display_table;
       p->left_margin_cols = w->left_margin_cols;
       p->right_margin_cols = w->right_margin_cols;
