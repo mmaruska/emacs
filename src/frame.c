@@ -131,7 +131,7 @@ set_menu_bar_lines_1 (Lisp_Object window, int n)
 {
   struct window *w = XWINDOW (window);
 
-  XSETFASTINT (w->last_modified, 0);
+  w->last_modified = 0;
   XSETFASTINT (w->top_line, XFASTINT (w->top_line) + n);
   XSETFASTINT (w->total_lines, XFASTINT (w->total_lines) - n);
 
@@ -356,8 +356,7 @@ make_frame (int mini_p)
   f->selected_window = root_window;
   /* Make sure this window seems more recently used than
      a newly-created, never-selected window.  */
-  ++window_select_count;
-  XSETFASTINT (XWINDOW (f->selected_window)->use_time, window_select_count);
+  XWINDOW (f->selected_window)->use_time = ++window_select_count;
 
   return f;
 }
