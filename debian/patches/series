@@ -1,0 +1,10 @@
+0001-Define-a-Debian-specific-Emacs-flavor.patch
+0002-mail-from-style-is-set-to-system-default-by-default.patch
+0003-M-x-report-emacs-bug-includes-the-package-version.patch
+0004-Debian-related-items-were-added-to-the-Help-menu.patch
+0005-describe-copying-uses-usr-share-common-licenses-GPL.patch
+0006-Emacs-is-built-without-RPATH.patch
+0007-emacs-version-has-been-modified-to-indicate-Debian-m.patch
+0008-Some-documentation-references-to-usr-local-have-been.patch
+0009-Emacs-now-invokes-the-correct-xmlstarlet-executable-.patch
+0010-Set-org-ditaa-jar-path-correctly.patch

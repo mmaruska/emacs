@@ -1,0 +1,43 @@
+From 024027ce7a9e2d345aa3db20c50036a64d128fdf Mon Sep 17 00:00:00 2001
+From: Rob Browning <rlb@defaultvalue.org>
+Date: Thu, 24 Feb 2011 23:21:33 +0100
+Subject: [PATCH 01/10] Define a Debian-specific Emacs flavor
+
+Signed-off-by: Julien Danjou <julien@danjou.info>
+---
+ lisp/startup.el |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/lisp/startup.el b/lisp/startup.el
+index 3adc2ca..0ff155c 100644
+--- a/lisp/startup.el
++++ b/lisp/startup.el
+@@ -384,6 +384,10 @@ from being initialized."
+ 
+ (defvar normal-top-level-add-subdirs-inode-list nil)
+ 
++(defconst debian-emacs-flavor 'emacs-snapshot
++  "A symbol representing the particular debian flavor of emacs running.
++Something like 'emacs20, 'xemacs20, etc.")
++
+ (defvar no-blinking-cursor nil)
+ 
+ (defvar default-frame-background-mode)
+@@ -973,7 +977,13 @@ Amongst another things, it parses the command-line arguments."
+     ;; should check init-file-user instead, since that is already set.
+     ;; See cus-edit.el for an example.
+     (if site-run-file
+-	(load site-run-file t t))
++	(progn
++	  ;; Load all the debian package snippets.
++	  ;; It's in here because we want -q to kill it too.
++	  (if (load "debian-startup" t t nil)
++	      (debian-startup debian-emacs-flavor))
++	  ;; Now the normal site file...
++	  (load site-run-file t t nil)))
+ 
+     ;; Sites should not disable this.  Only individuals should disable
+     ;; the startup screen.
+-- 
+1.7.10
+
