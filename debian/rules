@@ -241,8 +241,6 @@ debian/patches/series:
 	test -d $(CURDIR)/.git && \
 		cd $(CURDIR)/debian/patches && rm -f * && git format-patch trunk..debian/patches > series
 
-.PHONY: debian/patches/series
-
 debian/%: debian/%.in debian/changelog
 	${expand_file_subst_vars}
 
