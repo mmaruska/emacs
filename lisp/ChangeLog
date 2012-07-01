@@ -1,3 +1,71 @@
+2012-07-01  Chong Yidong  <cyd@gnu.org>
+
+	* xml.el (xml--parse-buffer): New function.  Move most of
+	xml-parse-region here.
+	(xml-parse-region): Copy region into a temporary buffer, since
+	parameter entity substitution requires changing buffer contents.
+	Use xml--parse-buffer.
+	(xml-parse-file): Use xml--parse-buffer.
+	(xml-parse-dtd): Make parameter entity substitution work right.
+
+2012-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* comint.el (follow-comint-scroll-to-bottom): Fix declaration.
+
+	* net/secrets.el, net/tramp-gvfs.el, net/xesam.el, net/zeroconf.el:
+	Remove outdated and unnecessary dbus declarations.
+
+2012-06-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/timer.el (timer-until): Subtract results of
+	float-time, instead of taking float-time of the result of
+	time-subtract, since float-time signals an error for negative time
+	arguments.
+
+2012-06-30  Chong Yidong  <cyd@gnu.org>
+
+	* xml.el (xml-*-re): Convert defvars into defconsts, and
+	eval-and-compile them so eval-and-compile works on derivatives.
+	(xml--entity-replacement-text): Use eval-and-comple.
+
+2012-06-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* vc/vc-git.el (vc-git-registered): Use cache property
+	`git-registered'.
+	(vc-git-mode-line-string): Call `vc-working-revision' instead of
+	`vc-git-working-revision' in order to benefit from the cache.
+	(vc-git-root): Use cache property `git-root'.
+
+2012-06-30  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/vc-hooks.el (vc-before-save): Clear cache if file has been
+	removed (likely outside Emacs).
+
+2012-06-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-lib.el: Require macroexp for its macros.
+
+2012-06-30  Chong Yidong  <cyd@gnu.org>
+
+	* xml.el: Implement XML parameter entities.
+	(xml-parameter-entity-alist): New variable.
+	(xml-parse-region, xml-parse-fragment): Preserve previous values
+	of xml-entity-alist and xml-parameter-entity-alist, so that
+	repeated calls on different documents do not change them.
+	(xml-parse-tag): Fix doctype regexp.
+	(xml--entity-replacement-text): New function.
+	(xml-parse-dtd): Use it.  Don't handle system entities; doing that
+	properly requires url retrieval which is unimplemented.
+	(xml-escape-string): Doc fix.
+
+2012-06-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-lib.el (cl-pushnew): Use macroexp-let2.
+
+2012-06-29  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* fringe.el (fringe-mode): Doc fix.
+
 2012-06-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/ange-ftp.el (ange-ftp-get-passwd): Throw if `non-essential'
