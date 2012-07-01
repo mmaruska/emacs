@@ -95,10 +95,13 @@
     ("apos" . "'")
     ("quot" . "\"")
     ("amp"  . "&"))
-  "The defined entities.  Entities are added to this when the DTD is parsed.")
+  "Alist of defined XML entities.")
+
+(defvar xml-parameter-entity-alist nil
+  "Alist of defined XML parametric entities.")
 
 (defvar xml-sub-parser nil
-  "Dynamically set this to a non-nil value if you want to parse an XML fragment.")
+  "Non-nil when the XML parser is parsing an XML fragment.")
 
 (defvar xml-validating-parser nil
   "Set to non-nil to get validity checking.")
@@ -162,97 +165,97 @@ See also `xml-get-attribute-or-nil'."
 ;;;###autoload
 (defun xml-parse-file (file &optional parse-dtd parse-ns)
   "Parse the well-formed XML file FILE.
-If FILE is already visited, use its buffer and don't kill it.
-Returns the top node with all its children.
+Return the top node with all its children.
 If PARSE-DTD is non-nil, the DTD is parsed rather than skipped.
 If PARSE-NS is non-nil, then QNAMES are expanded."
-  (if (get-file-buffer file)
-      (with-current-buffer (get-file-buffer file)
-	(save-excursion
-	  (xml-parse-region (point-min)
-			    (point-max)
-			    (current-buffer)
-			    parse-dtd parse-ns)))
-    (with-temp-buffer
-      (insert-file-contents file)
-      (xml-parse-region (point-min)
-			(point-max)
-			(current-buffer)
-			parse-dtd parse-ns))))
+  (with-temp-buffer
+    (insert-file-contents file)
+    (xml--parse-buffer parse-dtd parse-ns)))
 
-
-(defvar xml-name-re)
-(defvar xml-entity-value-re)
-(defvar xml-att-def-re)
+(eval-and-compile
 (let* ((start-chars (concat "[:alpha:]:_"))
        (name-chars  (concat "-[:digit:]." start-chars))
-       ;;[3]   	S	   ::=   	(#x20 | #x9 | #xD | #xA)+
+       ;;[3] S ::= (#x20 | #x9 | #xD | #xA)+
        (whitespace  "[ \t\n\r]"))
-  ;;[4] NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6]
-  ;;                      | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF]
-  ;;                      | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF]
-  ;;                      | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
-  (defvar xml-name-start-char-re (concat "[" start-chars "]"))
-  ;;[4a] NameChar	::= NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
-  (defvar xml-name-char-re       (concat "[" name-chars  "]"))
-  ;;[5] Name     ::= NameStartChar (NameChar)*
-  (defvar xml-name-re            (concat xml-name-start-char-re xml-name-char-re "*"))
-  ;;[6] Names    ::= Name (#x20 Name)*
-  (defvar xml-names-re           (concat xml-name-re "\\(?: " xml-name-re "\\)*"))
-  ;;[7] Nmtoken ::= (NameChar)+
-  (defvar xml-nmtoken-re         (concat xml-name-char-re "+"))
-  ;;[8] Nmtokens ::= Nmtoken (#x20 Nmtoken)*
-  (defvar xml-nmtokens-re        (concat xml-nmtoken-re "\\(?: " xml-name-re "\\)*"))
-  ;;[66] CharRef ::= '&#' [0-9]+ ';' | '&#x' [0-9a-fA-F]+ ';'
-  (defvar xml-char-ref-re        "\\(?:&#[0-9]+;\\|&#x[0-9a-fA-F]+;\\)")
-  ;;[68] EntityRef   ::= '&' Name ';'
-  (defvar xml-entity-ref         (concat "&" xml-name-re ";"))
-  ;;[69] PEReference ::= '%' Name ';'
-  (defvar xml-pe-reference-re    (concat "%" xml-name-re ";"))
-  ;;[67] Reference   ::= EntityRef | CharRef
-  (defvar xml-reference-re       (concat "\\(?:" xml-entity-ref "\\|" xml-char-ref-re "\\)"))
-  ;;[10]   	AttValue	   ::=   	'"' ([^<&"] | Reference)* '"' |  "'" ([^<&'] | Reference)* "'"
-  (defvar xml-att-value-re    (concat "\\(?:\"\\(?:[^&\"]\\|" xml-reference-re "\\)*\"\\|"
-				      "'\\(?:[^&']\\|" xml-reference-re "\\)*'\\)"))
-  ;;[56]   	TokenizedType	   ::=   	'ID'	   [VC: ID] [VC: One ID per Element Type] [VC: ID Attribute Default]
-  ;;                                            | 'IDREF'    [VC: IDREF]
-  ;;                             	              | 'IDREFS'   [VC: IDREF]
-  ;;                                            | 'ENTITY'   [VC: Entity Name]
-  ;;                                            | 'ENTITIES' [VC: Entity Name]
-  ;;                                            | 'NMTOKEN'  [VC: Name Token]
-  ;;                                            | 'NMTOKENS' [VC: Name Token]
-  (defvar xml-tokenized-type-re "\\(?:ID\\|IDREF\\|IDREFS\\|ENTITY\\|ENTITIES\\|NMTOKEN\\|NMTOKENS\\)")
-  ;;[58]   	NotationType	   ::=   	'NOTATION' S '(' S? Name (S? '|' S? Name)* S? ')'
-  (defvar xml-notation-type-re (concat "\\(?:NOTATION" whitespace "(" whitespace "*" xml-name-re
-				       "\\(?:" whitespace "*|" whitespace "*" xml-name-re "\\)*" whitespace "*)\\)"))
-  ;;[59]   	Enumeration	   ::=   	'(' S? Nmtoken (S? '|' S? Nmtoken)* S? ')'	[VC: Enumeration] [VC: No Duplicate Tokens]
-  (defvar xml-enumeration-re (concat "\\(?:(" whitespace "*" xml-nmtoken-re
-				     "\\(?:" whitespace "*|" whitespace "*" xml-nmtoken-re "\\)*"
+  ;; [4] NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6]
+  ;;                     | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF]
+  ;;                     | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF]
+  ;;                     | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD]
+  ;;                     | [#x10000-#xEFFFF]
+  (defconst xml-name-start-char-re (concat "[" start-chars "]"))
+  ;; [4a] NameChar ::= NameStartChar | "-" | "." | [0-9] | #xB7
+  ;;                 | [#x0300-#x036F] | [#x203F-#x2040]
+  (defconst xml-name-char-re (concat "[" name-chars  "]"))
+  ;; [5] Name     ::= NameStartChar (NameChar)*
+  (defconst xml-name-re      (concat xml-name-start-char-re xml-name-char-re "*"))
+  ;; [6] Names    ::= Name (#x20 Name)*
+  (defconst xml-names-re     (concat xml-name-re "\\(?: " xml-name-re "\\)*"))
+  ;; [7] Nmtoken  ::= (NameChar)+
+  (defconst xml-nmtoken-re   (concat xml-name-char-re "+"))
+  ;; [8] Nmtokens ::= Nmtoken (#x20 Nmtoken)*
+  (defconst xml-nmtokens-re  (concat xml-nmtoken-re "\\(?: " xml-name-re "\\)*"))
+  ;; [66] CharRef ::= '&#' [0-9]+ ';' | '&#x' [0-9a-fA-F]+ ';'
+  (defconst xml-char-ref-re  "\\(?:&#[0-9]+;\\|&#x[0-9a-fA-F]+;\\)")
+  ;; [68] EntityRef   ::= '&' Name ';'
+  (defconst xml-entity-ref   (concat "&" xml-name-re ";"))
+  ;; [69] PEReference ::= '%' Name ';'
+  (defconst xml-pe-reference-re (concat "%" xml-name-re ";"))
+  ;; [67] Reference   ::= EntityRef | CharRef
+  (defconst xml-reference-re (concat "\\(?:" xml-entity-ref "\\|" xml-char-ref-re "\\)"))
+  ;; [10] AttValue    ::= '"' ([^<&"] | Reference)* '"' |  "'" ([^<&'] | Reference)* "'"
+  (defconst xml-att-value-re (concat "\\(?:\"\\(?:[^&\"]\\|" xml-reference-re "\\)*\"\\|"
+				     "'\\(?:[^&']\\|" xml-reference-re "\\)*'\\)"))
+  ;; [56] TokenizedType ::= 'ID' [VC: ID] [VC: One ID / Element Type] [VC: ID Attribute Default]
+  ;;                      | 'IDREF'    [VC: IDREF]
+  ;;                      | 'IDREFS'   [VC: IDREF]
+  ;;                      | 'ENTITY'   [VC: Entity Name]
+  ;;                      | 'ENTITIES' [VC: Entity Name]
+  ;;                      | 'NMTOKEN'  [VC: Name Token]
+  ;;                      | 'NMTOKENS' [VC: Name Token]
+  (defconst xml-tokenized-type-re (concat "\\(?:ID\\|IDREF\\|IDREFS\\|ENTITY\\|"
+					  "ENTITIES\\|NMTOKEN\\|NMTOKENS\\)"))
+  ;; [58] NotationType ::= 'NOTATION' S '(' S? Name (S? '|' S? Name)* S? ')'
+  (defconst xml-notation-type-re
+    (concat "\\(?:NOTATION" whitespace "(" whitespace "*" xml-name-re
+	    "\\(?:" whitespace "*|" whitespace "*" xml-name-re "\\)*"
+	    whitespace "*)\\)"))
+  ;; [59] Enumeration ::= '(' S? Nmtoken (S? '|' S? Nmtoken)* S? ')'
+  ;;       [VC: Enumeration] [VC: No Duplicate Tokens]
+  (defconst xml-enumeration-re (concat "\\(?:(" whitespace "*" xml-nmtoken-re
+				     "\\(?:" whitespace "*|" whitespace "*"
+				     xml-nmtoken-re "\\)*"
 				     whitespace ")\\)"))
-  ;;[57]   	EnumeratedType	   ::=   	NotationType | Enumeration
-  (defvar xml-enumerated-type-re (concat "\\(?:" xml-notation-type-re "\\|" xml-enumeration-re "\\)"))
-  ;;[54]   	AttType	   ::=   	StringType | TokenizedType | EnumeratedType
-  ;;[55]   	StringType	   ::=   	'CDATA'
-  (defvar xml-att-type-re (concat "\\(?:CDATA\\|" xml-tokenized-type-re "\\|" xml-notation-type-re"\\|" xml-enumerated-type-re "\\)"))
-  ;;[60]   	DefaultDecl	   ::=   	'#REQUIRED' | '#IMPLIED' | (('#FIXED' S)? AttValue)
-  (defvar xml-default-decl-re (concat "\\(?:#REQUIRED\\|#IMPLIED\\|\\(?:#FIXED" whitespace "\\)*" xml-att-value-re "\\)"))
-  ;;[53]   	AttDef	   ::=   	S Name S AttType S DefaultDecl
-  (defvar xml-att-def-re         (concat "\\(?:" whitespace "*" xml-name-re
-					 whitespace "*" xml-att-type-re
-					 whitespace "*" xml-default-decl-re "\\)"))
-  ;;[9] EntityValue ::= '"' ([^%&"] | PEReference | Reference)* '"'
-  ;;		   |  "'" ([^%&'] | PEReference | Reference)* "'"
-  (defvar xml-entity-value-re    (concat "\\(?:\"\\(?:[^%&\"]\\|" xml-pe-reference-re
-					 "\\|" xml-reference-re "\\)*\"\\|'\\(?:[^%&']\\|"
-					 xml-pe-reference-re "\\|" xml-reference-re "\\)*'\\)")))
-;;[75] ExternalID ::= 'SYSTEM' S SystemLiteral
-;;                 | 'PUBLIC' S PubidLiteral S SystemLiteral
-;;[76] NDataDecl ::=   	S 'NDATA' S
-;;[73] EntityDef  ::= EntityValue| (ExternalID NDataDecl?)
-;;[71] GEDecl     ::= '<!ENTITY' S Name S EntityDef S? '>'
-;;[74] PEDef      ::= EntityValue | ExternalID
-;;[72] PEDecl     ::= '<!ENTITY' S '%' S Name S PEDef S? '>'
-;;[70] EntityDecl ::= GEDecl | PEDecl
+  ;; [57] EnumeratedType ::= NotationType | Enumeration
+  (defconst xml-enumerated-type-re (concat "\\(?:" xml-notation-type-re
+					   "\\|" xml-enumeration-re "\\)"))
+  ;; [54] AttType    ::= StringType | TokenizedType | EnumeratedType
+  ;; [55] StringType ::= 'CDATA'
+  (defconst xml-att-type-re (concat "\\(?:CDATA\\|" xml-tokenized-type-re
+				    "\\|" xml-notation-type-re
+				    "\\|" xml-enumerated-type-re "\\)"))
+  ;; [60] DefaultDecl ::= '#REQUIRED' | '#IMPLIED' | (('#FIXED' S)? AttValue)
+  (defconst xml-default-decl-re (concat "\\(?:#REQUIRED\\|#IMPLIED\\|\\(?:#FIXED"
+					whitespace "\\)*" xml-att-value-re "\\)"))
+  ;; [53] AttDef      ::= S Name S AttType S DefaultDecl
+  (defconst xml-att-def-re (concat "\\(?:" whitespace "*" xml-name-re
+				   whitespace "*" xml-att-type-re
+				   whitespace "*" xml-default-decl-re "\\)"))
+  ;; [9] EntityValue ::= '"' ([^%&"] | PEReference | Reference)* '"'
+  ;;                   | "'" ([^%&'] | PEReference | Reference)* "'"
+  (defconst xml-entity-value-re (concat "\\(?:\"\\(?:[^%&\"]\\|" xml-pe-reference-re
+					"\\|" xml-reference-re
+					"\\)*\"\\|'\\(?:[^%&']\\|"
+					xml-pe-reference-re "\\|"
+					xml-reference-re "\\)*'\\)"))))
+
+;; [75] ExternalID ::= 'SYSTEM' S SystemLiteral
+;;                   | 'PUBLIC' S PubidLiteral S SystemLiteral
+;; [76] NDataDecl ::=   	S 'NDATA' S
+;; [73] EntityDef  ::= EntityValue| (ExternalID NDataDecl?)
+;; [71] GEDecl     ::= '<!ENTITY' S Name S EntityDef S? '>'
+;; [74] PEDef      ::= EntityValue | ExternalID
+;; [72] PEDecl     ::= '<!ENTITY' S '%' S Name S PEDef S? '>'
+;; [70] EntityDecl ::= GEDecl | PEDecl
 
 ;; Note that this is setup so that we can do whitespace-skipping with
 ;; `(skip-syntax-forward " ")', inter alia.  Previously this was slow
@@ -306,39 +309,44 @@ and returned as the first element of the list.
 If PARSE-NS is non-nil, then QNAMES are expanded."
   ;; Use fixed syntax table to ensure regexp char classes and syntax
   ;; specs DTRT.
+  (unless buffer
+    (setq buffer (current-buffer)))
+  (with-temp-buffer
+    (insert-buffer-substring buffer beg end)
+    (xml--parse-buffer parse-dtd parse-ns)))
+
+(defun xml--parse-buffer (parse-dtd parse-ns)
   (with-syntax-table (standard-syntax-table)
     (let ((case-fold-search nil)	; XML is case-sensitive.
+	  ;; Prevent entity definitions from changing the defaults
+	  (xml-entity-alist xml-entity-alist)
+	  (xml-parameter-entity-alist xml-parameter-entity-alist)
  	  xml result dtd)
-      (save-excursion
- 	(if buffer
- 	    (set-buffer buffer))
- 	(save-restriction
- 	  (narrow-to-region beg end)
-	  (goto-char (point-min))
-	  (while (not (eobp))
-	    (if (search-forward "<" nil t)
-		(progn
-		  (forward-char -1)
-		  (setq result (xml-parse-tag parse-dtd parse-ns))
-		  (cond
-		   ((null result)
-		    ;; Not looking at an xml start tag.
-		    (unless (eobp)
-		      (forward-char 1)))
-		   ((and xml (not xml-sub-parser))
-		    ;; Translation of rule [1] of XML specifications
-		    (error "XML: (Not Well-Formed) Only one root tag allowed"))
-		   ((and (listp (car result))
-			 parse-dtd)
-		    (setq dtd (car result))
-		    (if (cdr result)	; possible leading comment
-			(add-to-list 'xml (cdr result))))
-		   (t
-		    (add-to-list 'xml result))))
-	      (goto-char (point-max))))
-	  (if parse-dtd
-	      (cons dtd (nreverse xml))
-	    (nreverse xml)))))))
+      (goto-char (point-min))
+      (while (not (eobp))
+	(if (search-forward "<" nil t)
+	    (progn
+	      (forward-char -1)
+	      (setq result (xml-parse-tag parse-dtd parse-ns))
+	      (cond
+	       ((null result)
+		;; Not looking at an xml start tag.
+		(unless (eobp)
+		  (forward-char 1)))
+	       ((and xml (not xml-sub-parser))
+		;; Translation of rule [1] of XML specifications
+		(error "XML: (Not Well-Formed) Only one root tag allowed"))
+	       ((and (listp (car result))
+		     parse-dtd)
+		(setq dtd (car result))
+		(if (cdr result)	; possible leading comment
+		    (add-to-list 'xml (cdr result))))
+	       (t
+		(add-to-list 'xml result))))
+	  (goto-char (point-max))))
+      (if parse-dtd
+	  (cons dtd (nreverse xml))
+	(nreverse xml)))))
 
 (defun xml-maybe-do-ns (name default xml-ns)
   "Perform any namespace expansion.
@@ -366,6 +374,9 @@ specify that the name shouldn't be given a namespace."
 (defun xml-parse-fragment (&optional parse-dtd parse-ns)
   "Parse xml-like fragments."
   (let ((xml-sub-parser t)
+	;; Prevent entity definitions from changing the defaults
+	(xml-entity-alist xml-entity-alist)
+	(xml-parameter-entity-alist xml-parameter-entity-alist)
 	children)
     (while (not (eobp))
       (let ((bit (xml-parse-tag
@@ -413,7 +424,7 @@ Returns one of:
 	 (buffer-substring-no-properties pos (match-beginning 0))
 	 (xml-parse-string))))
      ;;  DTD for the document
-     ((looking-at "<!DOCTYPE")
+     ((looking-at "<!DOCTYPE[ \t\n\r]")
       (let ((dtd (xml-parse-dtd parse-ns)))
 	(skip-syntax-forward " ")
 	(if xml-validating-parser
@@ -580,11 +591,14 @@ This follows the rule [28] in the XML specifications."
   ;;  Get the name of the document
   (looking-at xml-name-regexp)
   (let ((dtd (list (match-string-no-properties 0) 'dtd))
-	type element end-pos)
+	(xml-parameter-entity-alist xml-parameter-entity-alist)
+	(parameter-entity-re (eval-when-compile
+			       (concat "%\\(" xml-name-re "\\);")))
+	next-parameter-entity)
     (goto-char (match-end 0))
-
     (skip-syntax-forward " ")
-    ;; XML [75]
+
+    ;; External subset (XML [75])
     (cond ((looking-at "PUBLIC\\s-+")
 	   (goto-char (match-end 0))
 	   (unless (or (re-search-forward
@@ -607,118 +621,176 @@ This follows the rule [28] in the XML specifications."
 	     (error "XML: Missing System ID"))
 	   (push (list (match-string-no-properties 1) 'system) dtd)))
     (skip-syntax-forward " ")
-    (if (eq ?> (char-after))
+
+    (if (eq (char-after) ?>)
+
+	;; No internal subset
 	(forward-char)
-      (if (not (eq (char-after) ?\[))
-	  (error "XML: Bad DTD")
-	(forward-char)
-	;;  Parse the rest of the DTD
-	;;  Fixme: Deal with NOTATION, PIs.
-	(while (not (looking-at "\\s-*\\]"))
-	  (skip-syntax-forward " ")
-	  (cond
 
-	   ;;  Translation of rule [45] of XML specifications
-	   ((looking-at
-	     "<!ELEMENT\\s-+\\([[:alnum:].%;]+\\)\\s-+\\([^>]+\\)>")
+      ;; Internal subset (XML [28b])
+      (unless (eq (char-after) ?\[)
+	(error "XML: Bad DTD"))
+      (forward-char)
 
-	    (setq element (match-string-no-properties 1)
-		  type    (match-string-no-properties 2))
-	    (setq end-pos (match-end 0))
+      ;; [2.8]: "markup declarations may be made up in whole or in
+      ;; part of the replacement text of parameter entities."
 
-	    ;;  Translation of rule [46] of XML specifications
+      ;; Since parameter entities are valid only within the DTD, we
+      ;; first search for the position of the next possible parameter
+      ;; entity.  Then, search for the next DTD element; if it ends
+      ;; before the next parameter entity, expand the parameter entity
+      ;; and try again.
+      (setq next-parameter-entity
+	    (save-excursion
+	      (if (re-search-forward parameter-entity-re nil t)
+		  (match-beginning 0))))
+
+      ;; Parse the rest of the DTD
+      ;; Fixme: Deal with NOTATION, PIs.
+      (while (not (looking-at "\\s-*\\]"))
+	(skip-syntax-forward " ")
+	(cond
+	 ;; Element declaration [45]:
+	 ((and (looking-at "<!ELEMENT\\s-+\\([[:alnum:].%;]+\\)\\s-+\\([^>]+\\)>")
+	       (or (null next-parameter-entity)
+		   (<= (match-end 0) next-parameter-entity)))
+	  (let ((element (match-string-no-properties 1))
+		(type    (match-string-no-properties 2))
+		(end-pos (match-end 0)))
+	    ;; Translation of rule [46] of XML specifications
 	    (cond
-	     ((string-match "^EMPTY[ \t\n\r]*$" type) ;; empty declaration
+	     ((string-match "^EMPTY[ \t\n\r]*$" type)       ; empty declaration
 	      (setq type 'empty))
-	     ((string-match "^ANY[ \t\n\r]*$" type) ;; any type of contents
+	     ((string-match "^ANY[ \t\n\r]*$" type)         ; any type of contents
 	      (setq type 'any))
-	     ((string-match "^(\\(.*\\))[ \t\n\r]*$" type) ;; children ([47])
+	     ((string-match "^(\\(.*\\))[ \t\n\r]*$" type)  ; children ([47])
 	      (setq type (xml-parse-elem-type (match-string-no-properties 1 type))))
-	     ((string-match "^%[^;]+;[ \t\n\r]*$" type)	;; substitution
+	     ((string-match "^%[^;]+;[ \t\n\r]*$" type)	  ; substitution
 	      nil)
-	     (t
-	      (if xml-validating-parser
-		  (error "XML: (Validity) Invalid element type in the DTD"))))
+	     (xml-validating-parser
+	      (error "XML: (Validity) Invalid element type in the DTD")))
 
-	    ;;  rule [45]: the element declaration must be unique
-	    (if (and (assoc element dtd)
-		     xml-validating-parser)
-		(error "XML: (Validity) Element declarations must be unique in a DTD (<%s>)"
-		       element))
+	    ;; rule [45]: the element declaration must be unique
+	    (and (assoc element dtd)
+		 xml-validating-parser
+		 (error "XML: (Validity) DTD element declarations must be unique (<%s>)"
+			element))
 
 	    ;;  Store the element in the DTD
 	    (push (list element type) dtd)
-	    (goto-char end-pos))
+	    (goto-char end-pos)))
 
-	   ;; Translation of rule [52] of XML specifications
-	   ((looking-at (concat "<!ATTLIST[ \t\n\r]*\\(" xml-name-re
-				"\\)[ \t\n\r]*\\(" xml-att-def-re
-				"\\)*[ \t\n\r]*>"))
+	 ;; Attribute-list declaration [52] (currently unsupported):
+	 ((and (looking-at (eval-when-compile
+			     (concat "<!ATTLIST[ \t\n\r]*\\(" xml-name-re
+				     "\\)[ \t\n\r]*\\(" xml-att-def-re
+				     "\\)*[ \t\n\r]*>")))
+	       (or (null next-parameter-entity)
+		   (<= (match-end 0) next-parameter-entity)))
+	  (goto-char (match-end 0)))
 
-	    ;; We don't do anything with ATTLIST currently
-	    (goto-char (match-end 0)))
+	 ;; Comments (skip to end, ignoring parameter entity):
+	 ((looking-at "<!--")
+	  (search-forward "-->")
+	  (and next-parameter-entity
+	       (> (point) next-parameter-entity)
+	       (setq next-parameter-entity
+		     (save-excursion
+		       (if (re-search-forward parameter-entity-re nil t)
+			   (match-beginning 0))))))
 
-	   ((looking-at "<!--")
-	    (search-forward "-->"))
-	   ((looking-at (concat "<!ENTITY[ \t\n\r]*\\(" xml-name-re
-				"\\)[ \t\n\r]*\\(" xml-entity-value-re
-				"\\)[ \t\n\r]*>"))
-	    (let ((name  (match-string-no-properties 1))
-		  (value (substring (match-string-no-properties 2) 1
-				    (- (length (match-string-no-properties 2)) 1))))
-	      (goto-char (match-end 0))
-	      (setq xml-entity-alist
-		    (append xml-entity-alist
-			    (list (cons name
-					(with-temp-buffer
-					  (insert value)
-					  (goto-char (point-min))
-					  (xml-parse-fragment
-					   xml-validating-parser
-					   parse-ns))))))))
-	   ((or (looking-at (concat "<!ENTITY[ \t\n\r]+\\(" xml-name-re
-				    "\\)[ \t\n\r]+SYSTEM[ \t\n\r]+"
-				    "\\(\"[^\"]*\"\\|'[^']*'\\)[ \t\n\r]*>"))
-		(looking-at (concat "<!ENTITY[ \t\n\r]+\\(" xml-name-re
-				    "\\)[ \t\n\r]+PUBLIC[ \t\n\r]+"
-				    "\"[- \r\na-zA-Z0-9'()+,./:=?;!*#@$_%]*\""
-				    "\\|'[- \r\na-zA-Z0-9()+,./:=?;!*#@$_%]*'"
-				    "[ \t\n\r]+\\(\"[^\"]*\"\\|'[^']*'\\)"
-				    "[ \t\n\r]*>")))
-	    (let ((name  (match-string-no-properties 1))
-		  (file  (substring (match-string-no-properties 2) 1
-				    (- (length (match-string-no-properties 2)) 1))))
-	      (goto-char (match-end 0))
-	      (setq xml-entity-alist
-		    (append xml-entity-alist
-			    (list (cons name (with-temp-buffer
-					       (insert-file-contents file)
-					       (goto-char (point-min))
-					       (xml-parse-fragment
-						xml-validating-parser
-						parse-ns))))))))
-	   ;; skip parameter entity declarations
-	   ((or (looking-at (concat "<!ENTITY[ \t\n\r]+%[ \t\n\r]+\\(" xml-name-re
-				    "\\)[ \t\n\r]+SYSTEM[ \t\n\r]+"
-				    "\\(\"[^\"]*\"\\|'[^']*'\\)[ \t\n\r]*>"))
-		(looking-at (concat "<!ENTITY[ \t\n\r]+"
-				    "%[ \t\n\r]+"
-				    "\\(" xml-name-re "\\)[ \t\n\r]+"
-				    "PUBLIC[ \t\n\r]+"
-				    "\\(\"[- \r\na-zA-Z0-9'()+,./:=?;!*#@$_%]*\""
-				    "\\|'[- \r\na-zA-Z0-9()+,./:=?;!*#@$_%]*'\\)[ \t\n\r]+"
-				    "\\(\"[^\"]+\"\\|'[^']+'\\)"
-				    "[ \t\n\r]*>")))
-	    (goto-char (match-end 0)))
-	   ;; skip parameter entities
-	   ((looking-at (concat "%" xml-name-re ";"))
-	    (goto-char (match-end 0)))
-	   (t
-	    (when xml-validating-parser
-	      (error "XML: (Validity) Invalid DTD item"))))))
+	 ;; Internal entity declarations:
+	 ((and (looking-at (eval-when-compile
+			     (concat "<!ENTITY[ \t\n\r]+\\(%[ \t\n\r]+\\)?\\("
+				     xml-name-re "\\)[ \t\n\r]*\\("
+				     xml-entity-value-re "\\)[ \t\n\r]*>")))
+	       (or (null next-parameter-entity)
+		   (<= (match-end 0) next-parameter-entity)))
+	  (let* ((name (prog1 (match-string-no-properties 2)
+			 (goto-char (match-end 0))))
+		 (alist (if (match-string 1)
+			    'xml-parameter-entity-alist
+			  'xml-entity-alist))
+		 ;; Retrieve the deplacement text:
+		 (value (xml--entity-replacement-text
+			 ;; Entity value, sans quotation marks:
+			 (substring (match-string-no-properties 3) 1 -1))))
+	    ;; If the same entity is declared more than once, the
+	    ;; first declaration is binding.
+	    (unless (assoc name (symbol-value alist))
+	      (set alist (cons (cons name value) (symbol-value alist))))))
+
+	 ;; External entity declarations (currently unsupported):
+	 ((and (or (looking-at (eval-when-compile
+				 (concat "<!ENTITY[ \t\n\r]+\\(%[ \t\n\r]+\\)?\\("
+					 xml-name-re "\\)[ \t\n\r]+SYSTEM[ \t\n\r]+"
+					 "\\(\"[^\"]*\"\\|'[^']*'\\)[ \t\n\r]*>")))
+		   (looking-at (eval-when-compile
+				 (concat "<!ENTITY[ \t\n\r]+\\(%[ \t\n\r]+\\)?\\("
+					 xml-name-re "\\)[ \t\n\r]+PUBLIC[ \t\n\r]+"
+					 "\"[- \r\na-zA-Z0-9'()+,./:=?;!*#@$_%]*\""
+					 "\\|'[- \r\na-zA-Z0-9()+,./:=?;!*#@$_%]*'"
+					 "[ \t\n\r]+\\(\"[^\"]*\"\\|'[^']*'\\)"
+					 "[ \t\n\r]*>"))))
+	       (or (null next-parameter-entity)
+		   (<= (match-end 0) next-parameter-entity)))
+	  (goto-char (match-end 0)))
+
+	 ;; If a parameter entity is in the way, expand it.
+	 (next-parameter-entity
+	  (save-excursion
+	    (goto-char next-parameter-entity)
+	    (unless (looking-at parameter-entity-re)
+	      (error "XML: Internal error"))
+	    (let* ((entity (match-string 1))
+		   (beg    (point-marker))
+		   (elt    (assoc entity xml-parameter-entity-alist)))
+	      (if elt
+		  (progn
+		    (replace-match (cdr elt) t t)
+		    ;; The replacement can itself be a parameter entity.
+		    (goto-char next-parameter-entity))
+		(goto-char (match-end 0))))
+	    (setq next-parameter-entity
+		  (if (re-search-forward parameter-entity-re nil t)
+		      (match-beginning 0)))))
+
+	 ;; Anything else:
+	 (xml-validating-parser
+	  (error "XML: (Validity) Invalid DTD item"))))
+
       (if (looking-at "\\s-*]>")
 	  (goto-char (match-end 0))))
     (nreverse dtd)))
+
+(defun xml--entity-replacement-text (string)
+  "Return the replacement text for the entity value STRING.
+The replacement text is obtained by replacing character
+references and parameter-entity references."
+  (let ((ref-re (eval-when-compile
+		  (concat "\\(?:&#\\([0-9]+\\)\\|&#x\\([0-9a-fA-F]+\\)\\|%\\("
+			  xml-name-re "\\)\\);")))
+	children)
+    (while (string-match ref-re string)
+      (push (substring string 0 (match-beginning 0)) children)
+      (let ((remainder (substring string (match-end 0)))
+	    ref val)
+	(cond ((setq ref (match-string 1 string))
+	       ;; Decimal character reference
+	       (setq val (decode-char 'ucs (string-to-number ref)))
+	       (if val (push (string val) children)))
+	      ;; Hexadecimal character reference
+	      ((setq ref (match-string 2 string))
+	       (setq val (decode-char 'ucs (string-to-number ref 16)))
+	       (if val (push (string val) children)))
+	      ;; Parameter entity reference
+	      ((setq ref (match-string 3 string))
+	       (setq val (assoc ref xml-parameter-entity-alist))
+	       (if val
+		   (push (cdr val) children)
+		 (push (concat "%" ref ";") children))))
+	(setq string remainder)))
+    (mapconcat 'identity (nreverse (cons string children)) "")))
 
 (defun xml-parse-elem-type (string)
   "Convert element type STRING into a Lisp structure."
@@ -864,15 +936,12 @@ The first line is indented with the optional INDENT-STRING."
 (defalias 'xml-print 'xml-debug-print)
 
 (defun xml-escape-string (string)
-  "Return the string with entity substitutions made from
-xml-entity-alist."
+  "Return STRING with entity substitutions made from `xml-entity-alist'."
   (mapconcat (lambda (byte)
                (let ((char (char-to-string byte)))
                  (if (rassoc char xml-entity-alist)
                      (concat "&" (car (rassoc char xml-entity-alist)) ";")
                    char)))
-             ;; This differs from the non-unicode branch.  Just
-             ;; grabbing the string works here.
              string ""))
 
 (defun xml-debug-print-internal (xml indent-string)

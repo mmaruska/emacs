@@ -1028,8 +1028,8 @@ DEFUN ("set-process-window-size", Fset_process_window_size,
   (register Lisp_Object process, Lisp_Object height, Lisp_Object width)
 {
   CHECK_PROCESS (process);
-  CHECK_RANGED_INTEGER (0, height, INT_MAX);
-  CHECK_RANGED_INTEGER (0, width, INT_MAX);
+  CHECK_RANGED_INTEGER (height, 0, INT_MAX);
+  CHECK_RANGED_INTEGER (width, 0, INT_MAX);
 
   if (XPROCESS (process)->infd < 0
       || set_window_size (XPROCESS (process)->infd,
@@ -6808,7 +6808,7 @@ keyboard_bit_set (fd_set *mask)
 
 /* Defined on msdos.c.  */
 extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
-		       EMACS_TIME *);
+		       EMACS_TIME *, void *);
 
 /* Implementation of wait_reading_process_output, assuming that there
    are no subprocesses.  Used only by the MS-DOS build.
