@@ -31,7 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <time.h>
 #include <sys/param.h>
 #include <sys/time.h>
-/* gettine and settime in dos.h clash with their namesakes from
+/* gettime and settime in dos.h clash with their namesakes from
    gnulib, so we move out of our way the prototypes in dos.h.  */
 #define gettime dos_h_gettime_
 #define settime dos_h_settime_
@@ -2828,7 +2828,7 @@ IT_menu_create (void)
 {
   XMenu *menu;
 
-  menu = (XMenu *) xmalloc (sizeof (XMenu));
+  menu = xmalloc (sizeof (XMenu));
   menu->allocated = menu->count = menu->panecount = menu->width = 0;
   return menu;
 }
@@ -2842,10 +2842,10 @@ IT_menu_make_room (XMenu *menu)
   if (menu->allocated == 0)
     {
       int count = menu->allocated = 10;
-      menu->text = (char **) xmalloc (count * sizeof (char *));
-      menu->submenu = (XMenu **) xmalloc (count * sizeof (XMenu *));
-      menu->panenumber = (int *) xmalloc (count * sizeof (int));
-      menu->help_text = (const char **) xmalloc (count * sizeof (char *));
+      menu->text = xmalloc (count * sizeof (char *));
+      menu->submenu = xmalloc (count * sizeof (XMenu *));
+      menu->panenumber = xmalloc (count * sizeof (int));
+      menu->help_text = xmalloc (count * sizeof (char *));
     }
   else if (menu->allocated == menu->count)
     {
@@ -2926,7 +2926,7 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
   width = menu->width;
   /* We multiply width by 2 to account for possible control characters.
      FIXME: cater to non-ASCII characters in menus.  */
-  text = (struct glyph *) xmalloc ((width * 2 + 2) * sizeof (struct glyph));
+  text = xmalloc ((width * 2 + 2) * sizeof (struct glyph));
   ScreenGetCursor (&row, &col);
   mouse_get_xy (&mx, &my);
   IT_update_begin (sf);

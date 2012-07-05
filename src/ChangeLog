@@ -1,3 +1,286 @@
+2012-07-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup xmalloc.
+	* lisp.h (xzalloc): New prototype.  Omit needless casts.
+	* alloc.c (xzalloc): New function.  Omit needless casts.
+	* charset.c: Omit needless casts.  Convert all calls to
+	xmalloc with following memset to xzalloc.
+	* dispnew.c: Likewise.
+	* fringe.c: Likewise.
+	* image.c: Likewise.
+	* sound.c: Likewise.
+	* term.c: Likewise.
+	* w32fns.c: Likewise.
+	* w32font.c: Likewise.
+	* w32term.c: Likewise.
+	* xfaces.c: Likewise.
+	* xfns.c: Likewise.
+	* xterm.c: Likewise.
+	* atimer.c: Omit needless casts.
+	* buffer.c: Likewise.
+	* callproc.c: Likewise.
+	* ccl.c: Likewise.
+	* coding.c: Likewise.
+	* composite.c: Likewise.
+	* doc.c: Likewise.
+	* doprnt.c: Likewise.
+	* editfns.c: Likewise.
+	* emacs.c: Likewise.
+	* eval.c: Likewise.
+	* filelock.c: Likewise.
+	* fns.c: Likewise.
+	* gtkutil.c: Likewise.
+	* keyboard.c: Likewise.
+	* lisp.h: Likewise.
+	* lread.c: Likewise.
+	* minibuf.c: Likewise.
+	* msdos.c: Likewise.
+	* print.c: Likewise.
+	* process.c: Likewise.
+	* region-cache.c: Likewise.
+	* search.c: Likewise.
+	* sysdep.c: Likewise.
+	* termcap.c: Likewise.
+	* terminal.c: Likewise.
+	* tparam.c: Likewise.
+	* w16select.c: Likewise.
+	* w32.c: Likewise.
+	* w32reg.c: Likewise.
+	* w32select.c: Likewise.
+	* w32uniscribe.c: Likewise.
+	* widget.c: Likewise.
+	* xdisp.c: Likewise.
+	* xmenu.c: Likewise.
+	* xrdb.c: Likewise.
+	* xselect.c: Likewise.
+
+2012-07-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (time_error_value): Check the right error number.
+	Problem reported by Troels Nielsen in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00095.html>.
+
+2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* window.c (set_window_hscroll): Revert the 100000 hscroll limit.
+	This should be fixed in a better way; see Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00088.html>.
+	(HSCROLL_MAX): Remove; this is now internal to set_window_hscroll.
+
+	* fileio.c (time_error_value): Rename from special_mtime.
+	The old name's problems were noted by Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00087.html>.
+
+	* emacs.c (gdb_pvec_type): Change it back to enum pvec_type.
+	This variable's comment says Emacs needs at least one GDB-visible
+	symbol of type enum pvec_type, to work around GDB problems.
+	The symbol's value doesn't matter.
+
+	* alloc.c (PSEUDOVECTOR_NBYTES): Remove stray ';'
+	that causes compilation to fail on pre-C99 compilers.
+
+2012-07-04  Juanma Barranquero	<lekktu@gmail.com>
+
+	* s/ms-w32.h (LISP_FLOAT_TYPE, HAVE_MEMCMP, HAVE_MEMCPY)
+	(HAVE_MEMMOVE, HAVE_MEMSET): Don't set, obsolete.
+
+2012-07-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* buffer.c (init_buffer_once): Fix initialization of
+	headers for buffer_defaults and buffer_local_symbols.
+	Reported by Juanma Barranquero <lekktu@gmail.com>.
+
+2012-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Turn VECTOR_FREE_LIST_FLAG into PVEC_FREE.
+	* lisp.h (enum pvec_type): Use fewer bits.
+	(PSEUDOVECTOR_SIZE_BITS): New constant.
+	(PSEUDOVECTOR_SIZE_MASK, PVEC_TYPE_MASK): Use it.
+	(XSETPVECTYPESIZE, XSETTYPED_PSEUDOVECTOR, DEFUN): Adapt code to
+	change in pvec_type.
+	(PSEUDOVECTOR_TYPEP): New macro.
+	(TYPED_PSEUDOVECTORP): Use it.
+	* fns.c (internal_equal): Adapt code to extract pvectype.
+	* emacs.c (gdb_pvec_type): Update type.
+	* alloc.c (PSEUDOVECTOR_NBYTES): New macro.
+	(VECTOR_FREE_LIST_SIZE_MASK): Remove (=> PSEUDOVECTOR_SIZE_MASK).
+	(VECTOR_FREE_LIST_FLAG): Remove (=> PVEC_FREE).
+	(SETUP_ON_FREE_LIST): Use XSETPVECTYPESIZE.
+	(sweep_vectors): Use it.  Use local var `total_bytes' instead of
+	abusing vector->header.next.nbytes.
+	(live_vector_p): Use PVEC_TYPE.
+	(mark_object): Adapt code to extract pvectype.  Use switch.
+
+2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doprnt.c (doprnt): Don't assume string length fits in 'int'.
+	Tighten new eassert a bit.
+
+2012-07-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix compilation with --enable-gcc-warnings and -O1
+	optimization level.
+	* doprnt.c (doprnt): Change type of tem to int, initialize
+	to avoid compiler warning.  Add eassert.
+	* search.c (simple_search): Initialize match_byte to avoid
+	compiler warning.  Add eassert.
+
+2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Avoid weird behavior with large horizontal scrolls.
+	Without this change, for example, large hscroll values would
+	mess up Emacs's display on Fedora 15 x86, presumably due to
+	overflows in int calculations in the display code.
+	Also, if buffers had long lines, Emacs would freeze.
+	* window.c (HSCROLL_MAX): Reduce to 100000, and make it visible to GDB.
+	(set_window_hscroll): New function, containing the old guts of
+	Fset_window_hscroll.  Return the clipped value.
+	(Fset_window_hscroll, Fscroll_left, Fscroll_right): Use it.
+	This avoids the need to check against PTRDIFF_MAX.
+
+	* buffer.c (Fgenerate_new_buffer_name): Fix sprintf format mismatch.
+
+2012-07-04  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* buffer.c (Fgenerate_new_buffer_name): Fix type mismatch.
+
+2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* regex.c: Suppress GCC warning on RHEL 6.  (Bug#11207)
+	Conditionalize the pragmas on GCC 4.5 or later, not GCC 4.3 or later,
+	since GCC 4.4.6 issues a bogus warning for them.
+
+	Fix bugs in file timestamp newness comparisons.
+	* fileio.c (Ffile_newer_than_file_p):
+	* lread.c (Fload): Use full timestamp resolution of files,
+	not just the 1-second resolution, so that files that are only
+	slightly newer still count as newer.
+	* fileio.c (Ffile_newer_than_file_p): Don't assume file
+	timestamps fit in 'int'; this fixes a Y2038 bug on most hosts.
+
+2012-07-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c: Improve handling of file time marker.  (Bug#11852)
+	(special_mtime): New function.
+	(Finsert_file_contents, Fverify_visited_file_modtime):
+	Use it to set special mtime values consistently.
+
+2012-07-03  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* fileio.c (Finsert_file_contents): Properly handle st_mtime
+	marker for non-existing file.  (Bug#11852)
+
+2012-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* lisp.h (Fread_file_name): Restore EXFUN (it's not a normal DEFUN
+	and did not make it into globals.h).
+
+2012-07-03  Tom Tromey  <tromey@redhat.com>
+
+	* window.c (Fset_window_margins, Fset_window_fringes)
+	(Fset_window_scroll_bars, Fset_window_vscroll): No longer static.
+	* textprop.c (Fprevious_property_change): No longer static.
+	* syntax.c (Fsyntax_table_p): No longer static.
+	* process.c (Fget_process, Fprocess_datagram_address): No longer
+	static.
+	* keymap.c (Flookup_key, Fcopy_keymap): No longer static.
+	* keyboard.c (Fcommand_execute): No longer static.
+	Remove EXFUN.
+	* insdel.c (Fcombine_after_change_execute): No longer static.
+	* image.c (Finit_image_library): No longer static.
+	* fileio.c (Fmake_symbolic_link): No longer static.
+	* eval.c (Ffetch_bytecode): No longer static.
+	* editfns.c (Fuser_full_name): No longer static.
+	* doc.c (Fdocumentation_property, Fsnarf_documentation):
+	No longer static.
+	* buffer.c (Fset_buffer_major_mode, Fdelete_overlay): No longer
+	static.
+	* dired.c (Ffile_attributes): No longer static.
+	* composite.c (Fcomposition_get_gstring): No longer static.
+	* callproc.c (Fgetenv_internal): No longer static.
+
+	* ccl.h: Remove EXFUNs.
+	* buffer.h: Remove EXFUNs.
+	* dispextern.h: Remove EXFUNs.
+	* intervals.h: Remove EXFUNs.
+	* fontset.h: Remove EXFUN.
+	* font.h: Remove EXFUNs.
+	* dosfns.c (system_process_attributes): Remove EXFUN.
+	* keymap.h: Remove EXFUNs.
+	* lisp.h: Remove EXFUNs.
+	* w32term.h: Remove EXFUNs.
+	* window.h: Remove EXFUNs.
+	* xsettings.h: Remove EXFUN.
+	* xterm.h: Remove EXFUN.
+
+2012-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* lisp.h (Frandom): Make it visible to C.
+	* buffer.c (Fgenerate_new_buffer_name): Speed up finding a new
+	buffer for invisible buffers.  (Bug#1229)
+
+2012-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix block vector allocation code to allow VECTOR_BLOCK_SIZE
+	values which aren't power of 2.
+	* alloc.c (VECTOR_FREE_LIST_SIZE_MASK): New macro.  Verify
+	it's value and the value of VECTOR_BLOCK_SIZE.  Adjust users
+	accordingly.
+
+2012-07-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (Lisp_Misc, Lisp_Fwd): Move around to group better.
+
+	* alloc.c (mark_object): Revert part of last patch to use `switch'.
+
+2012-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (allocate_vector_block): Remove redundant
+	calls to mallopt if DOUG_LEA_MALLOC is defined.
+	(allocate_vectorlike): If DOUG_LEA_MALLOC is defined,
+	avoid calls to mallopt if zero_vector is returned.
+
+2012-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (check_string_bytes): If GC_CHECK_STRING_BYTES
+	is enabled, avoid dereferencing NULL current_sblock if
+	running undumped.
+
+2012-07-03  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup basic buffer management.
+	* buffer.h (struct buffer): Change layout to use generic vector
+	marking code.  Fix some comments.  Change type of 'clip_changed'
+	to bitfield.  Remove unused #ifndef old.
+	(FIRST_FIELD_PER_BUFFER, LAST_FIELD_PER_BUFFER): Remove.
+	(GET_OVERLAYS_AT): Fix indentation.
+	(for_each_per_buffer_object_at): New macro.
+	* buffer.c (clone_per_buffer_values, reset_buffer_local_variables)
+	(Fbuffer_local_variables): Use it.
+	(init_buffer_once, syms_of_buffer): Remove unused #ifndef old.
+	* alloc.c (allocate_buffer): Adjust to match new layout of
+	struct buffer.  Fix comment.
+	(mark_overlay): New function.
+	(mark_buffer): Use it.  Use mark_vectorlike to mark normal
+	Lisp area of struct buffer.
+	(mark_object): Use it.  Adjust marking of misc objects
+	and related comments.
+
+2012-07-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (mark_object): Remove "#ifdef GC_CHECK_MARKED_OBJECTS"
+	wrapper that is not needed because the wrapped code is a no-op (zero
+	machine instructions) when GC_CHECK_MARKED_OBJECTS is not defined.
+	This avoids a -Wunused-macros diagnostic with GCC 4.7.1 x86-64.
+
+2012-07-02  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* alloc.c (mark_buffer): Simplify.  Remove prototype.
+	(mark_object): Add comment.  Reorganize marking of vector-like
+	objects.  Use CHECK_LIVE for all vector-like objects except buffers
+	and subroutines when GC_CHECK_MARKED_OBJECTS is defined.  Avoid
+	redundant calls to mark_vectorlike for bool vectors.
+
 2012-06-30  Glenn Morris  <rgm@gnu.org>
 
 	* nsterm.m (ns_init_paths): Ignore site-lisp if --no-site-lisp.
@@ -58,7 +341,7 @@
 
 	* window.h (struct window): Change type of 'fringes_outside_margins'
 	to bitfield.  Fix comment.  Adjust users accordingly.
-	(struct window): Change type of 'window_end_bytepos' to	ptrdiff_t.
+	(struct window): Change type of 'window_end_bytepos' to ptrdiff_t.
 	Adjust comment.
 	* xdisp.c (try_window_id): Change type of 'first_vpos' and 'vpos'
 	to ptrdiff_t.
@@ -184,11 +467,11 @@
 
 2012-06-27  Dmitry Antipov  <dmantipov@yandex.ru>
 
-	* alloc.c (allocate_string):  Fix last change.
+	* alloc.c (allocate_string): Fix last change.
 
 2012-06-27  Dmitry Antipov  <dmantipov@yandex.ru>
 
-	* alloc.c (allocate_string):  Remove two redundant calls
+	* alloc.c (allocate_string): Remove two redundant calls
 	to memset, add explicit initialization where appropriate.
 
 2012-06-27  Glenn Morris  <rgm@gnu.org>

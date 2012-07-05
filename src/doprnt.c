@@ -135,8 +135,8 @@ ptrdiff_t
 doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	const char *format_end, va_list ap)
 {
-  const char *fmt = format;	/* Pointer into format string */
-  register char *bufptr = buffer; /* Pointer into output buffer.. */
+  const char *fmt = format;	/* Pointer into format string.  */
+  char *bufptr = buffer;	/* Pointer into output buffer.  */
 
   /* Use this for sprintf unless we need something really big.  */
   char tembuf[DBL_MAX_10_EXP + 100];
@@ -150,7 +150,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
   /* Buffer we have got with malloc.  */
   char *big_buffer = NULL;
 
-  register size_t tem;
+  ptrdiff_t tem = -1;
   char *string;
   char fixed_buffer[20];	/* Default buffer for small formatting. */
   char *fmtcpy;
@@ -257,7 +257,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	    {
 	      if (big_buffer)
 		xfree (big_buffer);
-	      big_buffer = (char *) xmalloc (size_bound);
+	      big_buffer = xmalloc (size_bound);
 	      sprintf_buffer = big_buffer;
 	      size_allocated = size_bound;
 	    }
@@ -368,6 +368,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 
 	      /* Copy string into final output, truncating if no room.  */
 	    doit:
+	      eassert (0 <= tem);
 	      /* Coming here means STRING contains ASCII only.  */
 	      if (STRING_BYTES_BOUND < tem)
 		error ("Format width or precision too large");

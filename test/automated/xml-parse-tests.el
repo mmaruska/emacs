@@ -30,16 +30,49 @@
 (require 'xml)
 
 (defvar xml-parse-tests--data
-  '(;; General entity substitution
+  `(;; General entity substitution
     ("<?xml version=\"1.0\"?><!DOCTYPE foo SYSTEM \"bar.dtd\" [<!ENTITY ent \"AbC\">]><foo a=\"b\"><bar>&ent;;</bar></foo>" .
      ((foo ((a . "b")) (bar nil "AbC;"))))
+    ("<?xml version=\"1.0\"?><foo>&amp;amp;&#x26;apos;&apos;&lt;&gt;&quot;</foo>" .
+     ((foo () "&amp;&apos;'<>\"")))
     ;; Parameter entity substitution
     ("<?xml version=\"1.0\"?><!DOCTYPE foo SYSTEM \"bar.dtd\" [<!ENTITY % pent \"AbC\"><!ENTITY ent \"%pent;\">]><foo a=\"b\"><bar>&ent;;</bar></foo>" .
      ((foo ((a . "b")) (bar nil "AbC;"))))
     ;; Tricky parameter entity substitution (like XML spec Appendix D)
     ("<?xml version='1.0'?><!DOCTYPE foo [ <!ENTITY % xx '&#37;zz;'><!ENTITY % zz '&#60;!ENTITY ent \"b\" >' > %xx; ]><foo>A&ent;C</foo>" .
-     ((foo nil "AbC"))))
+     ((foo () "AbC")))
+    ;; Bug#7172
+    ("<?xml version=\"1.0\"?><!DOCTYPE foo [ <!ELEMENT EXAM_PLE EMPTY> ]><foo></foo>" .
+     ((foo ())))
+    ;; Entities referencing entities, in character data
+    ("<!DOCTYPE foo [ <!ENTITY b \"B\"><!ENTITY abc \"a&b;c\">]><foo>&abc;</foo>" .
+     ((foo () "aBc")))
+    ;; Entities referencing entities, in attribute values
+    ("<!DOCTYPE foo [ <!ENTITY b \"B\"><!ENTITY abc \"a&b;c\">]><foo a=\"-&abc;-\">1</foo>" .
+     ((foo ((a . "-aBc-")) "1")))
+    ;; Character references must be treated as character data
+    ("<foo>AT&amp;T;</foo>" . ((foo () "AT&T;")))
+    ("<foo>&#38;amp;</foo>" . ((foo () "&amp;")))
+    ("<foo>&#x26;amp;</foo>" . ((foo () "&amp;")))
+    ;; Unusual but valid XML names [5]
+    ("<ÀÖØö.3·-‿⁀󯿿>abc</ÀÖØö.3·-‿⁀󯿿>" . ((,(intern "ÀÖØö.3·-‿⁀󯿿") () "abc")))
+    ("<:>abc</:>" . ((,(intern ":") () "abc"))))
   "Alist of XML strings and their expected parse trees.")
+
+(defvar xml-parse-tests--bad-data
+  '(;; XML bomb in content
+    "<!DOCTYPE foo [<!ENTITY lol \"lol\"><!ENTITY lol1 \"&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;\"><!ENTITY lol2 \"&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;\">]><foo>&lol2;</foo>"
+    ;; XML bomb in attribute value
+    "<!DOCTYPE foo [<!ENTITY lol \"lol\"><!ENTITY lol1 \"&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;\"><!ENTITY lol2 \"&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;\">]><foo a=\"&lol2;\">!</foo>"
+    ;; Non-terminating DTD
+    "<!DOCTYPE foo [ <!ENTITY b \"B\"><!ENTITY abc \"a&b;c\">"
+    "<!DOCTYPE foo [ <!ENTITY b \"B\"><!ENTITY abc \"a&b;c\">asdf"
+    "<!DOCTYPE foo [ <!ENTITY b \"B\"><!ENTITY abc \"a&b;c\">asdf&abc;"
+    ;; Invalid XML names
+    "<0foo>abc</0foo>"
+    "<‿foo>abc</‿foo>"
+    "<f¿>abc</f¿>")
+  "List of XML strings that should signal an error in the parser")
 
 (ert-deftest xml-parse-tests ()
   "Test XML parsing."
@@ -47,8 +80,12 @@
     (dolist (test xml-parse-tests--data)
       (erase-buffer)
       (insert (car test))
-      (should (equal (cdr test)
-		     (xml-parse-region (point-min) (point-max)))))))
+      (should (equal (cdr test) (xml-parse-region))))
+    (let ((xml-entity-expansion-limit 50))
+      (dolist (test xml-parse-tests--bad-data)
+	(erase-buffer)
+	(insert test)
+	(should-error (xml-parse-region))))))
 
 ;; Local Variables:
 ;; no-byte-compile: t

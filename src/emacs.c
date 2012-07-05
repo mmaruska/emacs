@@ -119,7 +119,7 @@ ptrdiff_t PVEC_FLAG EXTERNALLY_VISIBLE = PSEUDOVECTOR_FLAG;
 ptrdiff_t gdb_array_mark_flag EXTERNALLY_VISIBLE = ARRAY_MARK_FLAG;
 /* GDB might say "No enum type named pvec_type" if we don't have at
    least one symbol with that type, and then xbacktrace could fail.  */
-enum pvec_type gdb_pvec_type EXTERNALLY_VISIBLE = PVEC_TYPE_MASK;
+enum pvec_type const gdb_pvec_type EXTERNALLY_VISIBLE = 0;
 
 /* Empty lisp strings.  To avoid having to build any others.  */
 Lisp_Object empty_unibyte_string, empty_multibyte_string;
@@ -1820,7 +1820,7 @@ static const struct standard_args standard_args[] =
 static void
 sort_args (int argc, char **argv)
 {
-  char **new = (char **) xmalloc (sizeof (char *) * argc);
+  char **new = xmalloc (sizeof (char *) * argc);
   /* For each element of argv,
      the corresponding element of options is:
      0 for an option that takes no arguments,

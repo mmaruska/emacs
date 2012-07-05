@@ -148,7 +148,6 @@ Lisp_Object Qfile_name_history;
 
 static Lisp_Object Qcar_less_than_car;
 
-static Lisp_Object Fmake_symbolic_link (Lisp_Object, Lisp_Object, Lisp_Object);
 static int a_write (int, Lisp_Object, ptrdiff_t, ptrdiff_t,
                     Lisp_Object *, struct coding_system *);
 static int e_write (int, Lisp_Object, ptrdiff_t, ptrdiff_t,
@@ -3080,8 +3079,7 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
   (Lisp_Object file1, Lisp_Object file2)
 {
   Lisp_Object absname1, absname2;
-  struct stat st;
-  int mtime1;
+  struct stat st1, st2;
   Lisp_Object handler;
   struct gcpro gcpro1, gcpro2;
 
@@ -3107,15 +3105,14 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
   absname2 = ENCODE_FILE (absname2);
   UNGCPRO;
 
-  if (stat (SSDATA (absname1), &st) < 0)
+  if (stat (SSDATA (absname1), &st1) < 0)
     return Qnil;
 
-  mtime1 = st.st_mtime;
-
-  if (stat (SSDATA (absname2), &st) < 0)
+  if (stat (SSDATA (absname2), &st2) < 0)
     return Qt;
 
-  return (mtime1 > st.st_mtime) ? Qt : Qnil;
+  return (EMACS_TIME_GT (get_stat_mtime (&st1), get_stat_mtime (&st2))
+	  ? Qt : Qnil);
 }
 
 #ifndef READ_BUF_SIZE
@@ -3216,6 +3213,17 @@ emacs_lseek (int fd, EMACS_INT offset, int whence)
   return lseek (fd, offset, whence);
 }
 
+/* Return a special time value indicating the error number ERRNUM.  */
+static EMACS_TIME
+time_error_value (int errnum)
+{
+  EMACS_TIME t;
+  int ns = (errnum == ENOENT || errnum == EACCES || errnum == ENOTDIR
+	    ? NONEXISTENT_MODTIME_NSECS
+	    : UNKNOWN_MODTIME_NSECS);
+  EMACS_SET_SECS_NSECS (t, 0, ns);
+  return t;
+}
 
 DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
        1, 5, 0,
@@ -3243,6 +3251,8 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   (Lisp_Object filename, Lisp_Object visit, Lisp_Object beg, Lisp_Object end, Lisp_Object replace)
 {
   struct stat st;
+  int file_status;
+  EMACS_TIME mtime;
   register int fd;
   ptrdiff_t inserted = 0;
   int nochange = 0;
@@ -3311,19 +3321,22 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
     /* Tell stat to use expensive method to get accurate info.  */
     Vw32_get_true_file_attributes = Qt;
-    total = stat (SSDATA (filename), &st);
+    file_status = stat (SSDATA (filename), &st);
     Vw32_get_true_file_attributes = tem;
   }
-  if (total < 0)
 #else
-  if (stat (SSDATA (filename), &st) < 0)
+  file_status = stat (SSDATA (filename), &st);
 #endif /* WINDOWSNT */
+
+  if (file_status == 0)
+    mtime = get_stat_mtime (&st);
+  else
     {
     badopen:
       save_errno = errno;
       if (NILP (visit))
 	report_file_error ("Opening input file", Fcons (orig_filename, Qnil));
-      st.st_mtime = -1;
+      mtime = time_error_value (save_errno);
       st.st_size = -1;
       how_much = 0;
       if (!NILP (Vcoding_system_for_read))
@@ -4194,7 +4207,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
       if (NILP (handler))
 	{
-	  current_buffer->modtime = get_stat_mtime (&st);
+	  current_buffer->modtime = mtime;
 	  current_buffer->modtime_size = st.st_size;
 	  BVAR (current_buffer, filename) = orig_filename;
 	}
@@ -5091,17 +5104,9 @@ See Info node `(elisp)Modification Time' for more details.  */)
 
   filename = ENCODE_FILE (BVAR (b, filename));
 
-  if (stat (SSDATA (filename), &st) == 0)
-    mtime = get_stat_mtime (&st);
-  else
-    {
-      /* If the file doesn't exist now and didn't exist before,
-	 we say that it isn't modified, provided the error is a tame one.  */
-      int ns = (errno == ENOENT || errno == EACCES || errno == ENOTDIR
-		? NONEXISTENT_MODTIME_NSECS
-		: UNKNOWN_MODTIME_NSECS);
-      EMACS_SET_SECS_NSECS (mtime, 0, ns);
-    }
+  mtime = (stat (SSDATA (filename), &st) == 0
+	   ? get_stat_mtime (&st)
+	   : time_error_value (errno));
   if ((EMACS_TIME_EQ (mtime, b->modtime)
        /* If both exist, accept them if they are off by one second.  */
        || (EMACS_TIME_VALID_P (mtime) && EMACS_TIME_VALID_P (b->modtime)

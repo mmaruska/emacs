@@ -670,27 +670,42 @@ WINDOW must be a live window and defaults to the selected one.  */)
   return make_number (decode_window (window)->hscroll);
 }
 
+/* Set W's horizontal scroll amount to HSCROLL clipped to a reasonable
+   range, returning the new amount as a fixnum.  */
+static Lisp_Object
+set_window_hscroll (struct window *w, EMACS_INT hscroll)
+{
+  /* Horizontal scrolling has problems with large scroll amounts.
+     It's too slow with long lines, and even with small lines the
+     display can be messed up.  For now, though, impose only the limits
+     required by the internal representation: horizontal scrolling must
+     fit in fixnum (since it's visible to Elisp) and into ptrdiff_t
+     (since it's stored in a ptrdiff_t).  */
+  ptrdiff_t hscroll_max = min (MOST_POSITIVE_FIXNUM, PTRDIFF_MAX);
+  ptrdiff_t new_hscroll = clip_to_bounds (0, hscroll, hscroll_max);
+
+  /* Prevent redisplay shortcuts when changing the hscroll.  */
+  if (w->hscroll != new_hscroll)
+    XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
+
+  w->hscroll = new_hscroll;
+  return make_number (new_hscroll);
+}
+
 DEFUN ("set-window-hscroll", Fset_window_hscroll, Sset_window_hscroll, 2, 2, 0,
        doc: /* Set number of columns WINDOW is scrolled from left margin to NCOL.
 If WINDOW is nil, the selected window is used.
-Return NCOL.  NCOL should be zero or positive.
+Clip the number to a reasonable value if out of range.
+Return the new number.  NCOL should be zero or positive.
 
 Note that if `automatic-hscrolling' is non-nil, you cannot scroll the
 window so that the location of point moves off-window.  */)
   (Lisp_Object window, Lisp_Object ncol)
 {
   struct window *w = decode_window (window);
-  ptrdiff_t hscroll;
 
   CHECK_NUMBER (ncol);
-  hscroll = clip_to_bounds (0, XINT (ncol), PTRDIFF_MAX);
-
-  /* Prevent redisplay shortcuts when changing the hscroll.  */
-  if (w->hscroll != hscroll)
-    XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
-
-  w->hscroll = hscroll;
-  return ncol;
+  return set_window_hscroll (w, XINT (ncol));
 }
 
 DEFUN ("window-redisplay-end-trigger", Fwindow_redisplay_end_trigger,
@@ -2873,13 +2888,6 @@ adjust_window_margins (struct window *w)
   return 1;
 }
 
-static Lisp_Object Fset_window_margins (Lisp_Object, Lisp_Object, Lisp_Object);
-static Lisp_Object Fset_window_fringes (Lisp_Object, Lisp_Object, Lisp_Object,
-					Lisp_Object);
-static Lisp_Object Fset_window_scroll_bars (Lisp_Object, Lisp_Object,
-					    Lisp_Object, Lisp_Object);
-static Lisp_Object Fset_window_vscroll (Lisp_Object, Lisp_Object, Lisp_Object);
-
 /* The following three routines are needed for running a window's
    configuration change hook.  */
 static void
@@ -4857,9 +4865,6 @@ specifies the window to scroll.  This takes precedence over
   return Qnil;
 }
 
-/* Scrolling amount must fit in both ptrdiff_t and Emacs fixnum.  */
-#define HSCROLL_MAX min (PTRDIFF_MAX, MOST_POSITIVE_FIXNUM)
-
 DEFUN ("scroll-left", Fscroll_left, Sscroll_left, 0, 2, "^P\np",
        doc: /* Scroll selected window display ARG columns left.
 Default for ARG is window width minus 2.
@@ -4871,16 +4876,11 @@ will not scroll a window to a column less than the value returned
 by this function.  This happens in an interactive call.  */)
   (register Lisp_Object arg, Lisp_Object set_minimum)
 {
-  Lisp_Object result;
-  ptrdiff_t hscroll;
   struct window *w = XWINDOW (selected_window);
   EMACS_INT requested_arg = (NILP (arg)
 			     ? window_body_cols (w) - 2
 			     : XINT (Fprefix_numeric_value (arg)));
-  ptrdiff_t clipped_arg =
-    clip_to_bounds (- w->hscroll, requested_arg, HSCROLL_MAX - w->hscroll);
-  hscroll = w->hscroll + clipped_arg;
-  result = Fset_window_hscroll (selected_window, make_number (hscroll));
+  Lisp_Object result = set_window_hscroll (w, w->hscroll + requested_arg);
 
   if (!NILP (set_minimum))
     w->min_hscroll = w->hscroll;
@@ -4899,16 +4899,11 @@ will not scroll a window to a column less than the value returned
 by this function.  This happens in an interactive call.  */)
   (register Lisp_Object arg, Lisp_Object set_minimum)
 {
-  Lisp_Object result;
-  ptrdiff_t hscroll;
   struct window *w = XWINDOW (selected_window);
   EMACS_INT requested_arg = (NILP (arg)
 			     ? window_body_cols (w) - 2
 			     : XINT (Fprefix_numeric_value (arg)));
-  ptrdiff_t clipped_arg =
-    clip_to_bounds (w->hscroll - HSCROLL_MAX, requested_arg, w->hscroll);
-  hscroll = w->hscroll - clipped_arg;
-  result = Fset_window_hscroll (selected_window, make_number (hscroll));
+  Lisp_Object result = set_window_hscroll (w, w->hscroll - requested_arg);
 
   if (!NILP (set_minimum))
     w->min_hscroll = w->hscroll;
