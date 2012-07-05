@@ -1018,7 +1018,7 @@ If STRING is multibyte and contains a character of charset
   if (STRING_MULTIBYTE (string))
     {
       ptrdiff_t bytes = SBYTES (string);
-      unsigned char *str = (unsigned char *) xmalloc (bytes);
+      unsigned char *str = xmalloc (bytes);
 
       memcpy (str, SDATA (string), bytes);
       bytes = str_as_unibyte (str, bytes);
@@ -1100,7 +1100,7 @@ an error is signaled.  */)
   if (STRING_MULTIBYTE (string))
     {
       ptrdiff_t chars = SCHARS (string);
-      unsigned char *str = (unsigned char *) xmalloc (chars);
+      unsigned char *str = xmalloc (chars);
       ptrdiff_t converted = str_to_unibyte (SDATA (string), str, chars, 0);
 
       if (converted < chars)
@@ -2095,8 +2095,9 @@ internal_equal (register Lisp_Object o1, register Lisp_Object o2, int depth, int
 	   are sensible to compare, so eliminate the others now.  */
 	if (size & PSEUDOVECTOR_FLAG)
 	  {
-	    if (!(size & (PVEC_COMPILED
-			  | PVEC_CHAR_TABLE | PVEC_SUB_CHAR_TABLE | PVEC_FONT)))
+	    if (!(size & ((PVEC_COMPILED | PVEC_CHAR_TABLE
+			   | PVEC_SUB_CHAR_TABLE | PVEC_FONT)
+			  << PSEUDOVECTOR_SIZE_BITS)))
 	      return 0;
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  }

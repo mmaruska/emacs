@@ -107,8 +107,6 @@ static char buffer_permanent_local_flags[MAX_PER_BUFFER_VARS];
 
 int last_per_buffer_idx;
 
-static Lisp_Object Fset_buffer_major_mode (Lisp_Object);
-static Lisp_Object Fdelete_overlay (Lisp_Object);
 static void call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay,
                                     int after, Lisp_Object arg1,
                                     Lisp_Object arg2, Lisp_Object arg3);
@@ -465,11 +463,7 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
 
   XSETBUFFER (to_buffer, to);
 
-  /* buffer-local Lisp variables start at `undo_list',
-     tho only the ones from `name' on are GC'd normally.  */
-  for (offset = PER_BUFFER_VAR_OFFSET (FIRST_FIELD_PER_BUFFER);
-       offset <= PER_BUFFER_VAR_OFFSET (LAST_FIELD_PER_BUFFER);
-       offset += sizeof (Lisp_Object))
+  for_each_per_buffer_object_at (offset)
     {
       Lisp_Object obj;
 
@@ -820,14 +814,8 @@ reset_buffer_local_variables (register struct buffer *b, int permanent_too)
     if (permanent_too || buffer_permanent_local_flags[i] == 0)
       SET_PER_BUFFER_VALUE_P (b, i, 0);
 
-  /* For each slot that has a default value,
-     copy that into the slot.  */
-
-  /* buffer-local Lisp variables start at `undo_list',
-     tho only the ones from `name' on are GC'd normally.  */
-  for (offset = PER_BUFFER_VAR_OFFSET (FIRST_FIELD_PER_BUFFER);
-       offset <= PER_BUFFER_VAR_OFFSET (LAST_FIELD_PER_BUFFER);
-       offset += sizeof (Lisp_Object))
+  /* For each slot that has a default value, copy that into the slot.  */
+  for_each_per_buffer_object_at (offset)
     {
       int idx = PER_BUFFER_IDX (offset);
       if ((idx > 0
@@ -848,10 +836,14 @@ If there is no live buffer named NAME, then return NAME.
 Otherwise modify name by appending `<NUMBER>', incrementing NUMBER
 \(starting at 2) until an unused name is found, and then return that name.
 Optional second argument IGNORE specifies a name that is okay to use (if
-it is in the sequence to be tried) even if a buffer with that name exists.  */)
+it is in the sequence to be tried) even if a buffer with that name exists.
+
+If NAME begins with a space (i.e., a buffer that is not normally
+visible to users), then if buffer NAME already exists a random number
+is first appended to NAME, to speed up finding a non-existent buffer.  */)
   (register Lisp_Object name, Lisp_Object ignore)
 {
-  register Lisp_Object gentemp, tem;
+  register Lisp_Object gentemp, tem, tem2;
   ptrdiff_t count;
   char number[INT_BUFSIZE_BOUND (ptrdiff_t) + sizeof "<>"];
 
@@ -864,11 +856,23 @@ it is in the sequence to be tried) even if a buffer with that name exists.  */)
   if (NILP (tem))
     return name;
 
+  if (!strncmp (SSDATA (name), " ", 1)) /* see bug#1229 */
+    {
+      /* Note fileio.c:make_temp_name does random differently.  */
+      sprintf (number, "-%"pI"d", XFASTINT (Frandom (make_number (999999))));
+      tem2 = concat2 (name, build_string (number));
+      tem = Fget_buffer (tem2);
+      if (NILP (tem))
+	return tem2;
+    }
+  else
+    tem2 = name;
+
   count = 1;
   while (1)
     {
       sprintf (number, "<%"pD"d>", ++count);
-      gentemp = concat2 (name, build_string (number));
+      gentemp = concat2 (tem2, build_string (number));
       tem = Fstring_equal (gentemp, ignore);
       if (!NILP (tem))
 	return gentemp;
@@ -1063,12 +1067,7 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
   {
     int offset, idx;
 
-    /* buffer-local Lisp variables start at `undo_list',
-       tho only the ones from `name' on are GC'd normally.  */
-    for (offset = PER_BUFFER_VAR_OFFSET (FIRST_FIELD_PER_BUFFER);
-	 offset <= PER_BUFFER_VAR_OFFSET (LAST_FIELD_PER_BUFFER);
-	 /* sizeof EMACS_INT == sizeof Lisp_Object */
-	 offset += (sizeof (EMACS_INT)))
+    for_each_per_buffer_object_at (offset)
       {
 	idx = PER_BUFFER_IDX (offset);
 	if ((idx == -1 || PER_BUFFER_VALUE_P (buf, idx))
@@ -3894,7 +3893,7 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
 
   len = 10;
   /* We can't use alloca here because overlays_at can call xrealloc.  */
-  overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
+  overlay_vec = xmalloc (len * sizeof (Lisp_Object));
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.  */
@@ -3925,7 +3924,7 @@ end of the buffer.  */)
   CHECK_NUMBER_COERCE_MARKER (end);
 
   len = 10;
-  overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
+  overlay_vec = xmalloc (len * sizeof (Lisp_Object));
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.  */
@@ -3953,7 +3952,7 @@ the value is (point-max).  */)
   CHECK_NUMBER_COERCE_MARKER (pos);
 
   len = 10;
-  overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
+  overlay_vec = xmalloc (len * sizeof (Lisp_Object));
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.
@@ -3997,7 +3996,7 @@ the value is (point-min).  */)
     return pos;
 
   len = 10;
-  overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
+  overlay_vec = xmalloc (len * sizeof (Lisp_Object));
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.
@@ -4871,6 +4870,12 @@ void
 init_buffer_once (void)
 {
   int idx;
+  /* If you add, remove, or reorder Lisp_Objects in a struct buffer, make
+     sure that this is still correct.  Otherwise, mark_vectorlike may not
+     trace all Lisp_Objects in buffer_defaults and buffer_local_symbols.  */
+  const int pvecsize 
+    = (offsetof (struct buffer, own_text) - sizeof (struct vectorlike_header))
+    / sizeof (Lisp_Object);
 
   memset (buffer_permanent_local_flags, 0, sizeof buffer_permanent_local_flags);
 
@@ -4887,9 +4892,9 @@ init_buffer_once (void)
   buffer_local_symbols.text = &buffer_local_symbols.own_text;
   BUF_INTERVALS (&buffer_defaults) = 0;
   BUF_INTERVALS (&buffer_local_symbols) = 0;
-  XSETPVECTYPESIZE (&buffer_defaults, PVEC_BUFFER, 0);
+  XSETPVECTYPESIZE (&buffer_defaults, PVEC_BUFFER, pvecsize);
   XSETBUFFER (Vbuffer_defaults, &buffer_defaults);
-  XSETPVECTYPESIZE (&buffer_local_symbols, PVEC_BUFFER, 0);
+  XSETPVECTYPESIZE (&buffer_local_symbols, PVEC_BUFFER, pvecsize);
   XSETBUFFER (Vbuffer_local_symbols, &buffer_local_symbols);
 
   /* Set up the default values of various buffer slots.  */
@@ -4903,9 +4908,7 @@ init_buffer_once (void)
   BVAR (&buffer_defaults, case_fold_search) = Qt;
   BVAR (&buffer_defaults, auto_fill_function) = Qnil;
   BVAR (&buffer_defaults, selective_display) = Qnil;
-#ifndef old
   BVAR (&buffer_defaults, selective_display_ellipses) = Qt;
-#endif
   BVAR (&buffer_defaults, abbrev_table) = Qnil;
   BVAR (&buffer_defaults, display_table) = Qnil;
   BVAR (&buffer_defaults, undo_list) = Qnil;
@@ -4984,9 +4987,7 @@ init_buffer_once (void)
   XSETFASTINT (BVAR (&buffer_local_flags, case_fold_search), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, auto_fill_function), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, selective_display), idx); ++idx;
-#ifndef old
   XSETFASTINT (BVAR (&buffer_local_flags, selective_display_ellipses), idx); ++idx;
-#endif
   XSETFASTINT (BVAR (&buffer_local_flags, tab_width), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, truncate_lines), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, word_wrap), idx); ++idx;
@@ -5594,12 +5595,10 @@ A value of t means that the character ^M makes itself and
 all the rest of the line invisible; also, when saving the buffer
 in a file, save the ^M as a newline.  */);
 
-#ifndef old
   DEFVAR_PER_BUFFER ("selective-display-ellipses",
 		     &BVAR (current_buffer, selective_display_ellipses),
 		     Qnil,
 		     doc: /* Non-nil means display ... on previous line when a line is invisible.  */);
-#endif
 
   DEFVAR_PER_BUFFER ("overwrite-mode", &BVAR (current_buffer, overwrite_mode), Qnil,
 		     doc: /* Non-nil if self-insertion should replace existing text.

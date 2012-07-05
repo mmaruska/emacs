@@ -1451,7 +1451,7 @@ simple_search (EMACS_INT n, unsigned char *pat,
   int forward = n > 0;
   /* Number of buffer bytes matched.  Note that this may be different
      from len_byte in a multibyte buffer.  */
-  ptrdiff_t match_byte;
+  ptrdiff_t match_byte = PTRDIFF_MIN;
 
   if (lim > pos && multibyte)
     while (n > 0)
@@ -1622,6 +1622,7 @@ simple_search (EMACS_INT n, unsigned char *pat,
  stop:
   if (n == 0)
     {
+      eassert (match_byte != PTRDIFF_MIN);
       if (forward)
 	set_search_regs ((multibyte ? pos_byte : pos) - match_byte, match_byte);
       else
@@ -2063,8 +2064,8 @@ set_search_regs (ptrdiff_t beg_byte, ptrdiff_t nbytes)
      the match position.  */
   if (search_regs.num_regs == 0)
     {
-      search_regs.start = (regoff_t *) xmalloc (2 * sizeof (regoff_t));
-      search_regs.end = (regoff_t *) xmalloc (2 * sizeof (regoff_t));
+      search_regs.start = xmalloc (2 * sizeof (regoff_t));
+      search_regs.end = xmalloc (2 * sizeof (regoff_t));
       search_regs.num_regs = 2;
     }
 
@@ -2499,7 +2500,7 @@ since only regular expressions have distinguished subexpressions.  */)
       substed_alloc_size = ((STRING_BYTES_BOUND - 100) / 2 < length
 			    ? STRING_BYTES_BOUND
 			    : length * 2 + 100);
-      substed = (unsigned char *) xmalloc (substed_alloc_size);
+      substed = xmalloc (substed_alloc_size);
       substed_len = 0;
 
       /* Go thru NEWTEXT, producing the actual text to insert in
@@ -3039,7 +3040,7 @@ syms_of_search (void)
   for (i = 0; i < REGEXP_CACHE_SIZE; ++i)
     {
       searchbufs[i].buf.allocated = 100;
-      searchbufs[i].buf.buffer = (unsigned char *) xmalloc (100);
+      searchbufs[i].buf.buffer = xmalloc (100);
       searchbufs[i].buf.fastmap = searchbufs[i].fastmap;
       searchbufs[i].regexp = Qnil;
       searchbufs[i].whitespace_regexp = Qnil;

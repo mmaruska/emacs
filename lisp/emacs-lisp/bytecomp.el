@@ -2367,7 +2367,7 @@ not to take responsibility for the actual compilation of the code."
       ;;(byte-compile-set-symbol-position name)
       (byte-compile-warn "probable `\"' without `\\' in doc string of %s"
                          name))
-    
+
     (if (not (listp body))
         ;; The precise definition requires evaluation to find out, so it
         ;; will only be known at runtime.
@@ -2451,7 +2451,7 @@ If QUOTED is non-nil, print with quoting; otherwise, print without quoting."
           (- (position-bytes (point)) (point-min) -1)
         (goto-char (point-max))))))
 
-(defun byte-compile--refiy-function (fun)
+(defun byte-compile--reify-function (fun)
   "Return an expression which will evaluate to a function value FUN.
 FUN should be either a `lambda' value or a `closure' value."
   (pcase-let* (((or (and `(lambda ,args . ,body) (let env nil))
@@ -2485,22 +2485,32 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	   (macro (eq (car-safe fun) 'macro)))
       (if macro
 	  (setq fun (cdr fun)))
-      (when (symbolp form)
-        (unless (memq (car-safe fun) '(closure lambda))
+      (cond
+       ;; Up until Emacs-24.1, byte-compile silently did nothing when asked to
+       ;; compile something invalid.  So let's tune down the complaint from an
+       ;; error to a simple message for the known case where signaling an error
+       ;; causes problems.
+       ((byte-code-function-p fun)
+        (message "Function %s is already compiled"
+                 (if (symbolp form) form "provided"))
+        fun)
+       (t
+        (when (symbolp form)
+          (unless (memq (car-safe fun) '(closure lambda))
+            (error "Don't know how to compile %S" fun))
+          (setq fun (byte-compile--reify-function fun))
+          (setq lexical-binding (eq (car fun) 'closure)))
+        (unless (eq (car-safe fun) 'lambda)
           (error "Don't know how to compile %S" fun))
-        (setq fun (byte-compile--refiy-function fun))
-        (setq lexical-binding (eq (car fun) 'closure)))
-      (unless (eq (car-safe fun) 'lambda)
-        (error "Don't know how to compile %S" fun))
-	     ;; Expand macros.
-             (setq fun (byte-compile-preprocess fun))
-	     ;; Get rid of the `function' quote added by the `lambda' macro.
-	     (if (eq (car-safe fun) 'function) (setq fun (cadr fun)))
-      (setq fun (byte-compile-lambda fun))
-      (if macro (push 'macro fun))
-	     (if (symbolp form)
-          (fset form fun)
-        fun)))))
+        ;; Expand macros.
+        (setq fun (byte-compile-preprocess fun))
+        ;; Get rid of the `function' quote added by the `lambda' macro.
+        (if (eq (car-safe fun) 'function) (setq fun (cadr fun)))
+        (setq fun (byte-compile-lambda fun))
+        (if macro (push 'macro fun))
+        (if (symbolp form)
+            (fset form fun)
+          fun)))))))
 
 (defun byte-compile-sexp (sexp)
   "Compile and return SEXP."

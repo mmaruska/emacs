@@ -1201,7 +1201,7 @@ only return the directory part of FILE."
 (defun ange-ftp-get-passwd (host user)
   "Return the password for specified HOST and USER, asking user if necessary."
   ;; If `non-essential' is non-nil, don't ask for a password.  It will
-  ;; be catched in Tramp.
+  ;; be caught in Tramp.
   (when non-essential
     (throw 'non-essential 'non-essential))
 
@@ -1781,7 +1781,7 @@ good, skip, fatal, or unknown."
 (defun ange-ftp-gwp-start (host user name args)
   "Login to the gateway machine and fire up an FTP process."
   ;; If `non-essential' is non-nil, don't reopen a new connection.  It
-  ;; will be catched in Tramp.
+  ;; will be caught in Tramp.
   (when non-essential
     (throw 'non-essential 'non-essential))
   (let (;; It would be nice to make process-connection-type nil,
@@ -1916,7 +1916,7 @@ been queued with no result.  CONT will still be called, however."
 If HOST is only FTP-able through a gateway machine then spawn a shell
 on the gateway machine to do the FTP instead."
   ;; If `non-essential' is non-nil, don't reopen a new connection.  It
-  ;; will be catched in Tramp.
+  ;; will be caught in Tramp.
   (when non-essential
     (throw 'non-essential 'non-essential))
   (let* ((use-gateway (ange-ftp-use-gateway-p host))
@@ -2138,7 +2138,7 @@ Create a new process if needed."
     (if (and proc (memq (process-status proc) '(run open)))
 	proc
       ;; If `non-essential' is non-nil, don't reopen a new connection.  It
-      ;; will be catched in Tramp.
+      ;; will be caught in Tramp.
       (when non-essential
 	(throw 'non-essential 'non-essential))
 
@@ -3143,21 +3143,15 @@ logged in as user USER and cd'd to directory DIR."
   "Documented as `expand-file-name'."
   (save-match-data
     (setq default (or default default-directory))
-    (cond ((eq (string-to-char name) ?~)
-	   (ange-ftp-real-expand-file-name name))
-	  ((eq (string-to-char name) ?/)
-	   (ange-ftp-canonize-filename name))
-	  ((and (eq system-type 'windows-nt)
-		(eq (string-to-char name) ?\\))
-	   (ange-ftp-canonize-filename name))
-	  ((and (eq system-type 'windows-nt)
-		(or (string-match "\\`[a-zA-Z]:" name)
-		    (string-match "\\`[a-zA-Z]:" default)))
-	   (ange-ftp-real-expand-file-name name default))
-	  ((zerop (length name))
-	   (ange-ftp-canonize-filename default))
-	  ((ange-ftp-canonize-filename
-	    (concat (file-name-as-directory default) name))))))
+    (cond
+     ((ange-ftp-ftp-name name)
+      ;; `default' is irrelevant.
+      (ange-ftp-canonize-filename name))
+     ((file-name-absolute-p name)
+      ;; `name' is absolute but is not an ange-ftp name => not ange-ftp.
+      (ange-ftp-real-expand-file-name name "/"))
+     ((ange-ftp-canonize-filename
+       (concat (file-name-as-directory default) name))))))
 
 ;;; These are problems--they are currently not enabled.
 
@@ -3390,7 +3384,7 @@ system TYPE.")
       (if (ange-ftp-file-entry-p name)
 	  (let ((file-ent (ange-ftp-get-file-entry name)))
 	    (if (stringp file-ent)
-		(file-exists-p
+		(ange-ftp-file-exists-p
 		 (ange-ftp-expand-symlink file-ent
 					  (file-name-directory
 					   (directory-file-name name))))
