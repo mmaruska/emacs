@@ -83,17 +83,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    for process-connection-type dependent on the kernel version.  */
 #define MIN_PTY_KERNEL_VERSION '7'
 
-/* Define CLASH_DETECTION if you want lock files to be written
-   so that Emacs can tell instantly when you try to modify
-   a file that someone else has modified in his Emacs.  */
-#define CLASH_DETECTION
-
 /* Avoid the use of the name init_process (process.c) because it is
    also the name of a Mach system call.  */
 #define init_process emacs_init_process
-
-/* Used in dispnew.c.  Copied from freebsd.h. */
-#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
 /* System uses OXTABS instead of the expected TAB3.  (Copied from bsd386.h.)  */
 #define TAB3 OXTABS
@@ -105,11 +97,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_NS
 #define SYSTEM_PURESIZE_EXTRA 200000
 #endif
-
-/* On Darwin, res_init appears not to be useful: see bug#562 and
-   http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01467.html  */
-#undef HAVE_RES_INIT
-#undef HAVE_LIBRESOLV
 
 #ifdef emacs
 #define malloc unexec_malloc
@@ -134,8 +121,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    context as of Darwin 9/Mac OS X 10.5.  */
 #undef HAVE_WORKING_VFORK
 #define vfork fork
-
-/* Don't close pty in process.c to make it as controlling terminal.
-   It is already a controlling terminal of subprocess, because we did
-   ioctl TIOCSCTTY.  */
-#define DONT_REOPEN_PTY

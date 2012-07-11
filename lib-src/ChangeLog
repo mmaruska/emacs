@@ -1,3 +1,77 @@
+2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume strerror.
+	* emacsclient.c, movemail.c, update-game-score.c (strerror)
+	[!HAVE_STRERROR]: Remove.
+
+2012-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	EMACS_TIME simplification (Bug#11875).
+	* profile.c (TV2): Remove no-longer-needed static var.
+
+	Simplify by avoiding confusing use of strncpy etc.
+	* etags.c (write_classname, C_entries):
+	Use sprintf rather than strncpy or strncat.
+	* etags.c (consider_token, C_entries, HTML_labels, Prolog_functions)
+	(Erlang_functions, substitute, readline_internal, savenstr):
+	* movemail.c (mail_spool_name):
+	Use memcpy rather than strncpy or strncat when either will do.
+	* make-docfile.c (write_c_args):
+	Use memcmp rather than strncmp when either will do.
+	* movemail.c (pop_retr):
+	* pop.c (pop_stat, pop_list, pop_multi_first, pop_last)
+	(socket_connection, pop_getline, sendline, getok):
+	Use snprintf rather than strncpy or strncat.
+	* movemail.c (concat): Remove; no longer needed.
+	(xmalloc): Define only if needed, now that concat has gone away.
+	Return void *.  All uses changed.
+
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Add GCC-style 'const' attribute to functions that can use it.
+	* etags.c (number_len): Add ATTRIBUTE_CONST.
+
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (w32_execvp): Declare execvp to silence the compiler.
+
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/test-distrib.exe): Use LIB_SRC, not SRC.
+	(LIB_SRC, NT_INC, GNU_LIB, MS_W32_H, CONFIG_H, INTTYPES_H, NTLIB_H)
+	(SYSTIME_H): New macros.
+	(SRC): Redefine to point to src/, not current directory.
+	($(BLD)/ctags.$(O), $(BLD)/ebrowse.$(O), $(BLD)/emacsclient.$(O))
+	($(BLD)/etags.$(O), $(BLD)/hexl.$(O), $(BLD)/make-docfile.$(O))
+	($(BLD)/movemail.$(O), $(BLD)/ntlib.$(O), $(BLD)/pop.$(O))
+	($(BLD)/profile.$(O), $(BLD)/test-distrib.$(O)): Update dependencies.
+	($(BLD)/regex.$(O)): New dependency.
+
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (ALL): Add profile.exe.
+	(PROFILEOBJS): New macro.
+	($(BLD)/profile.exe): New target.
+	(install): Copy profile.exe.
+	($(BLD)/alloca.$(O), $(BLD)/tcp.$(O)): Remove, obsolete.
+
+2012-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/ctags.$(O), $(BLD)/etags.$(O)):
+	Update dependencies.
+
+2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use c_strcasecmp for ASCII case-insensitive comparison (Bug#11786).
+	* etags.c: Include c-strcase.h.
+	(etags_strcasecmp, etags_strncasecmp): Remove.
+	All uses replaced with c_strcasecmp and c_strncasecmp.
+
+2012-07-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* make-docfile.c (write_globals): Warn about duplicate function
+	definitions with differing signatures.
+
 2012-07-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* make-docfile.c (scan_c_file): Suppress GCC warning.

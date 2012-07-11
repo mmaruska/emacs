@@ -88,8 +88,8 @@ xg_select (int fds_lim, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 
   if (tmo_in_millisec >= 0)
     {
-      EMACS_SET_SECS_USECS (tmo, tmo_in_millisec/1000,
-                            1000 * (tmo_in_millisec % 1000));
+      tmo = make_emacs_time (tmo_in_millisec / 1000,
+			     1000 * 1000 * (tmo_in_millisec % 1000));
       if (!timeout || EMACS_TIME_LT (tmo, *timeout))
 	tmop = &tmo;
     }
@@ -153,6 +153,6 @@ xgselect_initialize (void)
 {
 #if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
   gfds_size = 128;
-  gfds = xmalloc (sizeof (*gfds)*gfds_size);
+  gfds = xmalloc (gfds_size * sizeof *gfds);
 #endif
 }

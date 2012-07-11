@@ -3168,26 +3168,22 @@ XTflash (struct frame *f)
       x_flush (f);
 
       {
-	EMACS_TIME wakeup, delay;
-
-	EMACS_GET_TIME (wakeup);
-	EMACS_SET_SECS_NSECS (delay, 0, 150 * 1000 * 1000);
-	EMACS_ADD_TIME (wakeup, wakeup, delay);
+	EMACS_TIME delay = make_emacs_time (0, 150 * 1000 * 1000);
+	EMACS_TIME wakeup = add_emacs_time (current_emacs_time (), delay);
 
 	/* Keep waiting until past the time wakeup or any input gets
 	   available.  */
 	while (! detect_input_pending ())
 	  {
-	    EMACS_TIME current, timeout;
-
-	    EMACS_GET_TIME (current);
+	    EMACS_TIME current = current_emacs_time ();
+	    EMACS_TIME timeout;
 
 	    /* Break if result would not be positive.  */
 	    if (EMACS_TIME_LE (wakeup, current))
 	      break;
 
 	    /* How long `select' should wait.  */
-	    EMACS_SET_SECS_NSECS (timeout, 0, 10 * 1000 * 1000);
+	    timeout = make_emacs_time (0, 10 * 1000 * 1000);
 
 	    /* Try to wait that long--but we might wake up sooner.  */
 	    pselect (0, NULL, NULL, NULL, &timeout, NULL);
@@ -6450,7 +6446,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
               if (status_return == XBufferOverflow)
                 {
                   copy_bufsiz = nbytes + 1;
-                  copy_bufptr = (unsigned char *) alloca (copy_bufsiz);
+                  copy_bufptr = alloca (copy_bufsiz);
                   nbytes = XmbLookupString (FRAME_XIC (f),
                                             &event.xkey, (char *) copy_bufptr,
                                             copy_bufsiz, &keysym,
@@ -7670,7 +7666,7 @@ x_error_catcher (Display *display, XErrorEvent *event)
 void
 x_catch_errors (Display *dpy)
 {
-  struct x_error_message_stack *data = xmalloc (sizeof (*data));
+  struct x_error_message_stack *data = xmalloc (sizeof *data);
 
   /* Make sure any errors from previous requests have been dealt with.  */
   XSync (dpy, False);
@@ -7798,7 +7794,7 @@ x_connection_closed (Display *dpy, const char *error_message)
   Lisp_Object frame, tail;
   ptrdiff_t idx = SPECPDL_INDEX ();
 
-  error_msg = (char *) alloca (strlen (error_message) + 1);
+  error_msg = alloca (strlen (error_message) + 1);
   strcpy (error_msg, error_message);
   handling_signal = 0;
 
@@ -8187,10 +8183,9 @@ xim_initialize (struct x_display_info *dpyinfo, char *resource_name)
   if (use_xim)
     {
 #ifdef HAVE_X11R6_XIM
-      struct xim_inst_t *xim_inst;
+      struct xim_inst_t *xim_inst = xmalloc (sizeof *xim_inst);
       ptrdiff_t len;
 
-      xim_inst = xmalloc (sizeof (struct xim_inst_t));
       dpyinfo->xim_callback_data = xim_inst;
       xim_inst->dpyinfo = dpyinfo;
       len = strlen (resource_name);
@@ -8811,9 +8806,8 @@ x_wait_for_event (struct frame *f, int eventtype)
 
   /* Set timeout to 0.1 second.  Hopefully not noticeable.
      Maybe it should be configurable.  */
-  EMACS_SET_SECS_USECS (tmo, 0, 100000);
-  EMACS_GET_TIME (tmo_at);
-  EMACS_ADD_TIME (tmo_at, tmo_at, tmo);
+  tmo = make_emacs_time (0, 100 * 1000 * 1000);
+  tmo_at = add_emacs_time (current_emacs_time (), tmo);
 
   while (pending_event_wait.eventtype)
     {
@@ -8826,11 +8820,11 @@ x_wait_for_event (struct frame *f, int eventtype)
       FD_ZERO (&fds);
       FD_SET (fd, &fds);
 
-      EMACS_GET_TIME (time_now);
+      time_now = current_emacs_time ();
       if (EMACS_TIME_LT (tmo_at, time_now))
 	break;
 
-      EMACS_SUB_TIME (tmo, tmo_at, time_now);
+      tmo = sub_emacs_time (tmo_at, time_now);
       if (pselect (fd + 1, &fds, NULL, NULL, &tmo, NULL) == 0)
         break; /* Timeout */
     }
@@ -10098,7 +10092,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   /* We have definitely succeeded.  Record the new connection.  */
 
-  dpyinfo = xzalloc (sizeof (struct x_display_info));
+  dpyinfo = xzalloc (sizeof *dpyinfo);
   hlinfo = &dpyinfo->mouse_highlight;
 
   terminal = x_create_terminal (dpyinfo);
@@ -10116,7 +10110,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       terminal->kboard = share->terminal->kboard;
     else
       {
-	terminal->kboard = xmalloc (sizeof (KBOARD));
+	terminal->kboard = xmalloc (sizeof *terminal->kboard);
 	init_kboard (terminal->kboard);
 	KVAR (terminal->kboard, Vwindow_system) = Qx;
 
@@ -10370,8 +10364,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     const int atom_count = sizeof (atom_refs) / sizeof (atom_refs[0]);
     /* 1 for _XSETTINGS_SN  */
     const int total_atom_count = 1 + atom_count;
-    Atom *atoms_return = xmalloc (sizeof (Atom) * total_atom_count);
-    char **atom_names = xmalloc (sizeof (char *) * total_atom_count);
+    Atom *atoms_return = xmalloc (total_atom_count * sizeof *atoms_return);
+    char **atom_names = xmalloc (total_atom_count * sizeof *atom_names);
     static char const xsettings_fmt[] = "_XSETTINGS_S%d";
     char xsettings_atom_name[sizeof xsettings_fmt - 2
 			     + INT_STRLEN_BOUND (int)];
@@ -10399,7 +10393,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   dpyinfo->x_dnd_atoms_size = 8;
   dpyinfo->x_dnd_atoms_length = 0;
-  dpyinfo->x_dnd_atoms = xmalloc (sizeof (*dpyinfo->x_dnd_atoms)
+  dpyinfo->x_dnd_atoms = xmalloc (sizeof *dpyinfo->x_dnd_atoms
                                   * dpyinfo->x_dnd_atoms_size);
 
   dpyinfo->net_supported_atoms = NULL;
@@ -10603,9 +10597,7 @@ x_activate_timeout_atimer (void)
   BLOCK_INPUT;
   if (!x_timeout_atimer_activated_flag)
     {
-      EMACS_TIME interval;
-
-      EMACS_SET_SECS_USECS (interval, 0, 100000);
+      EMACS_TIME interval = make_emacs_time (0, 100 * 1000 * 1000);
       start_atimer (ATIMER_RELATIVE, interval, x_process_timeouts, 0);
       x_timeout_atimer_activated_flag = 1;
     }
@@ -10846,7 +10838,7 @@ syms_of_xterm (void)
   last_mouse_press_frame = Qnil;
 
 #ifdef USE_GTK
-  xg_default_icon_file = make_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");
+  xg_default_icon_file = build_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");
   staticpro (&xg_default_icon_file);
 
   DEFSYM (Qx_gtk_map_stock, "x-gtk-map-stock");

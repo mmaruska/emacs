@@ -36,6 +36,8 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <signal.h>
 #include <unistd.h>
 #include <setjmp.h>
+#include <c-strcase.h>
+#include <ftoastr.h>
 
 #include "lisp.h"
 #include "blockinput.h"
@@ -285,24 +287,52 @@ append2 (Lisp_Object list, Lisp_Object item)
 }
 
 
-void
-ns_init_paths (void)
-/* --------------------------------------------------------------------------
-   Used to allow emacs to find its resources under Emacs.app
-   Called from emacs.c at startup.
-   -------------------------------------------------------------------------- */
+const char *
+ns_etc_directory (void)
+/* If running as a self-contained app bundle, return as a string the
+   filename of the etc directory, if present; else nil.  */
 {
   NSBundle *bundle = [NSBundle mainBundle];
-  NSString *binDir = [bundle bundlePath], *resourceDir = [bundle resourcePath];
-  NSString *resourcePath, *resourcePaths;
-  NSRange range;
-  BOOL onWindows = NO; /* how do I determine this? */
-  NSString *pathSeparator = onWindows ? @";" : @":";
+  NSString *resourceDir = [bundle resourcePath];
+  NSString *resourcePath;
   NSFileManager *fileManager = [NSFileManager defaultManager];
   BOOL isDir;
-/*NSLog (@"ns_init_paths: '%@'\n%@\n", [[NSBundle mainBundle] bundlePath], [[NSBundle mainBundle] resourcePath]); */
 
-  /* get bindir from base */
+  resourcePath = [resourceDir stringByAppendingPathComponent: @"etc"];
+  if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
+    {
+      if (isDir) return [resourcePath UTF8String];
+    }
+  return NULL;
+}
+
+
+const char *
+ns_exec_path (void)
+/* If running as a self-contained app bundle, return as a path string
+   the filenames of the libexec and bin directories, ie libexec:bin.
+   Otherwise, return nil.
+   Normally, Emacs does not add its own bin/ directory to the PATH.
+   However, a self-contained NS build has a different layout, with
+   bin/ and libexec/ subdirectories in the directory that contains
+   Emacs.app itself.
+   We put libexec first, because init_callproc_1 uses the first
+   element to initialize exec-directory.  An alternative would be
+   for init_callproc to check for invocation-directory/libexec.
+*/
+{
+  NSBundle *bundle = [NSBundle mainBundle];
+  NSString *resourceDir = [bundle resourcePath];
+  NSString *binDir = [bundle bundlePath];
+  NSString *resourcePath, *resourcePaths;
+  NSRange range;
+  BOOL onWindows = NO;       /* FIXME determine this somehow  */
+  NSString *pathSeparator = onWindows ? @";" : @":";
+  NSFileManager *fileManager = [NSFileManager defaultManager];
+  NSArray *paths;
+  NSEnumerator *pathEnum;
+  BOOL isDir;
+
   range = [resourceDir rangeOfString: @"Contents"];
   if (range.location != NSNotFound)
     {
@@ -312,74 +342,66 @@ ns_init_paths (void)
 #endif
     }
 
-  /* the following based on Andrew Choi's init_mac_osx_environment () */
-  if (!getenv ("EMACSLOADPATH"))
+  paths = [binDir stringsByAppendingPaths:
+                [NSArray arrayWithObjects: @"libexec", @"bin", nil]];
+  pathEnum = [paths objectEnumerator];
+  resourcePaths = @"";
+
+  while (resourcePath = [pathEnum nextObject])
     {
-      NSArray *paths = [resourceDir stringsByAppendingPaths:
-                                  [NSArray arrayWithObjects:
+      if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
+        if (isDir)
+          {
+            if ([resourcePaths length] > 0)
+              resourcePaths
+                = [resourcePaths stringByAppendingString: pathSeparator];
+            resourcePaths
+              = [resourcePaths stringByAppendingString: resourcePath];
+          }
+    }
+  if ([resourcePaths length] > 0) return [resourcePaths UTF8String];
+
+  return NULL;
+}
+
+
+const char *
+ns_load_path (void)
+/* If running as a self-contained app bundle, return as a path string
+   the filenames of the site-lisp, lisp and leim directories.
+   Ie, site-lisp:lisp:leim.  Otherwise, return nil.  */
+{
+  NSBundle *bundle = [NSBundle mainBundle];
+  NSString *resourceDir = [bundle resourcePath];
+  NSString *resourcePath, *resourcePaths;
+  BOOL onWindows = NO;          /* FIXME determine this somehow */
+  NSString *pathSeparator = onWindows ? @";" : @":";
+  NSFileManager *fileManager = [NSFileManager defaultManager];
+  BOOL isDir;
+  NSArray *paths = [resourceDir stringsByAppendingPaths:
+                              [NSArray arrayWithObjects:
                                          @"site-lisp", @"lisp", @"leim", nil]];
-      NSEnumerator *pathEnum = [paths objectEnumerator];
-      resourcePaths = @"";
-      /* Hack to skip site-lisp.  */
-      if (no_site_lisp) resourcePath = [pathEnum nextObject];
-      while (resourcePath = [pathEnum nextObject])
-        {
-          if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
-            if (isDir)
-              {
-                if ([resourcePaths length] > 0)
-                  resourcePaths
-		    = [resourcePaths stringByAppendingString: pathSeparator];
-                resourcePaths
-		  = [resourcePaths stringByAppendingString: resourcePath];
-              }
-        }
-      if ([resourcePaths length] > 0)
-        setenv ("EMACSLOADPATH", [resourcePaths UTF8String], 1);
-/*NSLog (@"loadPath: '%@'\n", resourcePaths); */
-    }
+  NSEnumerator *pathEnum = [paths objectEnumerator];
+  resourcePaths = @"";
 
-  /* Normally, Emacs does not add its own bin/ directory to the PATH.
-     However, a self-contained NS build has a different layout, with
-     bin/ and libexec/ subdirectories in the directory that contains
-     Emacs.app itself.
-     We put libexec first, because init_callproc_1 uses the first
-     element to initialize exec-directory.  An alternative would be
-     for init_callproc to check for invocation-directory/libexec.  */
-  if (!getenv ("EMACSPATH"))
-    {
-      NSArray *paths = [binDir stringsByAppendingPaths:
-                                  [NSArray arrayWithObjects: @"libexec",
-                                                             @"bin", nil]];
-      NSEnumerator *pathEnum = [paths objectEnumerator];
-      resourcePaths = @"";
-      while (resourcePath = [pathEnum nextObject])
-        {
-          if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
-            if (isDir)
-              {
-                if ([resourcePaths length] > 0)
-                  resourcePaths
-		    = [resourcePaths stringByAppendingString: pathSeparator];
-                resourcePaths
-		  = [resourcePaths stringByAppendingString: resourcePath];
-              }
-        }
-      if ([resourcePaths length] > 0)
-        setenv ("EMACSPATH", [resourcePaths UTF8String], 1);
-    }
+  /* Hack to skip site-lisp.  */
+  if (no_site_lisp) resourcePath = [pathEnum nextObject];
 
-  resourcePath = [resourceDir stringByAppendingPathComponent: @"etc"];
-  if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
+  while (resourcePath = [pathEnum nextObject])
     {
-      if (isDir)
-        {
-          if (!getenv ("EMACSDATA"))
-            setenv ("EMACSDATA", [resourcePath UTF8String], 1);
-          if (!getenv ("EMACSDOC"))
-            setenv ("EMACSDOC", [resourcePath UTF8String], 1);
-        }
+      if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
+        if (isDir)
+          {
+            if ([resourcePaths length] > 0)
+              resourcePaths
+                = [resourcePaths stringByAppendingString: pathSeparator];
+            resourcePaths
+              = [resourcePaths stringByAppendingString: resourcePath];
+          }
     }
+  if ([resourcePaths length] > 0) return [resourcePaths UTF8String];
+
+  return NULL;
 }
 
 static void
@@ -388,21 +410,16 @@ ns_timeout (int usecs)
      Blocking timer utility used by ns_ring_bell
    -------------------------------------------------------------------------- */
 {
-  EMACS_TIME wakeup, delay;
-
-  EMACS_GET_TIME (wakeup);
-  EMACS_SET_SECS_USECS (delay, 0, usecs);
-  EMACS_ADD_TIME (wakeup, wakeup, delay);
+  EMACS_TIME wakeup = add_emacs_time (current_emacs_time (),
+				      make_emacs_time (0, usecs * 1000));
 
   /* Keep waiting until past the time wakeup.  */
   while (1)
     {
-      EMACS_TIME timeout;
-
-      EMACS_GET_TIME (timeout);
-      if (EMACS_TIME_LE (wakeup, timeout))
+      EMACS_TIME now = current_emacs_time ();
+      if (EMACS_TIME_LE (wakeup, now))
 	break;
-      EMACS_SUB_TIME (timeout, wakeup, timeout);
+      timeout = sub_emacs_time (wakeup, now);
 
       /* Try to wait that long--but we might wake up sooner.  */
       pselect (0, NULL, NULL, NULL, &timeout, NULL);
@@ -1323,8 +1340,7 @@ ns_index_color (NSColor *color, struct frame *f)
     {
       color_table->size = NS_COLOR_CAPACITY;
       color_table->avail = 1; /* skip idx=0 as marker */
-      color_table->colors
-	= (NSColor **)xmalloc (color_table->size * sizeof (NSColor *));
+      color_table->colors = xmalloc (color_table->size * sizeof (NSColor *));
       color_table->colors[0] = nil;
       color_table->empty_indices = [[NSMutableSet alloc] init];
     }
@@ -1422,21 +1438,16 @@ ns_get_color (const char *name, NSColor **col)
       [scanner scanFloat: &b];
     }
   else if (!strncmp(name, "rgb:", 4))  /* A newer X11 format -- rgb:r/g/b */
-    {
-      strncpy (hex, name + 4, 19);
-      hex[19] = '\0';
-      scaling = (strlen(hex) - 2) / 3;
-    }
+    scaling = (snprintf (hex, sizeof hex, "%s", name + 4) - 2) / 3;
   else if (name[0] == '#')        /* An old X11 format; convert to newer */
     {
       int len = (strlen(name) - 1);
       int start = (len % 3 == 0) ? 1 : len / 4 + 1;
       int i;
       scaling = strlen(name+start) / 3;
-      for (i=0; i<3; i++) {
-        strncpy(hex + i * (scaling + 1), name + start + i * scaling, scaling);
-        hex[(i+1) * (scaling + 1) - 1] = '/';
-      }
+      for (i = 0; i < 3; i++)
+	snprintf (hex + i * (scaling + 1), "%.*s/", scaling,
+		  name + start + i * scaling);
       hex[3 * (scaling + 1) - 1] = '\0';
     }
 
@@ -2245,17 +2256,9 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   /* grow bimgs if needed */
   if (nBimgs < max_used_fringe_bitmap)
     {
-      EmacsImage **newBimgs
-	= xmalloc (max_used_fringe_bitmap * sizeof (EmacsImage *));
-      memset (newBimgs, 0, max_used_fringe_bitmap * sizeof (EmacsImage *));
-
-      if (nBimgs)
-        {
-          memcpy (newBimgs, bimgs, nBimgs * sizeof (EmacsImage *));
-          xfree (bimgs);
-        }
-
-      bimgs = newBimgs;
+      bimgs = xrealloc (bimgs, max_used_fringe_bitmap * sizeof *bimgs);
+      memset (bimgs + nBimgs, 0,
+	      (max_used_fringe_bitmap - nBimgs) * sizeof *bimgs);
       nBimgs = max_used_fringe_bitmap;
     }
 
@@ -3857,9 +3860,9 @@ ns_default (const char *parameter, Lisp_Object *result,
     {
       double f;
       char *pos;
-      if (strcasecmp (value, "YES") == 0)
+      if (c_strcasecmp (value, "YES") == 0)
         *result = yesval;
-      else if (strcasecmp (value, "NO") == 0)
+      else if (c_strcasecmp (value, "NO") == 0)
         *result = noval;
       else if (is_float && (f = strtod (value, &pos), pos != value))
         *result = make_float (f);
@@ -3889,8 +3892,7 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
                                                  NSColorSpaceFromDepth (depth)];
     dpyinfo->n_planes = NSBitsPerPixelFromDepth (depth);
     dpyinfo->image_cache = make_image_cache ();
-    dpyinfo->color_table
-      = (struct ns_color_table *)xmalloc (sizeof (struct ns_color_table));
+    dpyinfo->color_table = xmalloc (sizeof *dpyinfo->color_table);
     dpyinfo->color_table->colors = NULL;
     dpyinfo->root_window = 42; /* a placeholder.. */
 
@@ -4071,13 +4073,12 @@ ns_term_init (Lisp_Object display_name)
                                          selector: @selector (logNotification:)
                                              name: nil object: nil]; */
 
-  dpyinfo = (struct ns_display_info *)xmalloc (sizeof (struct ns_display_info));
-  memset (dpyinfo, 0, sizeof (struct ns_display_info));
+  dpyinfo = xzalloc (sizeof *dpyinfo);
 
   ns_initialize_display_info (dpyinfo);
   terminal = ns_create_terminal (dpyinfo);
 
-  terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+  terminal->kboard = xmalloc (sizeof *terminal->kboard);
   init_kboard (terminal->kboard);
   KVAR (terminal->kboard, Vwindow_system) = Qns;
   terminal->kboard->next_kboard = all_kboards;
@@ -4097,10 +4098,7 @@ ns_term_init (Lisp_Object display_name)
                                 ns_display_name_list);
   dpyinfo->name_list_element = XCAR (ns_display_name_list);
 
-  /* Set the name of the terminal. */
-  terminal->name = (char *) xmalloc (SBYTES (display_name) + 1);
-  strncpy (terminal->name, SDATA (display_name), SBYTES (display_name));
-  terminal->name[SBYTES (display_name)] = 0;
+  terminal->name = xstrdup (SSDATA (display_name));
 
   UNBLOCK_INPUT;
 
@@ -4157,14 +4155,14 @@ ns_term_init (Lisp_Object display_name)
   }
 
   {
-    char c[128];
 #ifdef NS_IMPL_GNUSTEP
-    strncpy (c, gnustep_base_version, sizeof (c));
+    Vwindow_system_version = build_string (gnustep_base_version);
 #else
     /*PSnextrelease (128, c); */
-    snprintf (c, sizeof (c), "%g", NSAppKitVersionNumber);
+    char c[DBL_BUFSIZE_BOUND];
+    int len = dtoastr (c, sizeof c, 0, 0, NSAppKitVersionNumber);
+    Vwindow_system_version = make_unibyte_string (c, len);
 #endif
-    Vwindow_system_version = build_string (c);
   }
 
   delete_keyboard_wait_descriptor (0);
@@ -5355,8 +5353,7 @@ ns_term_shutdown (int sig)
             char *pos = strstr (t, "  —  ");
             if (pos)
               *pos = '\0';
-            old_title = (char *) xmalloc (strlen (t) + 1);
-            strcpy (old_title, t);
+            old_title = xstrdup (t);
           }
         size_title = xmalloc (strlen (old_title) + 40);
 	esprintf (size_title, "%s  —  (%d x %d)", old_title, cols, rows);
@@ -6076,7 +6073,7 @@ ns_term_shutdown (int sig)
 
   if (nr_screens == 1)
     return [super constrainFrameRect:frameRect toScreen:screen];
-  
+
   if (f->output_data.ns->dont_constrain
       || ns_menu_bar_should_be_hidden ())
     return frameRect;

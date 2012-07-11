@@ -458,10 +458,7 @@ copy_overlays (struct buffer *b, struct Lisp_Overlay *list)
 static void
 clone_per_buffer_values (struct buffer *from, struct buffer *to)
 {
-  Lisp_Object to_buffer;
   int offset;
-
-  XSETBUFFER (to_buffer, to);
 
   for_each_per_buffer_object_at (offset)
     {
@@ -475,9 +472,9 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
       if (MARKERP (obj) && XMARKER (obj)->buffer == from)
 	{
 	  struct Lisp_Marker *m = XMARKER (obj);
-	  obj = Fmake_marker ();
+
+	  obj = build_marker (to, m->charpos, m->bytepos);
 	  XMARKER (obj)->insertion_type = m->insertion_type;
-	  set_marker_both (obj, to_buffer, m->charpos, m->bytepos);
 	}
 
       PER_BUFFER_VALUE (to, offset) = obj;
@@ -615,32 +612,24 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
       eassert (NILP (BVAR (b->base_buffer, begv_marker)));
       eassert (NILP (BVAR (b->base_buffer, zv_marker)));
 
-      BVAR (b->base_buffer, pt_marker) = Fmake_marker ();
-      set_marker_both (BVAR (b->base_buffer, pt_marker), base_buffer,
-		       b->base_buffer->pt,
-		       b->base_buffer->pt_byte);
+      BVAR (b->base_buffer, pt_marker) 
+	= build_marker (b->base_buffer, b->base_buffer->pt, b->base_buffer->pt_byte);
 
-      BVAR (b->base_buffer, begv_marker) = Fmake_marker ();
-      set_marker_both (BVAR (b->base_buffer, begv_marker), base_buffer,
-		       b->base_buffer->begv,
-		       b->base_buffer->begv_byte);
+      BVAR (b->base_buffer, begv_marker)
+	= build_marker (b->base_buffer, b->base_buffer->begv, b->base_buffer->begv_byte);
 
-      BVAR (b->base_buffer, zv_marker) = Fmake_marker ();
-      set_marker_both (BVAR (b->base_buffer, zv_marker), base_buffer,
-		       b->base_buffer->zv,
-		       b->base_buffer->zv_byte);
+      BVAR (b->base_buffer, zv_marker)
+	= build_marker (b->base_buffer, b->base_buffer->zv, b->base_buffer->zv_byte);
+
       XMARKER (BVAR (b->base_buffer, zv_marker))->insertion_type = 1;
     }
 
   if (NILP (clone))
     {
       /* Give the indirect buffer markers for its narrowing.  */
-      BVAR (b, pt_marker) = Fmake_marker ();
-      set_marker_both (BVAR (b, pt_marker), buf, b->pt, b->pt_byte);
-      BVAR (b, begv_marker) = Fmake_marker ();
-      set_marker_both (BVAR (b, begv_marker), buf, b->begv, b->begv_byte);
-      BVAR (b, zv_marker) = Fmake_marker ();
-      set_marker_both (BVAR (b, zv_marker), buf, b->zv, b->zv_byte);
+      BVAR (b, pt_marker) = build_marker (b, b->pt, b->pt_byte);
+      BVAR (b, begv_marker) = build_marker (b, b->begv, b->begv_byte);
+      BVAR (b, zv_marker) = build_marker (b, b->zv, b->zv_byte);
       XMARKER (BVAR (b, zv_marker))->insertion_type = 1;
     }
   else
@@ -667,27 +656,40 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   return buf;
 }
 
+/* Mark OV as no longer associated with B.  */
+
+static void
+drop_overlay (struct buffer *b, struct Lisp_Overlay *ov)
+{
+  eassert (b == XBUFFER (Fmarker_buffer (ov->start)));
+  modify_overlay (b, marker_position (ov->start), marker_position (ov->end));
+  Fset_marker (ov->start, Qnil, Qnil);
+  Fset_marker (ov->end, Qnil, Qnil);
+
+}
+
+/* Delete all overlays of B and reset it's overlay lists.  */
+
 void
 delete_all_overlays (struct buffer *b)
 {
-  Lisp_Object overlay;
+  struct Lisp_Overlay *ov, *next;
 
-  /* `reset_buffer' blindly sets the list of overlays to NULL, so we
-     have to empty the list, otherwise we end up with overlays that
-     think they belong to this buffer while the buffer doesn't know about
-     them any more.  */
-  while (b->overlays_before)
+  for (ov = b->overlays_before; ov; ov = next)
     {
-      XSETMISC (overlay, b->overlays_before);
-      Fdelete_overlay (overlay);
+      drop_overlay (b, ov);
+      next = ov->next;
+      ov->next = NULL;
     }
-  while (b->overlays_after)
+
+  for (ov = b->overlays_after; ov; ov = next)
     {
-      XSETMISC (overlay, b->overlays_after);
-      Fdelete_overlay (overlay);
+      drop_overlay (b, ov);
+      next = ov->next;
+      ov->next = NULL;
     }
-  eassert (b->overlays_before == NULL);
-  eassert (b->overlays_after == NULL);
+
+  b->overlays_before = b->overlays_after = NULL;
 }
 
 /* Reinitialize everything about a buffer except its name and contents
@@ -703,7 +705,7 @@ reset_buffer (register struct buffer *b)
   BVAR (b, filename) = Qnil;
   BVAR (b, file_truename) = Qnil;
   BVAR (b, directory) = (current_buffer) ? BVAR (current_buffer, directory) : Qnil;
-  EMACS_SET_SECS_NSECS (b->modtime, 0, UNKNOWN_MODTIME_NSECS);
+  b->modtime = make_emacs_time (0, UNKNOWN_MODTIME_NSECS);
   b->modtime_size = -1;
   XSETFASTINT (BVAR (b, save_length), 0);
   b->last_window_start = 1;
@@ -859,8 +861,9 @@ is first appended to NAME, to speed up finding a non-existent buffer.  */)
   if (!strncmp (SSDATA (name), " ", 1)) /* see bug#1229 */
     {
       /* Note fileio.c:make_temp_name does random differently.  */
-      sprintf (number, "-%"pI"d", XFASTINT (Frandom (make_number (999999))));
-      tem2 = concat2 (name, build_string (number));
+      tem2 = concat2 (name, make_formatted_string
+		      (number, "-%"pI"d", 
+		       XFASTINT (Frandom (make_number (999999)))));
       tem = Fget_buffer (tem2);
       if (NILP (tem))
 	return tem2;
@@ -871,8 +874,8 @@ is first appended to NAME, to speed up finding a non-existent buffer.  */)
   count = 1;
   while (1)
     {
-      sprintf (number, "<%"pD"d>", ++count);
-      gentemp = concat2 (tem2, build_string (number));
+      gentemp = concat2 (tem2, make_formatted_string
+			 (number, "<%"pD"d>", ++count));
       tem = Fstring_equal (gentemp, ignore);
       if (!NILP (tem))
 	return gentemp;
@@ -2793,11 +2796,11 @@ mouse_face_overlay_overlaps (Lisp_Object overlay)
   Lisp_Object *v, tem;
 
   size = 10;
-  v = (Lisp_Object *) alloca (size * sizeof *v);
+  v = alloca (size * sizeof *v);
   n = overlays_in (start, end, 0, &v, &size, NULL, NULL);
   if (n > size)
     {
-      v = (Lisp_Object *) alloca (n * sizeof *v);
+      v = alloca (n * sizeof *v);
       overlays_in (start, end, 0, &v, &n, NULL, NULL);
     }
 
@@ -2885,8 +2888,7 @@ ptrdiff_t
 sort_overlays (Lisp_Object *overlay_vec, ptrdiff_t noverlays, struct window *w)
 {
   ptrdiff_t i, j;
-  struct sortvec *sortvec;
-  sortvec = (struct sortvec *) alloca (noverlays * sizeof (struct sortvec));
+  struct sortvec *sortvec = alloca (noverlays * sizeof *sortvec);
 
   /* Put the valid and relevant overlays into sortvec.  */
 
@@ -3671,18 +3673,17 @@ modify_overlay (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
   ++BUF_OVERLAY_MODIFF (buf);
 }
 
-
+/* Remove OVERLAY from LIST.  */
+
 static struct Lisp_Overlay *
 unchain_overlay (struct Lisp_Overlay *list, struct Lisp_Overlay *overlay)
 {
-  struct Lisp_Overlay *tmp, *prev;
-  for (tmp = list, prev = NULL; tmp; prev = tmp, tmp = tmp->next)
-    if (tmp == overlay)
+  register struct Lisp_Overlay *tail, **prev = &list;
+
+  for (tail = list; tail; prev = &tail->next, tail = *prev)
+    if (tail == overlay)
       {
-	if (prev)
-	  prev->next = tmp->next;
-	else
-	  list = tmp->next;
+	*prev = overlay->next;
 	overlay->next = NULL;
 	break;
       }
@@ -3821,11 +3822,7 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
     = unchain_overlay (b->overlays_after, XOVERLAY (overlay));
   eassert (XOVERLAY (overlay)->next == NULL);
 
-  modify_overlay (b,
-		  marker_position (OVERLAY_START (overlay)),
-		  marker_position (OVERLAY_END   (overlay)));
-  Fset_marker (OVERLAY_START (overlay), Qnil, Qnil);
-  Fset_marker (OVERLAY_END   (overlay), Qnil, Qnil);
+  drop_overlay (b, XOVERLAY (overlay));
 
   /* When deleting an overlay with before or after strings, turn off
      display optimizations for the affected buffer, on the basis that
@@ -3893,7 +3890,7 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
 
   len = 10;
   /* We can't use alloca here because overlays_at can call xrealloc.  */
-  overlay_vec = xmalloc (len * sizeof (Lisp_Object));
+  overlay_vec = xmalloc (len * sizeof *overlay_vec);
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.  */
@@ -3924,7 +3921,7 @@ end of the buffer.  */)
   CHECK_NUMBER_COERCE_MARKER (end);
 
   len = 10;
-  overlay_vec = xmalloc (len * sizeof (Lisp_Object));
+  overlay_vec = xmalloc (len * sizeof *overlay_vec);
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.  */
@@ -3952,7 +3949,7 @@ the value is (point-max).  */)
   CHECK_NUMBER_COERCE_MARKER (pos);
 
   len = 10;
-  overlay_vec = xmalloc (len * sizeof (Lisp_Object));
+  overlay_vec = xmalloc (len * sizeof *overlay_vec);
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.
@@ -3996,7 +3993,7 @@ the value is (point-min).  */)
     return pos;
 
   len = 10;
-  overlay_vec = xmalloc (len * sizeof (Lisp_Object));
+  overlay_vec = xmalloc (len * sizeof *overlay_vec);
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.
@@ -4251,7 +4248,7 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, int after,
        First copy the vector contents, in case some of these hooks
        do subsequent modification of the buffer.  */
     ptrdiff_t size = last_overlay_modification_hooks_used;
-    Lisp_Object *copy = (Lisp_Object *) alloca (size * sizeof (Lisp_Object));
+    Lisp_Object *copy = alloca (size * sizeof *copy);
     ptrdiff_t i;
 
     memcpy (copy, XVECTOR (last_overlay_modification_hooks)->contents,
@@ -4873,7 +4870,7 @@ init_buffer_once (void)
   /* If you add, remove, or reorder Lisp_Objects in a struct buffer, make
      sure that this is still correct.  Otherwise, mark_vectorlike may not
      trace all Lisp_Objects in buffer_defaults and buffer_local_symbols.  */
-  const int pvecsize 
+  const int pvecsize
     = (offsetof (struct buffer, own_text) - sizeof (struct vectorlike_header))
     / sizeof (Lisp_Object);
 
@@ -4901,7 +4898,7 @@ init_buffer_once (void)
   /* Must do these before making the first buffer! */
 
   /* real setup is done in bindings.el */
-  BVAR (&buffer_defaults, mode_line_format) = make_pure_c_string ("%-");
+  BVAR (&buffer_defaults, mode_line_format) = build_pure_c_string ("%-");
   BVAR (&buffer_defaults, header_line_format) = Qnil;
   BVAR (&buffer_defaults, abbrev_mode) = Qnil;
   BVAR (&buffer_defaults, overwrite_mode) = Qnil;
@@ -5031,7 +5028,7 @@ init_buffer_once (void)
   current_buffer = 0;
   all_buffers = 0;
 
-  QSFundamental = make_pure_c_string ("Fundamental");
+  QSFundamental = build_pure_c_string ("Fundamental");
 
   Qfundamental_mode = intern_c_string ("fundamental-mode");
   BVAR (&buffer_defaults, major_mode) = Qfundamental_mode;
@@ -5046,10 +5043,10 @@ init_buffer_once (void)
   Fput (Qkill_buffer_hook, Qpermanent_local, Qt);
 
   /* super-magic invisible buffer */
-  Vprin1_to_string_buffer = Fget_buffer_create (make_pure_c_string (" prin1"));
+  Vprin1_to_string_buffer = Fget_buffer_create (build_pure_c_string (" prin1"));
   Vbuffer_alist = Qnil;
 
-  Fset_buffer (Fget_buffer_create (make_pure_c_string ("*scratch*")));
+  Fset_buffer (Fget_buffer_create (build_pure_c_string ("*scratch*")));
 
   inhibit_modification_hooks = 0;
 }
@@ -5089,14 +5086,15 @@ init_buffer (void)
   if (!(IS_DIRECTORY_SEP (pwd[len - 1])))
     {
       /* Grow buffer to add directory separator and '\0'.  */
-      pwd = (char *) realloc (pwd, len + 2);
+      pwd = realloc (pwd, len + 2);
       if (!pwd)
 	fatal ("`get_current_dir_name' failed: %s\n", strerror (errno));
       pwd[len] = DIRECTORY_SEP;
       pwd[len + 1] = '\0';
+      len++;
     }
 
-  BVAR (current_buffer, directory) = make_unibyte_string (pwd, strlen (pwd));
+  BVAR (current_buffer, directory) = make_unibyte_string (pwd, len);
   if (! NILP (BVAR (&buffer_defaults, enable_multibyte_characters)))
     /* At this moment, we still don't know how to decode the
        directory name.  So, we keep the bytes in multibyte form so
@@ -5203,7 +5201,7 @@ syms_of_buffer (void)
   Fput (Qprotected_field, Qerror_conditions,
 	pure_cons (Qprotected_field, pure_cons (Qerror, Qnil)));
   Fput (Qprotected_field, Qerror_message,
-	make_pure_c_string ("Attempt to modify a protected field"));
+	build_pure_c_string ("Attempt to modify a protected field"));
 
   DEFVAR_BUFFER_DEFAULTS ("default-mode-line-format",
 			  mode_line_format,

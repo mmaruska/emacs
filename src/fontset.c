@@ -1082,9 +1082,9 @@ fontset_pattern_regexp (Lisp_Object pattern)
 	 we convert "*" to "[^-]*" which is much faster in regular
 	 expression matching.  */
       if (ndashes < 14)
-	p1 = regex = (unsigned char *) alloca (SBYTES (pattern) + 2 * nstars + 2 * nescs + 1);
+	p1 = regex = alloca (SBYTES (pattern) + 2 * nstars + 2 * nescs + 1);
       else
-	p1 = regex = (unsigned char *) alloca (SBYTES (pattern) + 5 * nstars + 2 * nescs + 1);
+	p1 = regex = alloca (SBYTES (pattern) + 5 * nstars + 2 * nescs + 1);
 
       *p1++ = '^';
       for (p0 = SDATA (pattern); *p0; p0++)
@@ -1646,7 +1646,7 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
       char xlfd[256];
       int len;
 
-      if (font_parse_xlfd (SSDATA (name), font_spec) < 0)
+      if (font_parse_xlfd (SSDATA (name), SBYTES (name), font_spec) < 0)
 	error ("Fontset name must be in XLFD format");
       short_name = AREF (font_spec, FONT_REGISTRY_INDEX);
       if (strncmp (SSDATA (SYMBOL_NAME (short_name)), "fontset-", 8)
@@ -1668,11 +1668,11 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
       Fset_char_table_range (fontset, Qt, Qnil);
     }
 
-  for (; ! NILP (fontlist); fontlist = Fcdr (fontlist))
+  for (; CONSP (fontlist); fontlist = XCDR (fontlist))
     {
       Lisp_Object elt, script;
 
-      elt = Fcar (fontlist);
+      elt = XCAR (fontlist);
       script = Fcar (elt);
       elt = Fcdr (elt);
       if (CONSP (elt) && (NILP (XCDR (elt)) || CONSP (XCDR (elt))))
@@ -1893,8 +1893,7 @@ format is the same as above.  */)
 
   /* Recode fontsets realized on FRAME from the base fontset FONTSET
      in the table `realized'.  */
-  realized[0] = (Lisp_Object *) alloca (sizeof (Lisp_Object)
-					* ASIZE (Vfontset_table));
+  realized[0] = alloca (sizeof (Lisp_Object) * ASIZE (Vfontset_table));
   for (i = j = 0; i < ASIZE (Vfontset_table); i++)
     {
       elt = FONTSET_FROM_ID (i);
@@ -1905,8 +1904,7 @@ format is the same as above.  */)
     }
   realized[0][j] = Qnil;
 
-  realized[1] = (Lisp_Object *) alloca (sizeof (Lisp_Object)
-					* ASIZE (Vfontset_table));
+  realized[1] = alloca (sizeof (Lisp_Object) * ASIZE (Vfontset_table));
   for (i = j = 0; ! NILP (realized[0][i]); i++)
     {
       elt = FONTSET_DEFAULT (realized[0][i]);
@@ -2166,7 +2164,7 @@ syms_of_fontset (void)
   staticpro (&Vdefault_fontset);
   FONTSET_ID (Vdefault_fontset) = make_number (0);
   FONTSET_NAME (Vdefault_fontset)
-    = make_pure_c_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default");
+    = build_pure_c_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default");
   ASET (Vfontset_table, 0, Vdefault_fontset);
   next_fontset_id = 1;
 
@@ -2212,7 +2210,7 @@ alternate fontnames (if any) are tried instead.  */);
   DEFVAR_LISP ("fontset-alias-alist", Vfontset_alias_alist,
 	       doc: /* Alist of fontset names vs the aliases.  */);
   Vfontset_alias_alist = Fcons (Fcons (FONTSET_NAME (Vdefault_fontset),
-				       make_pure_c_string ("fontset-default")),
+				       build_pure_c_string ("fontset-default")),
 				Qnil);
 
   DEFVAR_LISP ("vertical-centering-font-regexp",

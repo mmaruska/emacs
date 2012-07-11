@@ -33,6 +33,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <signal.h>
 #include <math.h>
 #include <setjmp.h>
+#include <c-strcase.h>
 
 #include "lisp.h"
 #include "blockinput.h"
@@ -1203,8 +1204,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->terminal = dpyinfo->terminal;
 
   f->output_method = output_ns;
-  f->output_data.ns = (struct ns_output *)xmalloc (sizeof *(f->output_data.ns));
-  memset (f->output_data.ns, 0, sizeof *(f->output_data.ns));
+  f->output_data.ns = xzalloc (sizeof *f->output_data.ns);
 
   FRAME_FONTSET (f) = -1;
 
@@ -2227,8 +2227,8 @@ x_get_string_resource (XrmDatabase rdb, char *name, char *class)
 
   res = ns_get_defaults_value (toCheck);
   return !res ? NULL :
-      (!strncasecmp (res, "YES", 3) ? "true" :
-          (!strncasecmp (res, "NO", 2) ? "false" : res));
+      (!c_strncasecmp (res, "YES", 3) ? "true" :
+          (!c_strncasecmp (res, "NO", 2) ? "false" : res));
 }
 
 

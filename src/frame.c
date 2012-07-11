@@ -477,7 +477,7 @@ make_initial_frame (void)
   Vframe_list = Fcons (frame, Vframe_list);
 
   tty_frame_count = 1;
-  f->name = make_pure_c_string ("F1");
+  f->name = build_pure_c_string ("F1");
 
   f->visible = 1;
   f->async_visible = 1;
@@ -518,9 +518,7 @@ make_terminal_frame (struct terminal *terminal)
   XSETFRAME (frame, f);
   Vframe_list = Fcons (frame, Vframe_list);
 
-  tty_frame_count++;
-  sprintf (name, "F%"pMd, tty_frame_count);
-  f->name = build_string (name);
+  f->name = make_formatted_string (name, "F%"pMd, ++tty_frame_count);
 
   f->visible = 1;		/* FRAME_SET_VISIBLE wd set frame_garbaged. */
   f->async_visible = 1;		/* Don't let visible be cleared later. */
@@ -647,8 +645,8 @@ affects all frames on the same terminal device.  */)
                        : NULL));
       if (!NILP (tty))
         {
-          name = (char *) alloca (SBYTES (tty) + 1);
-          strncpy (name, SSDATA (tty), SBYTES (tty));
+          name = alloca (SBYTES (tty) + 1);
+          memcpy (name, SSDATA (tty), SBYTES (tty));
           name[SBYTES (tty)] = 0;
         }
 
@@ -658,8 +656,8 @@ affects all frames on the same terminal device.  */)
                             : NULL));
       if (!NILP (tty_type))
         {
-          type = (char *) alloca (SBYTES (tty_type) + 1);
-          strncpy (type, SSDATA (tty_type), SBYTES (tty_type));
+          type = alloca (SBYTES (tty_type) + 1);
+          memcpy (type, SSDATA (tty_type), SBYTES (tty_type));
           type[SBYTES (tty_type)] = 0;
         }
 
@@ -1932,6 +1930,7 @@ See `redirect-frame-focus'.  */)
 
 /* Return the value of frame parameter PROP in frame FRAME.  */
 
+#ifdef HAVE_WINDOW_SYSTEM
 #if !HAVE_NS
 static
 #endif
@@ -1945,6 +1944,7 @@ get_frame_param (register struct frame *frame, Lisp_Object prop)
     return tem;
   return Fcdr (tem);
 }
+#endif
 
 /* Return the buffer-predicate of the selected frame.  */
 
@@ -2026,9 +2026,7 @@ set_term_frame_name (struct frame *f, Lisp_Object name)
 			    SBYTES (f->name)))
 	return;
 
-      tty_frame_count++;
-      sprintf (namebuf, "F%"pMd, tty_frame_count);
-      name = build_string (namebuf);
+      name = make_formatted_string (namebuf, "F%"pMd, ++tty_frame_count);
     }
   else
     {
@@ -2504,16 +2502,13 @@ or right side of FRAME.  If FRAME is omitted, the selected frame is
 used.  */)
   (Lisp_Object frame)
 {
-  struct frame *f;
-
   if (NILP (frame))
     frame = selected_frame;
   CHECK_FRAME (frame);
-  f = XFRAME (frame);
 
 #ifdef FRAME_TOOLBAR_WIDTH
-  if (FRAME_WINDOW_P (f))
-    return make_number (FRAME_TOOLBAR_WIDTH (f));
+  if (FRAME_WINDOW_P (XFRAME (frame)))
+    return make_number (FRAME_TOOLBAR_WIDTH (XFRAME (frame)));
 #endif
   return make_number (0);
 }
@@ -2759,11 +2754,11 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
   struct gcpro gcpro1, gcpro2;
 
   i = 0;
-  for (tail = alist; CONSP (tail); tail = Fcdr (tail))
+  for (tail = alist; CONSP (tail); tail = XCDR (tail))
     i++;
 
-  parms = (Lisp_Object *) alloca (i * sizeof (Lisp_Object));
-  values = (Lisp_Object *) alloca (i * sizeof (Lisp_Object));
+  parms = alloca (i * sizeof *parms);
+  values = alloca (i * sizeof *values);
 
   /* Extract parm names and values into those vectors.  */
 
@@ -3050,20 +3045,16 @@ x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
      actually a pointer.  Explicit casting avoids compiler
      warnings.  */
   w = (unsigned long) FRAME_X_WINDOW (f);
-  sprintf (buf, "%lu", w);
   store_in_alist (alistptr, Qwindow_id,
-		  build_string (buf));
+		  make_formatted_string (buf, "%lu", w));
 #ifdef HAVE_X_WINDOWS
 #ifdef USE_X_TOOLKIT
   /* Tooltip frame may not have this widget.  */
   if (FRAME_X_OUTPUT (f)->widget)
 #endif
-    {
-      w = (unsigned long) FRAME_OUTER_WINDOW (f);
-      sprintf (buf, "%lu", w);
-    }
+    w = (unsigned long) FRAME_OUTER_WINDOW (f);
   store_in_alist (alistptr, Qouter_window_id,
-		  build_string (buf));
+		  make_formatted_string (buf, "%lu", w));
 #endif
   store_in_alist (alistptr, Qicon_name, f->icon_name);
   FRAME_SAMPLE_VISIBILITY (f);
@@ -3158,8 +3149,11 @@ x_set_screen_gamma (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
 void
 x_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  Lisp_Object font_object, font_param = Qnil;
+  Lisp_Object font_object;
   int fontset = -1;
+#ifdef HAVE_X_WINDOWS
+  Lisp_Object font_param = arg;
+#endif
 
   /* Set the frame parameter back to the old value because we may
      fail to use ARG as the new parameter value.  */
@@ -3170,11 +3164,10 @@ x_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
      never fail.  */
   if (STRINGP (arg))
     {
-      font_param = arg;
       fontset = fs_query_fontset (arg, 0);
       if (fontset < 0)
 	{
-	  font_object = font_open_by_name (f, SSDATA (arg));
+	  font_object = font_open_by_name (f, SSDATA (arg), SBYTES (arg));
 	  if (NILP (font_object))
 	    error ("Font `%s' is not defined", SSDATA (arg));
 	  arg = AREF (font_object, FONT_NAME_INDEX);
@@ -3183,7 +3176,7 @@ x_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 	{
 	  Lisp_Object ascii_font = fontset_ascii (fontset);
 
-	  font_object = font_open_by_name (f, SSDATA (ascii_font));
+	  font_object = font_open_by_name (f, SSDATA (ascii_font), SBYTES (ascii_font));
 	  if (NILP (font_object))
 	    error ("Font `%s' is not defined", SDATA (arg));
 	  arg = AREF (font_object, FONT_NAME_INDEX);
@@ -3201,12 +3194,16 @@ x_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 	error ("Unknown fontset: %s", SDATA (XCAR (arg)));
       font_object = XCDR (arg);
       arg = AREF (font_object, FONT_NAME_INDEX);
+#ifdef HAVE_X_WINDOWS
       font_param = Ffont_get (font_object, QCname);
+#endif
     }
   else if (FONT_OBJECT_P (arg))
     {
       font_object = arg;
+#ifdef HAVE_X_WINDOWS
       font_param = Ffont_get (font_object, QCname);
+#endif
       /* This is to store the XLFD font name in the frame parameter for
 	 backward compatibility.  We should store the font-object
 	 itself in the future.  */
@@ -3624,17 +3621,17 @@ xrdb_get_resource (XrmDatabase rdb, Lisp_Object attribute, Lisp_Object class, Li
 
   /* Allocate space for the components, the dots which separate them,
      and the final '\0'.  Make them big enough for the worst case.  */
-  name_key = (char *) alloca (SBYTES (Vx_resource_name)
-			      + (STRINGP (component)
-				 ? SBYTES (component) : 0)
-			      + SBYTES (attribute)
-			      + 3);
+  name_key = alloca (SBYTES (Vx_resource_name)
+		     + (STRINGP (component)
+			? SBYTES (component) : 0)
+		     + SBYTES (attribute)
+		     + 3);
 
-  class_key = (char *) alloca (SBYTES (Vx_resource_class)
-			       + SBYTES (class)
-			       + (STRINGP (subclass)
-				  ? SBYTES (subclass) : 0)
-			       + 3);
+  class_key = alloca (SBYTES (Vx_resource_class)
+		      + SBYTES (class)
+		      + (STRINGP (subclass)
+			 ? SBYTES (subclass) : 0)
+		      + 3);
 
   /* Start with emacs.FRAMENAME for the name (the specific one)
      and with `Emacs' for the class key (the general one).  */
@@ -3710,8 +3707,7 @@ x_get_resource_string (const char *attribute, const char *class)
   /* Allocate space for the components, the dots which separate them,
      and the final '\0'.  */
   SAFE_ALLOCA (name_key, char *, invocation_namelen + strlen (attribute) + 2);
-  class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
-			       + strlen (class) + 2);
+  class_key = alloca ((sizeof (EMACS_CLASS) - 1) + strlen (class) + 2);
 
   esprintf (name_key, "%s.%s", SSDATA (Vinvocation_name), attribute);
   sprintf (class_key, "%s.%s", EMACS_CLASS, class);
@@ -3903,7 +3899,7 @@ On Nextstep, this just calls `ns-parse-geometry'.  */)
   (Lisp_Object string)
 {
 #ifdef HAVE_NS
-  call1 (Qns_parse_geometry, string);
+  return call1 (Qns_parse_geometry, string);
 #else
   int geometry, x, y;
   unsigned int width, height;

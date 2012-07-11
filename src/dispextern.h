@@ -46,6 +46,13 @@ typedef struct {
 #include "msdos.h"
 #endif
 
+#include <c-strcase.h>
+static inline int
+xstrcasecmp (char const *a, char const *b)
+{
+  return c_strcasecmp (a, b);
+}
+
 #ifdef HAVE_X_WINDOWS
 typedef struct x_display_info Display_Info;
 typedef XImage * XImagePtr;
@@ -3058,7 +3065,7 @@ extern ptrdiff_t compute_display_string_pos (struct text_pos *,
 extern ptrdiff_t compute_display_string_end (ptrdiff_t,
 					     struct bidi_string_data *);
 extern void produce_stretch_glyph (struct it *);
-
+extern void produce_special_glyphs (struct it *, enum display_element_type);
 
 #ifdef HAVE_WINDOW_SYSTEM
 
@@ -3198,11 +3205,6 @@ void unload_color (struct frame *, unsigned long);
 char *choose_face_font (struct frame *, Lisp_Object *, Lisp_Object,
                         int *);
 void prepare_face_for_display (struct frame *, struct face *);
-#ifdef HAVE_STRCASECMP
-#define xstrcasecmp(x,y) strcasecmp ((x), (y))
-#else
-int xstrcasecmp (const char *, const char *);
-#endif
 int lookup_named_face (struct frame *, Lisp_Object, int);
 int lookup_basic_face (struct frame *, int);
 int smaller_face (struct frame *, int, int);
@@ -3351,7 +3353,6 @@ extern int string_cost (const char *);
 extern int per_line_cost (const char *);
 extern void calculate_costs (struct frame *);
 extern void produce_glyphs (struct it *);
-extern void produce_special_glyphs (struct it *, enum display_element_type);
 extern int tty_capable_p (struct tty_display_info *, unsigned, unsigned long, unsigned long);
 extern void set_tty_color_mode (struct tty_display_info *, struct frame *);
 extern struct terminal *get_named_tty (const char *);

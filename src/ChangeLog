@@ -1,3 +1,598 @@
+2012-07-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Minor adjustments to interning code.
+	* lisp.h (intern, intern_c_string): Redefine as static inline
+	wrappers for intern_1 and intern_c_string_1, respectively.
+	(intern_1, intern_c_string_1): Rename prototypes.
+	* lread.c (intern_1, intern_c_string_1, oblookup): Simplify
+	Vobarray checking.
+	* font.c (font_intern_prop): Likewise.  Adjust comment.
+	* w32font.c (intern_font_name): Likewise.
+
+2012-07-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gnutls.c (Fgnutls_boot): Properly parse :keylist argument.
+
+	* coding.c (Fdefine_coding_system_internal): Use XCAR/XCDR instead
+	of Fcar/Fcdr if possible.
+	* font.c (check_otf_features): Likewise.
+	* fontset.c (Fnew_fontset): Likewise.
+	* gnutls.c (Fgnutls_boot): Likewise.
+	* minibuf.c (read_minibuf): Likewise.
+	* msdos.c (IT_set_frame_parameters): Likewise.
+	* xmenu.c (Fx_popup_dialog): Likewise.
+	* w32menu.c (Fx_popup_dialog): Likewise.
+
+2012-07-11  Glenn Morris  <rgm@gnu.org>
+
+	* s/bsd-common.h, s/cygwin.h: No need to undefine INTERRUPT_INPUT,
+	since nothing has defined it on these platforms.
+
+	* s/aix4-2.h, s/bsd-common.h, s/cygwin.h, s/gnu-linux.h:
+	* s/irix6-5.h: Move SIGNALS_VIA_CHARACTERS to configure.
+
+	* s/aix4-2.h, s/bsd-common.h, s/cygwin.h, s/darwin.h:
+	* s/gnu-linux.h, s/hpux10-20.h, s/template.h, s/usg5-4-common.h:
+	Move CLASH_DETECTION to configure.
+
+	* s/gnu.h: Remove file, which is now empty.
+
+	* s/gnu.h, s/gnu-linux.h:
+	Move GNU_LIBRARY_PENDING_OUTPUT_COUNT to configure.
+
+2012-07-11  John Wiegley  <johnw@newartisans.com>
+
+	* alloc.c (mark_memory): Guard the "no_address_safety_analysis"
+	function attribute, so we only use it if it exists in the
+	compiler.
+
+2012-07-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid call to strlen in fast_c_string_match_ignore_case.
+	* search.c (fast_c_string_match_ignore_case): Change to use
+	length argument.  Adjust users accordingly.
+	* lisp.h (fast_c_string_match_ignore_case): Adjust prototype.
+
+2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume mkdir, rmdir.
+	* sysdep.c (mkdir) [!HAVE_MKDIR]: Remove.
+	* sysdep.c (rmdir) [!HAVE_RMDIR]: Remove.
+
+	Assume rename.
+	* sysdep.c (rename) [!HAVE_RENAME]: Remove.
+
+	Assume perror.
+	* s/hpux10-20.h (HAVE_PERROR): Remove.
+	* sysdep.c (perror) [HPUX && !HAVE_PERROR]:
+	Remove dummy definition, as this problem was obsolete long ago.
+
+	Assume strerror.
+	* sysdep.c (strerror) [!HAVE_STRERROR && !WINDOWSNT]: Remove.
+
+2012-07-11  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid calls to strlen in font processing functions.
+	* font.c (font_parse_name, font_parse_xlfd, font_parse_fcname)
+	(font_open_by_name): Change to use length argument.  Adjust
+	users accordingly.
+	* font.h (font_open_by_name, font_parse_xlfd, font_unparse_xlfd):
+	Adjust prototypes.
+	* xfont.c (xfont_decode_coding_xlfd, font_unparse_xlfd):
+	Change to return ptrdiff_t.
+	(xfont_list_pattern, xfont_match): Use length returned by
+	xfont_decode_coding_xlfd.
+	* xfns.c (x_default_font_parameter): Omit useless xstrdup.
+
+2012-07-11  Glenn Morris  <rgm@gnu.org>
+
+	* s/darwin.h, s/freebsd.h, s/netbsd.h:
+	Move DONT_REOPEN_PTY to configure.
+
+	* sound.c (DEFAULT_SOUND_DEVICE) [!WINDOWSNT]:
+	* s/netbsd.h (DEFAULT_SOUND_DEVICE): Let configure set it.
+
+2012-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove "#define unix" that is no longer needed (Bug#11905).
+	* s/aix4-2.h (unix): Remove; no longer needed.
+
+	EMACS_TIME simplification (Bug#11875).
+	This replaces macros (which typically do not work in GDB)
+	with functions, typedefs and enums, making the code easier to debug.
+	The functional style also makes code easier to read and maintain.
+	* systime.h: Include <sys/time.h> on all hosts, not just if
+	WINDOWSNT, since 'struct timeval' is needed in general.
+	(EMACS_TIME): Now a typedef, not a macro.
+	(EMACS_TIME_RESOLUTION, LOG10_EMACS_TIME_RESOLUTION): Now constants,
+	not macros.
+	(EMACS_SECS, EMACS_NSECS, EMACS_TIME_SIGN, EMACS_TIME_VALID_P)
+	(EMACS_TIME_FROM_DOUBLE, EMACS_TIME_TO_DOUBLE, EMACS_TIME_EQ)
+	(EMACS_TIME_NE, EMACS_TIME_GT, EMACS_TIME_GE, EMACS_TIME_LT)
+	(EMACS_TIME_LE): Now functions, not macros.
+	(EMACS_SET_SECS, EMACS_SET_NSECS, EMACS_SET_SECS_NSECS)
+	(EMACS_SET_USECS, EMACS_SET_SECS_USECS): Remove these macros,
+	which are not functions.  All uses rewritten to use:
+	(make_emacs_time): New function.
+	(EMACS_SECS_ADDR, EMACS_SET_INVALID_TIME, EMACS_GET_TIME)
+	(EMACS_ADD_TIME, EMACS_SUB_TIME): Remove these macros, which are
+	not functions.  All uses rewritten to use the following, respectively:
+	(emacs_secs_addr, invalid_emacs_time, get_emacs_time)
+	(add_emacs_time, sub_emacs_time): New functions.
+	* atimer.c: Don't include <sys/time.h>,	as "systime.h" does this.
+	* fileio.c (Fcopy_file):
+	* xterm.c (XTflash): Get the current time closer to when it's used.
+	* makefile.w32-in ($(BLD)/atimer.$(O)): Update dependencies.
+
+	* bytecode.c (targets): Suppress -Woverride-init warnings.
+
+	Simplify by avoiding confusing use of strncpy etc.
+	* doc.c (Fsnarf_documentation):
+	* fileio.c (Ffile_name_directory, Fsubstitute_in_file_name):
+	* frame.c (Fmake_terminal_frame):
+	* gtkutil.c (get_utf8_string):
+	* lread.c (openp):
+	* nsmenu.m (ns_update_menubar):
+	* regex.c (regerror):
+	Prefer memcpy to strncpy and strncat when either will do.
+	* fileio.c (Fsubstitute_in_file_name):
+	* keyboard.c (MULTI_LETTER_MOD, parse_modifiers_uncached)
+	(menu_separator_name_p):
+	* nsmenu.m (ns_update_menubar):
+	Prefer memcmp to strncmp when either will do.
+	* nsterm.m: Include <ftoastr.h>.
+	(ns_get_color):
+	* s/gnu-linux.h, s/sol2-6.h, s/unixware.h (PTY_TTY_NAME_SPRINTF):
+	Prefer snprintf to strncpy.
+	* nsterm.m (ns_term_init):
+	* widget.c (set_frame_size) [0]: Prefer xstrdup to xmalloc + strncpy.
+	* nsterm.m (ns_term_init):
+	Avoid the need for strncpy, by using build_string or
+	make_unibyte_string directly.  Use dtoastr, not snprintf.
+	* process.c (Fmake_network_process): Diagnose service names that
+	are too long, rather than silently truncating them or creating
+	non-null-terminated names.
+	(Fnetwork_interface_info): Likewise, for interface names.
+	* sysdep.c (system_process_attributes) [GNU_LINUX]:
+	Prefer sprintf to strncat.
+	* xdisp.c (debug_method_add) [GLYPH_DEBUG]:
+	Prefer vsnprintf to vsprintf + strncpy.
+
+2012-07-10  Glenn Morris  <rgm@gnu.org>
+
+	* dispnew.c (PENDING_OUTPUT_COUNT) [!__GNU_LIBRARY__]:
+	Clarify fallback case.
+
+2012-07-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use XCAR and XCDR instead of Fcar and Fcdr where possible.
+	* callint.c, coding.c, doc.c, editfns.c, eval.c, font.c, fontset.c,
+	* frame.c, gnutls.c, minibuf.c, msdos.c, textprop.c, w32fns.c,
+	* w32menu.c, window.c, xmenu.c: Change to use XCAR and XCDR
+	where argument type is known to be a Lisp_Cons.
+
+2012-07-10  Tom Tromey  <tromey@redhat.com>
+
+	* bytecode.c (BYTE_CODE_THREADED): New macro.
+	(BYTE_CODES): New macro.  Replaces all old byte-code defines.
+	(enum byte_code_op): New type.
+	(CASE, NEXT, FIRST, CASE_DEFAULT, CASE_ABORT): New macros.
+	(exec_byte_code): Use them.  Use token threading when applicable.
+
+2012-07-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Optimize pure C strings initialization.
+	* lisp.h (make_pure_string): Fix prototype.
+	(build_pure_c_string): New function, defined as static inline.  This
+	provides a better opportunity to optimize away calls to strlen when
+	the function is called with compile-time constant argument.
+	* alloc.c (make_pure_c_string): Fix comment.  Change to add nchars
+	argument, adjust users accordingly.  Use build_pure_c_string where
+	appropriate.
+	* buffer.c, coding.c, data.c, dbusbind.c, fileio.c, fontset.c, frame.c,
+	* keyboard.c, keymap.c, lread.c, search.c, syntax.c, w32fns.c, xdisp.c,
+	* xfaces.c, xfns.c, xterm.c: Use build_pure_c_string where appropriate.
+
+2012-07-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid calls to strlen in miscellaneous functions.
+	* buffer.c (init_buffer): Use precalculated len, adjust if needed.
+	* font.c (Ffont_xlfd_name): Likewise.  Change to call make_string.
+	* lread.c (openp): Likewise.
+
+2012-07-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid calls to strlen in path processing functions.
+	* fileio.c (file_name_as_directory): Add comment.  Change to add
+	srclen argument and return the length of result.  Adjust users
+	accordingly.
+	(directory_file_name): Fix comment.  Change to add srclen argument,
+	swap 1st and 2nd arguments to obey the common convention.  Adjust
+	users accordingly.
+	* filelock.c (fill_in_lock_file_name): Avoid calls to strlen.
+
+2012-07-10  Glenn Morris  <rgm@gnu.org>
+
+	* s/cygwin.h, s/darwin.h, s/freebsd.h, s/netbsd.h, s/unixware.h:
+	Move PENDING_OUTPUT_COUNT definition to configure.
+
+	* s/irix6-5.h (DATA_START, DATA_SEG_BITS):
+	* s/hpux10-20.h (DATA_SEG_BITS, DATA_START):
+	* s/gnu.h (DATA_START): Move definitions to configure.
+
+	* s/irix6-5.h (SETUP_SLAVE_PTY, PTY_NAME_SPRINTF): Drop ifdef guards.
+	We include usg5-4-common.h, which defines them both.
+
+	* s/gnu.h: Don't include fcntl.h (every file in Emacs that uses
+	O_RDONLY already includes it).
+
+	Stop ns builds setting the EMACSLOADPATH environment variable.
+	* nsterm.m (ns_load_path): Rename from ns_init_paths.
+	Now it does not set EMACSLOADPATH, just returns the load-path string.
+	* nsterm.h: Update accordingly.
+	* lread.c [HAVE_NS]: Include nsterm.h.
+	(init_lread) [HAVE_NS]: Use ns_load_path.
+	* emacs.c (main) [HAVE_NS]: No longer call ns_init_paths.
+
+2012-07-09  Glenn Morris  <rgm@gnu.org>
+
+	* s/gnu.h (SIGNALS_VIA_CHARACTERS): No need to define it here,
+	since the included bsd-common.h does so.
+
+	Stop ns builds setting the EMACSPATH environment variable.
+	* nsterm.m (ns_exec_path): New function, split from ns_init_paths.
+	(ns_init_paths): Do not set EMACSPATH.
+	* nsterm.h (ns_exec_path): Add it.
+	* callproc.c (init_callproc_1, init_callproc) [HAVE_NS]:
+	Use ns_exec_path.
+
+	* nsterm.m, nsterm.h (ns_etc_directory): Fix type, empty return.
+
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* process.c (wait_reading_process_output): 'waitchannels' was unset
+	when read_kbd || !NILP (wait_for_cell); fix this.
+
+	Add GCC-style 'const' attribute to functions that can use it.
+	* character.h (char_resolve_modifier_mask):
+	* keyboard.h (make_ctrl_char):
+	* lisp.h (multibyte_char_to_unibyte, multibyte_char_to_unibyte_safe)
+	(init_character_once, next_almost_prime, init_fns, init_image)
+	(flush_pending_output, init_sound):
+	* mem-limits.h (start_of_data):
+	* menu.h (finish_menu_items):
+	Add ATTRIBUTE_CONST.
+	* emacs.c (DEFINE_DUMMY_FUNCTION):
+	Declare the dummy function with ATTRIBUTE_CONST.
+	* lisp.h (Fbyteorder, Fmax_char, Fidentity):
+	Add decls with ATTRIBUTE_CONST.
+
+	Minor improvements to make_formatted_string.
+	* alloc.c (make_formatted_string): Prefer int to ptrdiff_t
+	where int is good enough, as vsprintf returns an int.
+	* lisp.h (make_formatted_string): Add ATTRIBUTE_FORMAT_PRINTF.
+
+2012-07-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use make_formatted_string to avoid double length calculation.
+	* lisp.h (make_formatted_string): New prototype.
+	* alloc.c (make_formatted_string): New function.
+	* buffer.c (Fgenerate_new_buffer_name): Use it.
+	* dbus.c (syms_of_dbusbind): Likewise.
+	* editfns.c (Fcurrent_time_zone): Likewise.
+	* filelock.c (get_boot_time): Likewise.
+	* frame.c (make_terminal_frame, set_term_frame_name)
+	(x_report_frame_params): Likewise.
+	* image.c (gs_load): Likewise.
+	* minibuf.c (get_minibuffer): Likewise.
+	* msdos.c (dos_set_window_size): Likewise.
+	* process.c (make_process): Likewise.
+	* xdisp.c (ensure_echo_area_buffers): Likewise.
+	* xsettings.c (apply_xft_settings): Likewise.
+
+2012-07-09  Glenn Morris  <rgm@gnu.org>
+
+	Stop ns builds polluting the environment with EMACSDATA, EMACSDOC.
+	* nsterm.m (ns_etc_directory): New function, split from ns_init_paths.
+	(ns_init_paths): Do not set EMACSDATA, EMACSDOC.
+	* nsterm.h (ns_etc_directory): Add it.
+	* callproc.c [HAVE_NS]: Include nsterm.h.
+	(init_callproc_1, init_callproc) [HAVE_NS]: Use ns_etc_directory.
+
+2012-07-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Move marker debugging code under MARKER_DEBUG.
+	* marker.c (MARKER_DEBUG): Move marker debugging code under
+	#ifdef MARKER_DEBUG because byte_char_debug_check is too slow
+	for bootstrap with --enable-checking (~3x slowdown reported
+	by Juanma Barranquero <lekktu@gmail.com>).
+	(verify_bytepos): Move under #ifdef MARKER_DEBUG.
+
+2012-07-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* systime.h (EMACS_SUB_TIME): Clarify behavior with unsigned time_t.
+	See <http://bugs.gnu.org/11825#29>.
+
+2012-07-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (fill_glyphless_glyph_string): If the face of the glyph
+	has no font, use the frame's font.  (Bug#11813)
+	(display_line): Add commentary about displaying truncation glyphs
+	on GUI frames.
+	(produce_special_glyphs): Move here from term.c.
+
+	* term.c (produce_special_glyphs): Move to xdisp.c.
+
+	* dispextern.h (produce_special_glyphs): Move prototype to xdisp.c
+	section.
+
+2012-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xdisp.c (display_line): Avoid warning about implicit declaration
+	of FRAME_FONT.
+
+	* frame.c (get_frame_param): Define only if HAVE_WINDOW_SYSTEM.
+
+	* lisp.h: Remove empty conditional.
+
+2012-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lread.c (load_path_check): Now static.
+
+	Fix some minor --with-ns problems found by static checking.
+	* frame.c (Ftool_bar_pixel_width) [!FRAME_TOOLBAR_WIDTH]:
+	(x_set_font) [!HAVE_X_WINDOWS]:
+	* image.c (xpm_load_image) [HAVE_NS]:
+	(x_to_xcolors) [!HAVE_X_WINDOWS && !HAVE_NTGUI]:
+	(x_disable_image) [!HAVE_NS && !HAVE_NTGUI]:
+	Remove unused local.
+	(Fx_parse_geometry) [HAVE_NS]: Don't return garbage.
+	(xpm_load_image) [HAVE_NS && !HAVE_XPM]: Remove unused label.
+	* image.c (x_create_bitmap_from_file) [HAVE_NS]:
+	(xpm_load_image, xpm_load) [HAVE_NS && !HAVE_XPM]:
+	* nsselect.m (symbol_to_nsstring, ns_string_to_pasteboard_internal):
+	* xfaces.c (Fx_load_color_file) [!HAVE_X_WINDOWS]:
+	Fix pointer signedness problem.
+	* xfaces.c (FRAME_X_FONT_TABLE):
+	* xterm.h (FRAME_X_FONT_TABLE): Remove unused, incompatible macros.
+
+2012-07-07  Glenn Morris  <rgm@gnu.org>
+
+	* lread.c (load_path_check): New function, split from init_lread.
+	(init_lread): Reorganize.  Motivation:
+	If EMACSLOADPATH is set, check/warn about that rather than the
+	defaults, which we are not going to use.  Hence we can remove
+	the turn_off_warning and WINDOWSNT || HAVE_NS tests.
+	Don't warn if site-lisp directories are missing.
+	If not installed, start from a blank load-path, since
+	PATH_LOADSEARCH refers to the eventual installation directories.
+
+2012-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	Support truncation and continuation glyphs on GUI frames, when
+	fringes are disabled.  (Bug#11832)
+	* xdisp.c (init_iterator): Get dimensions of truncation and
+	continuation glyphs even if on GUI frames.  Adjust
+	it->last_visible_x on GUI frames when the left or right fringes,
+	or both, are absent.
+	(start_display, move_it_in_display_line_to): Handle the case of a
+	GUI frame without a fringe to display continuation or truncation
+	glyphs.
+	(insert_left_trunc_glyphs): Support GUI frames: make sure
+	truncation glyphs overwrite enough glyphs from the current line to
+	have sufficient space in pixels.
+	(display_line): Support truncation and continuation glyphs on GUI
+	frames.  If some spare pixels are left on the line after inserting
+	the truncation glyphs, fill that space with a stretch glyph of a
+	suitably computed width.
+
+	* term.c (produce_special_glyphs): Call PRODUCE_GLYPHS, not
+	produce_glyphs, to support GUI sessions.
+
+2012-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c (ULLONG_MAX): Define if not already defined (Bug#11781).
+
+	* sysdep.c (list_system_processes): Port to NetBSD-current (Bug#11797).
+
+	Do not require float-time's arg to fit in time_t (Bug#11825).
+	This works better on hosts where time_t is unsigned, and where
+	float-time is applied to the (negative) difference between two times.
+	* editfns.c (decode_time_components): Last arg is now double *,
+	not int *, and means to store all the result as a double, without
+	worrying about whether the seconds part fits in time_t.
+	All callers changed.
+	(lisp_time_argument): Remove last int * arg, as it's no longer needed.
+	All callers changed.
+	(Ffloat_time): Do not fail merely because the specified time falls
+	outside of time_t range.
+
+2012-07-07  Glenn Morris  <rgm@gnu.org>
+
+	* s/darwin.h (HAVE_RES_INIT, HAVE_LIBRESOLV):
+	* s/hpux10-20.h (HAVE_RINT, HAVE_RANDOM):
+	* s/unixware.h (HAVE_GETWD): Move undefs to configure (effectively).
+
+2012-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (DISPEXTERN_H, $(BLD)/regex.$(O)):
+	Update dependencies.
+
+	* s/ms-w32.h [_MSC_VER]: Remove strcasecmp, strncasecmp.
+
+2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use c_strcasecmp for ASCII case-insensitive comparison (Bug#11786).
+	* dispextern.h, nsfns.m, nsterm.m: Include <c-strcase.h>.
+	* dispextern.h (xstrcasecmp): Rewrite using c_strcasecmp.
+	* nsfns.m (x_get_string_resource): Use c_strncasecmp, not strncasecmp.
+	* nsterm.m (ns_default): Use c_strcasecmp, not strcasecmp.
+	* xfaces.c (xstrcasecmp) [!HAVE_STRCASECMP]: Remove.
+
+	* xfont.c (compare_font_names): Redo to omit the need for casts.
+
+2012-07-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xfns.c (Fx_change_window_property): Doc fix.
+	* w32fns.c (Fx_change_window_property): Doc fix.
+
+	* w32fns.c (Fx_window_property): Accept the same arguments as the
+	X Windows version.  Doc fix.
+	* xfns.c (Fx_window_property): Doc fix.  (Bug#11870)
+
+2012-07-06  Juanma Barranquero	<lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h: Settings not specific to Windows moved to nt/config.nt.
+	Windows-specific code from nt/config.nt moved here.
+	Obsolete settings removed.
+
+2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* process.c: Avoid unnecessary calls to gettime.
+	(wait_reading_process_output): Don't get the time of day
+	when gobbling data immediately and not waiting, as there's no need
+	for it in that case.  This removes a FIXME.
+
+2012-07-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_event_is_for_scrollbar): Assign gwin when HAVE_GTK3
+	is defined (Bug#11768).
+
+2012-07-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix marker debugging code.
+	* marker.c (byte_char_debug_check): Do not perform the check
+	if buffer is not multibyte.
+	(buf_charpos_to_bytepos, buf_bytepos_to_charpos):
+	Call byte_char_debug_check with correct arguments.
+
+2012-07-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Compile marker debugging code only if ENABLE_CHECKING is defined.
+	* marker.c (byte_char_debug_check, count_markers):
+	Use only if ENABLE_CHECKING is defined.
+	(byte_debug_flag): Remove.
+	(CONSIDER, buf_charpos_to_bytepos, buf_bytepos_to_charpos):
+	Always call byte_char_debug_check if ENABLE_CHECKING is defined.
+
+2012-07-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid code repetition in marker-related functions.
+	* marker.c (attach_marker): New function.
+	(Fset_marker, set_marker_restricted, set_marker_both)
+	(set_marker_restricted_both): Use it.
+	(Fset_marker, set_marker_restricted, Fbuffer_has_markers_at):
+	Consistently rename charno to charpos.
+	(marker_position): Add eassert.
+	(marker_byte_position): Convert to eassert.
+
+2012-07-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Simplify list operations in unchain_overlay and unchain_marker.
+	* buffer.c (unchain_overlay): Simplify.  Add comment.
+	* marker.c (unchain_marker): Simplify.  Fix comments.
+
+2012-07-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Introduce fast path for the widely used marker operation.
+	* alloc.c (build_marker): New function.
+	* lisp.h (build_marker): New prototype.
+	* buffer.c (clone_per_buffer_values, Fmake_indirect_buffer): Use it.
+	* composite.c (autocmp_chars): Likewise.
+	* editfns.c (buildmark): Remove.
+	(Fpoint_marker, Fpoint_min_marker, Fpoint_max_marker)
+	(save_restriction_save): Use build_marker.
+	* marker.c (buf_charpos_to_bytepos, buf_bytepos_to_charpos): Likewise.
+	* window.c (save_window_save): Likewise.
+
+2012-07-06  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Do not use Fdelete_overlay in delete_all_overlays
+	to avoid redundant calls to unchain_overlay.
+	* buffer.c (drop_overlay): New function.
+	(delete_all_overlays, Fdelete_overlay): Use it.
+	* minibuf.c (get_minibuffer): Fix comment.
+
+2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to OpenBSD 5.1 amd64.
+	* sysdep.c [BSD_SYSTEM]: Include <sys/param.h> before <sys/sysctl.h>.
+	This is needed for OpenBSD, and should be harmless on all BSD systems.
+	Also, include <sys/sysctl.h>, as it should be available on all
+	BSD_SYSTEM hosts given that we're already calling sysctl in that case.
+	(list_system_processes) [__OpenBSD__]: Use DARWIN_OS style mib, but
+	use p_pid member, not kp_proc.pid.
+
+2012-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (emacs$(EXEEXT)): Don't check for load-path shadows.
+
+2012-07-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	More xmalloc and related cleanup.
+	* alloc.c, bidi.c, buffer.c, buffer.h, bytecode.c, callint.c:
+	* callproc.c, charset.c, coding.c, composite.c, data.c, dispnew.c:
+	* doc.c, editfns.c, emacs.c, eval.c, fileio.c, filelock.c, fns.c:
+	* font.c, fontset.c, frame.c, fringe.c, ftfont.c, ftxfont.c, gmalloc.c:
+	* gtkutil.c, image.c, keyboard.c, keymap.c, lread.c, macros.c, menu.c:
+	* nsfns.m, nsfont.m, nsmenu.m, nsterm.m, print.c, process.c, ralloc.c:
+	* regex.c, region-cache.c, scroll.c, search.c, sound.c, syntax.c:
+	* sysdep.c, term.c, termcap.c, unexmacosx.c, window.c, xdisp.c:
+	* xfaces.c, xfns.c, xftfont.c, xgselect.c, xmenu.c, xrdb.c, xselect.c:
+	* xterm.c:
+	Omit needless casts involving void * pointers and allocation.
+	Prefer "P = xmalloc (sizeof *P)" to "P = xmalloc (sizeof (TYPE_OF_P))",
+	as the former is more robust if P's type is changed.
+	Prefer xzalloc to xmalloc + memset 0.
+	Simplify malloc-or-realloc to realloc.
+	Don't worry about xmalloc returning a null pointer.
+	Prefer xstrdup to xmalloc + strcpy.
+	* editfns.c (Fmessage_box): Grow message_text by at least 80 when
+	growing it.
+	* keyboard.c (apply_modifiers_uncached): Prefer local array to
+	alloca of a constant.
+
+2012-07-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_line): Fix horizontal pixel coordinates when
+	hscroll is larger than the line width.  Fixes long and futile
+	looping inside extend_face_to_end_of_line (on a TTY) producing
+	glyphs that are not needed and thrown away.
+
+2012-07-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* marker.c (set_marker_restricted_both): Simplify by using
+	clip_to_bounds.
+
+2012-07-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* editfns.c (region_limit): Simplify by using clip_to_bounds.
+
+2012-07-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (gtk_scrollbar_new, gtk_box_new): Define when HAVE_GTK3 is
+	not defined (Bug#11768).
+	(xg_create_frame_widgets): Use gtk_plug_new_for_display (Bug#11768).
+	(xg_create_frame_widgets, create_dialog, xg_get_file_with_chooser)
+	(make_widget_for_menu_item, xg_make_tool_item): Use gtk_box_new
+	followed by gtk_box_set_homogeneous (Bug#11768).
+	(xg_update_menu_item): Use GTK_IS_BOX (Bug#11768).
+	(update_theme_scrollbar_width, xg_create_scroll_bar):
+	Use gtk_scrollbar_new (Bug#11768).
+	(xg_event_is_for_scrollbar): Use Gdk Device functions for HAVE_GTK3.
+	(is_box_type): New function (Bug#11768).
+	(xg_tool_item_stale_p): Call is_box_type.
+	(xg_initialize): Get settings by calling gtk_settings_get_for_screen
+	with default display (Bug#11768).
+
+2012-07-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (window_hscroll_limited): New function.
+	(pos_visible_p, init_iterator): Use it to avoid overflow of pixel
+	coordinates when window's hscroll is set to insanely large
+	values.  (Bug#11857)
+
 2012-07-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/dired.$(O), $(BLD)/fileio.$(O)): Fix typo.
@@ -2523,7 +3118,7 @@
 	Fix compilation with -DGLYPH_DEBUG=1 on MS-Windows.
 
 	* w32term.c [GLYPH_DEBUG]: Add prototype for x_check_font.
-	(x_check_font) [GLYPH_DEBUG]: New function, copied from xterm.c
+	(x_check_font) [GLYPH_DEBUG]: New function, copied from xterm.c.
 
 	* w32fns.c (unwind_create_frame) [GLYPH_DEBUG]: Fix broken
 	reference to image_cache->refcount.
@@ -7455,7 +8050,7 @@
 	(EmacsToolbar): Implements NSToolbarDelegate on OSX >= 10.6.
 
 	* nsselect.m (ns_string_from_pasteboard): Don't use deprecated methods
-	cString and lossyCString on OSX >= 10.4
+	cString and lossyCString on OSX >= 10.4.
 
 	* nsmenu.m (fillWithWidgetValue): Don't use deprecated method
 	sizeToFit on OSX >= 10.2.

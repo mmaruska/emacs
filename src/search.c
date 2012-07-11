@@ -175,8 +175,7 @@ shrink_regexp_cache (void)
   for (cp = searchbuf_head; cp != 0; cp = cp->next)
     {
       cp->buf.allocated = cp->buf.used;
-      cp->buf.buffer
-	= (unsigned char *) xrealloc (cp->buf.buffer, cp->buf.used);
+      cp->buf.buffer = xrealloc (cp->buf.buffer, cp->buf.used);
     }
 }
 
@@ -491,11 +490,11 @@ fast_string_match (Lisp_Object regexp, Lisp_Object string)
    We assume that STRING contains single-byte characters.  */
 
 ptrdiff_t
-fast_c_string_match_ignore_case (Lisp_Object regexp, const char *string)
+fast_c_string_match_ignore_case (Lisp_Object regexp,
+				 const char *string, ptrdiff_t len)
 {
   ptrdiff_t val;
   struct re_pattern_buffer *bufp;
-  size_t len = strlen (string);
 
   regexp = string_make_unibyte (regexp);
   re_match_object = Qt;
@@ -1274,7 +1273,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	  raw_pattern_size_byte
 	    = count_size_as_multibyte (SDATA (string),
 				       raw_pattern_size);
-	  raw_pattern = (unsigned char *) alloca (raw_pattern_size_byte + 1);
+	  raw_pattern = alloca (raw_pattern_size_byte + 1);
 	  copy_text (SDATA (string), raw_pattern,
 		     SCHARS (string), 0, 1);
 	}
@@ -1288,7 +1287,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	     the chosen single-byte character set can possibly match.  */
 	  raw_pattern_size = SCHARS (string);
 	  raw_pattern_size_byte = SCHARS (string);
-	  raw_pattern = (unsigned char *) alloca (raw_pattern_size + 1);
+	  raw_pattern = alloca (raw_pattern_size + 1);
 	  copy_text (SDATA (string), raw_pattern,
 		     SBYTES (string), 1, 0);
 	}
@@ -1296,7 +1295,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
       /* Copy and optionally translate the pattern.  */
       len = raw_pattern_size;
       len_byte = raw_pattern_size_byte;
-      patbuf = (unsigned char *) alloca (len * MAX_MULTIBYTE_LENGTH);
+      patbuf = alloca (len * MAX_MULTIBYTE_LENGTH);
       pat = patbuf;
       base_pat = raw_pattern;
       if (multibyte)
@@ -2741,8 +2740,7 @@ Return value is undefined if the last search failed.  */)
 
   prev = Qnil;
 
-  data = (Lisp_Object *) alloca ((2 * search_regs.num_regs + 1)
-				 * sizeof (Lisp_Object));
+  data = alloca ((2 * search_regs.num_regs + 1) * sizeof *data);
 
   len = 0;
   for (i = 0; i < search_regs.num_regs; i++)
@@ -3008,7 +3006,7 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
 
   CHECK_STRING (string);
 
-  temp = (char *) alloca (SBYTES (string) * 2);
+  temp = alloca (SBYTES (string) * 2);
 
   /* Now copy the data into the new string, inserting escapes. */
 
@@ -3058,12 +3056,12 @@ syms_of_search (void)
   Fput (Qsearch_failed, Qerror_conditions,
 	pure_cons (Qsearch_failed, pure_cons (Qerror, Qnil)));
   Fput (Qsearch_failed, Qerror_message,
-	make_pure_c_string ("Search failed"));
+	build_pure_c_string ("Search failed"));
 
   Fput (Qinvalid_regexp, Qerror_conditions,
 	pure_cons (Qinvalid_regexp, pure_cons (Qerror, Qnil)));
   Fput (Qinvalid_regexp, Qerror_message,
-	make_pure_c_string ("Invalid regexp"));
+	build_pure_c_string ("Invalid regexp"));
 
   last_thing_searched = Qnil;
   staticpro (&last_thing_searched);

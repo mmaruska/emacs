@@ -871,9 +871,9 @@ one trustfile (usually a CA bundle).  */)
       int file_format = GNUTLS_X509_FMT_PEM;
       Lisp_Object tail;
 
-      for (tail = trustfiles; !NILP (tail); tail = Fcdr (tail))
+      for (tail = trustfiles; CONSP (tail); tail = XCDR (tail))
 	{
-	  Lisp_Object trustfile = Fcar (tail);
+	  Lisp_Object trustfile = XCAR (tail);
 	  if (STRINGP (trustfile))
 	    {
 	      GNUTLS_LOG2 (1, max_log_level, "setting the trustfile: ",
@@ -893,9 +893,9 @@ one trustfile (usually a CA bundle).  */)
 	    }
 	}
 
-      for (tail = crlfiles; !NILP (tail); tail = Fcdr (tail))
+      for (tail = crlfiles; CONSP (tail); tail = XCDR (tail))
 	{
-	  Lisp_Object crlfile = Fcar (tail);
+	  Lisp_Object crlfile = XCAR (tail);
 	  if (STRINGP (crlfile))
 	    {
 	      GNUTLS_LOG2 (1, max_log_level, "setting the CRL file: ",
@@ -913,10 +913,10 @@ one trustfile (usually a CA bundle).  */)
 	    }
 	}
 
-      for (tail = keylist; !NILP (tail); tail = Fcdr (tail))
+      for (tail = keylist; CONSP (tail); tail = XCDR (tail))
 	{
-	  Lisp_Object keyfile = Fcar (Fcar (tail));
-	  Lisp_Object certfile = Fcar (Fcdr (tail));
+	  Lisp_Object keyfile = Fcar (XCAR (tail));
+	  Lisp_Object certfile = Fcar (Fcdr (XCAR (tail)));
 	  if (STRINGP (keyfile) && STRINGP (certfile))
 	    {
 	      GNUTLS_LOG2 (1, max_log_level, "setting the client key file: ",

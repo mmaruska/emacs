@@ -4854,7 +4854,7 @@ specifies the window to scroll.  This takes precedence over
   else
     {
       if (CONSP (arg))
-	arg = Fcar (arg);
+	arg = XCAR (arg);
       CHECK_NUMBER (arg);
       window_scroll (window, XINT (arg), 0, 1);
     }
@@ -5469,9 +5469,8 @@ the return value is nil.  Otherwise the value is t.  */)
 	 really like to do is to free only those matrices not reused
 	 below.  */
       root_window = XWINDOW (FRAME_ROOT_WINDOW (f));
-      leaf_windows
-	= (struct window **) alloca (count_windows (root_window)
-				     * sizeof (struct window *));
+      leaf_windows = alloca (count_windows (root_window)
+			     * sizeof *leaf_windows);
       n_leaf_windows = get_leaf_windows (root_window, leaf_windows, 0);
 
       /* Kludge Alert!
@@ -5912,12 +5911,9 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
 	     is the selected window, then get the value of point from
 	     the buffer; pointm is garbage in the selected window.  */
 	  if (EQ (window, selected_window))
-	    {
-	      p->pointm = Fmake_marker ();
-	      set_marker_both (p->pointm, w->buffer,
-			       BUF_PT (XBUFFER (w->buffer)),
-			       BUF_PT_BYTE (XBUFFER (w->buffer)));
-	    }
+	    p->pointm = build_marker (XBUFFER (w->buffer),
+				      BUF_PT (XBUFFER (w->buffer)),
+				      BUF_PT_BYTE (XBUFFER (w->buffer)));
 	  else
 	    p->pointm = Fcopy_marker (w->pointm, Qnil);
 	  XMARKER (p->pointm)->insertion_type

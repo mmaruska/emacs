@@ -1478,7 +1478,7 @@ current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
 		/* Use malloc here.  See the comment above this function.
 		   Avoid realloc here; it causes spurious traps on GNU/Linux [KFS] */
 		BLOCK_INPUT;
-		newmodes = (Lisp_Object *) malloc (allocsize);
+		newmodes = malloc (allocsize);
 		if (newmodes)
 		  {
 		    if (cmm_modes)
@@ -1490,7 +1490,7 @@ current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
 		    cmm_modes = newmodes;
 		  }
 
-		newmaps = (Lisp_Object *) malloc (allocsize);
+		newmaps = malloc (allocsize);
 		if (newmaps)
 		  {
 		    if (cmm_maps)
@@ -2923,7 +2923,7 @@ You type        Translation\n\
 	  if (!SYMBOLP (modes[i]))
 	    abort ();
 
-	  p = title = (char *) alloca (42 + SCHARS (SYMBOL_NAME (modes[i])));
+	  p = title = alloca (42 + SCHARS (SYMBOL_NAME (modes[i])));
 	  *p++ = '\f';
 	  *p++ = '\n';
 	  *p++ = '`';
@@ -3705,11 +3705,11 @@ syms_of_keymap (void)
   Ffset (intern_c_string ("Control-X-prefix"), control_x_map);
 
   exclude_keys
-    = pure_cons (pure_cons (make_pure_c_string ("DEL"), make_pure_c_string ("\\d")),
-		 pure_cons (pure_cons (make_pure_c_string ("TAB"), make_pure_c_string ("\\t")),
-		    pure_cons (pure_cons (make_pure_c_string ("RET"), make_pure_c_string ("\\r")),
-			   pure_cons (pure_cons (make_pure_c_string ("ESC"), make_pure_c_string ("\\e")),
-				  pure_cons (pure_cons (make_pure_c_string ("SPC"), make_pure_c_string (" ")),
+    = pure_cons (pure_cons (build_pure_c_string ("DEL"), build_pure_c_string ("\\d")),
+		 pure_cons (pure_cons (build_pure_c_string ("TAB"), build_pure_c_string ("\\t")),
+		    pure_cons (pure_cons (build_pure_c_string ("RET"), build_pure_c_string ("\\r")),
+			   pure_cons (pure_cons (build_pure_c_string ("ESC"), build_pure_c_string ("\\e")),
+				  pure_cons (pure_cons (build_pure_c_string ("SPC"), build_pure_c_string (" ")),
 					 Qnil)))));
   staticpro (&exclude_keys);
 

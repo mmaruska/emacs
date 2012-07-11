@@ -20,9 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "usg5-4-common.h"
 
-/* #define HAVE_GETWD  (appears to be buggy on SVR4.2) */
-#undef HAVE_GETWD
-
 /* This is the same definition as in usg5-4-common.h, but with sigblock/sigunblock
    rather than sighold/sigrelse, which appear to be BSD4.1 specific.
    It may also be appropriate for SVR4.x
@@ -43,11 +40,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
       fatal("could not unlock slave pty");	\
     if (!(ptyname = ptsname(fd)))		\
       fatal ("could not enable slave pty");	\
-    strncpy(pty_name, ptyname, sizeof(pty_name)); \
-    pty_name[sizeof(pty_name) - 1] = 0;		\
+    snprintf (pty_name, sizeof pty_name, "%s", ptyname); \
   }
-
-#define	PENDING_OUTPUT_COUNT(FILE) ((FILE)->__ptr - (FILE)->__base)
 
 /* Conservative garbage collection has not been tested, so for now
    play it safe and stick with the old-fashioned way of marking.  */

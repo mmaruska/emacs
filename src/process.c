@@ -645,8 +645,7 @@ make_process (Lisp_Object name)
     {
       tem = Fget_process (name1);
       if (NILP (tem)) break;
-      sprintf (suffix, "<%"pMd">", i);
-      name1 = concat2 (name, build_string (suffix));
+      name1 = concat2 (name, make_formatted_string (suffix, "<%"pMd">", i));
     }
   name = name1;
   p->name = name;
@@ -1365,7 +1364,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
     val = Vcoding_system_for_read;
     if (NILP (val))
       {
-	args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
+	args2 = alloca ((nargs + 1) * sizeof *args2);
 	args2[0] = Qstart_process;
 	for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	GCPRO2 (proc, current_dir);
@@ -1384,7 +1383,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
       {
 	if (EQ (coding_systems, Qt))
 	  {
-	    args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
+	    args2 = alloca ((nargs + 1) * sizeof *args2);
 	    args2[0] = Qstart_process;
 	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	    GCPRO2 (proc, current_dir);
@@ -1478,7 +1477,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 
       /* Now that everything is encoded we can collect the strings into
 	 NEW_ARGV.  */
-      new_argv = (unsigned char **) alloca ((nargs - 1) * sizeof (char *));
+      new_argv = alloca ((nargs - 1) * sizeof *new_argv);
       new_argv[nargs - 2] = 0;
 
       for (i = nargs - 2; i-- != 0; )
@@ -1852,10 +1851,9 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	 So have an interrupt jar it loose.  */
       {
 	struct atimer *timer;
-	EMACS_TIME offset;
+	EMACS_TIME offset = make_emacs_time (1, 0);
 
 	stop_polling ();
-	EMACS_SET_SECS_USECS (offset, 1, 0);
 	timer = start_atimer (ATIMER_RELATIVE, offset, create_process_1, 0);
 
 	if (forkin >= 0)
@@ -3014,7 +3012,9 @@ usage: (make-network-process &rest ARGS)  */)
       CHECK_STRING (service);
       memset (&address_un, 0, sizeof address_un);
       address_un.sun_family = AF_LOCAL;
-      strncpy (address_un.sun_path, SSDATA (service), sizeof address_un.sun_path);
+      if (sizeof address_un.sun_path <= SBYTES (service))
+	error ("Service name too long");
+      strcpy (address_un.sun_path, SSDATA (service));
       ai.ai_addr = (struct sockaddr *) &address_un;
       ai.ai_addrlen = sizeof address_un;
       goto open_socket;
@@ -3718,8 +3718,9 @@ FLAGS is the current flags of the interface.  */)
 
   CHECK_STRING (ifname);
 
-  memset (rq.ifr_name, 0, sizeof rq.ifr_name);
-  strncpy (rq.ifr_name, SSDATA (ifname), sizeof (rq.ifr_name));
+  if (sizeof rq.ifr_name <= SBYTES (ifname))
+    error ("interface name too long");
+  strcpy (rq.ifr_name, SSDATA (ifname));
 
   s = socket (AF_INET, SOCK_STREAM, 0);
   if (s < 0)
@@ -4240,7 +4241,7 @@ wait_reading_process_output_1 (void)
        If NSECS > 0, the timeout consists of NSECS only.
        If NSECS < 0, gobble data immediately, as if TIME_LIMIT were negative.
 
-   READ_KBD is a lisp value:
+   READ_KBD is:
      0 to ignore keyboard input, or
      1 to return when input is available, or
      -1 meaning caller will actually read the input, so don't throw to
@@ -4307,11 +4308,10 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
   /* Since we may need to wait several times,
      compute the absolute time to return at.  */
-  if (time_limit || nsecs) /* FIXME neither should be negative, no? */
+  if (time_limit || 0 < nsecs)
     {
-      EMACS_GET_TIME (end_time);
-      EMACS_SET_SECS_NSECS (timeout, time_limit, nsecs);
-      EMACS_ADD_TIME (end_time, end_time, timeout);
+      timeout = make_emacs_time (time_limit, nsecs);
+      end_time = add_emacs_time (current_emacs_time (), timeout);
     }
 
   while (1)
@@ -4336,22 +4336,22 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       /* Exit if already run out */
       if (nsecs < 0)
 	{
-	  /* -1 specified for timeout means
+	  /* A negative timeout means
 	     gobble output available now
 	     but don't wait at all. */
 
-	  EMACS_SET_SECS_USECS (timeout, 0, 0);
+	  timeout = make_emacs_time (0, 0);
 	}
-      else if (time_limit || nsecs)
+      else if (time_limit || 0 < nsecs)
 	{
-	  EMACS_GET_TIME (timeout);
-	  if (EMACS_TIME_LE (end_time, timeout))
+	  EMACS_TIME now = current_emacs_time ();
+	  if (EMACS_TIME_LE (end_time, now))
 	    break;
-	  EMACS_SUB_TIME (timeout, end_time, timeout);
+	  timeout = sub_emacs_time (end_time, now);
 	}
       else
 	{
-	  EMACS_SET_SECS_USECS (timeout, 100000, 0);
+	  timeout = make_emacs_time (100000, 0);
 	}
 
       /* Normally we run timers here.
@@ -4393,7 +4393,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	      && requeued_events_pending_p ())
 	    break;
 
-	  /* If time_limit is negative, we are not going to wait at all.  */
+	  /* A negative timeout means do not wait at all.  */
 	  if (0 <= nsecs)
 	    {
 	      if (EMACS_TIME_VALID_P (timer_delay))
@@ -4436,7 +4436,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
             Atemp = input_wait_mask;
 	  Ctemp = write_mask;
 
-	  EMACS_SET_SECS_USECS (timeout, 0, 0);
+	  timeout = make_emacs_time (0, 0);
 	  if ((pselect (max (max_process_desc, max_input_desc) + 1,
 			&Atemp,
 #ifdef NON_BLOCKING_CONNECT
@@ -4588,7 +4588,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 			nsecs = XPROCESS (proc)->read_output_delay;
 		    }
 		}
-	      EMACS_SET_SECS_NSECS (timeout, 0, nsecs);
+	      timeout = make_emacs_time (0, nsecs);
 	      process_output_skip = 0;
 	    }
 #endif
@@ -4661,7 +4661,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       do_pending_window_change (0);
 
       if ((time_limit || nsecs) && nfds == 0 && ! timeout_reduced_for_timers)
-	/* We wanted the full specified time, so return now.  */
+	/* We waited the full specified time, so return now.  */
 	break;
       if (nfds < 0)
 	{
@@ -5037,7 +5037,7 @@ read_process_output (Lisp_Object proc, register int channel)
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object odeactivate;
 
-  chars = (char *) alloca (carryover + readmax);
+  chars = alloca (carryover + readmax);
   if (carryover)
     /* See the comment above.  */
     memcpy (chars, SDATA (p->decoding_buf), carryover);
@@ -6424,7 +6424,7 @@ sigchld_handler (int signo)
 	  /* Tell wait_reading_process_output that it needs to wake up and
 	     look around.  */
 	  if (input_available_clear_time)
-	    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
+	    *input_available_clear_time = make_emacs_time (0, 0);
 	}
 
       /* There was no asynchronous process found for that pid: we have
@@ -6442,7 +6442,7 @@ sigchld_handler (int signo)
 	  /* Tell wait_reading_process_output that it needs to wake up and
 	     look around.  */
 	  if (input_available_clear_time)
-	    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
+	    *input_available_clear_time = make_emacs_time (0, 0);
 	}
 
     sigchld_end_of_loop:
@@ -6821,7 +6821,7 @@ extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
        If NSECS > 0, the timeout consists of NSECS only.
        If NSECS < 0, gobble data immediately, as if TIME_LIMIT were negative.
 
-   READ_KBD is a Lisp_Object:
+   READ_KBD is:
      0 to ignore keyboard input, or
      1 to return when input is available, or
      -1 means caller will actually read the input, so don't throw to
@@ -6843,8 +6843,6 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 {
   register int nfds;
   EMACS_TIME end_time, timeout;
-  SELECT_TYPE waitchannels;
-  int xerrno;
 
   if (time_limit < 0)
     {
@@ -6855,11 +6853,10 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
     time_limit = TYPE_MAXIMUM (time_t);
 
   /* What does time_limit really mean?  */
-  if (time_limit || nsecs) /* FIXME: what if negative? */
+  if (time_limit || 0 < nsecs)
     {
-      EMACS_GET_TIME (end_time);
-      EMACS_SET_SECS_NSECS (timeout, time_limit, nsecs);
-      EMACS_ADD_TIME (end_time, end_time, timeout);
+      timeout = make_emacs_time (time_limit, nsecs);
+      end_time = add_emacs_time (current_emacs_time (), timeout);
     }
 
   /* Turn off periodic alarms (in case they are in use)
@@ -6871,6 +6868,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
   while (1)
     {
       int timeout_reduced_for_timers = 0;
+      SELECT_TYPE waitchannels;
+      int xerrno;
 
       /* If calling from keyboard input, do not quit
 	 since we want to return C-g as an input character.
@@ -6886,22 +6885,22 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       /* Exit if already run out */
       if (nsecs < 0)
 	{
-	  /* -1 specified for timeout means
+	  /* A negative timeout means
 	     gobble output available now
 	     but don't wait at all. */
 
-	  EMACS_SET_SECS_USECS (timeout, 0, 0);
+	  timeout = make_emacs_time (0, 0);
 	}
-      else if (time_limit || nsecs)
+      else if (time_limit || 0 < nsecs)
 	{
-	  EMACS_GET_TIME (timeout);
-	  if (EMACS_TIME_LE (end_time, timeout))
+	  EMACS_TIME now = current_emacs_time ();
+	  if (EMACS_TIME_LE (end_time, now))
 	    break;
-	  EMACS_SUB_TIME (timeout, end_time, timeout);
+	  timeout = sub_emacs_time (end_time, now);
 	}
       else
 	{
-	  EMACS_SET_SECS_USECS (timeout, 100000, 0);
+	  timeout = make_emacs_time (100000, 0);
 	}
 
       /* If our caller will not immediately handle keyboard events,
@@ -6945,13 +6944,6 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       if (read_kbd < 0)
 	set_waiting_for_input (&timeout);
 
-      /* Wait till there is something to do.  */
-
-      if (! read_kbd && NILP (wait_for_cell))
-	FD_ZERO (&waitchannels);
-      else
-	FD_SET (0, &waitchannels);
-
       /* If a frame has been newly mapped and needs updating,
 	 reprocess its display stuff.  */
       if (frame_garbaged && do_display)
@@ -6962,13 +6954,16 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    set_waiting_for_input (&timeout);
 	}
 
+      /* Wait till there is something to do.  */
+      FD_ZERO (&waitchannels);
       if (read_kbd && detect_input_pending ())
-	{
-	  nfds = 0;
-	  FD_ZERO (&waitchannels);
-	}
+	nfds = 0;
       else
-	nfds = pselect (1, &waitchannels, NULL, NULL, &timeout, NULL);
+	{
+	  if (read_kbd || !NILP (wait_for_cell))
+	    FD_SET (0, &waitchannels);
+	  nfds = pselect (1, &waitchannels, NULL, NULL, &timeout, NULL);
+	}
 
       xerrno = errno;
 
@@ -7083,8 +7078,7 @@ setup_process_coding_systems (Lisp_Object process)
     return;
 
   if (!proc_decode_coding_system[inch])
-    proc_decode_coding_system[inch]
-      = xmalloc (sizeof (struct coding_system));
+    proc_decode_coding_system[inch] = xmalloc (sizeof (struct coding_system));
   coding_system = p->decode_coding_system;
   if (! NILP (p->filter))
     ;
@@ -7096,8 +7090,7 @@ setup_process_coding_systems (Lisp_Object process)
   setup_coding_system (coding_system, proc_decode_coding_system[inch]);
 
   if (!proc_encode_coding_system[outch])
-    proc_encode_coding_system[outch]
-      = xmalloc (sizeof (struct coding_system));
+    proc_encode_coding_system[outch] = xmalloc (sizeof (struct coding_system));
   setup_coding_system (p->encode_coding_system,
 		       proc_encode_coding_system[outch]);
 #endif

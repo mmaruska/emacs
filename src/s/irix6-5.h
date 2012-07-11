@@ -26,13 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SETPGRP_RELEASES_CTTY
 
-#ifdef SETUP_SLAVE_PTY
 #undef SETUP_SLAVE_PTY
-#endif
-
-/* thomas@mathematik.uni-bremen.de says this is needed.  */
-/* Make process_send_signal work by "typing" a signal character on the pty.  */
-#define SIGNALS_VIA_CHARACTERS
 
 /* Letter to use in finding device name of first pty,
    if system supports pty's.  'a' means it is /dev/ptya0  */
@@ -42,9 +36,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* No need to use sprintf to get the tty name--we get that from _getpty.  */
 #define PTY_TTY_NAME_SPRINTF
 /* No need to get the pty name at all.  */
-#ifdef PTY_NAME_SPRINTF
 #undef PTY_NAME_SPRINTF
-#endif
 #define PTY_NAME_SPRINTF
 #ifdef emacs
 char *_getpty();
@@ -80,16 +72,9 @@ char *_getpty();
 
 #define NARROWPROTO 1
 
-#undef SA_RESTART
+#undef SA_RESTART     /* not the same as defining BROKEN_SA_RESTART */
 
 #undef TIOCSIGSEND		/* defined in usg5-4-common.h */
 
 /* Tested on Irix 6.5.  SCM worked on earlier versions.  */
 #define GC_SETJMP_WORKS 1
-
-
-/* DATA_SEG_BITS forces extra bits to be or'd in with any pointers which
-   were stored in a Lisp_Object (as Emacs uses fewer than 32 bits for
-   the value field of a LISP_OBJECT).  */
-#define DATA_START 0x10000000
-#define DATA_SEG_BITS	0x10000000

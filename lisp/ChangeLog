@@ -1,3 +1,137 @@
+2012-07-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-cf1): Update the files cache.
+
+2012-07-11  Chong Yidong  <cyd@gnu.org>
+
+	* vc/log-edit.el (log-edit-vc-backend): New variable.
+	(log-edit): Doc fix.
+
+	* vc/vc-dispatcher.el (vc-log-edit): New args.  Use PARAMS
+	argument of log-edit to set up all local variables.
+	(vc-start-logentry): New optional arg specifying VC backend.
+
+	* vc/vc.el (vc-checkin): Use it.
+	(vc-deduce-fileset): Handle Log Edit buffers.
+	(vc-diff): Make first argument optional too.
+
+	* vc/log-view.el (log-view-vc-fileset, log-view-vc-backend): Doc fix.
+
+2012-07-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* eshell/esh-ext.el (eshell-remote-command): Remove remote part of
+	command, just in case.  The function is not needed anymore.
+	(eshell-external-command): Do not call `eshell-remote-command'.
+
+2012-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Reduce use of (require 'cl).
+	* vc/smerge-mode.el, vc/pcvs.el, vc/pcvs-util.el, vc/pcvs-info.el:
+	* vc/diff-mode.el, vc/cvs-status.el, uniquify.el, scroll-bar.el:
+	* register.el, progmodes/sh-script.el, net/gnutls.el, net/dbus.el:
+	* msb.el, mpc.el, minibuffer.el, international/ucs-normalize.el:
+	* international/quail.el, info-xref.el, imenu.el, image-mode.el:
+	* font-lock.el, filesets.el, edmacro.el, doc-view.el, bookmark.el:
+	* battery.el, avoid.el, abbrev.el: Use cl-lib.
+	* vc/pcvs-parse.el, vc/pcvs-defs.el, vc/log-view.el, vc/log-edit.el:
+	* vc/diff.el, simple.el, pcomplete.el, lpr.el, comint.el, loadhist.el:
+	* jit-lock.el, international/iso-ascii.el, info.el, frame.el, bs.el:
+	* emulation/crisp.el, electric.el, dired.el, cus-dep.el, composite.el:
+	* calculator.el, autorevert.el, apropos.el: Don't require CL.
+	* emacs-lisp/bytecomp.el (byte-recompile-directory, display-call-tree)
+	(byte-compile-unfold-bcf, byte-compile-check-variable):
+	* emacs-lisp/byte-opt.el (byte-compile-trueconstp)
+	(byte-compile-nilconstp):
+	* emacs-lisp/autoload.el (make-autoload): Use pcase.
+	* face-remap.el (text-scale-adjust): Simplify pcase patterns.
+
+	* emacs-lisp/gv.el (cond): Make it a valid place.
+	(if): Simplify slightly.
+
+	* emacs-lisp/pcase.el (pcase): Accept self-quoting exps as "upatterns".
+	(pcase--self-quoting-p): New function.
+	(pcase--u1): Use it.
+
+2012-07-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-fixed-entries):
+	(authors-renamed-files-alist): Update for configure.in -> configure.ac.
+
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Rename configure.in to configure.ac (Bug#11603).
+	* emacs-lisp/authors.el (authors-canonical-file-name):
+	* progmodes/autoconf.el (autoconf-mode):
+	Prefer configure.ac to configure.in.
+
+2012-07-08  Chong Yidong  <cyd@gnu.org>
+
+	* mouse.el (mouse-drag-line): Rewrite the track-mouse loop.
+	Implement the mouse-1-click-follows-link handling properly.
+
+	* info.el (Info-link-keymap): Use follow-link mechanism for
+	header-line links (Bug#374).
+
+	* simple.el (deactivate-mark): Do not set the primary selection
+	if another program has acquired it (Bug#11772).
+
+2012-07-07  Kevin Ryde  <user42@zip.com.au>
+
+	* woman.el (woman-strings): Fix double-quote handling (Bug#1151).
+	(woman-decode-region): Replace escaped-escapes without destroying
+	bold or underline (Bug#11552).
+	(woman2-process-escapes): Handle nofill regions (Bug#11591).
+
+2012-07-07  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (yank-pop-change-selection): Doc fix (Bug#11361).
+	(interprogram-cut-function, interprogram-paste-function):
+	Mention that we typically mean the clipboard.
+
+2012-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* kmacro.el (kmacro-call-macro): Restore repeat message.  (Bug#11817)
+
+	* files.el (toggle-read-only): Restrict message to interactive use.
+
+2012-07-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-restricted-shell-hosts-alist): New defcustom.
+
+	* net/tramp-sh.el (tramp-maybe-open-connection): Handle it.
+
+2012-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (compile-one-process): Rename from "recompile".
+
+	* Makefile.in (bzr-update): "compile" is the same as "recompile
+	autoloads", but parallelizable, so use that instead.
+
+2012-07-06  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* window.el (quit-window): Always restore window height when
+	it's saved in quit-restore parameter.
+
+2012-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (kill-whole-line): Doc tweak.
+
+2012-07-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (file-relative-name): Compare file names
+	case-insensitively if on MS-Windows or MS-DOS, or if
+	read-file-name-completion-ignore-case is non-nil.  Don't use
+	case-fold-search for this purpose.  (Bug#11827)
+
+2012-07-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* calendar/cal-dst.el (calendar-current-time-zone):
+	Return calendar-current-time-zone-cache if non-nil.
+
+2012-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (cvs-update): Remove old alias.
+
 2012-07-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.2.6-pre.
@@ -5,8 +139,8 @@
 	* net/tramp.el (tramp-drop-volume-letter): Provide an XEmacs
 	compatible declaration.
 
-	* net/tramp-cmds.el (tramp-append-tramp-buffers): Protect
-	`list-load-path-shadows' call.
+	* net/tramp-cmds.el (tramp-append-tramp-buffers):
+	Protect `list-load-path-shadows' call.
 
 	* net/tramp-compat.el (top): Require packages, which aren't
 	autoloaded anymore for XEmacs.  Protect call of
@@ -1487,7 +1621,7 @@
 	* vc/vc-rcs.el (vc-rcs-rcs2log-program): New.
 	(vc-rcs-update-changelog): Use it.
 
-	* emacs-lisp/authors.el (authors-fixed-entries): Remove vcdiff
+	* emacs-lisp/authors.el (authors-fixed-entries): Remove vcdiff.
 
 	* vc/vc-sccs.el (vc-sccs-write-revision): New function.
 	(vc-sccs-workfile-unchanged-p): Use vc-sccs-write-revision.
@@ -1504,7 +1638,7 @@
 
 2012-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* emacs-list/cust-print.el: Move to obsolete.
+	* emacs-lisp/cust-print.el: Move to obsolete.
 
 	* emacs-lisp/macroexp.el (macroexpand-all-1): Tolerate errors during
 	compiler-macro expansion.
@@ -2142,9 +2276,9 @@
 
 2012-05-18  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
-	* flyspell.el (flyspell-check-pre-word-p, flyspell-check-word-p)
-	(flyspell-debug-signal-word-checked): Protect delay handling for
-	otherchars against empty otherchars.
+	* textmodes/flyspell.el (flyspell-check-pre-word-p)
+	(flyspell-check-word-p, flyspell-debug-signal-word-checked):
+	Protect delay handling for otherchars against empty otherchars.
 
 2012-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -2196,9 +2330,9 @@
 
 2012-05-16  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
-	* flyspell.el (flyspell-check-pre-word-p, flyspell-check-word-p)
-	(flyspell-debug-signal-word-checked): Delay for otherchars as for
-	normal word components.
+	* textmodes/flyspell.el (flyspell-check-pre-word-p)
+	(flyspell-check-word-p, flyspell-debug-signal-word-checked):
+	Delay for otherchars as for normal word components.
 
 2012-05-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -2470,7 +2604,7 @@
 
 2012-05-08  Glenn Morris  <rgm@gnu.org>
 
-	* lisp/language/burmese.el, language/cham.el, language/czech.el:
+	* language/burmese.el, language/cham.el, language/czech.el:
 	* language/english.el, language/georgian.el, language/greek.el:
 	* language/japanese.el, language/khmer.el, language/korean.el:
 	* language/lao.el, language/misc-lang.el, language/romanian.el:
@@ -2902,7 +3036,7 @@
 	(verilog-pretty-expr): Don't line up assignment
 	operations to the test and increment in if and for loops
 	(verilog-extended-complete-re, verilog-complete-reg): Change so
-	that DPI inport functions don't look like fuction declarations
+	that DPI inport functions don't look like fuction declarations.
 
 2012-05-03  Kenichi Handa  <handa@m17n.org>
 
@@ -3235,17 +3369,17 @@
 
 	Sync with soap-client repository.  Support SOAP simpleType (Bug#10331).
 
-	* soap-client.el (soap-resolve-references-for-sequence-type)
+	* net/soap-client.el (soap-resolve-references-for-sequence-type)
 	(soap-resolve-references-for-array-type): Hack to prevent self
 	references, see Bug#9.
 	(soap-parse-envelope): Report the contents of the 'detail' node
 	when receiving a fault reply.
 	(soap-parse-envelope): Report the contents of the entire 'detail' node.
 
-	* soap-inspect.el (soap-sample-value-for-simple-type)
+	* net/soap-inspect.el (soap-sample-value-for-simple-type)
 	(soap-inspect-simple-type): New function.
 
-	* soap-client.el (soap-simple-type): New struct.
+	* net/soap-client.el (soap-simple-type): New struct.
 	(soap-default-xsd-types, soap-default-soapenc-types)
 	(soap-decode-basic-type, soap-encode-basic-type):
 	support unsignedInt and double basic types.
@@ -3253,7 +3387,7 @@
 	(soap-parse-simple-type, soap-encode-simple-type): New function.
 	(soap-parse-schema): Parse xsd:simpleType declarations.
 
-	* soap-client.el (soap-default-xsd-types)
+	* net/soap-client.el (soap-default-xsd-types)
 	(soap-default-soapenc-types): Add integer, byte and anyURI types.
 	(soap-parse-complex-type-complex-content): Use `soap-wk2l' to find
 	the local name of "soapenc:Array".
@@ -3362,21 +3496,21 @@
 	Preserve ispell session localwords when switching back to
 	original buffer.
 
-	* ispell.el (ispell-buffer-session-localwords): New buffer-local
-	variable to hold buffer session localwords.
+	* textmodes/ispell.el (ispell-buffer-session-localwords):
+	New buffer-local variable to hold buffer session localwords.
 	(ispell-kill-ispell): add option 'clear to delete session
 	localwords.
 	(ispell-command-loop, ispell-change-dictionary)
 	(ispell-buffer-local-words): Preserve session localwords when
 	needed.
 
-	* flyspell.el (flyspell-process-localwords, flyspell-do-correct):
-	Preserve session localwords when needed.
+	* textmodes/flyspell.el (flyspell-process-localwords)
+	(flyspell-do-correct): Preserve session localwords when needed.
 
 2012-04-23  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
-	* ispell.el (ispell-insert-word) Remove unneeded function using
-	obsolete `translation-table-for-input'.
+	* textmodes/ispell.el (ispell-insert-word) Remove unneeded function
+	using obsolete `translation-table-for-input'.
 	(ispell-word, ispell-process-line, ispell-complete-word):
 	Use plain `insert' instead of removed `ispell-insert-word'.
 
@@ -3806,11 +3940,11 @@
 
 2012-04-12  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
-	* ispell.el (ispell-set-spellchecker-params): Post-process
+	* textmodes/ispell.el (ispell-set-spellchecker-params): Post-process
 	`ispell-dictionary-alist' to use [:alpha:] and utf-8 if possible.
 	(ispell-dictionary-base-alist): Revert to original XEmacs
 	friendly version for default.  [:alpha:] will be added in
-	`ispell-set-spellchecker-params' if needed
+	`ispell-set-spellchecker-params' if needed.
 
 2012-04-16  Chong Yidong  <cyd@gnu.org>
 
@@ -4323,7 +4457,7 @@
 
 2012-03-30  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
-	* ispell.el (ispell-get-extended-character-mode):
+	* textmodes/ispell.el (ispell-get-extended-character-mode):
 	Disable extended-char-mode for hunspell.  hunspell does not support it
 	and treats ~word as ordinary words in pipe mode.
 
@@ -15546,7 +15680,7 @@
 	* vc/log-view.el:
 	* vc/smerge-mode.el:
 	* textmodes/bibtex-style.el:
-	* textmodes/css.el:
+	* textmodes/css-mode.el:
 	* startup.el:
 	* uniquify.el:
 	* minibuffer.el:
