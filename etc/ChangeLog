@@ -1,3 +1,11 @@
+2012-07-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tutorials/TUTORIAL.es: Sync with changes in revno:108936.
+
+2012-07-07  Michael Witten  <mfwitten@gmail.com>  (tiny change)
+
+	* tutorials/TUTORIAL: Copyedits (Bug#11689).
+
 2012-06-28  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.py, emacs2.py, emacs3.py: Remove files, no longer used.

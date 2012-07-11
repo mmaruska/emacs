@@ -1,3 +1,152 @@
+2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.ac (tzset): Remove check that's redundant with gnulib.
+
+2012-07-11  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (CLASH_DETECTION): Define unconditionally.
+
+	* configure.ac (opsysfile): Use bsd-common on gnu systems.
+
+	* configure.ac (GNU_LIBRARY_PENDING_OUTPUT_COUNT):
+	(SIGNALS_VIA_CHARACTERS): Move here from src/s.
+
+2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume mkdir, rename, rmdir, strerror.
+	* configure.ac (mkdir, rename, rmdir, strerror): Remove check.
+
+2012-07-11  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (DONT_REOPEN_PTY): Move here from src/s.
+
+	* configure.ac (DEFAULT_SOUND_DEVICE): New definition.
+
+2012-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove "#define unix" that is no longer needed (Bug#11905).
+	Merge from gnulib to make "#define unix" unnecessary, incorporating:
+	2012-07-10 getloadavg: clean out old Emacs and Autoconf cruft
+	2012-07-09 getopt: Simplify after Emacs changed.
+
+2012-07-10  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (DATA_START, DATA_SEG_BITS, PENDING_OUTPUT_COUNT):
+	Move here from src/s.
+
+2012-07-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.ac (PNG_DEPSTRUCT): Define this instead of
+	PNG_DEPRECATED.
+
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Add GCC-style 'const' attribute to functions that can use it.
+	* configure.ac (WARN_CFLAGS): Add -Wsuggest-attribute=const.
+	(ATTRIBUTE_CONST): New macro, in config.h.
+
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lib/makefile.w32-in: Rework dependencies.
+	(GNU_LIB, NT_INC, C_CTYPE_H, MS_W32_H, CONFIG_H, FILEMODE_H)
+	(FTOASTR_H, FTOASTR_C, GETOPT_INT_H, MD5_H, SHA1_H, SHA256_H)
+	(U64_H, SHA512_H): New macros.
+	(SRC): Redefine to point to src/, not current directory.
+	($(BLD)/c-ctype.$(O), $(BLD)/c-strcasecmp.$(O))
+	($(BLD)/c-strncasecmp.$(O), $(BLD)/dtoastr.$(O))
+	($(BLD)/dtotimespec.$(O), $(BLD)/getopt.$(O), $(BLD)/getopt1.$(O))
+	($(BLD)/gettime.$(O), $(BLD)/strftime.$(O), $(BLD)/time_r.$(O))
+	($(BLD)/timespec-add.$(O), $(BLD)/timespec-sub.$(O), $(BLD)/md5.$(O))
+	($(BLD)/sha1.$(O), $(BLD)/sha256.$(O), $(BLD)/sha512.$(O))
+	($(BLD)/filemode.$(O)): Update dependencies.
+
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2012-07-09 timespec: mark functions with const attributes
+
+	Rename configure.in to configure.ac (Bug#11603).
+	The name 'configure.in' has been obsolescent for quite some time,
+	and the next release of Autoconf will generate warnings for it.
+	See commit 'v2.69-4-g560f16b' of 2012-05-06, "general: deprecate
+	'configure.in' as autoconf input" in the Autoconf git repository.
+	* configure.ac: Rename from configure.in.
+	* INSTALL, INSTALL.BZR, README, make-dist:
+	* Makefile.in (AUTOCONF_INPUTS):
+	* autogen.sh (autoconf_min):
+	* autogen/update_autogen (sources):
+	Adjust to reflect new name.
+
+2012-07-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Restore deprecation warnings, except for older libpng.
+	* configure.in (WARN_CFLAGS): Remove -Wno-deprecated-declarations.
+	(HAVE_LIBPNG_PNG_H): Don't bother checking for this if we have png.h.
+	(PNG_DEPRECATED): Define when compiling with older PNG versions.
+
+2012-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in (WARN_CFLAGS): Add -Wno-deprecated-declarations.
+
+2012-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve static checking when configured --with-ns.
+	See Samuel Bronson's remarks in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00146.html>.
+	* configure.in (WARN_CFLAGS): Omit -Wunreachable-code, as it's
+	a no-op with recent GCC and harmful in earlier ones.
+	Omit -Wsync-nand, as it's irrelevant to Emacs and provokes a
+	warning when compiling with ObjC.  Always omit
+	-Wunsafe-loop-optimizations, as we don't mind when optimization is
+	being done correctly.
+
+2012-07-07  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (BROKEN_SA_RESTART): Doc fix.
+
+	* configure.in: Rather than checking for things then undef'ing
+	them on some platforms, simply don't check for them.
+	(getwd): Don't check for it on unixware.
+	(random, rint): Don't check for these on hpux.
+	(res_init, libresolv): Don't check for these on darwin.
+
+2012-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lib/makefile.w32-in (GNULIBOBJS): Add $(BLD)/c-ctype.$(O),
+	$(BLD)/c-strcasecmp.$(O) and $(BLD)/c-strncasecmp.$(O).
+	($(BLD)/c-ctype.$(O), $(BLD)/c-strcasecmp.$(O))
+	($(BLD)/c-strncasecmp.$(O)): New dependencies.
+
+2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in: Document --enable-gcc-warnings better.
+
+	Use c_strcasecmp for ASCII case-insensitive comparison (Bug#11786).
+	This is safer than strcasecmp, which has unspecified behavior
+	outside the POSIX locale and in practice sometimes does not work
+	in multibyte locales.  Similarly for c_strncasecmp and strncasecmp.
+	* configure.in (strcasecmp, strncasecmp): Remove checks.
+
+	* lib/c-ctype.c, lib/c-ctype.h, lib/c-strcase.h, lib/c-strcasecmp.c:
+	* lib/c-strncasecmp.c: New files, taken from gnulib.
+	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
+
+	Merge from gnulib, incorporating:
+	2012-07-06 timespec-sub: avoid duplicate include
+	Reported by Juanma Barranquero.
+
+2012-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist [update]: Let autoreconf figure out what needs updating.
+	Use `make info-real'.  leim/leim-list.el should always exist.
+	Check cd return value.
+
+2012-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.  This is for OpenBSD 5.1 amd64.
+	* m4/sys_time_h.m4: New version from gnulib, incorporating:
+	2012-07-05 sys_time: allow too-wide tv_sec
+
 2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib.
@@ -758,7 +907,7 @@
 2011-12-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port HAVE_PTHREAD configuration to MirBSD 10 (Bug#10201).
-	* configure.in (HAVE_PTHREAD): Check for pthread_atfork	if linking
+	* configure.in (HAVE_PTHREAD): Check for pthread_atfork if linking
 	to gmalloc.c.  This should prevent a MirBSD 10 build failure reported
 	by Nelson H. F. Beebe in
 	<http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00065.html>.
@@ -4838,7 +4987,7 @@
 
 2005-06-08  Steven Tamm  <steventamm@mac.com>
 
-	* configure.in: Support Darwin/MacOSX on Intel
+	* configure.in: Support Darwin/MacOSX on Intel.
 
 2005-06-06  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -5323,7 +5472,7 @@
 
 2003-01-19  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* configure.in: Add --with-gtk, --with-x-toolkit=gtk
+	* configure.in: Add --with-gtk, --with-x-toolkit=gtk.
 
 	* INSTALL (DETAILED BUILDING AND INSTALLATION): Add text about GTK.
 
@@ -5336,7 +5485,7 @@
 	* configure.in: New option, --enable-carbon-app, to specify
 	that the application should be installed
 	* Makefile.in (install-arch-dep): On Mac OS X, install the
-	Emacs.app application if carbon-app is enabled
+	Emacs.app application if carbon-app is enabled.
 
 2003-01-06  Dave Love  <fx@gnu.org>
 
@@ -8329,7 +8478,7 @@
 
 1994-09-21  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
-	* configure.in (i[345]86-sequent-ptx*): Handle
+	* configure.in (i[345]86-sequent-ptx*): Handle.
 
 1994-09-20  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -8341,7 +8490,7 @@
 
 1994-09-18  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
-	* Makefile.in (install-arch-indep): Copy DOC-*, not DOC*
+	* Makefile.in (install-arch-indep): Copy DOC-*, not DOC*.
 
 	* configure.in: Add AC_AIX.
 	Add checks to set HAVE_STRUCT_UTIMBUF, HAVE_TIMEVAL, HAVE_SELECT.

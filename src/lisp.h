@@ -2336,6 +2336,8 @@ extern Lisp_Object Qinteger;
 
 extern Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 
+EXFUN (Fbyteorder, 0) ATTRIBUTE_CONST;
+
 /* Defined in frame.c */
 extern Lisp_Object Qframep;
 
@@ -2395,11 +2397,12 @@ extern void init_coding_once (void);
 extern void syms_of_coding (void);
 
 /* Defined in character.c */
+EXFUN (Fmax_char, 0) ATTRIBUTE_CONST;
 extern ptrdiff_t chars_in_text (const unsigned char *, ptrdiff_t);
 extern ptrdiff_t multibyte_chars_in_text (const unsigned char *, ptrdiff_t);
-extern int multibyte_char_to_unibyte (int);
-extern int multibyte_char_to_unibyte_safe (int);
-extern void init_character_once (void);
+extern int multibyte_char_to_unibyte (int) ATTRIBUTE_CONST;
+extern int multibyte_char_to_unibyte_safe (int) ATTRIBUTE_CONST;
+extern void init_character_once (void) ATTRIBUTE_CONST;
 extern void syms_of_character (void);
 
 /* Defined in charset.c */
@@ -2419,7 +2422,8 @@ extern void syms_of_syntax (void);
 /* Defined in fns.c */
 extern Lisp_Object QCrehash_size, QCrehash_threshold;
 enum { NEXT_ALMOST_PRIME_LIMIT = 11 };
-extern EMACS_INT next_almost_prime (EMACS_INT);
+EXFUN (Fidentity, 1) ATTRIBUTE_CONST;
+extern EMACS_INT next_almost_prime (EMACS_INT) ATTRIBUTE_CONST;
 extern Lisp_Object larger_vector (Lisp_Object, ptrdiff_t, ptrdiff_t);
 extern void sweep_weak_hash_tables (void);
 extern Lisp_Object Qcursor_in_echo_area;
@@ -2434,7 +2438,7 @@ ptrdiff_t hash_lookup (struct Lisp_Hash_Table *, Lisp_Object, EMACS_UINT *);
 ptrdiff_t hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 		    EMACS_UINT);
 void init_weak_hash_tables (void);
-extern void init_fns (void);
+extern void init_fns (void) ATTRIBUTE_CONST;
 
 extern Lisp_Object substring_both (Lisp_Object, ptrdiff_t, ptrdiff_t,
 				   ptrdiff_t, ptrdiff_t);
@@ -2470,7 +2474,7 @@ extern Lisp_Object QCascent, QCmargin, QCrelief;
 extern Lisp_Object QCconversion;
 extern int x_bitmap_mask (struct frame *, ptrdiff_t);
 extern void syms_of_image (void);
-extern void init_image (void);
+extern void init_image (void) ATTRIBUTE_CONST;
 
 /* Defined in insdel.c */
 extern Lisp_Object Qinhibit_modification_hooks;
@@ -2611,6 +2615,8 @@ extern Lisp_Object list5 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object,
 extern Lisp_Object allocate_misc (void);
 extern _Noreturn void string_overflow (void);
 extern Lisp_Object make_string (const char *, ptrdiff_t);
+extern Lisp_Object make_formatted_string (char *, const char *, ...)
+  ATTRIBUTE_FORMAT_PRINTF (2, 3);
 extern Lisp_Object make_unibyte_string (const char *, ptrdiff_t);
 extern Lisp_Object make_multibyte_string (const char *, ptrdiff_t, ptrdiff_t);
 extern Lisp_Object make_event_array (int, Lisp_Object *);
@@ -2620,7 +2626,15 @@ extern Lisp_Object make_string_from_bytes (const char *, ptrdiff_t, ptrdiff_t);
 extern Lisp_Object make_specified_string (const char *,
 					  ptrdiff_t, ptrdiff_t, int);
 extern Lisp_Object make_pure_string (const char *, ptrdiff_t, ptrdiff_t, int);
-extern Lisp_Object make_pure_c_string (const char *data);
+extern Lisp_Object make_pure_c_string (const char *, ptrdiff_t);
+
+/* Make a string allocated in pure space, use STR as string data.  */
+
+static inline Lisp_Object
+build_pure_c_string (const char *str)
+{
+  return make_pure_c_string (str, strlen (str));
+}
 
 /* Make a string from the data at STR, treating it as multibyte if the
    data warrants.  */
@@ -2720,8 +2734,8 @@ extern ptrdiff_t evxprintf (char **, ptrdiff_t *, char const *, ptrdiff_t,
 extern Lisp_Object Qvariable_documentation, Qstandard_input;
 extern Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
 extern Lisp_Object check_obarray (Lisp_Object);
-extern Lisp_Object intern (const char *);
-extern Lisp_Object intern_c_string (const char *);
+extern Lisp_Object intern_1 (const char *, ptrdiff_t);
+extern Lisp_Object intern_c_string_1 (const char *, ptrdiff_t);
 extern Lisp_Object oblookup (Lisp_Object, const char *, ptrdiff_t, ptrdiff_t);
 #define LOADHIST_ATTACH(x) \
   do {									\
@@ -2737,6 +2751,18 @@ extern void close_load_descs (void);
 extern void init_obarray (void);
 extern void init_lread (void);
 extern void syms_of_lread (void);
+
+static inline Lisp_Object
+intern (const char *str)
+{
+  return intern_1 (str, strlen (str));
+}
+
+static inline Lisp_Object
+intern_c_string (const char *str)
+{
+  return intern_c_string_1 (str, strlen (str));
+}
 
 /* Defined in eval.c.  */
 extern Lisp_Object Qautoload, Qexit, Qinteractive, Qcommandp, Qmacro;
@@ -2853,6 +2879,7 @@ extern Lisp_Object set_marker_restricted (Lisp_Object, Lisp_Object, Lisp_Object)
 extern Lisp_Object set_marker_both (Lisp_Object, Lisp_Object, ptrdiff_t, ptrdiff_t);
 extern Lisp_Object set_marker_restricted_both (Lisp_Object, Lisp_Object,
                                                ptrdiff_t, ptrdiff_t);
+extern Lisp_Object build_marker (struct buffer *, ptrdiff_t, ptrdiff_t);
 extern void syms_of_marker (void);
 
 /* Defined in fileio.c */
@@ -2881,7 +2908,8 @@ extern struct re_pattern_buffer *compile_pattern (Lisp_Object,
 						  struct re_registers *,
 						  Lisp_Object, int, int);
 extern ptrdiff_t fast_string_match (Lisp_Object, Lisp_Object);
-extern ptrdiff_t fast_c_string_match_ignore_case (Lisp_Object, const char *);
+extern ptrdiff_t fast_c_string_match_ignore_case (Lisp_Object, const char *,
+						  ptrdiff_t);
 extern ptrdiff_t fast_string_match_ignore_case (Lisp_Object, Lisp_Object);
 extern ptrdiff_t fast_looking_at (Lisp_Object, ptrdiff_t, ptrdiff_t,
                                   ptrdiff_t, ptrdiff_t, Lisp_Object);
@@ -2957,8 +2985,6 @@ extern int indented_beyond_p (ptrdiff_t, ptrdiff_t, EMACS_INT);
 extern void syms_of_indent (void);
 
 /* Defined in frame.c */
-#ifdef HAVE_WINDOW_SYSTEM
-#endif /* HAVE_WINDOW_SYSTEM */
 extern Lisp_Object Qonly;
 extern Lisp_Object Qvisible;
 extern void store_frame_param (struct frame *, Lisp_Object, Lisp_Object);
@@ -3118,7 +3144,7 @@ extern void init_all_sys_modes (void);
 extern void reset_all_sys_modes (void);
 extern void wait_for_termination (pid_t);
 extern void interruptible_wait_for_termination (pid_t);
-extern void flush_pending_output (int);
+extern void flush_pending_output (int) ATTRIBUTE_CONST;
 extern void child_setup_tty (int);
 extern void setup_pty (int);
 extern int set_window_size (int, int, int);
@@ -3140,7 +3166,7 @@ extern void init_filelock (void);
 
 /* Defined in sound.c */
 extern void syms_of_sound (void);
-extern void init_sound (void);
+extern void init_sound (void) ATTRIBUTE_CONST;
 
 /* Defined in category.c */
 extern void init_category_once (void);

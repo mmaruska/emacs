@@ -381,7 +381,7 @@ string is passed through `substitute-command-keys'.  */)
     }
   else if (CONSP (fun))
     {
-      funcar = Fcar (fun);
+      funcar = XCAR (fun);
       if (!SYMBOLP (funcar))
 	xsignal1 (Qinvalid_function, fun);
       else if (EQ (funcar, Qkeymap))
@@ -577,14 +577,13 @@ the same file name is found in the `doc-directory'.  */)
       (0)
 #endif /* CANNOT_DUMP */
     {
-      name = (char *) alloca (SCHARS (filename) + 14);
+      name = alloca (SCHARS (filename) + 14);
       strcpy (name, "../etc/");
     }
   else
     {
       CHECK_STRING (Vdoc_directory);
-      name = (char *) alloca (SCHARS (filename)
-			  + SCHARS (Vdoc_directory) + 1);
+      name = alloca (SCHARS (filename) + SCHARS (Vdoc_directory) + 1);
       strcpy (name, SSDATA (Vdoc_directory));
     }
   strcat (name, SSDATA (filename)); 	/*** Add this line ***/
@@ -646,7 +645,7 @@ the same file name is found in the `doc-directory'.  */)
                 {
                   ptrdiff_t len = end - p - 2;
                   char *fromfile = alloca (len + 1);
-                  strncpy (fromfile, &p[2], len);
+                  memcpy (fromfile, &p[2], len);
                   fromfile[len] = 0;
                   if (fromfile[len-1] == 'c')
                     fromfile[len-1] = 'o';
@@ -828,7 +827,7 @@ Otherwise, return a new string, without any text properties.  */)
 	      ptrdiff_t offset = bufp - buf;
 	      if (STRING_BYTES_BOUND - 4 < bsize)
 		string_overflow ();
-	      buf = (char *) xrealloc (buf, bsize += 4);
+	      buf = xrealloc (buf, bsize += 4);
 	      bufp = buf + offset;
 	      memcpy (bufp, "M-x ", 4);
 	      bufp += 4;
@@ -924,7 +923,7 @@ Otherwise, return a new string, without any text properties.  */)
 	    ptrdiff_t offset = bufp - buf;
 	    if (STRING_BYTES_BOUND - length_byte < bsize)
 	      string_overflow ();
-	    buf = (char *) xrealloc (buf, bsize += length_byte);
+	    buf = xrealloc (buf, bsize += length_byte);
 	    bufp = buf + offset;
 	    memcpy (bufp, start, length_byte);
 	    bufp += length_byte;

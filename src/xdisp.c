@@ -1251,6 +1251,23 @@ string_from_display_spec (Lisp_Object spec)
   return spec;
 }
 
+
+/* Limit insanely large values of W->hscroll on frame F to the largest
+   value that will still prevent first_visible_x and last_visible_x of
+   'struct it' from overflowing an int.  */
+static inline int
+window_hscroll_limited (struct window *w, struct frame *f)
+{
+  ptrdiff_t window_hscroll = w->hscroll;
+  int window_text_width = window_box_width (w, TEXT_AREA);
+  int colwidth = FRAME_COLUMN_WIDTH (f);
+
+  if (window_hscroll > (INT_MAX - window_text_width) / colwidth - 1)
+    window_hscroll = (INT_MAX - window_text_width) / colwidth - 1;
+
+  return window_hscroll;
+}
+
 /* Return 1 if position CHARPOS is visible in window W.
    CHARPOS < 0 means return info about WINDOW_END position.
    If visible, set *X and *Y to pixel coordinates of top left corner.
@@ -1563,7 +1580,9 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
   current_header_line_height = current_mode_line_height = -1;
 
   if (visible_p && w->hscroll > 0)
-    *x -= w->hscroll * WINDOW_FRAME_COLUMN_WIDTH (w);
+    *x -=
+      window_hscroll_limited (w, WINDOW_XFRAME (w))
+      * WINDOW_FRAME_COLUMN_WIDTH (w);
 
 #if 0
   /* Debugging code.  */
@@ -2712,30 +2731,27 @@ init_iterator (struct it *it, struct window *w,
     it->line_wrap = TRUNCATE;
 
   /* Get dimensions of truncation and continuation glyphs.  These are
-     displayed as fringe bitmaps under X, so we don't need them for such
-     frames.  */
-  if (!FRAME_WINDOW_P (it->f))
+     displayed as fringe bitmaps under X, but we need them for such
+     frames when the fringes are turned off.  */
+  if (it->line_wrap == TRUNCATE)
     {
-      if (it->line_wrap == TRUNCATE)
-	{
-	  /* We will need the truncation glyph.  */
-	  eassert (it->glyph_row == NULL);
-	  produce_special_glyphs (it, IT_TRUNCATION);
-	  it->truncation_pixel_width = it->pixel_width;
-	}
-      else
-	{
-	  /* We will need the continuation glyph.  */
-	  eassert (it->glyph_row == NULL);
-	  produce_special_glyphs (it, IT_CONTINUATION);
-	  it->continuation_pixel_width = it->pixel_width;
-	}
-
-      /* Reset these values to zero because the produce_special_glyphs
-	 above has changed them.  */
-      it->pixel_width = it->ascent = it->descent = 0;
-      it->phys_ascent = it->phys_descent = 0;
+      /* We will need the truncation glyph.  */
+      eassert (it->glyph_row == NULL);
+      produce_special_glyphs (it, IT_TRUNCATION);
+      it->truncation_pixel_width = it->pixel_width;
     }
+  else
+    {
+      /* We will need the continuation glyph.  */
+      eassert (it->glyph_row == NULL);
+      produce_special_glyphs (it, IT_CONTINUATION);
+      it->continuation_pixel_width = it->pixel_width;
+    }
+
+  /* Reset these values to zero because the produce_special_glyphs
+     above has changed them.  */
+  it->pixel_width = it->ascent = it->descent = 0;
+  it->phys_ascent = it->phys_descent = 0;
 
   /* Set this after getting the dimensions of truncation and
      continuation glyphs, so that we don't produce glyphs when calling
@@ -2759,16 +2775,19 @@ init_iterator (struct it *it, struct window *w,
     }
   else
     {
-      it->first_visible_x
-	= it->w->hscroll * FRAME_COLUMN_WIDTH (it->f);
+      it->first_visible_x =
+	window_hscroll_limited (it->w, it->f) * FRAME_COLUMN_WIDTH (it->f);
       it->last_visible_x = (it->first_visible_x
 			    + window_box_width (w, TEXT_AREA));
 
-      /* If we truncate lines, leave room for the truncator glyph(s) at
+      /* If we truncate lines, leave room for the truncation glyph(s) at
 	 the right margin.  Otherwise, leave room for the continuation
-	 glyph(s).  Truncation and continuation glyphs are not inserted
-	 for window-based redisplay.  */
-      if (!FRAME_WINDOW_P (it->f))
+	 glyph(s).  Done only if the window has no fringes.  Since we
+	 don't know at this point whether there will be any R2L lines in
+	 the window, we reserve space for truncation/continuation glyphs
+	 even if only one of the fringes is absent.  */
+      if (WINDOW_RIGHT_FRINGE_WIDTH (it->w) == 0
+	  || (it->bidi_p && WINDOW_LEFT_FRINGE_WIDTH (it->w) == 0))
 	{
 	  if (it->line_wrap == TRUNCATE)
 	    it->last_visible_x -= it->truncation_pixel_width;
@@ -2904,7 +2923,10 @@ start_display (struct it *it, struct window *w, struct text_pos pos)
 		  /* Or it fits exactly and we're on a window
 		     system frame.  */
 		  || (new_x == it->last_visible_x
-		      && FRAME_WINDOW_P (it->f))))
+		      && FRAME_WINDOW_P (it->f)
+		      && ((it->bidi_p && it->bidi_it.paragraph_dir == R2L)
+			  ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
+			  : WINDOW_RIGHT_FRINGE_WIDTH (it->w)))))
 	    {
 	      if ((it->current.dpvec_index >= 0
 		   || it->current.overlay_string_index >= 0)
@@ -5381,8 +5403,7 @@ load_overlay_strings (struct it *it, ptrdiff_t charpos)
   ptrdiff_t size = 20;
   ptrdiff_t n = 0, i, j;
   int invis_p;
-  struct overlay_entry *entries
-    = (struct overlay_entry *) alloca (size * sizeof *entries);
+  struct overlay_entry *entries = alloca (size * sizeof *entries);
   USE_SAFE_ALLOCA;
 
   if (charpos <= 0)
@@ -8309,7 +8330,10 @@ move_it_in_display_line_to (struct it *it,
 		      /* Or it fits exactly and we're on a window
 			 system frame.  */
 		      || (new_x == it->last_visible_x
-			  && FRAME_WINDOW_P (it->f))))
+			  && FRAME_WINDOW_P (it->f)
+			  && ((it->bidi_p && it->bidi_it.paragraph_dir == R2L)
+			      ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
+			      : WINDOW_RIGHT_FRINGE_WIDTH (it->w)))))
 		{
 		  if (/* IT->hpos == 0 means the very first glyph
 			 doesn't fit on the line, e.g. a wide image.  */
@@ -8491,6 +8515,9 @@ move_it_in_display_line_to (struct it *it,
 	  && it->current_x >= it->last_visible_x)
 	{
 	  if (!FRAME_WINDOW_P (it->f)
+	      || ((it->bidi_p && it->bidi_it.paragraph_dir == R2L)
+		  ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
+		  : WINDOW_RIGHT_FRINGE_WIDTH (it->w))
 	      || IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 	    {
 	      int at_eob_p = 0;
@@ -9839,8 +9866,8 @@ ensure_echo_area_buffers (void)
 	int j;
 
 	old_buffer = echo_buffer[i];
-	sprintf (name, " *Echo Area %d*", i);
-	echo_buffer[i] = Fget_buffer_create (build_string (name));
+	echo_buffer[i] = Fget_buffer_create
+	  (make_formatted_string (name, " *Echo Area %d*", i));
 	BVAR (XBUFFER (echo_buffer[i]), truncate_lines) = Qnil;
 	/* to force word wrap in echo area -
 	   it was decided to postpone this*/
@@ -12465,23 +12492,21 @@ static void debug_method_add (struct window *, char const *, ...)
 static void
 debug_method_add (struct window *w, char const *fmt, ...)
 {
-  char buffer[512];
   char *method = w->desired_matrix->method;
   int len = strlen (method);
   int size = sizeof w->desired_matrix->method;
   int remaining = size - len - 1;
   va_list ap;
 
-  va_start (ap, fmt);
-  vsprintf (buffer, fmt, ap);
-  va_end (ap);
   if (len && remaining)
     {
       method[len] = '|';
       --remaining, ++len;
     }
 
-  strncpy (method + len, buffer, remaining);
+  va_start (ap, fmt);
+  vsnprintf (method + len, remaining + 1, fmt, ap);
+  va_end (ap);
 
   if (trace_redisplay_p)
     fprintf (stderr, "%p (%s): %s\n",
@@ -12490,7 +12515,7 @@ debug_method_add (struct window *w, char const *fmt, ...)
 	       && STRINGP (BVAR (XBUFFER (w->buffer), name)))
 	      ? SSDATA (BVAR (XBUFFER (w->buffer), name))
 	      : "no buffer"),
-	     buffer);
+	     method + len);
 }
 
 #endif /* GLYPH_DEBUG */
@@ -14930,7 +14955,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
     return rc;
 #endif
 
-  /* Previously, there was a check for Lisp integer in the 
+  /* Previously, there was a check for Lisp integer in the
      if-statement below. Now, this field is converted to
      ptrdiff_t, thus zero means invalid position in a buffer.  */
   eassert (w->last_point > 0);
@@ -17993,7 +18018,7 @@ dump_glyph_row (struct glyph_row *row, int vpos, int glyphs)
 
       for (area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
 	{
-	  char *s = (char *) alloca (row->used[area] + 1);
+	  char *s = alloca (row->used[area] + 1);
 	  int i;
 
 	  for (i = 0; i < row->used[area]; ++i)
@@ -18185,11 +18210,8 @@ get_overlay_arrow_glyph_row (struct window *w, Lisp_Object overlay_arrow_string)
 }
 
 
-/* Insert truncation glyphs at the start of IT->glyph_row.  Truncation
-   glyphs are only inserted for terminal frames since we can't really
-   win with truncation glyphs when partially visible glyphs are
-   involved.  Which glyphs to insert is determined by
-   produce_special_glyphs.  */
+/* Insert truncation glyphs at the start of IT->glyph_row.  Which
+   glyphs to insert is determined by produce_special_glyphs.  */
 
 static void
 insert_left_trunc_glyphs (struct it *it)
@@ -18197,7 +18219,11 @@ insert_left_trunc_glyphs (struct it *it)
   struct it truncate_it;
   struct glyph *from, *end, *to, *toend;
 
-  eassert (!FRAME_WINDOW_P (it->f));
+  eassert (!FRAME_WINDOW_P (it->f)
+	   || (!it->glyph_row->reversed_p
+	       && WINDOW_LEFT_FRINGE_WIDTH (it->w) == 0)
+	   || (it->glyph_row->reversed_p
+	       && WINDOW_RIGHT_FRINGE_WIDTH (it->w) == 0));
 
   /* Get the truncation glyphs.  */
   truncate_it = *it;
@@ -18212,20 +18238,66 @@ insert_left_trunc_glyphs (struct it *it)
   /* Overwrite glyphs from IT with truncation glyphs.  */
   if (!it->glyph_row->reversed_p)
     {
+      short tused = truncate_it.glyph_row->used[TEXT_AREA];
+
       from = truncate_it.glyph_row->glyphs[TEXT_AREA];
-      end = from + truncate_it.glyph_row->used[TEXT_AREA];
+      end = from + tused;
       to = it->glyph_row->glyphs[TEXT_AREA];
       toend = to + it->glyph_row->used[TEXT_AREA];
+      if (FRAME_WINDOW_P (it->f))
+	{
+	  /* On GUI frames, when variable-size fonts are displayed,
+	     the truncation glyphs may need more pixels than the row's
+	     glyphs they overwrite.  We overwrite more glyphs to free
+	     enough screen real estate, and enlarge the stretch glyph
+	     on the right (see display_line), if there is one, to
+	     preserve the screen position of the truncation glyphs on
+	     the right.  */
+	  int w = 0;
+	  struct glyph *g = to;
+	  short used;
+
+	  while (g < toend && it->glyph_row->x + w < 0)
+	    {
+	      w += g->pixel_width;
+	      ++g;
+	    }
+	  it->glyph_row->x = 0;
+	  w = 0;
+	  while (g < toend && w < it->truncation_pixel_width)
+	    {
+	      w += g->pixel_width;
+	      ++g;
+	    }
+	  if (g - to - tused > 0)
+	    {
+	      memmove (to + tused, g, toend - g);
+	      it->glyph_row->used[TEXT_AREA] -= g - to - tused;
+	    }
+	  used = it->glyph_row->used[TEXT_AREA];
+	  if (it->glyph_row->truncated_on_right_p
+	      && WINDOW_RIGHT_FRINGE_WIDTH (it->w) == 0
+	      && it->glyph_row->glyphs[TEXT_AREA][used - 2].type
+	      == STRETCH_GLYPH)
+	    {
+	      int extra = w - it->truncation_pixel_width;
+
+	      it->glyph_row->glyphs[TEXT_AREA][used - 2].pixel_width += extra;
+	    }
+	}
 
       while (from < end)
 	*to++ = *from++;
 
       /* There may be padding glyphs left over.  Overwrite them too.  */
-      while (to < toend && CHAR_GLYPH_PADDING_P (*to))
+      if (!FRAME_WINDOW_P (it->f))
 	{
-	  from = truncate_it.glyph_row->glyphs[TEXT_AREA];
-	  while (from < end)
-	    *to++ = *from++;
+	  while (to < toend && CHAR_GLYPH_PADDING_P (*to))
+	    {
+	      from = truncate_it.glyph_row->glyphs[TEXT_AREA];
+	      while (from < end)
+		*to++ = *from++;
+	    }
 	}
 
       if (to > toend)
@@ -18233,22 +18305,48 @@ insert_left_trunc_glyphs (struct it *it)
     }
   else
     {
+      short tused = truncate_it.glyph_row->used[TEXT_AREA];
+
       /* In R2L rows, overwrite the last (rightmost) glyphs, and do
 	 that back to front.  */
       end = truncate_it.glyph_row->glyphs[TEXT_AREA];
       from = end + truncate_it.glyph_row->used[TEXT_AREA] - 1;
       toend = it->glyph_row->glyphs[TEXT_AREA];
       to = toend + it->glyph_row->used[TEXT_AREA] - 1;
+      if (FRAME_WINDOW_P (it->f))
+	{
+	  int w = 0;
+	  struct glyph *g = to;
+
+	  while (g >= toend && w < it->truncation_pixel_width)
+	    {
+	      w += g->pixel_width;
+	      --g;
+	    }
+	  if (to - g - tused > 0)
+	    to = g + tused;
+	  if (it->glyph_row->truncated_on_right_p
+	      && WINDOW_LEFT_FRINGE_WIDTH (it->w) == 0
+	      && it->glyph_row->glyphs[TEXT_AREA][1].type == STRETCH_GLYPH)
+	    {
+	      int extra = w - it->truncation_pixel_width;
+
+	      it->glyph_row->glyphs[TEXT_AREA][1].pixel_width += extra;
+	    }
+	}
 
       while (from >= end && to >= toend)
 	*to-- = *from--;
-      while (to >= toend && CHAR_GLYPH_PADDING_P (*to))
+      if (!FRAME_WINDOW_P (it->f))
 	{
-	  from =
-	    truncate_it.glyph_row->glyphs[TEXT_AREA]
-	    + truncate_it.glyph_row->used[TEXT_AREA] - 1;
-	  while (from >= end && to >= toend)
-	    *to-- = *from--;
+	  while (to >= toend && CHAR_GLYPH_PADDING_P (*to))
+	    {
+	      from =
+		truncate_it.glyph_row->glyphs[TEXT_AREA]
+		+ truncate_it.glyph_row->used[TEXT_AREA] - 1;
+	      while (from >= end && to >= toend)
+		*to-- = *from--;
+	    }
 	}
       if (from >= end)
 	{
@@ -19158,9 +19256,22 @@ display_line (struct it *it)
      if the first glyph is partially visible or if we hit a line end.  */
   if (it->current_x < it->first_visible_x)
     {
+      enum move_it_result move_result;
+
       this_line_min_pos = row->start.pos;
-      move_it_in_display_line_to (it, ZV, it->first_visible_x,
-				  MOVE_TO_POS | MOVE_TO_X);
+      move_result = move_it_in_display_line_to (it, ZV, it->first_visible_x,
+						MOVE_TO_POS | MOVE_TO_X);
+      /* If we are under a large hscroll, move_it_in_display_line_to
+	 could hit the end of the line without reaching
+	 it->first_visible_x.  Pretend that we did reach it.  This is
+	 especially important on a TTY, where we will call
+	 extend_face_to_end_of_line, which needs to know how many
+	 blank glyphs to produce.  */
+      if (it->current_x < it->first_visible_x
+	  && (move_result == MOVE_NEWLINE_OR_CR
+	      || move_result == MOVE_POS_MATCH_OR_ZV))
+	it->current_x = it->first_visible_x;
+
       /* Record the smallest positions seen while we moved over
 	 display elements that are not visible.  This is needed by
 	 redisplay_internal for optimizing the case where the cursor
@@ -19361,13 +19472,19 @@ display_line (struct it *it)
 		      new_x > it->last_visible_x
 		      /* Or it fits exactly on a window system frame.  */
 		      || (new_x == it->last_visible_x
-			  && FRAME_WINDOW_P (it->f))))
+			  && FRAME_WINDOW_P (it->f)
+			  && (row->reversed_p
+			      ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
+			      : WINDOW_RIGHT_FRINGE_WIDTH (it->w)))))
 		{
 		  /* End of a continued line.  */
 
 		  if (it->hpos == 0
 		      || (new_x == it->last_visible_x
-			  && FRAME_WINDOW_P (it->f)))
+			  && FRAME_WINDOW_P (it->f)
+			  && (row->reversed_p
+			      ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
+			      : WINDOW_RIGHT_FRINGE_WIDTH (it->w))))
 		    {
 		      /* Current glyph is the only one on the line or
 			 fits exactly on the line.  We must continue
@@ -19478,6 +19595,10 @@ display_line (struct it *it)
 			 window system frames.  We leave the glyph in
 			 this row and let it fill the row, but don't
 			 consume the TAB.  */
+		      if ((row->reversed_p
+			   ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
+			   : WINDOW_RIGHT_FRINGE_WIDTH (it->w)) == 0)
+			produce_special_glyphs (it, IT_CONTINUATION);
 		      it->continuation_lines_width += it->last_visible_x;
 		      row->ends_in_middle_of_char_p = 1;
 		      row->continued_p = 1;
@@ -19495,7 +19616,10 @@ display_line (struct it *it)
 		      row->used[TEXT_AREA] = n_glyphs_before + i;
 
 		      /* Display continuation glyphs.  */
-		      if (!FRAME_WINDOW_P (it->f))
+		      if (!FRAME_WINDOW_P (it->f)
+			  || (row->reversed_p
+			      ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
+			      : WINDOW_RIGHT_FRINGE_WIDTH (it->w)) == 0)
 			produce_special_glyphs (it, IT_CONTINUATION);
 		      row->continued_p = 1;
 
@@ -19602,12 +19726,15 @@ display_line (struct it *it)
       /* If we truncate lines, we are done when the last displayed
 	 glyphs reach past the right margin of the window.  */
       if (it->line_wrap == TRUNCATE
-	  && (FRAME_WINDOW_P (it->f)
+	  && (FRAME_WINDOW_P (it->f) && WINDOW_RIGHT_FRINGE_WIDTH (it->w)
 	      ? (it->current_x >= it->last_visible_x)
 	      : (it->current_x > it->last_visible_x)))
 	{
 	  /* Maybe add truncation glyphs.  */
-	  if (!FRAME_WINDOW_P (it->f))
+	  if (!FRAME_WINDOW_P (it->f)
+	      || (row->reversed_p
+		  ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
+		  : WINDOW_RIGHT_FRINGE_WIDTH (it->w)) == 0)
 	    {
 	      int i, n;
 
@@ -19632,11 +19759,47 @@ display_line (struct it *it)
 		  i = row->used[TEXT_AREA] - (i + 1);
 		}
 
-	      for (n = row->used[TEXT_AREA]; i < n; ++i)
+	      it->current_x = x_before;
+	      if (!FRAME_WINDOW_P (it->f))
 		{
+		  for (n = row->used[TEXT_AREA]; i < n; ++i)
+		    {
+		      row->used[TEXT_AREA] = i;
+		      produce_special_glyphs (it, IT_TRUNCATION);
+		    }
+		}
+#ifdef HAVE_WINDOW_SYSTEM
+	      else
+		{
+		  /* On a GUI frame, when the right fringe (left
+		     fringe for R2L rows) is turned off, we produce
+		     truncation glyphs preceded by a stretch glyph
+		     whose width is computed such that the truncation
+		     glyphs are aligned at the window margin, even
+		     when very different fonts are used in different
+		     glyph rows.  */
+		  int stretch_width = it->last_visible_x - it->current_x;
+
 		  row->used[TEXT_AREA] = i;
+		  if (stretch_width > 0)
+		    {
+		      struct face *face = FACE_FROM_ID (it->f, it->face_id);
+		      struct font *font =
+			face->font ? face->font : FRAME_FONT (it->f);
+		      int stretch_ascent =
+			(((it->ascent + it->descent)
+			  * FONT_BASE (font)) / FONT_HEIGHT (font));
+		      struct text_pos saved_pos = it->position;
+
+		      memset (&it->position, 0, sizeof it->position);
+		      append_stretch_glyph (it, make_number (0), stretch_width,
+					    it->ascent + it->descent,
+					    stretch_ascent);
+		      it->position = saved_pos;
+		    }
 		  produce_special_glyphs (it, IT_TRUNCATION);
 		}
+#endif
 	    }
 	  else if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 	    {
@@ -19653,6 +19816,7 @@ display_line (struct it *it)
 		  row->exact_window_width_line_p = 1;
 		  goto at_end_of_line;
 		}
+	      it->current_x = x_before;
 	    }
 
 	  row->truncated_on_right_p = 1;
@@ -19660,7 +19824,6 @@ display_line (struct it *it)
 	  reseat_at_next_visible_line_start (it, 0);
 	  row->ends_at_zv_p = FETCH_BYTE (IT_BYTEPOS (*it) - 1) != '\n';
 	  it->hpos = hpos_before;
-	  it->current_x = x_before;
 	  break;
 	}
     }
@@ -19673,7 +19836,10 @@ display_line (struct it *it)
   if (it->first_visible_x
       && IT_CHARPOS (*it) != CHARPOS (row->start.pos))
     {
-      if (!FRAME_WINDOW_P (it->f))
+      if (!FRAME_WINDOW_P (it->f)
+	  || (row->reversed_p
+	      ? WINDOW_RIGHT_FRINGE_WIDTH (it->w)
+	      : WINDOW_LEFT_FRINGE_WIDTH (it->w)) == 0)
 	insert_left_trunc_glyphs (it);
       row->truncated_on_left_p = 1;
     }
@@ -21105,7 +21271,7 @@ decode_mode_spec_coding (Lisp_Object coding_system, register char *buf, int eol_
 	}
       else if (CHARACTERP (eoltype))
 	{
-	  unsigned char *tmp = (unsigned char *) alloca (MAX_MULTIBYTE_LENGTH);
+	  unsigned char *tmp = alloca (MAX_MULTIBYTE_LENGTH);
 	  int c = XFASTINT (eoltype);
 	  eol_str_len = CHAR_STRING (c, tmp);
 	  eol_str = tmp;
@@ -21882,7 +22048,10 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
   if (it->first_visible_x
       && it_charpos > 0)
     {
-      if (!FRAME_WINDOW_P (it->f))
+      if (!FRAME_WINDOW_P (it->f)
+	  || (row->reversed_p
+	      ? WINDOW_RIGHT_FRINGE_WIDTH (it->w)
+	      : WINDOW_LEFT_FRINGE_WIDTH (it->w)) == 0)
 	insert_left_trunc_glyphs (it);
       row->truncated_on_left_p = 1;
     }
@@ -22572,7 +22741,7 @@ fill_glyphless_glyph_string (struct glyph_string *s, int face_id,
   last = s->row->glyphs[s->area] + end;
   voffset = glyph->voffset;
   s->face = FACE_FROM_ID (s->f, face_id);
-  s->font = s->face->font;
+  s->font = s->face->font ? s->face->font : FRAME_FONT (s->f);
   s->nchars = 1;
   s->width = glyph->pixel_width;
   glyph++;
@@ -22978,7 +23147,7 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
 #define BUILD_STRETCH_GLYPH_STRING(START, END, HEAD, TAIL, HL, X, LAST_X)   \
      do									    \
        {								    \
-	 s = (struct glyph_string *) alloca (sizeof *s);		    \
+	 s = alloca (sizeof *s);					    \
 	 INIT_GLYPH_STRING (s, NULL, w, row, area, START, HL);		    \
 	 START = fill_stretch_glyph_string (s, START, END);                 \
 	 append_glyph_string (&HEAD, &TAIL, s);				    \
@@ -22998,7 +23167,7 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
 #define BUILD_IMAGE_GLYPH_STRING(START, END, HEAD, TAIL, HL, X, LAST_X) \
      do									\
        {								\
-	 s = (struct glyph_string *) alloca (sizeof *s);		\
+	 s = alloca (sizeof *s);					\
 	 INIT_GLYPH_STRING (s, NULL, w, row, area, START, HL);		\
 	 fill_image_glyph_string (s);					\
 	 append_glyph_string (&HEAD, &TAIL, s);				\
@@ -23025,8 +23194,8 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
 									   \
 	 face_id = (row)->glyphs[area][START].face_id;			   \
 									   \
-	 s = (struct glyph_string *) alloca (sizeof *s);		   \
-	 char2b = (XChar2b *) alloca ((END - START) * sizeof *char2b);	   \
+	 s = alloca (sizeof *s);					   \
+	 char2b = alloca ((END - START) * sizeof *char2b);		   \
 	 INIT_GLYPH_STRING (s, char2b, w, row, area, START, HL);	   \
 	 append_glyph_string (&HEAD, &TAIL, s);				   \
 	 s->x = (X);							   \
@@ -23054,13 +23223,13 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
     struct glyph_string *first_s = NULL;				    \
     int n;								    \
     									    \
-    char2b = (XChar2b *) alloca ((sizeof *char2b) * cmp->glyph_len);	    \
+    char2b = alloca (cmp->glyph_len * sizeof *char2b);			    \
     									    \
     /* Make glyph_strings for each glyph sequence that is drawable by	    \
        the same face, and append them to HEAD/TAIL.  */			    \
     for (n = 0; n < cmp->glyph_len;)					    \
       {									    \
-	s = (struct glyph_string *) alloca (sizeof *s);			    \
+	s = alloca (sizeof *s);						    \
 	INIT_GLYPH_STRING (s, char2b, w, row, area, START, HL);		    \
 	append_glyph_string (&(HEAD), &(TAIL), s);			    \
 	s->cmp = cmp;							    \
@@ -23088,9 +23257,8 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
     face_id = (row)->glyphs[area][START].face_id;			  \
     gstring = (composition_gstring_from_id				  \
 	       ((row)->glyphs[area][START].u.cmp.id));			  \
-    s = (struct glyph_string *) alloca (sizeof *s);			  \
-    char2b = (XChar2b *) alloca ((sizeof *char2b)			  \
-				 * LGSTRING_GLYPH_LEN (gstring));	  \
+    s = alloca (sizeof *s);						  \
+    char2b = alloca (LGSTRING_GLYPH_LEN (gstring) * sizeof *char2b);	  \
     INIT_GLYPH_STRING (s, char2b, w, row, area, START, HL);		  \
     append_glyph_string (&(HEAD), &(TAIL), s);				  \
     s->x = (X);								  \
@@ -23109,7 +23277,7 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
 									    \
       face_id = (row)->glyphs[area][START].face_id;			    \
 									    \
-      s = (struct glyph_string *) alloca (sizeof *s);			    \
+      s = alloca (sizeof *s);						    \
       INIT_GLYPH_STRING (s, NULL, w, row, area, START, HL);		    \
       append_glyph_string (&HEAD, &TAIL, s);				    \
       s->x = (X);							    \
@@ -24031,6 +24199,65 @@ produce_stretch_glyph (struct it *it)
   else
 #endif
     it->nglyphs = width;
+}
+
+/* Get information about special display element WHAT in an
+   environment described by IT.  WHAT is one of IT_TRUNCATION or
+   IT_CONTINUATION.  Maybe produce glyphs for WHAT if IT has a
+   non-null glyph_row member.  This function ensures that fields like
+   face_id, c, len of IT are left untouched.  */
+
+void
+produce_special_glyphs (struct it *it, enum display_element_type what)
+{
+  struct it temp_it;
+  Lisp_Object gc;
+  GLYPH glyph;
+
+  temp_it = *it;
+  temp_it.dp = NULL;
+  temp_it.what = IT_CHARACTER;
+  temp_it.len = 1;
+  temp_it.object = make_number (0);
+  memset (&temp_it.current, 0, sizeof temp_it.current);
+
+  if (what == IT_CONTINUATION)
+    {
+      /* Continuation glyph.  For R2L lines, we mirror it by hand.  */
+      if (it->bidi_it.paragraph_dir == R2L)
+	SET_GLYPH_FROM_CHAR (glyph, '/');
+      else
+	SET_GLYPH_FROM_CHAR (glyph, '\\');
+      if (it->dp
+	  && (gc = DISP_CONTINUE_GLYPH (it->dp), GLYPH_CODE_P (gc)))
+	{
+	  /* FIXME: Should we mirror GC for R2L lines?  */
+	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
+	  spec_glyph_lookup_face (XWINDOW (it->window), &glyph);
+	}
+    }
+  else if (what == IT_TRUNCATION)
+    {
+      /* Truncation glyph.  */
+      SET_GLYPH_FROM_CHAR (glyph, '$');
+      if (it->dp
+	  && (gc = DISP_TRUNC_GLYPH (it->dp), GLYPH_CODE_P (gc)))
+	{
+	  /* FIXME: Should we mirror GC for R2L lines?  */
+	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
+	  spec_glyph_lookup_face (XWINDOW (it->window), &glyph);
+	}
+    }
+  else
+    abort ();
+
+  temp_it.c = temp_it.char_to_display = GLYPH_CHAR (glyph);
+  temp_it.face_id = GLYPH_FACE (glyph);
+  temp_it.len = CHAR_BYTES (temp_it.c);
+
+  PRODUCE_GLYPHS (&temp_it);
+  it->pixel_width = temp_it.pixel_width;
+  it->nglyphs = temp_it.pixel_width;
 }
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -28499,7 +28726,7 @@ syms_of_xdisp (void)
   staticpro (&echo_area_buffer[0]);
   staticpro (&echo_area_buffer[1]);
 
-  Vmessages_buffer_name = make_pure_c_string ("*Messages*");
+  Vmessages_buffer_name = build_pure_c_string ("*Messages*");
   staticpro (&Vmessages_buffer_name);
 
   mode_line_proptrans_alist = Qnil;
@@ -28580,7 +28807,7 @@ See also `overlay-arrow-string'.  */);
   DEFVAR_LISP ("overlay-arrow-string", Voverlay_arrow_string,
     doc: /* String to display as an arrow in non-window frames.
 See also `overlay-arrow-position'.  */);
-  Voverlay_arrow_string = make_pure_c_string ("=>");
+  Voverlay_arrow_string = build_pure_c_string ("=>");
 
   DEFVAR_LISP ("overlay-arrow-variable-list", Voverlay_arrow_variable_list,
     doc: /* List of variables (symbols) which hold markers for overlay arrows.
@@ -28686,10 +28913,10 @@ and is used only on frames for which no explicit name has been set
   Vicon_title_format
     = Vframe_title_format
     = pure_cons (intern_c_string ("multiple-frames"),
-		 pure_cons (make_pure_c_string ("%b"),
+		 pure_cons (build_pure_c_string ("%b"),
 			    pure_cons (pure_cons (empty_unibyte_string,
 						  pure_cons (intern_c_string ("invocation-name"),
-							     pure_cons (make_pure_c_string ("@"),
+							     pure_cons (build_pure_c_string ("@"),
 									pure_cons (intern_c_string ("system-name"),
 										   Qnil)))),
 				       Qnil)));
@@ -29081,14 +29308,14 @@ start_hourglass (void)
 
   if (INTEGERP (Vhourglass_delay)
       && XINT (Vhourglass_delay) > 0)
-    EMACS_SET_SECS_NSECS (delay,
-			  min (XINT (Vhourglass_delay), TYPE_MAXIMUM (time_t)),
-			  0);
+    delay = make_emacs_time (min (XINT (Vhourglass_delay),
+				  TYPE_MAXIMUM (time_t)),
+			     0);
   else if (FLOATP (Vhourglass_delay)
 	   && XFLOAT_DATA (Vhourglass_delay) > 0)
     delay = EMACS_TIME_FROM_DOUBLE (XFLOAT_DATA (Vhourglass_delay));
   else
-    EMACS_SET_SECS_NSECS (delay, DEFAULT_HOURGLASS_DELAY, 0);
+    delay = make_emacs_time (DEFAULT_HOURGLASS_DELAY, 0);
 
   hourglass_atimer = start_atimer (ATIMER_RELATIVE, delay,
 				   show_hourglass, NULL);

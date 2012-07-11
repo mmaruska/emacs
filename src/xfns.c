@@ -1881,7 +1881,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 
   /* Make a fontset name from the base font name.  */
   if (xic_default_fontset == base_fontname)
-    { 
+    {
       /* There is no base font name, use the default.  */
       fontsetname = xmalloc (strlen (base_fontname) + 2);
       strcpy (fontsetname, base_fontname);
@@ -1953,21 +1953,21 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 
 	  /* Build the font spec that matches all charsets.  */
 	  len = p - base_fontname + strlen (allcs) + 1;
-	  font_allcs = (char *) alloca (len);
+	  font_allcs = alloca (len);
 	  memcpy (font_allcs, base_fontname, p - base_fontname);
 	  strcat (font_allcs, allcs);
 
 	  /* Build the font spec that matches all families and
 	     add-styles.  */
 	  len = p - p1 + strlen (allcs) + strlen (allfamilies) + 1;
-	  font_allfamilies = (char *) alloca (len);
+	  font_allfamilies = alloca (len);
 	  strcpy (font_allfamilies, allfamilies);
 	  memcpy (font_allfamilies + strlen (allfamilies), p1, p - p1);
 	  strcat (font_allfamilies, allcs);
 
 	  /* Build the font spec that matches all.  */
 	  len = p - p2 + strlen (allcs) + strlen (all) + strlen (allfamilies) + 1;
-	  font_all = (char *) alloca (len);
+	  font_all = alloca (len);
 	  strcpy (font_all, allfamilies);
 	  strcat (font_all, all);
 	  memcpy (font_all + strlen (all) + strlen (allfamilies), p2, p - p2);
@@ -2956,11 +2956,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
          read yet.  */
       const char *system_font = xsettings_get_system_font ();
       if (system_font)
-        {
-          char *name = xstrdup (system_font);
-          font = font_open_by_name (f, name);
-          xfree (name);
-        }
+	font = font_open_by_name (f, system_font, strlen (system_font));
     }
 
   if (NILP (font))
@@ -2990,7 +2986,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 
       for (i = 0; names[i]; i++)
 	{
-	  font = font_open_by_name (f, names[i]);
+	  font = font_open_by_name (f, names[i], strlen (names[i]));
 	  if (! NILP (font))
 	    break;
 	}
@@ -3129,7 +3125,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->terminal = dpyinfo->terminal;
 
   f->output_method = output_x_window;
-  f->output_data.x = xzalloc (sizeof (struct x_output));
+  f->output_data.x = xzalloc (sizeof *f->output_data.x);
   f->output_data.x->icon_bitmap = -1;
   FRAME_FONTSET (f) = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;
@@ -3957,7 +3953,7 @@ select_visual (struct x_display_info *dpyinfo)
       /* VALUE should be of the form CLASS-DEPTH, where CLASS is one
 	 of `PseudoColor', `TrueColor' etc. and DEPTH is the color
 	 depth, a decimal number.  NAME is compared with case ignored.  */
-      char *s = (char *) alloca (SBYTES (value) + 1);
+      char *s = alloca (SBYTES (value) + 1);
       char *dash;
       int i, class = -1;
       XVisualInfo vinfo;
@@ -4189,9 +4185,10 @@ If TYPE is not given or nil, the type is STRING.
 FORMAT gives the size in bits of each element if VALUE is a list.
 It must be one of 8, 16 or 32.
 If VALUE is a string or FORMAT is nil or not given, FORMAT defaults to 8.
-If OUTER_P is non-nil, the property is changed for the outer X window of
+If OUTER-P is non-nil, the property is changed for the outer X window of
 FRAME.  Default is to change on the edit X window.  */)
-  (Lisp_Object prop, Lisp_Object value, Lisp_Object frame, Lisp_Object type, Lisp_Object format, Lisp_Object outer_p)
+  (Lisp_Object prop, Lisp_Object value, Lisp_Object frame,
+   Lisp_Object type, Lisp_Object format, Lisp_Object outer_p)
 {
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
@@ -4292,19 +4289,20 @@ DEFUN ("x-window-property", Fx_window_property, Sx_window_property,
        doc: /* Value is the value of window property PROP on FRAME.
 If FRAME is nil or omitted, use the selected frame.
 
-On MS Windows, this function only accepts the PROP and FRAME arguments.
-
 On X Windows, the following optional arguments are also accepted:
 If TYPE is nil or omitted, get the property as a string.
 Otherwise TYPE is the name of the atom that denotes the type expected.
 If SOURCE is non-nil, get the property on that window instead of from
 FRAME.  The number 0 denotes the root window.
-If DELETE_P is non-nil, delete the property after retrieving it.
-If VECTOR_RET_P is non-nil, don't return a string but a vector of values.
+If DELETE-P is non-nil, delete the property after retrieving it.
+If VECTOR-RET-P is non-nil, don't return a string but a vector of values.
+
+On MS Windows, this function accepts but ignores those optional arguments.
 
 Value is nil if FRAME hasn't a property with name PROP or if PROP has
 no value of TYPE (always string in the MS Windows case).  */)
-  (Lisp_Object prop, Lisp_Object frame, Lisp_Object type, Lisp_Object source, Lisp_Object delete_p, Lisp_Object vector_ret_p)
+  (Lisp_Object prop, Lisp_Object frame, Lisp_Object type,
+   Lisp_Object source, Lisp_Object delete_p, Lisp_Object vector_ret_p)
 {
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
@@ -4614,7 +4612,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
      from this point on, x_destroy_window might screw up reference
      counts etc.  */
   f->output_method = output_x_window;
-  f->output_data.x = xzalloc (sizeof (struct x_output));
+  f->output_data.x = xzalloc (sizeof *f->output_data.x);
   f->output_data.x->icon_bitmap = -1;
   FRAME_FONTSET (f) = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;
@@ -5826,7 +5824,7 @@ syms_of_xfns (void)
   Fput (Qundefined_color, Qerror_conditions,
 	pure_cons (Qundefined_color, pure_cons (Qerror, Qnil)));
   Fput (Qundefined_color, Qerror_message,
-	make_pure_c_string ("Undefined color"));
+	build_pure_c_string ("Undefined color"));
 
   DEFVAR_LISP ("x-pointer-shape", Vx_pointer_shape,
     doc: /* The shape of the pointer when over text.

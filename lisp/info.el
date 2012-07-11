@@ -32,8 +32,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (defgroup info nil
   "Info subsystem."
   :group 'help
@@ -4361,9 +4359,9 @@ the variable `Info-file-list-for-emacs'."
 
 (defvar Info-link-keymap
   (let ((keymap (make-sparse-keymap)))
-    (define-key keymap [header-line mouse-1] 'Info-mouse-follow-link)
+    (define-key keymap [header-line down-mouse-1] 'mouse-drag-header-line)
+    (define-key keymap [header-line mouse-1] 'mouse-select-window)
     (define-key keymap [header-line mouse-2] 'Info-mouse-follow-link)
-    (define-key keymap [header-line down-mouse-1] 'ignore)
     (define-key keymap [mouse-2] 'Info-mouse-follow-link)
     (define-key keymap [follow-link] 'mouse-face)
     keymap)

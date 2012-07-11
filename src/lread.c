@@ -45,6 +45,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "msdos.h"
 #endif
 
+#ifdef HAVE_NS
+#include "nsterm.h"
+#endif
+
 #include <unistd.h>
 #include <math.h>
 
@@ -600,8 +604,7 @@ read_filtered_event (int no_switch_frame, int ascii_required,
     {
       double duration = extract_float (seconds);
       EMACS_TIME wait_time = EMACS_TIME_FROM_DOUBLE (duration);
-      EMACS_GET_TIME (end_time);
-      EMACS_ADD_TIME (end_time, end_time, wait_time);
+      end_time = add_emacs_time (current_emacs_time (), wait_time);
     }
 
 /* Read until we get an acceptable event.  */
@@ -903,7 +906,7 @@ safe_to_load_p (int fd)
 
       if (i >= nbytes
 	  || fast_c_string_match_ignore_case (Vbytecomp_version_regexp,
-					      buf + i) < 0)
+					      buf + i, nbytes - i) < 0)
 	safe_p = 0;
     }
   if (safe_p)
@@ -1479,36 +1482,26 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 	 this path element/specified file name and any possible suffix.  */
       want_length = max_suffix_len + SBYTES (filename);
       if (fn_size <= want_length)
-	fn = (char *) alloca (fn_size = 100 + want_length);
+	fn = alloca (fn_size = 100 + want_length);
 
       /* Loop over suffixes.  */
       for (tail = NILP (suffixes) ? Fcons (empty_unibyte_string, Qnil) : suffixes;
 	   CONSP (tail); tail = XCDR (tail))
 	{
-	  ptrdiff_t lsuffix = SBYTES (XCAR (tail));
+	  ptrdiff_t fnlen, lsuffix = SBYTES (XCAR (tail));
 	  Lisp_Object handler;
 	  int exists;
 
 	  /* Concatenate path element/specified name with the suffix.
 	     If the directory starts with /:, remove that.  */
-	  if (SCHARS (filename) > 2
-	      && SREF (filename, 0) == '/'
-	      && SREF (filename, 1) == ':')
-	    {
-	      strncpy (fn, SSDATA (filename) + 2,
-		       SBYTES (filename) - 2);
-	      fn[SBYTES (filename) - 2] = 0;
-	    }
-	  else
-	    {
-	      strncpy (fn, SSDATA (filename),
-		       SBYTES (filename));
-	      fn[SBYTES (filename)] = 0;
-	    }
-
-	  if (lsuffix != 0)  /* Bug happens on CCI if lsuffix is 0.  */
-	    strncat (fn, SSDATA (XCAR (tail)), lsuffix);
-
+	  int prefixlen = ((SCHARS (filename) > 2
+			    && SREF (filename, 0) == '/'
+			    && SREF (filename, 1) == ':')
+			   ? 2 : 0);
+	  fnlen = SBYTES (filename) - prefixlen;
+	  memcpy (fn, SDATA (filename) + prefixlen, fnlen);
+	  memcpy (fn + fnlen, SDATA (XCAR (tail)), lsuffix + 1);
+	  fnlen += lsuffix;
 	  /* Check that the file exists and is not a directory.  */
 	  /* We used to only check for handlers on non-absolute file names:
 	        if (absolute)
@@ -1517,7 +1510,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 		  handler = Ffind_file_name_handler (filename, Qfile_exists_p);
 	     It's not clear why that was the case and it breaks things like
 	     (load "/bar.el") where the file is actually "/bar.el.gz".  */
-	  string = build_string (fn);
+	  string = make_string (fn, fnlen);
 	  handler = Ffind_file_name_handler (string, Qfile_exists_p);
 	  if ((!NILP (handler) || !NILP (predicate)) && !NATNUMP (predicate))
             {
@@ -2630,8 +2623,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		}
 	      if (nskip > saved_doc_string_size)
 		{
-		  saved_doc_string = (char *) xrealloc (saved_doc_string,
-							nskip + extra);
+		  saved_doc_string = xrealloc (saved_doc_string, nskip + extra);
 		  saved_doc_string_size = nskip + extra;
 		}
 
@@ -2894,8 +2886,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		ptrdiff_t offset = p - read_buffer;
 		if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
 		  memory_full (SIZE_MAX);
-		read_buffer = (char *) xrealloc (read_buffer,
-						 read_buffer_size * 2);
+		read_buffer = xrealloc (read_buffer, read_buffer_size * 2);
 		read_buffer_size *= 2;
 		p = read_buffer + offset;
 		end = read_buffer + read_buffer_size;
@@ -3029,8 +3020,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		  ptrdiff_t offset = p - read_buffer;
 		  if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
 		    memory_full (SIZE_MAX);
-		  read_buffer = (char *) xrealloc (read_buffer,
-						   read_buffer_size * 2);
+		  read_buffer = xrealloc (read_buffer, read_buffer_size * 2);
 		  read_buffer_size *= 2;
 		  p = read_buffer + offset;
 		  end = read_buffer + read_buffer_size;
@@ -3060,8 +3050,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      ptrdiff_t offset = p - read_buffer;
 	      if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
 		memory_full (SIZE_MAX);
-	      read_buffer = (char *) xrealloc (read_buffer,
-					       read_buffer_size * 2);
+	      read_buffer = xrealloc (read_buffer, read_buffer_size * 2);
 	      read_buffer_size *= 2;
 	      p = read_buffer + offset;
 	      end = read_buffer + read_buffer_size;
@@ -3663,32 +3652,20 @@ check_obarray (Lisp_Object obarray)
    interned in the current obarray.  */
 
 Lisp_Object
-intern (const char *str)
+intern_1 (const char *str, ptrdiff_t len)
 {
-  Lisp_Object tem;
-  ptrdiff_t len = strlen (str);
-  Lisp_Object obarray;
+  Lisp_Object obarray = check_obarray (Vobarray);
+  Lisp_Object tem = oblookup (obarray, str, len, len);
 
-  obarray = Vobarray;
-  if (!VECTORP (obarray) || ASIZE (obarray) == 0)
-    obarray = check_obarray (obarray);
-  tem = oblookup (obarray, str, len, len);
-  if (SYMBOLP (tem))
-    return tem;
-  return Fintern (make_string (str, len), obarray);
+  return SYMBOLP (tem) ? tem : Fintern (make_string (str, len), obarray);
 }
 
 Lisp_Object
-intern_c_string (const char *str)
+intern_c_string_1 (const char *str, ptrdiff_t len)
 {
-  Lisp_Object tem;
-  ptrdiff_t len = strlen (str);
-  Lisp_Object obarray;
+  Lisp_Object obarray = check_obarray (Vobarray);
+  Lisp_Object tem = oblookup (obarray, str, len, len);
 
-  obarray = Vobarray;
-  if (!VECTORP (obarray) || ASIZE (obarray) == 0)
-    obarray = check_obarray (obarray);
-  tem = oblookup (obarray, str, len, len);
   if (SYMBOLP (tem))
     return tem;
 
@@ -3698,7 +3675,7 @@ intern_c_string (const char *str)
        with the extra copy.  */
     abort ();
 
-  return Fintern (make_pure_c_string (str), obarray);
+  return Fintern (make_pure_c_string (str, len), obarray);
 }
 
 DEFUN ("intern", Fintern, Sintern, 1, 2, 0,
@@ -3858,12 +3835,9 @@ oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff
   register Lisp_Object tail;
   Lisp_Object bucket, tem;
 
-  if (!VECTORP (obarray)
-      || (obsize = ASIZE (obarray)) == 0)
-    {
-      obarray = check_obarray (obarray);
-      obsize = ASIZE (obarray);
-    }
+  obarray = check_obarray (obarray);
+  obsize = ASIZE (obarray);
+
   /* This is sometimes needed in the middle of GC.  */
   obsize &= ~ARRAY_MARK_FLAG;
   hash = hash_string (ptr, size_byte) % obsize;
@@ -3939,7 +3913,7 @@ init_obarray (void)
   initial_obarray = Vobarray;
   staticpro (&initial_obarray);
 
-  Qunbound = Fmake_symbol (make_pure_c_string ("unbound"));
+  Qunbound = Fmake_symbol (build_pure_c_string ("unbound"));
   /* Set temporary dummy values to Qnil and Vpurify_flag to satisfy the
      NILP (Vpurify_flag) check in intern_c_string.  */
   Qnil = make_number (-1); Vpurify_flag = make_number (1);
@@ -4063,60 +4037,96 @@ defvar_kboard (struct Lisp_Kboard_Objfwd *ko_fwd,
   SET_SYMBOL_FWD (XSYMBOL (sym), (union Lisp_Fwd *)ko_fwd);
 }
 
+/* Check that the elements of Vload_path exist.  */
+
+static void
+load_path_check (void)
+{
+  Lisp_Object path_tail;
+
+  /* The only elements that might not exist are those from
+     PATH_LOADSEARCH, EMACSLOADPATH.  Anything else is only added if
+     it exists.  */
+  for (path_tail = Vload_path; !NILP (path_tail); path_tail = XCDR (path_tail))
+    {
+      Lisp_Object dirfile;
+      dirfile = Fcar (path_tail);
+      if (STRINGP (dirfile))
+        {
+          dirfile = Fdirectory_file_name (dirfile);
+          if (access (SSDATA (dirfile), 0) < 0)
+            dir_warning ("Warning: Lisp directory `%s' does not exist.\n",
+                         XCAR (path_tail));
+        }
+    }
+}
+
 /* Record the value of load-path used at the start of dumping
    so we can see if the site changed it later during dumping.  */
 static Lisp_Object dump_path;
+
+/* Compute the default Vload_path, with the following logic:
+   If CANNOT_DUMP:
+   use EMACSLOADPATH env-var if set; otherwise use PATH_LOADSEARCH,
+   prepending PATH_SITELOADSEARCH unless --no-site-lisp.
+   The remainder is what happens when dumping works:
+   If purify-flag (ie dumping) just use PATH_DUMPLOADSEARCH.
+   Otherwise use EMACSLOADPATH if set, else PATH_LOADSEARCH.
+
+   If !initialized, then just set both Vload_path and dump_path.
+   If initialized, then if Vload_path != dump_path, do nothing.
+   (Presumably the load-path has already been changed by something.
+   This can only be from a site-load file during dumping,
+   or because EMACSLOADPATH is set.)
+   If Vinstallation_directory is not nil (ie, running uninstalled):
+   If installation-dir/lisp exists and not already a member,
+   we must be running uninstalled.  Reset the load-path
+   to just installation-dir/lisp.  (The default PATH_LOADSEARCH
+   refers to the eventual installation directories.  Since we
+   are not yet installed, we should not use them, even if they exist.)
+   If installation-dir/lisp does not exist, just add dump_path at the
+   end instead.
+   Add installation-dir/leim (if exists and not already a member) at the front.
+   Add installation-dir/site-lisp (if !no_site_lisp, and exists
+   and not already a member) at the front.
+   If installation-dir != source-dir (ie running an uninstalled,
+   out-of-tree build) AND install-dir/src/Makefile exists BUT
+   install-dir/src/Makefile.in does NOT exist (this is a sanity
+   check), then repeat the above steps for source-dir/lisp,
+   leim and site-lisp.
+   Finally, add the site-lisp directories at the front (if !no_site_lisp).
+*/
 
 void
 init_lread (void)
 {
   const char *normal;
-  int turn_off_warning = 0;
-
-  /* Compute the default Vload-path, with the following logic:
-     If CANNOT_DUMP, just use PATH_LOADSEARCH, prepending PATH_SITELOADSEARCH
-     unless --no-site-lisp.
-     Else if purify-flag (ie dumping) start from PATH_DUMPLOADSEARCH;
-     otherwise start from PATH_LOADSEARCH.
-     If !initialized, then just set both Vload_path and dump_path.
-     If initialized, then if Vload_path != dump_path, do nothing.
-     (Presumably the load-path has already been changed by something.
-      This can only (?) be from a site-load file during dumping.)
-     If Vinstallation_directory is not nil (ie, running uninstalled):
-       Add installation-dir/lisp (if exists and not already a member),
-         at the front, and turn off warnings about missing directories
-         (because we are presumably running uninstalled).
-         If it does not exist, add dump_path at the end instead.
-       Add installation-dir/leim (if exists and not already a member)
-         at the front.
-       Add installation-dir/site-lisp (if !no_site_lisp, and exists
-         and not already a member) at the front.
-       If installation-dir != source-dir (ie running an uninstalled,
-         out-of-tree build) AND install-dir/src/Makefile exists BUT
-         install-dir/src/Makefile.in does NOT exist (this is a sanity
-         check), then repeat the above steps for source-dir/lisp,
-         leim and site-lisp.
-     Finally, add the site-lisp directories at the front (if !no_site_lisp).
-
-     We then warn about any of the load-path elements that do not
-     exist.  The only ones that might not exist are those from
-     PATH_LOADSEARCH, and perhaps dump_path.
-
-     Having done all this, we then throw it all away if purify-flag is
-     nil (ie, not dumping) and EMACSLOADPATH is set, and just
-     unconditionally use the latter value instead.
-     So AFAICS the only net results of all the previous steps will be
-     possibly to issue some irrelevant warnings.
-
-     FIXME? There's a case for saying that if we are running
-     uninstalled, the eventual installation directories should not yet
-     be included in load-path.
-  */
 
 #ifdef CANNOT_DUMP
+#ifdef HAVE_NS
+  const char *loadpath = ns_load_path ();
+#endif
+
   normal = PATH_LOADSEARCH;
-  Vload_path = decode_env_path (0, normal);
-  if (!no_site_lisp)
+#ifdef HAVE_NS
+  Vload_path = decode_env_path ("EMACSLOADPATH", loadpath ? loadpath : normal);
+#else
+  Vload_path = decode_env_path ("EMACSLOADPATH", normal);
+#endif
+
+  load_path_check ();
+
+  /* FIXME CANNOT_DUMP platforms should get source-dir/lisp etc added
+   to their load-path too, AFAICS.  I don't think we can tell the
+   difference between initialized and !initialized in this case,
+   so we'll have to do it unconditionally when Vinstallation_directory
+   is non-nil.  */
+#ifdef HAVE_NS
+  /* loadpath already includes the app-bundle's site-lisp.  */
+  if (!no_site_lisp && !egetenv ("EMACSLOADPATH") && !loadpath)
+#else
+  if (!no_site_lisp && !egetenv ("EMACSLOADPATH"))
+#endif
     {
       Lisp_Object sitelisp;
       sitelisp = decode_env_path (0, PATH_SITELOADSEARCH);
@@ -4124,7 +4134,13 @@ init_lread (void)
     }
 #else
   if (NILP (Vpurify_flag))
-    normal = PATH_LOADSEARCH;
+    {
+      normal = PATH_LOADSEARCH;
+      /* If the EMACSLOADPATH environment variable is set, use its value.
+         This doesn't apply if we're dumping.  */
+      if (egetenv ("EMACSLOADPATH"))
+        Vload_path = decode_env_path ("EMACSLOADPATH", normal);
+    }
   else
     normal = PATH_DUMPLOADSEARCH;
 
@@ -4133,18 +4149,32 @@ init_lread (void)
      the source directory, instead of the path of the installed elisp
      libraries.  However, if it appears that Vload_path has already been
      changed from the default that was saved before dumping, don't
-     change it further.  */
+     change it further.  Changes can only be due to EMACSLOADPATH, or
+     site-lisp files that were processed during dumping.  */
   if (initialized)
     {
-      if (! NILP (Fequal (dump_path, Vload_path)))
+      if (NILP (Fequal (dump_path, Vload_path)))
+        {
+          /* Do not make any changes, just check the elements exist.  */
+          /* Note: --no-site-lisp is ignored.
+             I don't know what to do about this.  */
+          load_path_check ();
+        }
+      else
 	{
+#ifdef HAVE_NS
+	  const char *loadpath = ns_load_path ();
+	  Vload_path = decode_env_path (0, loadpath ? loadpath : normal);
+#else
 	  Vload_path = decode_env_path (0, normal);
+#endif
 	  if (!NILP (Vinstallation_directory))
 	    {
 	      Lisp_Object tem, tem1;
 
-              /* Add to the path the lisp subdir of the
-                 installation dir, if it exists.  */
+              /* Add to the path the lisp subdir of the installation
+                 dir, if it exists.  Note: in out-of-tree builds,
+                 this directory is empty save for Makefile.  */
               tem = Fexpand_file_name (build_string ("lisp"),
                                        Vinstallation_directory);
               tem1 = Ffile_exists_p (tem);
@@ -4152,8 +4182,11 @@ init_lread (void)
                 {
                   if (NILP (Fmember (tem, Vload_path)))
                     {
-                      turn_off_warning = 1;
-                      Vload_path = Fcons (tem, Vload_path);
+                      /* We are running uninstalled.  The default load-path
+                         points to the eventual installed lisp, leim
+                         directories.  We should not use those now, even
+                         if they exist, so start over from a clean slate.  */
+                      Vload_path = Fcons (tem, Qnil);
                     }
                 }
               else
@@ -4230,11 +4263,19 @@ init_lread (void)
 
 	    } /* if Vinstallation_directory */
 
+          /* Check before adding the site-lisp directories.
+             The install should have created them, but they are not
+             required, so no need to warn if they are absent.
+             Or we might be running before installation.  */
+          load_path_check ();
+
           /* Add the site-lisp directories at the front.  */
-          /* Note: If the site changed the load-path during dumping,
-           --no-site-lisp is ignored.  I don't know what to do about this.
-          */
+#ifdef HAVE_NS
+          /* loadpath already includes the app-bundle's site-lisp.  */
+          if (!no_site_lisp && !loadpath)
+#else
           if (!no_site_lisp)
+#endif
             {
               Lisp_Object sitelisp;
               sitelisp = decode_env_path (0, PATH_SITELOADSEARCH);
@@ -4244,57 +4285,21 @@ init_lread (void)
     }
   else                          /* !initialized */
     {
-      /* NORMAL refers to the lisp dir in the source directory.  */
-      /* We used to add ../lisp at the front here, but
-	 that caused trouble because it was copied from dump_path
-	 into Vload_path, above, when Vinstallation_directory was non-nil.
-	 It should be unnecessary.  */
+      /* NORMAL refers to PATH_DUMPLOADSEARCH, ie the lisp dir in the
+         source directory.  We used to add ../lisp (ie the lisp dir in
+         the build directory) at the front here, but that caused trouble
+	 because it was copied from dump_path into Vload_path, above,
+	 when Vinstallation_directory was non-nil.  It should not be
+         necessary, since in out of tree builds lisp/ is empty, save
+         for Makefile.  */
       Vload_path = decode_env_path (0, normal);
       dump_path = Vload_path;
+      /* No point calling load_path_check; load-path only contains essential
+         elements from the source directory at this point.  They cannot
+         be missing unless something went extremely (and improbably)
+         wrong, in which case the build will fail in obvious ways.  */
     }
 #endif  /* CANNOT_DUMP */
-
-#if (!(defined (WINDOWSNT) || (defined (HAVE_NS))))
-  /* When Emacs is invoked over network shares on NT, PATH_LOADSEARCH is
-     almost never correct, thereby causing a warning to be printed out that
-     confuses users.  Since PATH_LOADSEARCH is always overridden by the
-     EMACSLOADPATH environment variable below, disable the warning on NT.  */
-
-  /* HAVE_NS also uses EMACSLOADPATH.  */
-
-  /* Warn if dirs in the *standard* path don't exist.  */
-  if (!turn_off_warning)
-    {
-      Lisp_Object path_tail;
-
-      for (path_tail = Vload_path;
-	   !NILP (path_tail);
-	   path_tail = XCDR (path_tail))
-	{
-	  Lisp_Object dirfile;
-	  dirfile = Fcar (path_tail);
-	  if (STRINGP (dirfile))
-	    {
-	      dirfile = Fdirectory_file_name (dirfile);
-              /* Do we really need to warn about missing site-lisp dirs?
-                 It's true that the installation should have created
-                 them and added subdirs.el, but it's harmless if they
-                 are not there.  */
-	      if (access (SSDATA (dirfile), 0) < 0)
-		dir_warning ("Warning: Lisp directory `%s' does not exist.\n",
-			     XCAR (path_tail));
-	    }
-	}
-    }
-#endif /* !(WINDOWSNT || HAVE_NS) */
-
-  /* If the EMACSLOADPATH environment variable is set, use its value.
-     This doesn't apply if we're dumping.  */
-#ifndef CANNOT_DUMP
-  if (NILP (Vpurify_flag)
-      && egetenv ("EMACSLOADPATH"))
-#endif
-    Vload_path = decode_env_path ("EMACSLOADPATH", normal);
 
   Vvalues = Qnil;
 
@@ -4408,8 +4413,8 @@ otherwise to default specified by file `epaths.h' when Emacs was built.  */);
 This list should not include the empty string.
 `load' and related functions try to append these suffixes, in order,
 to the specified file name if a Lisp suffix is allowed or required.  */);
-  Vload_suffixes = Fcons (make_pure_c_string (".elc"),
-			  Fcons (make_pure_c_string (".el"), Qnil));
+  Vload_suffixes = Fcons (build_pure_c_string (".elc"),
+			  Fcons (build_pure_c_string (".el"), Qnil));
   DEFVAR_LISP ("load-file-rep-suffixes", Vload_file_rep_suffixes,
 	       doc: /* List of suffixes that indicate representations of \
 the same file.
@@ -4542,7 +4547,7 @@ from the file, and matches them against this regular expression.
 When the regular expression matches, the file is considered to be safe
 to load.  See also `load-dangerous-libraries'.  */);
   Vbytecomp_version_regexp
-    = make_pure_c_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
+    = build_pure_c_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
 
   Qlexical_binding = intern ("lexical-binding");
   staticpro (&Qlexical_binding);

@@ -575,7 +575,9 @@ gl_EARLY
 
 AC_ARG_ENABLE([gcc-warnings],
   [AS_HELP_STRING([--enable-gcc-warnings],
-                  [turn on lots of GCC warnings (for developers)])],
+                  [turn on lots of GCC warnings. This is intended for
+		   developers, and may generate false alarms when used
+		   with older or non-GNU development tools.])],
   [case $enableval in
      yes|no) ;;
      *)      AC_MSG_ERROR([bad value $enableval for gcc-warnings option]) ;;
@@ -597,7 +599,7 @@ if test "${enableval}" != "no"; then
       	 LTO="-flto=$CPUS"
       else
 	 LTO="-flto"
-      fi	 
+      fi
       old_CFLAGS=$CFLAGS
       CFLAGS="$CFLAGS $LTO"
       AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
@@ -660,16 +662,19 @@ else
   nw="$nw -Wsign-conversion"        # Too many warnings for now
   nw="$nw -Woverlength-strings"     # Not a problem these days
   nw="$nw -Wtraditional-conversion" # Too many warnings for now
+  nw="$nw -Wunreachable-code"       # so buggy that it's now silently ignored
   nw="$nw -Wpadded"                 # Our structs are not padded
-  nw="$nw -Wredundant-decls"        # We regularly (re)declare getenv etc.
+  nw="$nw -Wredundant-decls"        # we regularly (re)declare functions
   nw="$nw -Wlogical-op"             # any use of fwrite provokes this
-  nw="$nw -Wformat-nonliteral"      # Emacs does this a lot
+  nw="$nw -Wformat-nonliteral"      # we do this a lot
   nw="$nw -Wvla"                    # warnings in gettext.h
   nw="$nw -Wnested-externs"         # use of XARGMATCH/verify_function__
   nw="$nw -Wswitch-enum"            # Too many warnings for now
   nw="$nw -Wswitch-default"         # Too many warnings for now
-  nw="$nw -Wfloat-equal"            # e.g., ftoastr.c
-  nw="$nw -Winline"                 # e.g., dispnew.c's inlining of row_equal_p
+  nw="$nw -Wfloat-equal"            # warns about high-quality code
+  nw="$nw -Winline"                 # OK to ignore 'inline'
+  nw="$nw -Wsync-nand"              # irrelevant here, and provokes ObjC warning
+  nw="$nw -Wunsafe-loop-optimizations" # OK to suppress unsafe optimizations
 
   # Emacs doesn't care about shadowing; see
   # <http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
@@ -678,14 +683,7 @@ else
   # The following lines should be removable at some point.
   nw="$nw -Wstack-protector"
   nw="$nw -Wstrict-overflow"
-  nw="$nw -Wsuggest-attribute=const"
   nw="$nw -Wsuggest-attribute=pure"
-
-  # Some loops can't be optimized with -O1,
-  # so remove -Wunsafe-loop-optimizations.
-  if echo "$CFLAGS" | $EGREP 'O1' 1>/dev/null; then
-    nw="$nw -Wunsafe-loop-optimizations"
-  fi
 
   gl_MANYWARN_ALL_GCC([ws])
   gl_MANYWARN_COMPLEMENT([ws], [$ws], [$nw])
@@ -2451,7 +2449,7 @@ if test "${HAVE_X11}" = "yes"; then
   if test "${with_png}" != "no"; then
     # Debian unstable as of July 2003 has multiple libpngs, and puts png.h
     # in /usr/include/libpng.
-    AC_CHECK_HEADERS(png.h libpng/png.h)
+    AC_CHECK_HEADERS(png.h libpng/png.h, break)
     if test "$ac_cv_header_png_h" = yes || test "$ac_cv_header_libpng_png_h" = yes ; then
       AC_CHECK_LIB(png, png_get_channels, HAVE_PNG=yes, , -lz -lm)
     fi
@@ -2460,6 +2458,19 @@ if test "${HAVE_X11}" = "yes"; then
   if test "${HAVE_PNG}" = "yes"; then
     AC_DEFINE(HAVE_PNG, 1, [Define to 1 if you have the png library (-lpng).])
     LIBPNG="-lpng -lz -lm"
+
+    AC_CHECK_DECL(png_longjmp,
+      [],
+      [AC_DEFINE(PNG_DEPSTRUCT, [],
+	 [Define to empty to suppress deprecation warnings when building
+	  with --enable-gcc-warnings and with libpng versions before 1.5,
+	  which lack png_longjmp.])],
+      [[#ifdef HAVE_LIBPNG_PNG_H
+	# include <libpng/png.h>
+	#else
+	# include <png.h>
+	#endif
+      ]])
   fi
 fi
 AC_SUBST(LIBPNG)
@@ -2697,18 +2708,33 @@ AC_SUBST(BLESSMAIL_TARGET)
 
 
 AC_CHECK_FUNCS(gethostname \
-rename closedir mkdir rmdir getrusage get_current_dir_name \
-random lrand48 logb frexp fmod rint cbrt setsid \
-strerror fpathconf select euidaccess getpagesize setlocale \
-utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
+closedir getrusage get_current_dir_name \
+lrand48 logb frexp fmod cbrt setsid \
+fpathconf select euidaccess getpagesize setlocale \
+utimes getrlimit setrlimit setpgid getcwd shutdown getaddrinfo \
 __fpending strsignal setitimer \
 sendto recvfrom getsockname getpeername getifaddrs freeifaddrs \
 gai_strerror mkstemp getline getdelim fsync sync \
 difftime posix_memalign \
 getpwent endpwent getgrent endgrent \
 touchlock \
-strcasecmp strncasecmp \
 cfmakeraw cfsetspeed copysign __executable_start)
+
+dnl getwd appears to be buggy on SVR4.2, so we don't use it.
+if test $opsys != unixware; then
+  AC_CHECK_FUNCS(getwd)
+fi
+
+## Eric Backus <ericb@lsid.hp.com> says, HP-UX 9.x on HP 700 machines
+## has a broken `rint' in some library versions including math library
+## version number A.09.05.
+## You can fix the math library by installing patch number PHSS_4630.
+## But we can fix it more reliably for Emacs by just not using rint.
+## We also skip HAVE_RANDOM - see comments in src/s/hpux10-20.h.
+case $opsys in
+   hpux*) : ;;
+   *) AC_CHECK_FUNCS(random rint) ;;
+esac
 
 dnl Cannot use AC_CHECK_FUNCS
 AC_CACHE_CHECK([for __builtin_unwind_init],
@@ -2846,33 +2872,40 @@ AC_SUBST(TERMCAP_OBJ)
 
 
 # Do we have res_init, for detecting changes in /etc/resolv.conf?
+# On Darwin, res_init appears not to be useful: see bug#562 and
+# http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01467.html
 resolv=no
-AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <netinet/in.h>
-#include <arpa/nameser.h>
-#include <resolv.h>]],
-    [[return res_init();]])],
-    have_res_init=yes, have_res_init=no)
-if test "$have_res_init" = no; then
-  OLIBS="$LIBS"
-  LIBS="$LIBS -lresolv"
-  AC_MSG_CHECKING(for res_init with -lresolv)
+
+if test $opsys != darwin; then
+
   AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <netinet/in.h>
 #include <arpa/nameser.h>
 #include <resolv.h>]],
     [[return res_init();]])],
     have_res_init=yes, have_res_init=no)
-  AC_MSG_RESULT($have_res_init)
-  if test "$have_res_init" = yes ; then
-    resolv=yes
+  if test "$have_res_init" = no; then
+    OLIBS="$LIBS"
+    LIBS="$LIBS -lresolv"
+    AC_MSG_CHECKING(for res_init with -lresolv)
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <netinet/in.h>
+#include <arpa/nameser.h>
+#include <resolv.h>]],
+      [[return res_init();]])],
+      have_res_init=yes, have_res_init=no)
+    AC_MSG_RESULT($have_res_init)
+    if test "$have_res_init" = yes ; then
+      resolv=yes
+    fi
+    LIBS="$OLIBS"
   fi
-  LIBS="$OLIBS"
-fi
 
-if test "$have_res_init" = yes; then
-  AC_DEFINE(HAVE_RES_INIT, 1, [Define to 1 if res_init is available.])
-fi
+  if test "$have_res_init" = yes; then
+    AC_DEFINE(HAVE_RES_INIT, 1, [Define to 1 if res_init is available.])
+  fi
+fi                              dnl !darwin
 
 # Do we need the Hesiod library to provide the support routines?
+dnl FIXME?  Should we be skipping this on Darwin too?
 LIBHESIOD=
 if test "$with_hesiod" != no ; then
   # Don't set $LIBS here -- see comments above.  FIXME which comments?
@@ -2896,7 +2929,7 @@ fi
 AC_SUBST(LIBHESIOD)
 
 # Do we need libresolv (due to res_init or Hesiod)?
-if test "$resolv" = yes ; then
+if test "$resolv" = yes && test $opsys != darwin; then
   AC_DEFINE(HAVE_LIBRESOLV, 1,
             [Define to 1 if you have the resolv library (-lresolv).])
   LIBRESOLV=-lresolv
@@ -2988,7 +3021,7 @@ AC_SUBST(KRB5LIB)
 AC_SUBST(DESLIB)
 AC_SUBST(KRB4LIB)
 
-AC_CHECK_FUNCS(tzset)
+AC_CHECK_FUNCS_ONCE(tzset)
 AC_MSG_CHECKING(whether localtime caches TZ)
 AC_CACHE_VAL(emacs_cv_localtime_cache,
 [if test x$ac_cv_func_tzset = xyes; then
@@ -3091,6 +3124,14 @@ dnl                                and macros for terminal control.])
 dnl    AC_DEFINE(HAVE_TCATTR, 1, [Define to 1 if you have tcgetattr and tcsetattr.])
 dnl fi
 
+dnl Every platform that uses configure (ie every non-MS platform)
+dnl supports this.  There is a create-lockfiles option you can
+dnl customize if you do not want the lock files to be written.
+dnl So it is not clear that this #define still needs to exist.
+AC_DEFINE(CLASH_DETECTION, 1, [Define if you want lock files to be written,
+  so that Emacs can tell instantly when you try to modify a file that
+  someone else has modified in his/her Emacs.])
+
 case $opsys in
   darwin | gnu | hpux* | *bsd )
     AC_DEFINE(NO_TERMIO, 1, [Define if termio.h should not be included.])
@@ -3113,12 +3154,153 @@ case $opsys in
 esac
 
 case $opsys in
+  darwin | freebsd | netbsd | openbsd )
+    AC_DEFINE(DONT_REOPEN_PTY, 1, [Define if process.c does not need to
+      close a pty to make it a controlling terminal (it is already a
+      controlling terminal of the subprocess, because we did ioctl TIOCSCTTY).])
+  ;;
+esac
+
+dnl FIXME Surely we can test for this rather than hard-code it.
+case $opsys in
+  netbsd | openbsd) sound_device="/dev/audio" ;;
+  *) sound_device="/dev/dsp" ;;
+esac
+
+dnl Used in sound.c
+AC_DEFINE_UNQUOTED(DEFAULT_SOUND_DEVICE, "$sound_device",
+  [Name of the default sound device.])
+
+
+AH_TEMPLATE(SIGNALS_VIA_CHARACTERS, [Make process_send_signal work by
+"typing" a signal character on the pty.])
+
+case $opsys in
+  dnl Perry Smith <pedz@ddivt1.austin.ibm.com> says this is correct for AIX.
+  dnl thomas@mathematik.uni-bremen.de says this is needed for IRIX.
+  aix4-2 | cygwin | gnu | irix6-5 | freebsd | netbsd | openbsd )
+    AC_DEFINE(SIGNALS_VIA_CHARACTERS, 1)
+    ;;
+
+  dnl 21 Jun 06: Eric Hanchrow <offby1@blarg.net> says this works. 
+  dnl FIXME Does gnu-kfreebsd have linux/version.h?  It seems unlikely...
+  gnu-linux | gnu-kfreebsd )
+
+    AC_MSG_CHECKING([for signals via characters])
+    AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
+#include <linux/version.h>
+#if LINUX_VERSION_CODE < 0x20400
+# error "Linux version too old"
+#endif
+      ]], [[]])], emacs_signals_via_chars=yes, emacs_signals_via_chars=no)
+
+    AC_MSG_RESULT([$emacs_signals_via_chars])
+    test $emacs_signals_via_chars = yes && AC_DEFINE(SIGNALS_VIA_CHARACTERS, 1)
+    ;;
+esac
+
+
+dnl Used in dispnew.c
+AH_TEMPLATE(PENDING_OUTPUT_COUNT, [Number of chars of output in the
+buffer of a stdio stream.])
+
+dnl FIXME just PENDING_OUTPUT_COUNT should suffice.
+AH_TEMPLATE(GNU_LIBRARY_PENDING_OUTPUT_COUNT, [Value of
+PENDING_OUTPUT_COUNT if using the GNU C library.])
+
+case $opsys in
+  cygwin | darwin | freebsd | netbsd | openbsd )
+    AC_DEFINE(PENDING_OUTPUT_COUNT(FILE), [((FILE)->_p - (FILE)->_bf._base)])
+    ;;
+
+  unixware)
+    AC_DEFINE(PENDING_OUTPUT_COUNT(FILE), [((FILE)->__ptr - (FILE)->__base)])
+    ;;
+
+  gnu | gnu-linux | gnu-kfreebsd )
+    AC_MSG_CHECKING([for style of pending output formalism])
+    dnl In autoconf 2.67 (?) and later, we could use a single test
+    dnl since the preprocessed output is accessible in "conftest.i".
+    AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
+#include <stdio.h>
+#if !defined (_IO_STDIO_H) && !defined (_STDIO_USES_IOSTREAM)
+# error "stdio definitions not found"
+#endif
+      ]], [[]])], emacs_pending_output=new, emacs_pending_output=unknown)
+
+      if test $emacs_pending_output = unknown; then
+        case $opsys in
+          gnu-linux | gnu-kfreebsd)
+            AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
+#include <stdio.h>
+#ifndef __UCLIBC__
+# error "not using uclibc"
+#endif
+            ]], [[]])], emacs_pending_output=uclibc, emacs_pending_output=old)
+            ;;
+        esac
+      fi
+
+      AC_MSG_RESULT([$emacs_pending_output])
+
+      case $emacs_pending_output in
+        new)
+          dnl New C libio names.
+          AC_DEFINE(GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE),
+            [((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)])
+          ;;
+        uclibc)
+          dnl Using the uClibc library.
+          AC_DEFINE(GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE),
+            [((FILE)->__bufpos - (FILE)->__bufstart)])
+          ;;
+        old)
+          dnl Old C++ iostream names.
+          AC_DEFINE(GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE),
+            [((FILE)->_pptr - (FILE)->_pbase)])
+          ;;
+      esac
+    ;;
+esac
+
+
+dnl Used in vm-limit.c
+AH_TEMPLATE(DATA_START, [Address of the start of the data segment.])
+dnl Used in lisp.h, emacs.c, mem-limits.h
+dnl NEWS.18 describes this as "a number which contains
+dnl the high bits to be inclusive or'ed with pointers that are unpacked."
+AH_TEMPLATE(DATA_SEG_BITS, [Extra bits to be or'd in with any pointers
+stored in a Lisp_Object.])
+dnl if Emacs uses fewer than 32 bits for the value field of a LISP_OBJECT.
+
+case $opsys in
+  gnu)
+    dnl libc defines data_start.
+    AC_DEFINE(DATA_START, [({ extern int data_start; (char *) &data_start; })])
+    ;;
+
+  hpux*)
+    dnl The data segment on this machine always starts at address 0x40000000.
+    AC_DEFINE(DATA_START, [0x40000000])
+    AC_DEFINE(DATA_SEG_BITS, [0x40000000])
+    ;;
+  irix6-5)
+    AC_DEFINE(DATA_START, [0x10000000])
+    AC_DEFINE(DATA_SEG_BITS, [0x10000000])
+    ;;
+esac
+
+case $opsys in
+   gnu) opsysfile="s/bsd-common.h" ;;
+
    gnu-kfreebsd) opsysfile="s/gnu-linux.h" ;;
 
    hpux11)
-     dnl SA_RESTART resets the timeout of `select', so don't use it.
-     AC_DEFINE(BROKEN_SA_RESTART, 1, [Define if SA_RESTART should not
-       be used.])
+     dnl See comments in sysdep.c:sys_signal.
+     dnl SA_RESTART resets the timeout of `select' on hpux11.
+     dnl Defining BROKEN_SA_RESTART is not the same as undef'ing SA_RESTART.
+     AC_DEFINE(BROKEN_SA_RESTART, 1, [Define if SA_RESTART should only
+       be used in batch mode.])
      dnl It works to open the pty's tty in the parent (Emacs), then
      dnl close and reopen it in the child.
      AC_DEFINE(USG_SUBTTY_WORKS, 1, [Define for USG systems where it
@@ -3600,6 +3782,8 @@ AH_BOTTOM([
    ATTRIBUTE_FORMAT ((__printf__, formatstring_parameter, first_argument))
 #endif
 
+#define ATTRIBUTE_CONST _GL_ATTRIBUTE_CONST
+
 /* Some versions of GNU/Linux define noinline in their headers.  */
 #ifdef noinline
 #undef noinline
@@ -3784,5 +3968,3 @@ fi
 ])
 
 AC_OUTPUT
-
-dnl configure.in ends here

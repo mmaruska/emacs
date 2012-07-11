@@ -336,7 +336,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
 
   filename = FILE_SYSTEM_CASE (filename);
 #ifdef DOS_NT
-  beg = (char *) alloca (SBYTES (filename) + 1);
+  beg = alloca (SBYTES (filename) + 1);
   memcpy (beg, SSDATA (filename), SBYTES (filename) + 1);
 #else
   beg = SSDATA (filename);
@@ -365,7 +365,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
 
       if (p == beg + 4 && IS_DIRECTORY_SEP (*beg) && beg[1] == ':')
 	{
-	  strncpy (res, beg, 2);
+	  memcpy (res, beg, 2);
 	  beg += 2;
 	  r += 2;
 	}
@@ -453,32 +453,33 @@ get a current directory to run processes in.  */)
   return Ffile_name_directory (filename);
 }
 
-
-static char *
-file_name_as_directory (char *out, const char *in)
-{
-  ptrdiff_t len = strlen (in);
+/* Convert from file name SRC of length SRCLEN to directory name
+   in DST.  On UNIX, just make sure there is a terminating /.
+   Return the length of DST.  */
 
-  if (len == 0)
+static ptrdiff_t
+file_name_as_directory (char *dst, const char *src, ptrdiff_t srclen)
+{
+  if (srclen == 0)
     {
-      out[0] = '.';
-      out[1] = '/';
-      out[2] = 0;
-      return out;
+      dst[0] = '.';
+      dst[1] = '/';
+      dst[2] = '\0';
+      return 2;
     }
 
-  strcpy (out, in);
+  strcpy (dst, src);
 
-  /* For Unix syntax, Append a slash if necessary */
-  if (!IS_DIRECTORY_SEP (out[len - 1]))
+  if (!IS_DIRECTORY_SEP (dst[srclen - 1]))
     {
-      out[len] = DIRECTORY_SEP;
-      out[len + 1] = '\0';
+      dst[srclen] = DIRECTORY_SEP;
+      dst[srclen + 1] = '\0';
+      srclen++;
     }
 #ifdef DOS_NT
-  dostounix_filename (out);
+  dostounix_filename (dst);
 #endif
-  return out;
+  return srclen;
 }
 
 DEFUN ("file-name-as-directory", Ffile_name_as_directory,
@@ -492,6 +493,7 @@ For a Unix-syntax file name, just appends a slash.  */)
   (Lisp_Object file)
 {
   char *buf;
+  ptrdiff_t length;
   Lisp_Object handler;
 
   CHECK_STRING (file);
@@ -510,40 +512,35 @@ For a Unix-syntax file name, just appends a slash.  */)
       error ("Invalid handler in `file-name-handler-alist'");
     }
 
-  buf = (char *) alloca (SBYTES (file) + 10);
-  file_name_as_directory (buf, SSDATA (file));
-  return make_specified_string (buf, -1, strlen (buf),
-				STRING_MULTIBYTE (file));
+  buf = alloca (SBYTES (file) + 10);
+  length = file_name_as_directory (buf, SSDATA (file), SBYTES (file));
+  return make_specified_string (buf, -1, length, STRING_MULTIBYTE (file));
 }
 
-/*
- * Convert from directory name to filename.
- * On UNIX, it's simple: just make sure there isn't a terminating /
+/* Convert from directory name SRC of length SRCLEN to
+   file name in DST.  On UNIX, just make sure there isn't
+   a terminating /.  Return the length of DST.  */
 
- * Value is nonzero if the string output is different from the input.
- */
-
-static int
-directory_file_name (char *src, char *dst)
+static ptrdiff_t
+directory_file_name (char *dst, char *src, ptrdiff_t srclen)
 {
-  ptrdiff_t slen;
-
-  slen = strlen (src);
-
   /* Process as Unix format: just remove any final slash.
      But leave "/" unchanged; do not change it to "".  */
   strcpy (dst, src);
-  if (slen > 1
-      && IS_DIRECTORY_SEP (dst[slen - 1])
+  if (srclen > 1
+      && IS_DIRECTORY_SEP (dst[srclen - 1])
 #ifdef DOS_NT
-      && !IS_ANY_SEP (dst[slen - 2])
+      && !IS_ANY_SEP (dst[srclen - 2])
 #endif
       )
-    dst[slen - 1] = 0;
+    {
+      dst[srclen - 1] = 0;
+      srclen--;
+    }
 #ifdef DOS_NT
   dostounix_filename (dst);
 #endif
-  return 1;
+  return srclen;
 }
 
 DEFUN ("directory-file-name", Fdirectory_file_name, Sdirectory_file_name,
@@ -556,6 +553,7 @@ In Unix-syntax, this function just removes the final slash.  */)
   (Lisp_Object directory)
 {
   char *buf;
+  ptrdiff_t length;
   Lisp_Object handler;
 
   CHECK_STRING (directory);
@@ -575,10 +573,9 @@ In Unix-syntax, this function just removes the final slash.  */)
       error ("Invalid handler in `file-name-handler-alist'");
     }
 
-  buf = (char *) alloca (SBYTES (directory) + 20);
-  directory_file_name (SSDATA (directory), buf);
-  return make_specified_string (buf, -1, strlen (buf),
-				STRING_MULTIBYTE (directory));
+  buf = alloca (SBYTES (directory) + 20);
+  length = directory_file_name (buf, SSDATA (directory), SBYTES (directory));
+  return make_specified_string (buf, -1, length, STRING_MULTIBYTE (directory));
 }
 
 static const char make_temp_name_tbl[64] =
@@ -878,7 +875,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
     }
 
   /* Make a local copy of nm[] to protect it from GC in DECODE_FILE below.  */
-  nm = (char *) alloca (SBYTES (name) + 1);
+  nm = alloca (SBYTES (name) + 1);
   memcpy (nm, SSDATA (name), SBYTES (name) + 1);
 
 #ifdef DOS_NT
@@ -1130,8 +1127,9 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	    }
 	  if (!IS_DIRECTORY_SEP (nm[0]))
 	    {
-	      char * tmp = alloca (strlen (newdir) + strlen (nm) + 2);
-	      file_name_as_directory (tmp, newdir);
+	      ptrdiff_t newlen = strlen (newdir);
+	      char *tmp = alloca (newlen + strlen (nm) + 2);
+	      file_name_as_directory (tmp, newdir, newlen);
 	      strcat (tmp, nm);
 	      nm = tmp;
 	    }
@@ -1180,21 +1178,25 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
       /* Get rid of any slash at the end of newdir, unless newdir is
 	 just / or // (an incomplete UNC name).  */
       length = strlen (newdir);
+      tlen = length + 1;
       if (length > 1 && IS_DIRECTORY_SEP (newdir[length - 1])
 #ifdef WINDOWSNT
 	  && !(length == 2 && IS_DIRECTORY_SEP (newdir[0]))
 #endif
 	  )
 	{
-	  char *temp = (char *) alloca (length);
+	  char *temp = alloca (length);
 	  memcpy (temp, newdir, length - 1);
 	  temp[length - 1] = 0;
+	  length--;
 	  newdir = temp;
 	}
-      tlen = length + 1;
     }
   else
-    tlen = 0;
+    {
+      length = 0;
+      tlen = 0;
+    }
 
   /* Now concatenate the directory and name to new space in the stack frame.  */
   tlen += strlen (nm) + 1;
@@ -1202,10 +1204,10 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
   /* Reserve space for drive specifier and escape prefix, since either
      or both may need to be inserted.  (The Microsoft x86 compiler
      produces incorrect code if the following two lines are combined.)  */
-  target = (char *) alloca (tlen + 4);
+  target = alloca (tlen + 4);
   target += 4;
 #else  /* not DOS_NT */
-  target = (char *) alloca (tlen);
+  target = alloca (tlen);
 #endif /* not DOS_NT */
   *target = 0;
 
@@ -1225,7 +1227,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	    strcpy (target, newdir);
 	}
       else
-	file_name_as_directory (target, newdir);
+	file_name_as_directory (target, newdir, length);
     }
 
   strcat (target, nm);
@@ -1415,7 +1417,7 @@ See also the function `substitute-in-file-name'.")
 	unsigned char *ptr = (unsigned char *) strchr (user, '/');
 	ptrdiff_t len = ptr ? ptr - user : strlen (user);
 	/* Copy the user name into temp storage.  */
-	o = (unsigned char *) alloca (len + 1);
+	o = alloca (len + 1);
 	memcpy (o, user, len);
 	o[len] = 0;
 
@@ -1443,7 +1445,7 @@ See also the function `substitute-in-file-name'.")
   /* Now concatenate the directory and name to new space in the stack frame.  */
 
   tlen = (newdir ? strlen (newdir) + 1 : 0) + strlen (nm) + 1;
-  target = (unsigned char *) alloca (tlen);
+  target = alloca (tlen);
   *target = 0;
 
   if (newdir)
@@ -1593,7 +1595,7 @@ those `/' is discarded.  */)
   /* Always work on a copy of the string, in case GC happens during
      decode of environment variables, causing the original Lisp_String
      data to be relocated.  */
-  nm = (char *) alloca (SBYTES (filename) + 1);
+  nm = alloca (SBYTES (filename) + 1);
   memcpy (nm, SDATA (filename), SBYTES (filename) + 1);
 
 #ifdef DOS_NT
@@ -1645,8 +1647,8 @@ those `/' is discarded.  */)
 	  }
 
 	/* Copy out the variable name.  */
-	target = (char *) alloca (s - o + 1);
-	strncpy (target, o, s - o);
+	target = alloca (s - o + 1);
+	memcpy (target, o, s - o);
 	target[s - o] = 0;
 #ifdef DOS_NT
 	strupr (target); /* $home == $HOME etc.  */
@@ -1676,7 +1678,7 @@ those `/' is discarded.  */)
 
   /* If substitution required, recopy the string and do it.  */
   /* Make space in stack frame for the new copy.  */
-  xnm = (char *) alloca (SBYTES (filename) + total + 1);
+  xnm = alloca (SBYTES (filename) + total + 1);
   x = xnm;
 
   /* Copy the rest of the name through, replacing $ constructs with values.  */
@@ -1708,8 +1710,8 @@ those `/' is discarded.  */)
 	  }
 
 	/* Copy out the variable name.  */
-	target = (char *) alloca (s - o + 1);
-	strncpy (target, o, s - o);
+	target = alloca (s - o + 1);
+	memcpy (target, o, s - o);
 	target[s - o] = 0;
 #ifdef DOS_NT
 	strupr (target); /* $home == $HOME etc.  */
@@ -1730,13 +1732,13 @@ those `/' is discarded.  */)
 	    orig = make_unibyte_string (o, orig_length);
 	    decoded = DECODE_FILE (orig);
 	    decoded_length = SBYTES (decoded);
-	    strncpy (x, SSDATA (decoded), decoded_length);
+	    memcpy (x, SDATA (decoded), decoded_length);
 	    x += decoded_length;
 
 	    /* If environment variable needed decoding, return value
 	       needs to be multibyte.  */
 	    if (decoded_length != orig_length
-		|| strncmp (SSDATA (decoded), o, orig_length))
+		|| memcmp (SDATA (decoded), o, orig_length))
 	      multibyte = 1;
 	  }
       }
@@ -1925,12 +1927,12 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
       DWORD attributes;
       char * filename;
 
-      EMACS_GET_TIME (now);
       filename = SDATA (encoded_newname);
 
       /* Ensure file is writable while its modified time is set.  */
       attributes = GetFileAttributes (filename);
       SetFileAttributes (filename, attributes & ~FILE_ATTRIBUTE_READONLY);
+      now = current_emacs_time ();
       if (set_file_times (-1, filename, now, now))
 	{
 	  /* Restore original attributes.  */
@@ -3031,7 +3033,7 @@ Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
 {
   Lisp_Object absname, encoded_absname;
   Lisp_Object handler;
-  EMACS_TIME t = lisp_time_argument (timestamp, 0);
+  EMACS_TIME t = lisp_time_argument (timestamp);
 
   absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
 
@@ -3217,12 +3219,10 @@ emacs_lseek (int fd, EMACS_INT offset, int whence)
 static EMACS_TIME
 time_error_value (int errnum)
 {
-  EMACS_TIME t;
   int ns = (errnum == ENOENT || errnum == EACCES || errnum == ENOTDIR
 	    ? NONEXISTENT_MODTIME_NSECS
 	    : UNKNOWN_MODTIME_NSECS);
-  EMACS_SET_SECS_NSECS (t, 0, ns);
-  return t;
+  return make_emacs_time (0, ns);
 }
 
 DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
@@ -5082,7 +5082,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
   struct stat st;
   Lisp_Object handler;
   Lisp_Object filename;
-  EMACS_TIME mtime, diff, one_second;
+  EMACS_TIME mtime, diff;
 
   if (NILP (buf))
     b = current_buffer;
@@ -5110,11 +5110,10 @@ See Info node `(elisp)Modification Time' for more details.  */)
   if ((EMACS_TIME_EQ (mtime, b->modtime)
        /* If both exist, accept them if they are off by one second.  */
        || (EMACS_TIME_VALID_P (mtime) && EMACS_TIME_VALID_P (b->modtime)
-	   && ((EMACS_TIME_LT (mtime, b->modtime)
-		? EMACS_SUB_TIME (diff, b->modtime, mtime)
-		: EMACS_SUB_TIME (diff, mtime, b->modtime)),
-	       EMACS_SET_SECS_NSECS (one_second, 1, 0),
-	       EMACS_TIME_LE (diff, one_second))))
+	   && ((diff = (EMACS_TIME_LT (mtime, b->modtime)
+			? sub_emacs_time (b->modtime, mtime)
+			: sub_emacs_time (mtime, b->modtime))),
+	       EMACS_TIME_LE (diff, make_emacs_time (1, 0)))))
       && (st.st_size == b->modtime_size
           || b->modtime_size < 0))
     return Qt;
@@ -5127,7 +5126,7 @@ DEFUN ("clear-visited-file-modtime", Fclear_visited_file_modtime,
 Next attempt to save will certainly not complain of a discrepancy.  */)
   (void)
 {
-  EMACS_SET_SECS_NSECS (current_buffer->modtime, 0, UNKNOWN_MODTIME_NSECS);
+  current_buffer->modtime = make_emacs_time (0, UNKNOWN_MODTIME_NSECS);
   current_buffer->modtime_size = -1;
   return Qnil;
 }
@@ -5159,7 +5158,7 @@ An argument specifies the modification time value to use
 {
   if (!NILP (time_list))
     {
-      current_buffer->modtime = lisp_time_argument (time_list, 0);
+      current_buffer->modtime = lisp_time_argument (time_list);
       current_buffer->modtime_size = -1;
     }
   else
@@ -5426,9 +5425,8 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 		|| NILP (Ffind_file_name_handler (BVAR (b, auto_save_file_name),
 						  Qwrite_region))))
 	  {
-	    EMACS_TIME before_time, after_time;
-
-	    EMACS_GET_TIME (before_time);
+	    EMACS_TIME before_time = current_emacs_time ();
+	    EMACS_TIME after_time;
 
 	    /* If we had a failure, don't try again for 20 minutes.  */
 	    if (b->auto_save_failure_time > 0
@@ -5465,7 +5463,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	    XSETFASTINT (BVAR (current_buffer, save_length), Z - BEG);
 	    set_buffer_internal (old);
 
-	    EMACS_GET_TIME (after_time);
+	    after_time = current_emacs_time ();
 
 	    /* If auto-save took more than 60 seconds,
 	       assume it was an NFS failure that got a timeout.  */
@@ -5645,17 +5643,17 @@ of file names regardless of the current language environment.  */);
   Fput (Qfile_error, Qerror_conditions,
 	Fpurecopy (list2 (Qfile_error, Qerror)));
   Fput (Qfile_error, Qerror_message,
-	make_pure_c_string ("File error"));
+	build_pure_c_string ("File error"));
 
   Fput (Qfile_already_exists, Qerror_conditions,
 	Fpurecopy (list3 (Qfile_already_exists, Qfile_error, Qerror)));
   Fput (Qfile_already_exists, Qerror_message,
-	make_pure_c_string ("File already exists"));
+	build_pure_c_string ("File already exists"));
 
   Fput (Qfile_date_error, Qerror_conditions,
 	Fpurecopy (list3 (Qfile_date_error, Qfile_error, Qerror)));
   Fput (Qfile_date_error, Qerror_message,
-	make_pure_c_string ("Cannot set file date"));
+	build_pure_c_string ("Cannot set file date"));
 
   DEFVAR_LISP ("file-name-handler-alist", Vfile_name_handler_alist,
 	       doc: /* Alist of elements (REGEXP . HANDLER) for file names handled specially.

@@ -520,8 +520,10 @@ dos_set_window_size (int *rows, int *cols)
 
   /* If the user specified a special video mode for these dimensions,
      use that mode.  */
-  sprintf (video_name, "screen-dimensions-%dx%d", *rows, *cols);
-  video_mode = Fsymbol_value (Fintern_soft (build_string (video_name), Qnil));
+  video_mode 
+    = Fsymbol_value (Fintern_soft (make_formatted_string 
+				   (video_name, "screen-dimensions-%dx%d",
+				    *rows, *cols), Qnil));
 
   if (INTEGERP (video_mode)
       && (video_mode_value = XINT (video_mode)) > 0)
@@ -1616,11 +1618,9 @@ IT_set_frame_parameters (struct frame *f, Lisp_Object alist)
 
   /* Extract parm names and values into those vectors.  */
   i = 0;
-  for (tail = alist; CONSP (tail); tail = Fcdr (tail))
+  for (tail = alist; CONSP (tail); tail = XCDR (tail))
     {
-      Lisp_Object elt;
-
-      elt = Fcar (tail);
+      Lisp_Object elt = XCAR (tail);
       parms[i] = Fcar (elt);
       CHECK_SYMBOL (parms[i]);
       values[i] = Fcdr (elt);
@@ -4136,14 +4136,14 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
       EMACS_TIME clnow, cllast, cldiff;
 
       gettime (&t);
-      EMACS_SET_SECS_NSECS (cllast, t.tv_sec, t.tv_nsec);
+      cllast = make_emacs_time (t.tv_sec, t.tv_nsec);
 
       while (!check_input || !detect_input_pending ())
 	{
 	  gettime (&t);
-	  EMACS_SET_SECS_NSECS (clnow, t.tv_sec, t.tv_nsec);
-	  EMACS_SUB_TIME (cldiff, clnow, cllast);
-	  EMACS_SUB_TIME (*timeout, *timeout, cldiff);
+	  clnow = make_emacs_time (t.tv_sec, t.tv_nsec);
+	  cldiff = sub_emacs_time (clnow, cllast);
+	  *timeout = sub_emacs_time (*timeout, cldiff);
 
 	  /* Stop when timeout value crosses zero.  */
 	  if (EMACS_TIME_SIGN (*timeout) <= 0)

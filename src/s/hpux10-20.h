@@ -36,15 +36,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
 #define HAVE_SOCKETS
 
-/* Define CLASH_DETECTION if you want lock files to be written
-   so that Emacs can tell instantly when you try to modify
-   a file that someone else has modified in his Emacs.  */
-#define CLASH_DETECTION
-
 /* Special hacks needed to make Emacs run on this system.  */
-
-/* Some additional system facilities exist.  */
-#define HAVE_PERROR  /* Delete this line for version 6.  */
 
 /* This is how to get the device name of the tty end of a pty.  */
 #define PTY_TTY_NAME_SPRINTF \
@@ -61,23 +53,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    HP-UX 10.20, and that it works for HP-UX 0 as well.  */
 #define NO_EDITRES
 
-/* Eric Backus <ericb@lsid.hp.com> says, HP-UX 9.x on HP 700 machines
-   has a broken `rint' in some library versions including math library
-   version number A.09.05.
-
-   You can fix the math library by installing patch number PHSS_4630.
-   But we can fix it more reliably for Emacs like this.  */
-#undef HAVE_RINT
-
 /* We have to go this route, rather than hpux9's approach of renaming the
    functions via macros.  The system's stdlib.h has fully prototyped
    declarations, which yields a conflicting definition of srand48; it
    tries to redeclare what was once srandom to be srand48.  So we go
-   with HAVE_LRAND48 being defined.  */
+   with HAVE_LRAND48 being defined.
+   Note we also undef HAVE_RANDOM via configure.  */
 #undef srandom
 #undef random
-#undef HAVE_RANDOM
-
 
 /* Rainer Malzbender <rainer@displaytech.com> says defining
    HAVE_XRMSETDATABASE allows Emacs to compile on HP-UX 10.20 using GCC.  */
@@ -88,8 +71,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Conservative garbage collection has not been tested, so for now
    play it safe and stick with the old-fashioned way of marking.  */
 #define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE
-
-/* The data segment on this machine always starts at address 0x40000000.  */
-#define DATA_SEG_BITS 0x40000000
-
-#define DATA_START    0x40000000

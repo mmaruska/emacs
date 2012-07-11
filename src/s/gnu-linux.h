@@ -25,17 +25,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define USG
 #define GNU_LINUX
 
-#ifdef emacs
-#ifdef HAVE_LINUX_VERSION_H
-#include <linux/version.h>
-
-#if LINUX_VERSION_CODE >= 0x20400
-/* 21 Jun 06: Eric Hanchrow <offby1@blarg.net> says this works.  */
-#define SIGNALS_VIA_CHARACTERS
-#endif /* LINUX_VERSION_CODE >= 0x20400 */
-#endif /* HAVE_LINUX_VERSION_H */
-#endif /* emacs */
-
 #if defined HAVE_GRANTPT
 #define UNIX98_PTYS
 
@@ -63,8 +52,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 	close (fd);					\
 	return -1;					\
       }							\
-    strncpy (pty_name, ptyname, sizeof (pty_name));	\
-    pty_name[sizeof (pty_name) - 1] = 0;		\
+    snprintf (pty_name, sizeof pty_name, "%s", ptyname); \
     sigunblock (sigmask (SIGCHLD));			\
   }
 
@@ -81,11 +69,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define HAVE_SOCKETS
 
-/* Define CLASH_DETECTION if you want lock files to be written
-   so that Emacs can tell instantly when you try to modify
-   a file that someone else has modified in his Emacs.  */
-#define CLASH_DETECTION
-
 /* Here, on a separate page, add any special hacks needed
    to make Emacs work on this system.  For example,
    you might define certain system call names that don't
@@ -93,25 +76,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    your system and must be used only through an encapsulation
    (Which you should place, by convention, in sysdep.c).  */
 
-/* This is needed for dispnew.c:update_frame.  */
 #ifdef emacs
-#include <stdio.h>  /* Get the definition of _IO_STDIO_H.  */
-#if defined (_IO_STDIO_H) || defined (_STDIO_USES_IOSTREAM)
-/* New C libio names.  */
-#define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
-  ((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)
-#elif defined (__UCLIBC__)
-/* Using the uClibc library.  */
-#define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
-  ((FILE)->__bufpos - (FILE)->__bufstart)
-#else /* !_IO_STDIO_H && ! __UCLIBC__ */
-/* Old C++ iostream names.  */
-#define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
-  ((FILE)->_pptr - (FILE)->_pbase)
-#endif /* !_IO_STDIO_H && ! __UCLIBC__ */
-
 #define INTERRUPT_INPUT
-#endif /* emacs */
+#endif
 
 #define POSIX                 /* affects getpagesize.h and systty.h */
 

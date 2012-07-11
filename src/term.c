@@ -1885,67 +1885,6 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
     append_glyphless_glyph (it, face_id, str);
 }
 
-
-/* Get information about special display element WHAT in an
-   environment described by IT.  WHAT is one of IT_TRUNCATION or
-   IT_CONTINUATION.  Maybe produce glyphs for WHAT if IT has a
-   non-null glyph_row member.  This function ensures that fields like
-   face_id, c, len of IT are left untouched.  */
-
-void
-produce_special_glyphs (struct it *it, enum display_element_type what)
-{
-  struct it temp_it;
-  Lisp_Object gc;
-  GLYPH glyph;
-
-  temp_it = *it;
-  temp_it.dp = NULL;
-  temp_it.what = IT_CHARACTER;
-  temp_it.len = 1;
-  temp_it.object = make_number (0);
-  memset (&temp_it.current, 0, sizeof temp_it.current);
-
-  if (what == IT_CONTINUATION)
-    {
-      /* Continuation glyph.  For R2L lines, we mirror it by hand.  */
-      if (it->bidi_it.paragraph_dir == R2L)
-	SET_GLYPH_FROM_CHAR (glyph, '/');
-      else
-	SET_GLYPH_FROM_CHAR (glyph, '\\');
-      if (it->dp
-	  && (gc = DISP_CONTINUE_GLYPH (it->dp), GLYPH_CODE_P (gc)))
-	{
-	  /* FIXME: Should we mirror GC for R2L lines?  */
-	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
-	  spec_glyph_lookup_face (XWINDOW (it->window), &glyph);
-	}
-    }
-  else if (what == IT_TRUNCATION)
-    {
-      /* Truncation glyph.  */
-      SET_GLYPH_FROM_CHAR (glyph, '$');
-      if (it->dp
-	  && (gc = DISP_TRUNC_GLYPH (it->dp), GLYPH_CODE_P (gc)))
-	{
-	  /* FIXME: Should we mirror GC for R2L lines?  */
-	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
-	  spec_glyph_lookup_face (XWINDOW (it->window), &glyph);
-	}
-    }
-  else
-    abort ();
-
-  temp_it.c = temp_it.char_to_display = GLYPH_CHAR (glyph);
-  temp_it.face_id = GLYPH_FACE (glyph);
-  temp_it.len = CHAR_BYTES (temp_it.c);
-
-  produce_glyphs (&temp_it);
-  it->pixel_width = temp_it.pixel_width;
-  it->nglyphs = temp_it.pixel_width;
-}
-
-
 
 /***********************************************************************
 				Faces
@@ -2858,12 +2797,10 @@ DEFUN ("gpm-mouse-stop", Fgpm_mouse_stop, Sgpm_mouse_stop,
 void
 create_tty_output (struct frame *f)
 {
-  struct tty_output *t;
+  struct tty_output *t = xzalloc (sizeof *t);
 
   if (! FRAME_TERMCAP_P (f))
     abort ();
-
-  t = xzalloc (sizeof (struct tty_output));
 
   t->display_info = FRAME_TERMINAL (f)->display_info.tty;
 
@@ -3064,7 +3001,7 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
   been_here = 1;
   tty = &the_only_display_info;
 #else
-  tty = xzalloc (sizeof (struct tty_display_info));
+  tty = xzalloc (sizeof *tty);
 #endif
   tty->next = tty_list;
   tty_list = tty;
@@ -3073,7 +3010,7 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
   terminal->display_info.tty = tty;
   tty->terminal = terminal;
 
-  tty->Wcm = xmalloc (sizeof (struct cm));
+  tty->Wcm = xmalloc (sizeof *tty->Wcm);
   Wcm_clear (tty);
 
   encode_terminal_src_size = 0;
@@ -3343,7 +3280,7 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
   tty->mouse_highlight.mouse_face_window = Qnil;
 #endif
 
-  terminal->kboard = xmalloc (sizeof (KBOARD));
+  terminal->kboard = xmalloc (sizeof *terminal->kboard);
   init_kboard (terminal->kboard);
   KVAR (terminal->kboard, Vwindow_system) = Qnil;
   terminal->kboard->next_kboard = all_kboards;

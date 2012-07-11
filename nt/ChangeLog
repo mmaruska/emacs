@@ -1,4 +1,33 @@
-2012-07-04  Juanma Barranquero	<lekktu@gmail.com>
+2012-07-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(CLASH_DETECTION, DEFAULT_SOUND_DEVICE, DONT_REOPEN_PTY)
+	(GNU_LIBRARY_PENDING_OUTPUT_COUNT, SIGNALS_VIA_CHARACTERS): New macros.
+	(HAVE_MKDIR, HAVE_RENAME, HAVE_RMDIR, HAVE_STRERROR): Remove.
+
+2012-07-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* config.nt (ATTRIBUTE_CONST): Add, to sync with configure.ac.
+
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
+2012-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt (HAVE_STRCASECMP, HAVE_STRNCASECMP): Remove.
+
+2012-07-06  Juanma Barranquero  <lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt: Complete rework to bring it in sync with autogen/config.in.
+	All Windows-specific code moved to src/s/ms-w32.h.
+
+2012-07-04  Juanma Barranquero  <lekktu@gmail.com>
 	    Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.bat (enablechecking): Enable checks through src/config.h,

@@ -233,7 +233,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef FRAME_X_DISPLAY_INFO
 #define FRAME_X_DISPLAY_INFO FRAME_W32_DISPLAY_INFO
 #define x_display_info w32_display_info
-#define FRAME_X_FONT_TABLE FRAME_W32_FONT_TABLE
 #define check_x check_w32
 #define GCGraphicsExposures 0
 #endif /* WINDOWSNT */
@@ -243,7 +242,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef FRAME_X_DISPLAY_INFO
 #define FRAME_X_DISPLAY_INFO FRAME_NS_DISPLAY_INFO
 #define x_display_info ns_display_info
-#define FRAME_X_FONT_TABLE FRAME_NS_FONT_TABLE
 #define check_x check_ns
 #define GCGraphicsExposures 0
 #endif /* HAVE_NS */
@@ -703,9 +701,8 @@ x_create_gc (struct frame *f,
 	     unsigned long mask,
 	     XGCValues *xgcv)
 {
-  GC gc = xmalloc (sizeof (*gc));
-  if (gc)
-    memcpy (gc, xgcv, sizeof (XGCValues));
+  GC gc = xmalloc (sizeof *gc);
+  memcpy (gc, xgcv, sizeof (XGCValues));
   return gc;
 }
 
@@ -715,30 +712,6 @@ x_free_gc (struct frame *f, GC gc)
   xfree (gc);
 }
 #endif  /* HAVE_NS */
-
-#ifndef HAVE_STRCASECMP
-/* Like strcasecmp/stricmp.  Used to compare parts of font names which
-   are in ISO8859-1.  */
-
-int
-xstrcasecmp (const char *s1, const char *s2)
-{
-  while (*s1 && *s2)
-    {
-      unsigned char b1 = *s1;
-      unsigned char b2 = *s2;
-      unsigned char c1 = tolower (b1);
-      unsigned char c2 = tolower (b2);
-      if (c1 != c2)
-	return c1 < c2 ? -1 : 1;
-      ++s1, ++s2;
-    }
-
-  if (*s1 == 0)
-    return *s2 == 0 ? 0 : -1;
-  return 1;
-}
-#endif /* HAVE_STRCASECMP */
 
 /* If FRAME is nil, return a pointer to the selected frame.
    Otherwise, check that FRAME is a live frame, and return a pointer
@@ -2951,7 +2924,7 @@ FRAME 0 means change the face on all frames, and change the default
   else if (EQ (attr, QCunderline))
     {
       int valid_p = 0;
-      
+
       if (UNSPECIFIEDP (value) || IGNORE_DEFFACE_P (value))
 	valid_p = 1;
       else if (NILP (value) || EQ (value, Qt))
@@ -2971,8 +2944,8 @@ FRAME 0 means change the face on all frames, and change the default
               list = CDR_SAFE (list);
               val = CAR_SAFE (list);
               list = CDR_SAFE (list);
-            
-              if(NILP (key) || NILP (val)) 
+
+              if (NILP (key) || NILP (val))
                 {
                   valid_p = 0;
                   break;
@@ -2985,8 +2958,8 @@ FRAME 0 means change the face on all frames, and change the default
                   valid_p = 0;
                   break;
                 }
-              
-              else if (EQ (key, QCstyle) 
+
+              else if (EQ (key, QCstyle)
                        && !(EQ (val, Qline) || EQ (val, Qwave)))
                 {
                   valid_p = 0;
@@ -2994,10 +2967,10 @@ FRAME 0 means change the face on all frames, and change the default
                 }
             }
         }
-      
+
       if (!valid_p)
         signal_error ("Invalid face underline", value);
-      
+
       old_value = LFACE_UNDERLINE (lface);
       LFACE_UNDERLINE (lface) = value;
     }
@@ -5774,7 +5747,7 @@ realize_x_face (struct face_cache *cache, Lisp_Object *attrs)
     }
   else if (CONSP (underline))
     {
-      /* `(:color COLOR :style STYLE)'.  
+      /* `(:color COLOR :style STYLE)'.
          STYLE being one of `line' or `wave'. */
       face->underline_p = 1;
       face->underline_color = 0;
@@ -5816,7 +5789,7 @@ realize_x_face (struct face_cache *cache, Lisp_Object *attrs)
             }
         }
     }
-  
+
   overline = attrs[LFACE_OVERLINE_INDEX];
   if (STRINGP (overline))
     {
@@ -6406,7 +6379,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
   CHECK_STRING (filename);
   abspath = Fexpand_file_name (filename, Qnil);
 
-  fp = fopen (SDATA (abspath), "rt");
+  fp = fopen (SSDATA (abspath), "rt");
   if (fp)
     {
       char buf[512];
@@ -6670,7 +6643,7 @@ that number of fonts when searching for a matching font.  */);
 This stipple pattern is used on monochrome displays
 instead of shades of gray for a face background color.
 See `set-face-stipple' for possible values for this variable.  */);
-  Vface_default_stipple = make_pure_c_string ("gray3");
+  Vface_default_stipple = build_pure_c_string ("gray3");
 
   DEFVAR_LISP ("tty-defined-color-alist", Vtty_defined_color_alist,
    doc: /* An alist of defined terminal colors and their RGB values.

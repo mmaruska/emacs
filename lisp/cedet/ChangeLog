@@ -1,3 +1,17 @@
+2012-07-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* ede/project-am.el: Fix typo.
+
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Rename configure.in to configure.ac (Bug#11603).
+	* ede/autoconf-edit.el (autoconf-find-query-for-program)
+	(autoconf-new-program):
+	* ede/emacs.el (ede-emacs-version):
+	* ede/proj.el (ede-proj-setup-buildenvironment):
+	* ede/project-am.el (project-am-autoconf-file-options):
+	Prefer configure.ac to configure.in.
+
 2012-03-12  David Engster  <deng@randomsample.de>
 
 	* semantic/db-find.el

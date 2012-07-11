@@ -412,6 +412,7 @@ DIR_H          = $(NT_INC)/sys/dir.h \
 W32GUI_H       = $(SRC)/w32gui.h \
 		 $(SYSTIME_H)
 DISPEXTERN_H   = $(SRC)/dispextern.h \
+		 $(GNU_LIB)/c-strcase.h \
 		 $(SYSTIME_H) \
 		 $(W32GUI_H)
 FILEMODE_H     = $(GNU_LIB)/filemode.h \
@@ -489,7 +490,6 @@ $(BLD)/alloc.$(O) : \
 $(BLD)/atimer.$(O) : \
 	$(SRC)/atimer.c \
 	$(SRC)/syssignal.h \
-	$(NT_INC)/sys/time.h \
 	$(NT_INC)/unistd.h \
 	$(ATIMER_H) \
 	$(BLOCKINPUT_H) \
@@ -707,7 +707,7 @@ $(BLD)/dired.$(O) : \
 	$(FILEMODE_H) \
 	$(GRP_H) \
 	$(LISP_H) \
-	$(STAT-TIME_H) \
+	$(STAT_TIME_H) \
 	$(SYSTIME_H)
 
 $(BLD)/dispnew.$(O) : \
@@ -821,7 +821,7 @@ $(BLD)/fileio.$(O) : \
 	$(FRAME_H) \
 	$(INTERVALS_H) \
 	$(LISP_H) \
-	$(STAT-TIME_H) \
+	$(STAT_TIME_H) \
 	$(SYSTIME_H) \
 	$(WINDOW_H)
 
@@ -1083,6 +1083,7 @@ $(BLD)/lread.$(O) : \
 	$(INTERVALS_H) \
 	$(KEYBOARD_H) \
 	$(LISP_H) \
+	$(STAT_TIME_H) \
 	$(TERMHOOKS_H)
 
 $(BLD)/macros.$(O) : \

@@ -78,8 +78,7 @@ Other values of LIMIT are ignored.  */)
 
   if (EQ (limit, Qt))
     {
-      EMACS_TIME t;
-      EMACS_GET_TIME (t);
+      EMACS_TIME t = current_emacs_time ();
       seed_random (getpid () ^ EMACS_SECS (t) ^ EMACS_NSECS (t));
     }
 
@@ -4347,7 +4346,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
 
   /* The vector `used' is used to keep track of arguments that
      have been consumed.  */
-  used = (char *) alloca (nargs * sizeof *used);
+  used = alloca (nargs * sizeof *used);
   memset (used, 0, nargs * sizeof *used);
 
   /* See if there's a `:test TEST' among the arguments.  */

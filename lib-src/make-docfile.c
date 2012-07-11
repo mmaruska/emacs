@@ -541,7 +541,7 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
 
 	  /* In C code, `default' is a reserved word, so we spell it
 	     `defalt'; demangle that here.  */
-	  if (ident_length == 6 && strncmp (ident_start, "defalt", 6) == 0)
+	  if (ident_length == 6 && memcmp (ident_start, "defalt", 6) == 0)
 	    fprintf (out, "DEFAULT");
 	  else
 	    while (ident_length-- > 0)
@@ -693,7 +693,13 @@ write_globals (void)
 
       while (i + 1 < num_globals
 	     && !strcmp (globals[i].name, globals[i + 1].name))
-	++i;
+	{
+	  if (globals[i].type == FUNCTION
+	      && globals[i].value != globals[i + 1].value)
+	    error ("function '%s' defined twice with differing signatures",
+		   globals[i].name);
+	  ++i;
+	}
     }
 
   if (!seen_defun)

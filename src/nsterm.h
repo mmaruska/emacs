@@ -798,7 +798,9 @@ extern void x_free_frame_resources (struct frame *);
 #define NSAPP_DATA2_RUNASSCRIPT 10
 extern void ns_run_ascript (void);
 
-extern void ns_init_paths (void);
+extern const char *ns_etc_directory (void);
+extern const char *ns_exec_path (void);
+extern const char *ns_load_path (void);
 extern void syms_of_nsterm (void);
 extern void syms_of_nsfns (void);
 extern void syms_of_nsmenu (void);

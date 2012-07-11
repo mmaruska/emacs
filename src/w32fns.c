@@ -678,7 +678,7 @@ w32_color_map_lookup (char *colorname)
       elt = XCAR (tail);
       if (!CONSP (elt)) continue;
 
-      tem = Fcar (elt);
+      tem = XCAR (elt);
 
       if (lstrcmpi (SDATA (tem), colorname) == 0)
 	{
@@ -4036,7 +4036,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 
       for (i = 0; names[i]; i++)
         {
-          font = font_open_by_name (f, names[i]);
+          font = font_open_by_name (f, names[i], strlen (names[i]));
           if (! NILP (font))
             break;
         }
@@ -4897,9 +4897,10 @@ If TYPE is not given or nil, the type is STRING.
 FORMAT gives the size in bits of each element if VALUE is a list.
 It must be one of 8, 16 or 32.
 If VALUE is a string or FORMAT is nil or not given, FORMAT defaults to 8.
-If OUTER_P is non-nil, the property is changed for the outer X window of
+If OUTER-P is non-nil, the property is changed for the outer X window of
 FRAME.  Default is to change on the edit X window.  */)
-  (Lisp_Object prop, Lisp_Object value, Lisp_Object frame, Lisp_Object type, Lisp_Object format, Lisp_Object outer_p)
+  (Lisp_Object prop, Lisp_Object value, Lisp_Object frame,
+   Lisp_Object type, Lisp_Object format, Lisp_Object outer_p)
 {
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
@@ -4944,23 +4945,24 @@ FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
 
 
 DEFUN ("x-window-property", Fx_window_property, Sx_window_property,
-       1, 2, 0,
+       1, 6, 0,
        doc: /* Value is the value of window property PROP on FRAME.
 If FRAME is nil or omitted, use the selected frame.
-
-On MS Windows, this function only accepts the PROP and FRAME arguments.
 
 On X Windows, the following optional arguments are also accepted:
 If TYPE is nil or omitted, get the property as a string.
 Otherwise TYPE is the name of the atom that denotes the type expected.
 If SOURCE is non-nil, get the property on that window instead of from
 FRAME.  The number 0 denotes the root window.
-If DELETE_P is non-nil, delete the property after retrieving it.
-If VECTOR_RET_P is non-nil, don't return a string but a vector of values.
+If DELETE-P is non-nil, delete the property after retrieving it.
+If VECTOR-RET-P is non-nil, don't return a string but a vector of values.
+
+On MS Windows, this function accepts but ignores those optional arguments.
 
 Value is nil if FRAME hasn't a property with name PROP or if PROP has
 no value of TYPE (always string in the MS Windows case).  */)
-  (Lisp_Object prop, Lisp_Object frame)
+  (Lisp_Object prop, Lisp_Object frame, Lisp_Object type,
+   Lisp_Object source, Lisp_Object delete_p, Lisp_Object vector_ret_p)
 {
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
@@ -6796,7 +6798,7 @@ syms_of_w32fns (void)
   Fput (Qundefined_color, Qerror_conditions,
 	pure_cons (Qundefined_color, pure_cons (Qerror, Qnil)));
   Fput (Qundefined_color, Qerror_message,
-	make_pure_c_string ("Undefined color"));
+	build_pure_c_string ("Undefined color"));
 
   staticpro (&w32_grabbed_keys);
   w32_grabbed_keys = Qnil;

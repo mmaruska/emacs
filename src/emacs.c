@@ -569,7 +569,7 @@ static char dump_tz[] = "UtC0";
 /* Define a dummy function F.  Declare F too, to pacify gcc
    -Wmissing-prototypes.  */
 #define DEFINE_DUMMY_FUNCTION(f) \
-  void f (void) EXTERNALLY_VISIBLE; void f (void) {}
+  void f (void) ATTRIBUTE_CONST EXTERNALLY_VISIBLE; void f (void) {}
 
 #ifndef GCC_CTORS_IN_LIBC
 DEFINE_DUMMY_FUNCTION (__do_global_ctors)
@@ -1426,13 +1426,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_ntproc ();	/* must precede init_editfns.  */
 #endif
 
-#ifdef HAVE_NS
-#ifndef CANNOT_DUMP
-  if (initialized)
-#endif
-    ns_init_paths ();
-#endif
-
   /* Initialize and GC-protect Vinitial_environment and
      Vprocess_environment before set_initial_environment fills them
      in.  */
@@ -1820,7 +1813,7 @@ static const struct standard_args standard_args[] =
 static void
 sort_args (int argc, char **argv)
 {
-  char **new = xmalloc (sizeof (char *) * argc);
+  char **new = xmalloc (argc * sizeof *new);
   /* For each element of argv,
      the corresponding element of options is:
      0 for an option that takes no arguments,

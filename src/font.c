@@ -264,18 +264,12 @@ font_intern_prop (const char *str, ptrdiff_t len, int force_symbol)
 	}
     }
 
-  /* The following code is copied from the function intern (in
-     lread.c), and modified to suit our purpose.  */
-  obarray = Vobarray;
-  if (!VECTORP (obarray) || ASIZE (obarray) == 0)
-    obarray = check_obarray (obarray);
+  /* This code is similar to intern function from lread.c.  */
+  obarray = check_obarray (Vobarray);
   parse_str_as_multibyte ((unsigned char *) str, len, &nchars, &nbytes);
-  if (len == nchars || len != nbytes)
-    /* CONTENTS contains no multibyte sequences or contains an invalid
-       multibyte sequence.  We'll make a unibyte string.  */
-    tem = oblookup (obarray, str, len, len);
-  else
-    tem = oblookup (obarray, str, nchars, len);
+  tem = oblookup (obarray, str,
+		  (len == nchars || len != nbytes) ? len : nchars, len);
+
   if (SYMBOLP (tem))
     return tem;
   if (len == nchars || len != nbytes)
@@ -739,7 +733,7 @@ font_put_extra (Lisp_Object font, Lisp_Object prop, Lisp_Object val)
 
 static int parse_matrix (const char *);
 static int font_expand_wildcards (Lisp_Object *, int);
-static int font_parse_name (char *, Lisp_Object);
+static int font_parse_name (char *, ptrdiff_t, Lisp_Object);
 
 /* An enumerator for each field of an XLFD font name.  */
 enum xlfd_field_index
@@ -1019,9 +1013,8 @@ font_expand_wildcards (Lisp_Object *field, int n)
    a fully specified XLFD.  */
 
 int
-font_parse_xlfd (char *name, Lisp_Object font)
+font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font)
 {
-  ptrdiff_t len = strlen (name);
   int i, j, n;
   char *f[XLFD_LAST_INDEX + 1];
   Lisp_Object val;
@@ -1200,7 +1193,7 @@ font_parse_xlfd (char *name, Lisp_Object font)
    length), and return the name length.  If FONT_SIZE_INDEX of FONT is
    0, use PIXEL_SIZE instead.  */
 
-int
+ptrdiff_t
 font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
 {
   char *p;
@@ -1336,12 +1329,11 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
    This function tries to guess which format it is.  */
 
 static int
-font_parse_fcname (char *name, Lisp_Object font)
+font_parse_fcname (char *name, ptrdiff_t len, Lisp_Object font)
 {
   char *p, *q;
   char *size_beg = NULL, *size_end = NULL;
   char *props_beg = NULL, *family_end = NULL;
-  ptrdiff_t len = strlen (name);
 
   if (len == 0)
     return -1;
@@ -1694,11 +1686,11 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
    0.  Otherwise return -1.  */
 
 static int
-font_parse_name (char *name, Lisp_Object font)
+font_parse_name (char *name, ptrdiff_t namelen, Lisp_Object font)
 {
   if (name[0] == '-' || strchr (name, '*') || strchr (name, '?'))
-    return font_parse_xlfd (name, font);
-  return font_parse_fcname (name, font);
+    return font_parse_xlfd (name, namelen, font);
+  return font_parse_fcname (name, namelen, font);
 }
 
 
@@ -1827,17 +1819,17 @@ check_otf_features (Lisp_Object otf_features)
   CHECK_CONS (otf_features);
   CHECK_SYMBOL (XCAR (otf_features));
   otf_features = XCDR (otf_features);
-  for (val = Fcar (otf_features); ! NILP (val);  val = Fcdr (val))
+  for (val = Fcar (otf_features); CONSP (val); val = XCDR (val))
     {
-      CHECK_SYMBOL (Fcar (val));
+      CHECK_SYMBOL (XCAR (val));
       if (SBYTES (SYMBOL_NAME (XCAR (val))) > 4)
 	error ("Invalid OTF GSUB feature: %s",
 	       SDATA (SYMBOL_NAME (XCAR (val))));
     }
   otf_features = XCDR (otf_features);
-  for (val = Fcar (otf_features); ! NILP (val);  val = Fcdr (val))
+  for (val = Fcar (otf_features); CONSP (val); val = XCDR (val))
     {
-      CHECK_SYMBOL (Fcar (val));
+      CHECK_SYMBOL (XCAR (val));
       if (SBYTES (SYMBOL_NAME (XCAR (val))) > 4)
 	error ("Invalid OTF GPOS feature: %s",
 	       SDATA (SYMBOL_NAME (XCAR (val))));
@@ -2644,15 +2636,18 @@ font_delete_unmatched (Lisp_Object vec, Lisp_Object spec, int size)
       if (! NILP (Vface_ignored_fonts))
 	{
 	  char name[256];
+	  ptrdiff_t namelen;
 	  Lisp_Object tail, regexp;
 
-	  if (font_unparse_xlfd (entity, 0, name, 256) >= 0)
+	  namelen = font_unparse_xlfd (entity, 0, name, 256);
+	  if (namelen >= 0)
 	    {
 	      for (tail = Vface_ignored_fonts; CONSP (tail); tail = XCDR (tail))
 		{
 		  regexp = XCAR (tail);
 		  if (STRINGP (regexp)
-		      && fast_c_string_match_ignore_case (regexp, name) >= 0)
+		      && fast_c_string_match_ignore_case (regexp, name,
+							  namelen) >= 0)
 		    break;
 		}
 	      if (CONSP (tail))
@@ -2987,7 +2982,7 @@ font_spec_from_name (Lisp_Object font_name)
   Lisp_Object spec = Ffont_spec (0, NULL);
 
   CHECK_STRING (font_name);
-  if (font_parse_name (SSDATA (font_name), spec) == -1)
+  if (font_parse_name (SSDATA (font_name), SBYTES (font_name), spec) == -1)
     return Qnil;
   font_put_extra (spec, QCname, font_name);
   font_put_extra (spec, QCuser_spec, font_name);
@@ -3359,13 +3354,13 @@ font_open_by_spec (FRAME_PTR f, Lisp_Object spec)
    found, return Qnil.  */
 
 Lisp_Object
-font_open_by_name (FRAME_PTR f, const char *name)
+font_open_by_name (FRAME_PTR f, const char *name, ptrdiff_t len)
 {
   Lisp_Object args[2];
   Lisp_Object spec, ret;
 
   args[0] = QCname;
-  args[1] = make_unibyte_string (name, strlen (name));
+  args[1] = make_unibyte_string (name, len);
   spec = Ffont_spec (2, args);
   ret = font_open_by_spec (f, spec);
   /* Do not lose name originally put in.  */
@@ -3402,7 +3397,7 @@ register_font_driver (struct font_driver *driver, FRAME_PTR f)
     if (EQ (list->driver->type, driver->type))
       error ("Duplicated font driver: %s", SDATA (SYMBOL_NAME (driver->type)));
 
-  list = xmalloc (sizeof (struct font_driver_list));
+  list = xmalloc (sizeof *list);
   list->on = 0;
   list->driver = driver;
   list->next = NULL;
@@ -3552,7 +3547,7 @@ font_put_frame_data (FRAME_PTR f, struct font_driver *driver, void *data)
 
   if (! list)
     {
-      list = xmalloc (sizeof (struct font_data_list));
+      list = xmalloc (sizeof *list);
       list->driver = driver;
       list->next = f->font_data_list;
       f->font_data_list = list;
@@ -3872,7 +3867,7 @@ usage: (font-spec ARGS...)  */)
       if (EQ (key, QCname))
 	{
 	  CHECK_STRING (val);
-	  font_parse_name (SSDATA (val), spec);
+	  font_parse_name (SSDATA (val), SBYTES (val), spec);
 	  font_put_extra (spec, key, val);
 	}
       else
@@ -4218,7 +4213,7 @@ the consecutive wildcards are folded into one.  */)
   (Lisp_Object font, Lisp_Object fold_wildcards)
 {
   char name[256];
-  int pixel_size = 0;
+  int namelen, pixel_size = 0;
 
   CHECK_FONT (font);
 
@@ -4232,11 +4227,13 @@ the consecutive wildcards are folded into one.  */)
 	  if (NILP (fold_wildcards))
 	    return font_name;
 	  strcpy (name, SSDATA (font_name));
+	  namelen = SBYTES (font_name);
 	  goto done;
 	}
       pixel_size = XFONT_OBJECT (font)->pixel_size;
     }
-  if (font_unparse_xlfd (font, pixel_size, name, 256) < 0)
+  namelen = font_unparse_xlfd (font, pixel_size, name, 256);
+  if (namelen < 0)
     return Qnil;
  done:
   if (! NILP (fold_wildcards))
@@ -4246,11 +4243,12 @@ the consecutive wildcards are folded into one.  */)
       while ((p1 = strstr (p0, "-*-*")))
 	{
 	  strcpy (p1, p1 + 2);
+	  namelen -= 2;
 	  p0 = p1;
 	}
     }
 
-  return build_string (name);
+  return make_string (name, namelen);
 }
 
 DEFUN ("clear-font-cache", Fclear_font_cache, Sclear_font_cache, 0, 0, 0,
@@ -4884,7 +4882,7 @@ If the named font is not yet loaded, return nil.  */)
 
       if (fontset >= 0)
 	name = fontset_ascii (fontset);
-      font_object = font_open_by_name (f, SSDATA (name));
+      font_object = font_open_by_name (f, SSDATA (name), SBYTES (name));
     }
   else if (FONT_OBJECT_P (name))
     font_object = name;

@@ -1463,8 +1463,7 @@ union Lisp_Val_Fwd
 static struct Lisp_Buffer_Local_Value *
 make_blv (struct Lisp_Symbol *sym, int forwarded, union Lisp_Val_Fwd valcontents)
 {
-  struct Lisp_Buffer_Local_Value *blv
-    = xmalloc (sizeof (struct Lisp_Buffer_Local_Value));
+  struct Lisp_Buffer_Local_Value *blv = xmalloc (sizeof *blv);
   Lisp_Object symbol;
   Lisp_Object tem;
 
@@ -3012,11 +3011,11 @@ syms_of_data (void)
   Fput (Qerror, Qerror_conditions,
 	error_tail);
   Fput (Qerror, Qerror_message,
-	make_pure_c_string ("error"));
+	build_pure_c_string ("error"));
 
 #define PUT_ERROR(sym, tail, msg)			\
   Fput (sym, Qerror_conditions, pure_cons (sym, tail)); \
-  Fput (sym, Qerror_message, make_pure_c_string (msg))
+  Fput (sym, Qerror_message, build_pure_c_string (msg))
 
   PUT_ERROR (Qquit, Qnil, "Quit");
 
@@ -3043,7 +3042,7 @@ syms_of_data (void)
 
   arith_tail = pure_cons (Qarith_error, error_tail);
   Fput (Qarith_error, Qerror_conditions, arith_tail);
-  Fput (Qarith_error, Qerror_message, make_pure_c_string ("Arithmetic error"));
+  Fput (Qarith_error, Qerror_message, build_pure_c_string ("Arithmetic error"));
 
   PUT_ERROR (Qbeginning_of_buffer, error_tail, "Beginning of buffer");
   PUT_ERROR (Qend_of_buffer, error_tail, "End of buffer");

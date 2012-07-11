@@ -323,7 +323,7 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   dpyinfo->bitmaps[id - 1].depth = 1;
   dpyinfo->bitmaps[id - 1].height = ns_image_width (bitmap);
   dpyinfo->bitmaps[id - 1].width = ns_image_height (bitmap);
-  strcpy (dpyinfo->bitmaps[id - 1].file, SDATA (file));
+  strcpy (dpyinfo->bitmaps[id - 1].file, SSDATA (file));
   return id;
 #endif
 
@@ -1061,7 +1061,7 @@ void
 prepare_image_for_display (struct frame *f, struct image *img)
 {
   /* We're about to display IMG, so set its timestamp to `now'.  */
-  EMACS_GET_TIME (img->timestamp);
+  img->timestamp = current_emacs_time ();
 
   /* If IMG doesn't have a pixmap yet, load it now, using the image
      type dependent loader function.  */
@@ -1356,9 +1356,7 @@ x_alloc_image_color (struct frame *f, struct image *img, Lisp_Object color_name,
       /* This isn't called frequently so we get away with simply
 	 reallocating the color vector to the needed size, here.  */
       ptrdiff_t ncolors = img->ncolors + 1;
-      img->colors =
-	(unsigned long *) xrealloc (img->colors,
-				    ncolors * sizeof *img->colors);
+      img->colors = xrealloc (img->colors, ncolors * sizeof *img->colors);
       img->colors[ncolors - 1] = color.pixel;
       img->ncolors = ncolors;
       result = color.pixel;
@@ -1522,8 +1520,8 @@ clear_image_cache (struct frame *f, Lisp_Object filter)
 	    delay = 1600 * delay / nimages / nimages;
 	  delay = max (delay, 1);
 
-	  EMACS_GET_TIME (t);
-	  EMACS_SUB_TIME (old, t, EMACS_TIME_FROM_DOUBLE (delay));
+	  t = current_emacs_time ();
+	  old = sub_emacs_time (t, EMACS_TIME_FROM_DOUBLE (delay));
 
 	  for (i = 0; i < c->used; ++i)
 	    {
@@ -1794,7 +1792,7 @@ lookup_image (struct frame *f, Lisp_Object spec)
     }
 
   /* We're using IMG, so set its timestamp to `now'.  */
-  EMACS_GET_TIME (img->timestamp);
+  img->timestamp = current_emacs_time ();
 
   /* Value is the image id.  */
   return img->id;
@@ -2500,7 +2498,7 @@ w32_create_pixmap_from_bitmap_data (int width, int height, char *data)
 
   w1 = (width + 7) / 8;         /* nb of 8bits elt in X bitmap */
   w2 = ((width + 15) / 16) * 2; /* nb of 16bits elt in W32 bitmap */
-  bits = (unsigned char *) alloca (height * w2);
+  bits = alloca (height * w2);
   memset (bits, 0, height * w2);
   for (i = 0; i < height; i++)
     {
@@ -2927,7 +2925,7 @@ xbm_load (struct frame *f, struct image *img)
 	      char *p;
 	      int nbytes = (img->width + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
 
-	      p = bits = (char *) alloca (nbytes * img->height);
+	      p = bits = alloca (nbytes * img->height);
 	      for (i = 0; i < img->height; ++i, p += nbytes)
 		{
 		  Lisp_Object line = AREF (data, i);
@@ -2950,7 +2948,7 @@ xbm_load (struct frame *f, struct image *img)
             invertedBits = bits;
             nbytes = (img->width + BITS_PER_CHAR - 1) / BITS_PER_CHAR
               * img->height;
-            bits = (char *) alloca (nbytes);
+            bits = alloca (nbytes);
             for (i = 0; i < nbytes; i++)
               bits[i] = XBM_BIT_SHUFFLE (invertedBits[i]);
           }
@@ -3422,7 +3420,7 @@ xpm_load (struct frame *f, struct image *img)
 
       /* Allocate an XpmColorSymbol array.  */
       size = attrs.numsymbols * sizeof *xpm_syms;
-      xpm_syms = (XpmColorSymbol *) alloca (size);
+      xpm_syms = alloca (size);
       memset (xpm_syms, 0, size);
       attrs.colorsymbols = xpm_syms;
 
@@ -3445,14 +3443,14 @@ xpm_load (struct frame *f, struct image *img)
 	  color = XCDR (XCAR (tail));
 	  if (STRINGP (name))
 	    {
-	      xpm_syms[i].name = (char *) alloca (SCHARS (name) + 1);
+	      xpm_syms[i].name = alloca (SCHARS (name) + 1);
 	      strcpy (xpm_syms[i].name, SSDATA (name));
 	    }
 	  else
 	    xpm_syms[i].name = empty_string;
 	  if (STRINGP (color))
 	    {
-	      xpm_syms[i].value = (char *) alloca (SCHARS (color) + 1);
+	      xpm_syms[i].value = alloca (SCHARS (color) + 1);
 	      strcpy (xpm_syms[i].value, SSDATA (color));
 	    }
 	  else
@@ -3966,7 +3964,7 @@ xpm_load_image (struct frame *f,
 	    {
 	      if (xstrcasecmp (SSDATA (XCDR (specified_color)), "None") == 0)
 		color_val = Qt;
-	      else if (x_defined_color (f, SDATA (XCDR (specified_color)),
+	      else if (x_defined_color (f, SSDATA (XCDR (specified_color)),
 					&cdef, 0))
 		color_val = make_number (cdef.pixel);
 	    }
@@ -4041,7 +4039,6 @@ xpm_load_image (struct frame *f,
 
  failure:
   image_error ("Invalid XPM file (%s)", img->spec, Qnil);
- error:
   x_destroy_x_image (ximg);
   x_destroy_x_image (mask_img);
   x_clear_image (f, img);
@@ -4074,7 +4071,7 @@ xpm_load (struct frame *f,
 	  return 0;
 	}
 
-      contents = slurp_file (SDATA (file), &size);
+      contents = slurp_file (SSDATA (file), &size);
       if (contents == NULL)
 	{
 	  image_error ("Error loading XPM image `%s'", img->spec, Qnil);
@@ -4458,9 +4455,8 @@ x_to_xcolors (struct frame *f, struct image *img, int rgb_p)
   p = colors;
   for (y = 0; y < img->height; ++y)
     {
-      XColor *row = p;
-
 #if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI)
+      XColor *row = p;
       for (x = 0; x < img->width; ++x, ++p)
 	p->pixel = GET_PIXEL (ximg, x, y);
       if (rgb_p)
@@ -4743,14 +4739,12 @@ x_disable_image (struct frame *f, struct image *img)
   if (n_planes < 2 || cross_disabled_images)
     {
 #ifndef HAVE_NTGUI
-      Display *dpy = FRAME_X_DISPLAY (f);
-      GC gc;
-
 #ifndef HAVE_NS  /* TODO: NS support, however this not needed for toolbars */
 
 #define MaskForeground(f)  WHITE_PIX_DEFAULT (f)
 
-      gc = XCreateGC (dpy, img->pixmap, 0, NULL);
+      Display *dpy = FRAME_X_DISPLAY (f);
+      GC gc = XCreateGC (dpy, img->pixmap, 0, NULL);
       XSetForeground (dpy, gc, BLACK_PIX_DEFAULT (f));
       XDrawLine (dpy, img->pixmap, gc, 0, 0,
 		 img->width - 1, img->height - 1);
@@ -6449,8 +6443,7 @@ jpeg_load (struct frame *f, struct image *img)
        a default color, and we don't have to care about which colors
        can be freed safely, and which can't.  */
     init_color_table ();
-    colors = (unsigned long *) alloca (cinfo.actual_number_of_colors
-				       * sizeof *colors);
+    colors = alloca (cinfo.actual_number_of_colors * sizeof *colors);
 
     for (i = 0; i < cinfo.actual_number_of_colors; ++i)
       {
@@ -8556,13 +8549,13 @@ gs_load (struct frame *f, struct image *img)
      don't either.  Let the Lisp loader use `unwind-protect' instead.  */
   printnum1 = FRAME_X_WINDOW (f);
   printnum2 = img->pixmap;
-  sprintf (buffer, "%"pMu" %"pMu, printnum1, printnum2);
-  window_and_pixmap_id = build_string (buffer);
+  window_and_pixmap_id 
+    = make_formatted_string (buffer, "%"pMu" %"pMu, printnum1, printnum2);
 
   printnum1 = FRAME_FOREGROUND_PIXEL (f);
   printnum2 = FRAME_BACKGROUND_PIXEL (f);
-  sprintf (buffer, "%"pMu" %"pMu, printnum1, printnum2);
-  pixel_colors = build_string (buffer);
+  pixel_colors
+    = make_formatted_string (buffer, "%"pMu" %"pMu, printnum1, printnum2);
 
   XSETFRAME (frame, f);
   loader = image_spec_value (img->spec, QCloader, NULL);
