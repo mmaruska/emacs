@@ -17,21 +17,5 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#define PTY_NAME_SPRINTF	/* none */
-#define PTY_TTY_NAME_SPRINTF	/* none */
-#define PTY_OPEN					\
-  do							\
-    {							\
-      int dummy;					\
-      SIGMASKTYPE mask;					\
-      mask = sigblock (sigmask (SIGCHLD));		\
-      if (-1 == openpty (&fd, &dummy, pty_name, 0, 0))	\
-	fd = -1;					\
-      sigsetmask (mask);				\
-      if (fd >= 0)					\
-	emacs_close (dummy);				\
-    }							\
-  while (0)
-
 /* Used in various places to enable cygwin-specific code changes.  */
 #define CYGWIN 1
