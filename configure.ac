@@ -1266,7 +1266,9 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <math.h>]],
 [[static struct exception x; x.arg1 = x.arg2 = x.retval; x.name = ""; x.type = 1;]])],
   emacs_cv_struct_exception=yes, emacs_cv_struct_exception=no))
 HAVE_EXCEPTION=$emacs_cv_struct_exception
-if test $emacs_cv_struct_exception != yes; then
+dnl Define on Darwin so emacs symbols will not conflict with those
+dnl in the System framework.  Otherwise -prebind will not work.
+if test $emacs_cv_struct_exception != yes || test $opsys = darwin; then
   AC_DEFINE(NO_MATHERR, 1, [Define to 1 if you don't have struct exception in math.h.])
 fi
 
@@ -2720,11 +2722,14 @@ getpwent endpwent getgrent endgrent \
 touchlock \
 cfmakeraw cfsetspeed copysign __executable_start)
 
+dnl FIXME Fragile: something else may test for getwd as a dependency.
+dnl Change to defining BROKEN_xxx ?
 dnl getwd appears to be buggy on SVR4.2, so we don't use it.
 if test $opsys != unixware; then
   AC_CHECK_FUNCS(getwd)
 fi
 
+dnl FIXME Fragile: see above.
 ## Eric Backus <ericb@lsid.hp.com> says, HP-UX 9.x on HP 700 machines
 ## has a broken `rint' in some library versions including math library
 ## version number A.09.05.
@@ -3132,18 +3137,91 @@ AC_DEFINE(CLASH_DETECTION, 1, [Define if you want lock files to be written,
   so that Emacs can tell instantly when you try to modify a file that
   someone else has modified in his/her Emacs.])
 
+dnl Everybody supports this, except MS.
+dnl Seems like the kind of thing we should be testing for, though.
+## Note: PTYs are broken on darwin <6.  Use at your own risk.
+AC_DEFINE(HAVE_PTYS, 1, [Define if the system supports pty devices.])
+
+dnl Everybody supports this, except MS-DOS.
+dnl Seems like the kind of thing we should be testing for, though.
+dnl Compare with HAVE_INET_SOCKETS (which is unused...) above.
+AC_DEFINE(HAVE_SOCKETS, 1, [Define if the system supports
+  4.2-compatible sockets.])
+
+
 case $opsys in
   darwin | gnu | hpux* | *bsd )
     AC_DEFINE(NO_TERMIO, 1, [Define if termio.h should not be included.])
   ;;
 esac
 
-dnl SIGIO exists, but the feature doesn't work in the way Emacs needs.
-dnl See eg <http://article.gmane.org/gmane.os.openbsd.ports/46831>.
+
 case $opsys in
+  dnl SIGIO exists, but the feature doesn't work in the way Emacs needs.
+  dnl See eg <http://article.gmane.org/gmane.os.openbsd.ports/46831>.
   hpux* | irix6-5 | openbsd | sol2* | unixware )
     AC_DEFINE(BROKEN_SIGIO, 1, [Define if SIGIO should not be used.])
-  ;;
+    ;;
+
+  aix4-2)
+    dnl BUILD 9008 - FIONREAD problem still exists in X-Windows.
+    AC_DEFINE(BROKEN_FIONREAD, 1, [Define if FIONREAD should not be used.])
+    dnl As we define BROKEN_FIONREAD, SIGIO will be undefined in systty.h.
+    dnl But, on AIX, SIGAIO, SIGPTY, and SIGPOLL are defined as SIGIO,
+    dnl which causes compilation error at init_signals in sysdep.c.
+    dnl So, we define these macros so that syssignal.h detects them
+    dnl and undefine SIGAIO, SIGPTY and SIGPOLL.
+    AC_DEFINE(BROKEN_SIGAIO, 1, [Define if SIGAIO should not be used.])
+    AC_DEFINE(BROKEN_SIGPOLL,1, [Define if SIGPOLL should not be used.])
+    AC_DEFINE(BROKEN_SIGPTY, 1, [Define if SIGPTY should not be used.])
+
+    dnl On AIX Emacs uses the gmalloc.c malloc implementation.  But given
+    dnl the way this system works, libc functions that return malloced
+    dnl memory use the libc malloc implementation. Calling xfree or
+    dnl xrealloc on the results of such functions results in a crash.
+    dnl
+    dnl One solution for this could be to define SYSTEM_MALLOC in configure,
+    dnl but that does not currently work on this system.
+    dnl
+    dnl It is possible to completely override the malloc implementation on
+    dnl AIX, but that involves putting the malloc functions in a shared
+    dnl library and setting the MALLOCTYPE environment variable to point to
+    dnl that shared library.
+    dnl
+    dnl Emacs currently calls xrealloc on the results of get_current_dir name,
+    dnl to avoid a crash just use the Emacs implementation for that function.
+    dnl
+    dnl FIXME We could change the AC_CHECK_FUNCS call near the start
+    dnl of this file, so that we do not check for get_current_dir_name
+    dnl on AIX.  But that might be fragile if something else ends
+    dnl up testing for get_current_dir_name as a dependency.
+    AC_DEFINE(BROKEN_GET_CURRENT_DIR_NAME, 1, [Define if
+      get_current_dir_name should not be used.])
+    ;;
+
+  freebsd)
+    dnl Circumvent a bug in FreeBSD.  In the following sequence of
+    dnl writes/reads on a PTY, read(2) returns bogus data:
+    dnl
+    dnl write(2)  1022 bytes
+    dnl write(2)   954 bytes, get EAGAIN
+    dnl read(2)   1024 bytes in process_read_output
+    dnl read(2)     11 bytes in process_read_output
+    dnl
+    dnl That is, read(2) returns more bytes than have ever been written
+    dnl successfully.  The 1033 bytes read are the 1022 bytes written
+    dnl successfully after processing (for example with CRs added if the
+    dnl terminal is set up that way which it is here).  The same bytes will
+    dnl be seen again in a later read(2), without the CRs.
+    AC_DEFINE(BROKEN_PTY_READ_AFTER_EAGAIN, 1, [Define on FreeBSD to
+      work around an issue when reading from a PTY.])
+    ;;
+
+  dnl Define the following so emacs symbols will not conflict with those
+  dnl in the System framework.  Otherwise -prebind will not work.
+  darwin)
+    AC_DEFINE(NO_ABORT, 1, [Do not define abort in emacs.c.])
+    ;;
 esac
 
 case $opsys in
@@ -3170,6 +3248,107 @@ esac
 dnl Used in sound.c
 AC_DEFINE_UNQUOTED(DEFAULT_SOUND_DEVICE, "$sound_device",
   [Name of the default sound device.])
+
+
+dnl Emacs can read input using SIGIO and buffering characters itself,
+dnl or using CBREAK mode and making C-g cause SIGINT.
+dnl The choice is controlled by the variable interrupt_input.
+dnl
+dnl Define INTERRUPT_INPUT to make interrupt_input = 1 the default (use SIGIO)
+dnl
+dnl Emacs uses the presence or absence of the SIGIO and BROKEN_SIGIO macros
+dnl to indicate whether or not signal-driven I/O is possible.  It uses
+dnl INTERRUPT_INPUT to decide whether to use it by default.
+dnl
+dnl SIGIO can be used only on systems that implement it (4.2 and 4.3).
+dnl CBREAK mode has two disadvantages
+dnl 1) At least in 4.2, it is impossible to handle the Meta key properly.
+dnl I hear that in system V this problem does not exist.
+dnl 2) Control-G causes output to be discarded.
+dnl I do not know whether this can be fixed in system V.
+dnl
+dnl Another method of doing input is planned but not implemented.
+dnl It would have Emacs fork off a separate process
+dnl to read the input and send it to the true Emacs process
+dnl through a pipe.
+case $opsys in
+  darwin | gnu-linux | gnu-kfreebsd )
+    AC_DEFINE(INTERRUPT_INPUT, 1, [Define to read input using SIGIO.])
+  ;;
+esac
+
+
+dnl If the system's imake configuration file defines `NeedWidePrototypes'
+dnl as `NO', we must define NARROWPROTO manually.  Such a define is
+dnl generated in the Makefile generated by `xmkmf'.  If we don't define
+dnl NARROWPROTO, we will see the wrong function prototypes for X functions
+dnl taking float or double parameters.
+case $opsys in
+  cygwin|gnu|gnu-linux|gnu-kfreebsd|irix6-5|freebsd|netbsd|openbsd)
+    AC_DEFINE(NARROWPROTO, 1, [Define if system's imake configuration
+      file defines `NeedWidePrototypes' as `NO'.])
+  ;;
+esac
+
+
+dnl Used in process.c, this must be a loop, even if it only runs once.
+dnl (Except on SGI; see below.  Take that, clarity and consistency!)
+AH_TEMPLATE(PTY_ITERATION, [How to iterate over PTYs.])
+dnl Only used if !PTY_ITERATION.  Iterate from FIRST_PTY_LETTER to z,
+dnl trying suffixes 0-16.
+AH_TEMPLATE(FIRST_PTY_LETTER, [Letter to use in finding device name of
+  first PTY, if PTYs are supported.])
+
+case $opsys in
+  aix4-2 )
+    AC_DEFINE(PTY_ITERATION, [int c; for (c = 0; !c ; c++)] )
+    ;;
+
+  cygwin )
+    AC_DEFINE(PTY_ITERATION, [int i; for (i = 0; i < 1; i++)] )
+    ;;
+
+  darwin )
+    AC_DEFINE(PTY_ITERATION, [int i; for (i = 0; i < 1; i++)] )
+    dnl Not used, because PTY_ITERATION is defined.
+    AC_DEFINE(FIRST_PTY_LETTER, ['p'])
+    ;;
+
+  gnu | hpux* | freebsd | netbsd | openbsd )
+    AC_DEFINE(FIRST_PTY_LETTER, ['p'])
+    ;;
+
+  gnu-linux | gnu-kfreebsd )
+    dnl if HAVE_GRANTPT
+    if test "x$ac_cv_func_grantpt" = xyes; then
+      AC_DEFINE(PTY_ITERATION, [int i; for (i = 0; i < 1; i++)] )
+    else
+      AC_DEFINE(FIRST_PTY_LETTER, ['p'])
+    fi
+    ;;
+
+  irix6-5 )
+    dnl It looks like this cannot be right, because it is not a loop.
+    dnl However, process.c actually does this:
+    dnl # ifndef __sgi
+    dnl   continue;
+    dnl # else
+    dnl   return -1;
+    dnl # endif
+    dnl which presumably makes it OK, since irix == sgi (?).
+    dnl FIXME it seems like this special treatment is unnecessary?
+    dnl Why can't irix use a single-trip loop like eg cygwin?
+    AC_DEFINE(PTY_ITERATION, [])
+    dnl Not used, because PTY_ITERATION is defined.
+    AC_DEFINE(FIRST_PTY_LETTER, ['q'])
+    ;;
+
+  sol2* | unixware )
+    dnl This change means that we don't loop through allocate_pty too
+    dnl many times in the (rare) event of a failure.
+    AC_DEFINE(FIRST_PTY_LETTER, ['z'])
+    ;;
+esac
 
 
 AH_TEMPLATE(SIGNALS_VIA_CHARACTERS, [Make process_send_signal work by
@@ -3290,33 +3469,77 @@ case $opsys in
     ;;
 esac
 
+
+AH_TEMPLATE(TAB3, [Undocumented.])
+
 case $opsys in
-   gnu) opsysfile="s/bsd-common.h" ;;
+  darwin) AC_DEFINE(TAB3, OXTABS) ;;
 
-   gnu-kfreebsd) opsysfile="s/gnu-linux.h" ;;
+  gnu | freebsd | netbsd | openbsd )
+    AC_DEFINE(TABDLY, OXTABS, [Undocumented.] )
+    AC_DEFINE(TAB3, OXTABS)
+    ;;
 
-   hpux11)
-     dnl See comments in sysdep.c:sys_signal.
-     dnl SA_RESTART resets the timeout of `select' on hpux11.
-     dnl Defining BROKEN_SA_RESTART is not the same as undef'ing SA_RESTART.
-     AC_DEFINE(BROKEN_SA_RESTART, 1, [Define if SA_RESTART should only
-       be used in batch mode.])
-     dnl It works to open the pty's tty in the parent (Emacs), then
-     dnl close and reopen it in the child.
-     AC_DEFINE(USG_SUBTTY_WORKS, 1, [Define for USG systems where it
-       works to open a pty's tty in the parent process, then close and
-       reopen it in the child.])
+  hpux*)
+    AC_DEFINE(RUN_TIME_REMAP, 1, [Define if emacs.c needs to call
+      run_time_remap; for HPUX.])
+    ;;
+esac
 
-     opsysfile="s/hpux10-20.h"
-   ;;
 
-   openbsd) opsysfile="s/netbsd.h" ;;
+dnl Used in xfaces.c.
+case $opsys in
+  hpux* | sol2* )
+    AC_DEFINE(XOS_NEEDS_TIME_H, 1, [Compensate for a bug in Xos.h on
+      some systems, where it requires time.h.])
+    ;;
+esac
 
-   sol2-10)
-     AC_DEFINE(_STRUCTURED_PROC, 1, [Needed for system_process_attributes
-       on Solaris.])
-     opsysfile="s/sol2-6.h"
-   ;;
+
+case $opsys in
+  dnl Emacs supplies its own malloc, but glib (part of Gtk+) calls
+  dnl memalign and on Cygwin, that becomes the Cygwin-supplied memalign.
+  dnl As malloc is not the Cygwin malloc, the Cygwin memalign always
+  dnl returns ENOSYS.  A workaround is to set G_SLICE=always-malloc. */
+  cygwin)
+    AC_DEFINE(G_SLICE_ALWAYS_MALLOC, 1, [Define to set the
+      G_SLICE environment variable to "always-malloc" at startup, if
+      using GTK.])
+    ;;
+
+  gnu) opsysfile="s/bsd-common.h" ;;
+
+  gnu-kfreebsd) opsysfile="s/gnu-linux.h" ;;
+
+  hpux11)
+    dnl See comments in sysdep.c:sys_signal.
+    dnl SA_RESTART resets the timeout of `select' on hpux11.
+    dnl Defining BROKEN_SA_RESTART is not the same as undef'ing SA_RESTART.
+    AC_DEFINE(BROKEN_SA_RESTART, 1, [Define if SA_RESTART should only
+      be used in batch mode.])
+    dnl It works to open the pty's tty in the parent (Emacs), then
+    dnl close and reopen it in the child.
+    AC_DEFINE(USG_SUBTTY_WORKS, 1, [Define for USG systems where it
+      works to open a pty's tty in the parent process, then close and
+      reopen it in the child.])
+
+    opsysfile="s/hpux10-20.h"
+    ;;
+
+  irix6-5)
+    AC_DEFINE(PREFER_VSUSP, 1, [Define if process_send_signal should
+      use VSUSP instead of VSWTCH.])
+    AC_DEFINE(SETPGRP_RELEASES_CTTY, 1, [Define if process.c:child_setup
+      should not call setpgrp.])
+    ;;
+
+  openbsd) opsysfile="s/netbsd.h" ;;
+
+  sol2-10)
+    AC_DEFINE(_STRUCTURED_PROC, 1, [Needed for system_process_attributes
+      on Solaris.])
+    opsysfile="s/sol2-6.h"
+    ;;
 esac
 
 # Set up the CFLAGS for real compilation, so we can substitute it.

@@ -28,9 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if defined HAVE_GRANTPT
 #define UNIX98_PTYS
 
-/* Run only once.  We need a `for'-loop because the code uses `continue'.  */
-#define PTY_ITERATION	int i; for (i = 0; i < 1; i++)
-
 #ifdef HAVE_GETPT
 #define PTY_NAME_SPRINTF
 #define PTY_OPEN fd = getpt ()
@@ -56,18 +53,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     sigunblock (sigmask (SIGCHLD));			\
   }
 
-#else /* not HAVE_GRANTPT */
-
-/* Letter to use in finding device name of first pty,
-   if system supports pty's.  'p' means it is /dev/ptyp0  */
-#define FIRST_PTY_LETTER 'p'
-
-#endif  /* not HAVE_GRANTPT */
-
-/* Define HAVE_PTYS if the system supports pty devices.  */
-#define HAVE_PTYS
-
-#define HAVE_SOCKETS
+#endif  /* HAVE_GRANTPT */
 
 /* Here, on a separate page, add any special hacks needed
    to make Emacs work on this system.  For example,
@@ -76,11 +62,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    your system and must be used only through an encapsulation
    (Which you should place, by convention, in sysdep.c).  */
 
-#ifdef emacs
-#define INTERRUPT_INPUT
-#endif
-
-#define POSIX                 /* affects getpagesize.h and systty.h */
 
 /* This is to work around mysterious gcc failures in some system versions.
    It is unlikely that Emacs changes will work around this problem;
@@ -89,22 +70,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_XRMSETDATABASE
 #endif
 
-#define NARROWPROTO 1
-
-/* Tell that garbage collector that setjmp is known to save all
-   registers relevant for conservative garbage collection in the jmp_buf.  */
-/* Not all the architectures are tested, but there are Debian packages
-   for SCM and/or Guile on them, so the technique must work.  See also
-   comments in alloc.c concerning setjmp and gcc.  Fixme:  it's
-   probably safe to make this conditional just on GCC, except for ia64
-   register window-flushing.  */
-/* Don't use #cpu here since in newest development versions of GCC,
-   we must call cpp with -traditional, and that disables #cpu.  */
-#if defined __i386__ || defined __sparc__ || defined __mc68000__ \
-    || defined __alpha__ || defined __mips__ || defined __s390__ \
-    || defined __arm__ || defined __powerpc__ || defined __amd64__ \
-    || defined __ia64__ || defined __sh__
-#define GC_SETJMP_WORKS 1
 #ifdef __ia64__
 #define GC_MARK_SECONDARY_STACK()				\
   do {								\
@@ -114,6 +79,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 		 __builtin_ia64_bsp ());			\
   } while (0)
 #endif
+
+/* Tell that garbage collector that setjmp is known to save all
+   registers relevant for conservative garbage collection in the jmp_buf.
+   Not all the architectures are tested, but there are Debian packages
+   for SCM and/or Guile on them, so the technique must work.  See also
+   comments in alloc.c concerning setjmp and gcc.  Fixme:  it's
+   probably safe to just let the GCC conditional in AH_BOTTOM handle this.
+*/
+#if defined __i386__ || defined __sparc__ || defined __mc68000__ \
+    || defined __alpha__ || defined __mips__ || defined __s390__ \
+    || defined __arm__ || defined __powerpc__ || defined __amd64__ \
+    || defined __ia64__ || defined __sh__
+#define GC_SETJMP_WORKS 1
 #else
 #define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE
 #endif
