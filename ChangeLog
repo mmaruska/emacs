@@ -1,3 +1,20 @@
+2012-07-12  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (NO_MATHERR): Unconditionally define for Darwin;
+	as src/s/darwin.h used to.
+
+	* configure.ac (NARROWPROTO, NO_ABORT, BROKEN_GET_CURRENT_DIR_NAME)
+	(BROKEN_FIONREAD, BROKEN_PTY_READ_AFTER_EAGAIN, BROKEN_SIGAIO)
+	(BROKEN_SIGPOLL, BROKEN_SIGPTY, FIRST_PTY_LETTER)
+	(G_SLICE_ALWAYS_MALLOC, PREFER_VSUSP, PTY_ITERATION)
+	(RUN_TIME_REMAP, SETPGRP_RELEASES_CTTY, TAB3, TABDLY, RUN_TIME_REMAP
+	(XOS_NEEDS_TIME_H): Move here from src/s.
+
+2012-07-11  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (INTERRUPT_INPUT): Move here from src/s.
+	(HAVE_PTYS, HAVE_SOCKETS): Define unconditionally.
+
 2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (tzset): Remove check that's redundant with gnulib.

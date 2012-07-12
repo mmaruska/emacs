@@ -30,39 +30,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    distinguish OS X from pure Darwin.  */
 #define DARWIN_OS
 
-
-/* Emacs can read input using SIGIO and buffering characters itself,
-   or using CBREAK mode and making C-g cause SIGINT.
-   The choice is controlled by the variable interrupt_input.
-
-   Define INTERRUPT_INPUT to make interrupt_input = 1 the default (use SIGIO)
-
-   Emacs uses the presence or absence of the SIGIO and BROKEN_SIGIO macros
-   to indicate whether or not signal-driven I/O is possible.  It uses
-   INTERRUPT_INPUT to decide whether to use it by default.
-
-   SIGIO can be used only on systems that implement it (4.2 and 4.3).
-   CBREAK mode has two disadvantages
-     1) At least in 4.2, it is impossible to handle the Meta key properly.
-        I hear that in system V this problem does not exist.
-     2) Control-G causes output to be discarded.
-        I do not know whether this can be fixed in system V.
-
-   Another method of doing input is planned but not implemented.
-   It would have Emacs fork off a separate process
-   to read the input and send it to the true Emacs process
-   through a pipe. */
-#define INTERRUPT_INPUT
-
-/* Letter to use in finding device name of first pty,
-  if system supports pty's.  'a' means it is /dev/ptya0  */
-#define FIRST_PTY_LETTER 'p'
-
-/* Define HAVE_PTYS if the system supports pty devices.
-   Note: PTYs are broken on darwin <6.  Use at your own risk.  */
-#define HAVE_PTYS
-/* Run only once.  We need a `for'-loop because the code uses `continue'.  */
-#define PTY_ITERATION	int i; for (i = 0; i < 1; i++)
 #define PTY_NAME_SPRINTF	/* none */
 #define PTY_TTY_NAME_SPRINTF	/* none */
 /* Note that openpty may fork via grantpt on Mac OS X 10.4/Darwin 8.
@@ -87,12 +54,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    also the name of a Mach system call.  */
 #define init_process emacs_init_process
 
-/* System uses OXTABS instead of the expected TAB3.  (Copied from bsd386.h.)  */
-#define TAB3 OXTABS
-
-/* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
-#define HAVE_SOCKETS
-
 /* Definitions for how to compile & link.  */
 #ifdef HAVE_NS
 #define SYSTEM_PURESIZE_EXTRA 200000
@@ -105,15 +66,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Don't use posix_memalign because it is not compatible with unexmacosx.c.  */
 #undef HAVE_POSIX_MEMALIGN
 #endif
-
-/* Define the following so emacs symbols will not conflict with those
-   in the System framework.  Otherwise -prebind will not work.  */
-
-/* Do not define abort in emacs.c.  */
-#define NO_ABORT
-
-/* Do not define matherr in floatfns.c.  */
-#define NO_MATHERR
 
 /* The following solves the problem that Emacs hangs when evaluating
    (make-comint "test0" "/nodir/nofile" nil "") when /nodir/nofile
