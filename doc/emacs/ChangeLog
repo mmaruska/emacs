@@ -1,3 +1,16 @@
+2012-07-17  Chong Yidong  <cyd@gnu.org>
+
+	* basic.texi (Inserting Text): Replace ucs-insert with
+	insert-char.  Provide more details of input.
+
+	* mule.texi (International Chars, Input Methods): Likewise.
+
+2012-07-13  Chong Yidong  <cyd@gnu.org>
+
+	* custom.texi (Examining): Update C-h v message.
+
+	* buffers.texi (Misc Buffer): Document view-read-only.
+
 2012-07-07  Chong Yidong  <cyd@gnu.org>
 
 	* custom.texi (Init File): Index site-lisp (Bug#11435).
@@ -1302,7 +1315,6 @@
 	* custom.texi (Mouse Buttons):
 	* rmail.texi (Rmail Scrolling):
 	* search.texi (Isearch Scroll):
-
 	* display.texi (Scrolling): Replace scroll-up/down with
 	scroll-up/down-command.  Fix scroll-preserve-screen-position
 	description.  Document scroll-error-top-bottom.
@@ -3121,9 +3133,9 @@
 	* ack.texi (Acknowledgments): General update based on AUTHORS,
 	including removal of some stuff no longer distributed.
 
-2008-12-19  Agustin Martin  <agustin.martin@hispalinux.es>
+2008-12-19  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* fixit.texi: Mention hunspell
+	* fixit.texi: Mention hunspell.
 
 2008-12-19  Glenn Morris  <rgm@gnu.org>
 

@@ -7298,8 +7298,10 @@ integer or floating point values.
 }
 
 
+/* This is not called "init_process" because that is the name of a
+   Mach system call, so it would cause problems on Darwin systems.  */
 void
-init_process (void)
+init_process_emacs (void)
 {
 #ifdef subprocesses
   register int i;
@@ -7396,8 +7398,7 @@ init_process (void)
     char const *release = (STRINGP (Voperating_system_release)
 			   ? SSDATA (Voperating_system_release)
 			   : 0);
-    if (!release || !release[0] || (release[0] < MIN_PTY_KERNEL_VERSION
-				    && release[1] == '.')) {
+    if (!release || !release[0] || (release[0] < '7' && release[1] == '.')) {
       Vprocess_connection_type = Qnil;
     }
   }

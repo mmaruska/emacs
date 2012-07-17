@@ -191,7 +191,7 @@ int abort_on_gc;
 
 static EMACS_INT total_conses, total_markers, total_symbols, total_vector_size;
 static EMACS_INT total_free_conses, total_free_markers, total_free_symbols;
-static EMACS_INT total_free_floats, total_floats;
+static EMACS_INT total_free_floats, total_floats, total_free_vector_bytes;
 
 /* Points to memory space allocated as "spare", to be freed if we run
    out of memory.  We keep one large block, four cons-blocks, and
@@ -257,11 +257,6 @@ const char *pending_malloc_warning;
 static char *stack_copy;
 static ptrdiff_t stack_copy_size;
 #endif
-
-/* Non-zero means ignore malloc warnings.  Set during initialization.
-   Currently not used.  */
-
-static int ignore_warnings;
 
 static Lisp_Object Qgc_cons_threshold;
 Lisp_Object Qchar_table_extra_slots;
@@ -435,7 +430,7 @@ static Lisp_Object *staticvec[NSTATICS] = {&Vpurify_flag};
 
 /* Index of next unused slot in staticvec.  */
 
-static int staticidx = 0;
+static int staticidx;
 
 static void *pure_alloc (size_t, int);
 
@@ -1481,7 +1476,7 @@ static struct interval_block *interval_block;
 /* Index in interval_block above of the next unused interval
    structure.  */
 
-static int interval_block_index;
+static int interval_block_index = INTERVAL_BLOCK_SIZE;
 
 /* Number of free and live intervals.  */
 
@@ -1490,18 +1485,6 @@ static EMACS_INT total_free_intervals, total_intervals;
 /* List of free intervals.  */
 
 static INTERVAL interval_free_list;
-
-
-/* Initialize interval allocation.  */
-
-static void
-init_intervals (void)
-{
-  interval_block = NULL;
-  interval_block_index = INTERVAL_BLOCK_SIZE;
-  interval_free_list = 0;
-}
-
 
 /* Return a new interval.  */
 
@@ -1529,6 +1512,7 @@ make_interval (void)
 	  newi->next = interval_block;
 	  interval_block = newi;
 	  interval_block_index = 0;
+	  total_free_intervals += INTERVAL_BLOCK_SIZE;
 	}
       val = &interval_block->intervals[interval_block_index++];
     }
@@ -1537,6 +1521,7 @@ make_interval (void)
 
   consing_since_gc += sizeof (struct interval);
   intervals_consed++;
+  total_free_intervals--;
   RESET_INTERVAL (val);
   val->gcmarkbit = 0;
   return val;
@@ -1548,7 +1533,9 @@ make_interval (void)
 static void
 mark_interval (register INTERVAL i, Lisp_Object dummy)
 {
-  eassert (!i->gcmarkbit);		/* Intervals are never shared.  */
+  /* Intervals should never be shared.  So, if extra internal checking is
+     enabled, GC aborts if it seems to have visited an interval twice.  */
+  eassert (!i->gcmarkbit);
   i->gcmarkbit = 1;
   mark_object (i->plist);
 }
@@ -1803,10 +1790,6 @@ static char const string_overrun_cookie[GC_STRING_OVERRUN_COOKIE_SIZE] =
 static void
 init_strings (void)
 {
-  total_strings = total_free_strings = total_string_size = 0;
-  oldest_sblock = current_sblock = large_sblocks = NULL;
-  string_blocks = NULL;
-  string_free_list = NULL;
   empty_unibyte_string = make_pure_string ("", 0, 0, 0);
   empty_multibyte_string = make_pure_string ("", 0, 0, 1);
 }
@@ -2590,23 +2573,11 @@ static struct float_block *float_block;
 
 /* Index of first unused Lisp_Float in the current float_block.  */
 
-static int float_block_index;
+static int float_block_index = FLOAT_BLOCK_SIZE;
 
 /* Free-list of Lisp_Floats.  */
 
 static struct Lisp_Float *float_free_list;
-
-
-/* Initialize float allocation.  */
-
-static void
-init_float (void)
-{
-  float_block = NULL;
-  float_block_index = FLOAT_BLOCK_SIZE; /* Force alloc of new float_block.   */
-  float_free_list = 0;
-}
-
 
 /* Return a new float object with value FLOAT_VALUE.  */
 
@@ -2636,6 +2607,7 @@ make_float (double float_value)
 	  memset (new->gcmarkbits, 0, sizeof new->gcmarkbits);
 	  float_block = new;
 	  float_block_index = 0;
+	  total_free_floats += FLOAT_BLOCK_SIZE;
 	}
       XSETFLOAT (val, &float_block->floats[float_block_index]);
       float_block_index++;
@@ -2647,6 +2619,7 @@ make_float (double float_value)
   eassert (!FLOAT_MARKED_P (XFLOAT (val)));
   consing_since_gc += sizeof (struct Lisp_Float);
   floats_consed++;
+  total_free_floats--;
   return val;
 }
 
@@ -2696,23 +2669,11 @@ static struct cons_block *cons_block;
 
 /* Index of first unused Lisp_Cons in the current block.  */
 
-static int cons_block_index;
+static int cons_block_index = CONS_BLOCK_SIZE;
 
 /* Free-list of Lisp_Cons structures.  */
 
 static struct Lisp_Cons *cons_free_list;
-
-
-/* Initialize cons allocation.  */
-
-static void
-init_cons (void)
-{
-  cons_block = NULL;
-  cons_block_index = CONS_BLOCK_SIZE; /* Force alloc of new cons_block.  */
-  cons_free_list = 0;
-}
-
 
 /* Explicitly free a cons cell by putting it on the free-list.  */
 
@@ -2724,6 +2685,7 @@ free_cons (struct Lisp_Cons *ptr)
   ptr->car = Vdead;
 #endif
   cons_free_list = ptr;
+  total_free_conses++;
 }
 
 DEFUN ("cons", Fcons, Scons, 2, 2, 0,
@@ -2753,6 +2715,7 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 	  new->next = cons_block;
 	  cons_block = new;
 	  cons_block_index = 0;
+	  total_free_conses += CONS_BLOCK_SIZE;
 	}
       XSETCONS (val, &cons_block->conses[cons_block_index]);
       cons_block_index++;
@@ -2764,6 +2727,7 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
   XSETCDR (val, cdr);
   eassert (!CONS_MARKED_P (XCONS (val)));
   consing_since_gc += sizeof (struct Lisp_Cons);
+  total_free_conses--;
   cons_cells_consed++;
   return val;
 }
@@ -2950,6 +2914,7 @@ verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
     eassert ((index) < VECTOR_MAX_FREE_LIST_INDEX);		\
     (v)->header.next.vector = vector_free_lists[index];		\
     vector_free_lists[index] = (v);				\
+    total_free_vector_bytes += (nbytes);			\
   } while (0)
 
 struct vector_block
@@ -2973,7 +2938,7 @@ static struct Lisp_Vector *large_vectors;
 
 /* The only vector with 0 slots, allocated from pure space.  */
 
-static struct Lisp_Vector *zero_vector;
+Lisp_Object zero_vector;
 
 /* Get a new vector block.  */
 
@@ -2997,8 +2962,7 @@ allocate_vector_block (void)
 static void
 init_vectors (void)
 {
-  zero_vector = pure_alloc (header_size, Lisp_Vectorlike);
-  zero_vector->header.size = 0;
+  zero_vector = make_pure_vector (0);
 }
 
 /* Allocate vector from a vector block.  */
@@ -3021,6 +2985,7 @@ allocate_vector_from_block (size_t nbytes)
       vector = vector_free_lists[index];
       vector_free_lists[index] = vector->header.next.vector;
       vector->header.next.nbytes = nbytes;
+      total_free_vector_bytes -= nbytes;
       return vector;
     }
 
@@ -3035,6 +3000,7 @@ allocate_vector_from_block (size_t nbytes)
 	vector = vector_free_lists[index];
 	vector_free_lists[index] = vector->header.next.vector;
 	vector->header.next.nbytes = nbytes;
+	total_free_vector_bytes -= nbytes;
 
 	/* Excess bytes are used for the smaller vector,
 	   which should be set on an appropriate free list.  */
@@ -3094,7 +3060,7 @@ sweep_vectors (void)
   struct vector_block *block = vector_blocks, **bprev = &vector_blocks;
   struct Lisp_Vector *vector, *next, **vprev = &large_vectors;
 
-  total_vector_size = 0;
+  total_free_vector_bytes = total_vector_size = 0;
   memset (vector_free_lists, 0, sizeof (vector_free_lists));
 
   /* Looking through vector blocks.  */
@@ -3190,7 +3156,7 @@ allocate_vectorlike (ptrdiff_t len)
   /* eassert (!handling_signal); */
 
   if (len == 0)
-    p = zero_vector;
+    p = XVECTOR (zero_vector);
   else
     {
       size_t nbytes = header_size + len * word_size;
@@ -3454,23 +3420,11 @@ struct symbol_block
    structure in it.  */
 
 static struct symbol_block *symbol_block;
-static int symbol_block_index;
+static int symbol_block_index = SYMBOL_BLOCK_SIZE;
 
 /* List of free symbols.  */
 
 static struct Lisp_Symbol *symbol_free_list;
-
-
-/* Initialize symbol allocation.  */
-
-static void
-init_symbol (void)
-{
-  symbol_block = NULL;
-  symbol_block_index = SYMBOL_BLOCK_SIZE;
-  symbol_free_list = 0;
-}
-
 
 DEFUN ("make-symbol", Fmake_symbol, Smake_symbol, 1, 1, 0,
        doc: /* Return a newly allocated uninterned symbol whose name is NAME.
@@ -3500,6 +3454,7 @@ Its value and function definition are void, and its property list is nil.  */)
 	  new->next = symbol_block;
 	  symbol_block = new;
 	  symbol_block_index = 0;
+	  total_free_symbols += SYMBOL_BLOCK_SIZE;
 	}
       XSETSYMBOL (val, &symbol_block->symbols[symbol_block_index].s);
       symbol_block_index++;
@@ -3520,6 +3475,7 @@ Its value and function definition are void, and its property list is nil.  */)
   p->declared_special = 0;
   consing_since_gc += sizeof (struct Lisp_Symbol);
   symbols_consed++;
+  total_free_symbols--;
   return val;
 }
 
@@ -3555,17 +3511,9 @@ struct marker_block
 };
 
 static struct marker_block *marker_block;
-static int marker_block_index;
+static int marker_block_index = MARKER_BLOCK_SIZE;
 
 static union Lisp_Misc *marker_free_list;
-
-static void
-init_marker (void)
-{
-  marker_block = NULL;
-  marker_block_index = MARKER_BLOCK_SIZE;
-  marker_free_list = 0;
-}
 
 /* Return a newly allocated Lisp_Misc object, with no substructure.  */
 
@@ -6615,6 +6563,36 @@ We divide the value by 1024 to make sure it fits in a Lisp integer.  */)
   return end;
 }
 
+DEFUN ("memory-free", Fmemory_free, Smemory_free, 0, 0, 0,
+       doc: /* Return a list of two counters that measure how much free memory
+is hold by the Emacs process.  Both counters are in KBytes.  First
+counter shows how much memory holds in a free lists maintained by
+the Emacs itself.  Second counter shows how much free memory is in
+the heap (freed by Emacs but not released back to the operating
+system).  If the second counter is zero, heap statistics is not
+available.  */)
+     (void)
+{
+  Lisp_Object data[2];
+  
+  data[0] = make_number
+    (min (MOST_POSITIVE_FIXNUM,
+	  (total_free_conses * sizeof (struct Lisp_Cons)
+	   + total_free_markers * sizeof (union Lisp_Misc)
+	   + total_free_symbols * sizeof (struct Lisp_Symbol)
+	   + total_free_floats * sizeof (struct Lisp_Float)
+	   + total_free_intervals * sizeof (struct interval)
+	   + total_free_strings * sizeof (struct Lisp_String)
+	   + total_free_vector_bytes) / 1024));
+#ifdef DOUG_LEA_MALLOC
+  data[1] = make_number
+    (min (MOST_POSITIVE_FIXNUM, mallinfo ().fordblks / 1024));
+#else
+  data[1] = make_number (0);
+#endif
+  return Flist (2, data);
+}
+
 DEFUN ("memory-use-counts", Fmemory_use_counts, Smemory_use_counts, 0, 0, 0,
        doc: /* Return a list of counters that measure how much consing there has been.
 Each of these counters increments for a certain kind of object.
@@ -6714,32 +6692,19 @@ init_alloc_once (void)
   /* Used to do Vpurify_flag = Qt here, but Qt isn't set up yet!  */
   purebeg = PUREBEG;
   pure_size = PURESIZE;
-  pure_bytes_used = 0;
-  pure_bytes_used_lisp = pure_bytes_used_non_lisp = 0;
-  pure_bytes_used_before_overflow = 0;
-
-  /* Initialize the list of free aligned blocks.  */
-  free_ablock = NULL;
 
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
   mem_init ();
   Vdead = make_pure_string ("DEAD", 4, 4, 0);
 #endif
 
-  ignore_warnings = 1;
 #ifdef DOUG_LEA_MALLOC
   mallopt (M_TRIM_THRESHOLD, 128*1024); /* trim threshold */
   mallopt (M_MMAP_THRESHOLD, 64*1024); /* mmap threshold */
   mallopt (M_MMAP_MAX, MMAP_MAX_AREAS); /* max. number of mmap'ed areas */
 #endif
   init_strings ();
-  init_cons ();
-  init_symbol ();
-  init_marker ();
-  init_float ();
-  init_intervals ();
   init_vectors ();
-  init_weak_hash_tables ();
 
 #ifdef REL_ALLOC
   malloc_hysteresis = 32;
@@ -6748,14 +6713,7 @@ init_alloc_once (void)
 #endif
 
   refill_memory_reserve ();
-
-  ignore_warnings = 0;
-  gcprolist = 0;
-  byte_stack_list = 0;
-  staticidx = 0;
-  consing_since_gc = 0;
   gc_cons_threshold = 100000 * sizeof (Lisp_Object);
-  gc_relative_threshold = 0;
 }
 
 void
@@ -6871,6 +6829,7 @@ The time is in seconds as a floating point value.  */);
   defsubr (&Spurecopy);
   defsubr (&Sgarbage_collect);
   defsubr (&Smemory_limit);
+  defsubr (&Smemory_free);
   defsubr (&Smemory_use_counts);
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES

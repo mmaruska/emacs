@@ -1,14 +1,59 @@
+2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix toolkit configuration report.
+	* configure.ac (USE_X_TOOLKIT): Report toolkit as GTK3 if
+	--with-x-toolkit=gtk3 is used.
+
+2012-07-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix regression with pthread_sigmask on FreeBSD (Bug#11884).
+	* configure.ac: Configure gnulib at the end, not before running
+	pkg-config.  This restores the behavior before 2012-06-22, when
+	higher-resolution time stamps were added, and fixes a bug whereby
+	LIB_PTHREAD was not used and gnulib's part of 'configure'
+	therefore incorrectly assumed that pthread_sigmask wasn't working.
+	Fix the problem with -lrt and clock_gettime a different way.
+	This should complete the fix for Bug#11884.
+	(pre_PKG_CONFIG_CFLAGS, pre_PKG_CONFIG_LIBS): New shell vars.
+
+2012-07-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2012-07-15 pthread_sigmask: fix bug on FreeBSD 9 (Bug#11884)
+	2012-07-11 gettext: do not assume '#define ... defined ...' behavior
+
+2012-07-14  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (GC_SETJMP_WORKS, GC_MARK_STACK): Move here from src/s.
+	(AH_BOTTOM): Move GC_SETJMP_WORKS GCC fallback to main body.
+
+2012-07-13  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (opsysfile): Set to empty on gnu, cygwin.
+
+	* configure.ac (BSD4_2, BSD_SYSTEM, USG, USG5, _AIX, CYGWIN)
+	(DARWIN_OS, GNU_LINUX, HPUX, IRIX6_5, SOLARIS2):
+	Move "system type" macros here from src/s.
+	(BSD_SYSTEM_AHB): New hack macro.
+	(AH_BOTTOM): Set BSD_SYSTEM, using BSD_SYSTEM_AHB.
+
+	* configure.ac (NSIG_MINIMUM, ULIMIT_BREAK_VALUE, SETUP_SLAVE_PTY)
+	(GC_MARK_SECONDARY_STACK): Move here from src/s.
+
 2012-07-12  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (AH_BOTTOM) [DARWIN_OS]: Move SYSTEM_PURESIZE_EXTRA
+	setting here from src/s/darwin.h.
 
 	* configure.ac (NO_MATHERR): Unconditionally define for Darwin;
 	as src/s/darwin.h used to.
 
 	* configure.ac (NARROWPROTO, NO_ABORT, BROKEN_GET_CURRENT_DIR_NAME)
 	(BROKEN_FIONREAD, BROKEN_PTY_READ_AFTER_EAGAIN, BROKEN_SIGAIO)
-	(BROKEN_SIGPOLL, BROKEN_SIGPTY, FIRST_PTY_LETTER)
+	(BROKEN_SIGPOLL, BROKEN_SIGPTY, FIRST_PTY_LETTER, NO_EDITRES)
 	(G_SLICE_ALWAYS_MALLOC, PREFER_VSUSP, PTY_ITERATION, PTY_OPEN)
 	(PTY_NAME_SPRINTF, PTY_TTY_NAME_SPRINTF, RUN_TIME_REMAP)
-	(SETPGRP_RELEASES_CTTY, TAB3, TABDLY, RUN_TIME_REMAP)
+	(SETPGRP_RELEASES_CTTY, TAB3, TABDLY, RUN_TIME_REMAP, UNIX98_PTYS)
 	(XOS_NEEDS_TIME_H): Move here from src/s.
 
 2012-07-11  Glenn Morris  <rgm@gnu.org>
@@ -270,7 +315,7 @@
 
 	* lib/stat-time.h:
 	* lib/timespec.h:
-	* lib/utimens.h: Include sys/time.h
+	* lib/utimens.h: Include sys/time.h.
 
 2012-06-23  Andreas Schwab  <schwab@linux-m68k.org>
 
@@ -5135,7 +5180,7 @@
 
 2004-10-08  Steven Tamm  <steventamm@mac.com>
 
-	* configure.in (HAVE_MALLOC_MALLOC_H): Test for malloc/malloc.h
+	* configure.in (HAVE_MALLOC_MALLOC_H): Test for malloc/malloc.h.
 
 2004-10-06  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -7982,7 +8027,7 @@
 
 1995-09-30  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
-	* configure.in (powerpc-*-solaris2): New alternative.x
+	* configure.in (powerpc-*-solaris2): New alternative.
 
 1995-09-12  Karl Heuer  <kwzh@gnu.ai.mit.edu>
 
@@ -8500,7 +8545,7 @@
 
 1994-09-20  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
-	* Makefile.in (paths-force): Depend on src/paths.h
+	* Makefile.in (paths-force): Depend on src/paths.h.
 
 1994-09-19  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
@@ -9341,7 +9386,7 @@
 
 1993-09-12  Roland McGrath  (roland@sugar-bombs.gnu.ai.mit.edu)
 
-	* make-dist: Dist vpath.sed
+	* make-dist: Dist vpath.sed.
 
 	* Makefile.in (lib-src/Makefile, src/Makefile, oldXMenu/Makefile):
 	Depend on vpath.sed.

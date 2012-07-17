@@ -113,6 +113,8 @@ treated as images.
 ** Face underlining can now use a wave.
 See the "Face Attributes" section of the Elisp manual.
 
+** New fringe bitmap exclamation-mark.
+
 ** String values for `initial-buffer-choice' also apply to emacsclient
 frames, if emacsclient is only told to open a new frame without
 specifying any file to visit or expression to evaluate.
@@ -138,6 +140,10 @@ invokes `set-buffer-file-coding-system'.
 ** Setting `enable-remote-dir-locals' to non-nil allows directory
 local variables on remote hosts.
 
++++
+** `insert-char' is now a command, and `ucs-insert' an obsolete alias
+for it.
+
 
 * Editing Changes in Emacs 24.2
 
@@ -157,6 +163,9 @@ prompts for a column number.
 character when doing minibuffer filename prompts.
 
 ** `goto-char' is now bound to `M-g c'.
+
+** New command `C-x r M-w' (copy-rectangle-as-kill).
+It copies the region-rectangle as the last rectangle kill.
 
 ** New input method `vietnamese-vni'.
 
@@ -264,6 +273,10 @@ insertions in green (new faces `diff-refine-added' and
 The variable `diff-use-changed-face' defines whether to use
 the face `diff-changed', or `diff-removed' and `diff-added'
 to highlight changes in context diffs.
+
+** Flymake uses fringe bitmaps to indicate errors and warnings.
+See flymake-fringe-indicator-position, flymake-error-bitmap and
+flymake-warning-bitmap.
 
 ** Ediff now uses the same color scheme as Diff mode
 on high color displays.
@@ -475,6 +488,9 @@ still be supported for Emacs 24.x.
 
 
 * Lisp changes in Emacs 24.2
+
+** `toggle-read-only' accepts a second argument specifying whether to
+print a message, if called from Lisp.
 
 ** CL-style generalized variables are now in core Elisp.
 `setf' is autoloaded and `push' and `pop' accept generalized variables.

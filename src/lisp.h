@@ -2402,7 +2402,6 @@ extern ptrdiff_t chars_in_text (const unsigned char *, ptrdiff_t);
 extern ptrdiff_t multibyte_chars_in_text (const unsigned char *, ptrdiff_t);
 extern int multibyte_char_to_unibyte (int) ATTRIBUTE_CONST;
 extern int multibyte_char_to_unibyte_safe (int) ATTRIBUTE_CONST;
-extern void init_character_once (void) ATTRIBUTE_CONST;
 extern void syms_of_character (void);
 
 /* Defined in charset.c */
@@ -2437,8 +2436,6 @@ Lisp_Object make_hash_table (Lisp_Object, Lisp_Object, Lisp_Object,
 ptrdiff_t hash_lookup (struct Lisp_Hash_Table *, Lisp_Object, EMACS_UINT *);
 ptrdiff_t hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 		    EMACS_UINT);
-void init_weak_hash_tables (void);
-extern void init_fns (void) ATTRIBUTE_CONST;
 
 extern Lisp_Object substring_both (Lisp_Object, ptrdiff_t, ptrdiff_t,
 				   ptrdiff_t, ptrdiff_t);
@@ -2474,7 +2471,6 @@ extern Lisp_Object QCascent, QCmargin, QCrelief;
 extern Lisp_Object QCconversion;
 extern int x_bitmap_mask (struct frame *, ptrdiff_t);
 extern void syms_of_image (void);
-extern void init_image (void) ATTRIBUTE_CONST;
 
 /* Defined in insdel.c */
 extern Lisp_Object Qinhibit_modification_hooks;
@@ -2605,6 +2601,7 @@ extern void mark_object (Lisp_Object);
 extern void refill_memory_reserve (void);
 #endif
 extern const char *pending_malloc_warning;
+extern Lisp_Object zero_vector;
 extern Lisp_Object *stack_base;
 extern Lisp_Object list1 (Lisp_Object);
 extern Lisp_Object list2 (Lisp_Object, Lisp_Object);
@@ -3060,7 +3057,7 @@ extern void add_gpm_wait_descriptor (int);
 extern void delete_gpm_wait_descriptor (int);
 #endif
 extern void close_process_descs (void);
-extern void init_process (void);
+extern void init_process_emacs (void);
 extern void syms_of_process (void);
 extern void setup_process_coding_systems (Lisp_Object);
 
@@ -3162,11 +3159,9 @@ extern void lock_file (Lisp_Object);
 extern void unlock_file (Lisp_Object);
 extern void unlock_buffer (struct buffer *);
 extern void syms_of_filelock (void);
-extern void init_filelock (void);
 
 /* Defined in sound.c */
 extern void syms_of_sound (void);
-extern void init_sound (void) ATTRIBUTE_CONST;
 
 /* Defined in category.c */
 extern void init_category_once (void);

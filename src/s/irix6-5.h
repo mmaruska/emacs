@@ -17,25 +17,16 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-
-#define IRIX6_5			/* used in m/iris4d */
 #include "usg5-4-common.h"
 
 #undef _longjmp /* use system versions, not conservative aliases */
 #undef _setjmp
 
-#undef SETUP_SLAVE_PTY
-
 #ifdef emacs
 char *_getpty();
 #endif
-
-/* Ulimit(UL_GMEMLIM) is busted...  */
-#define ULIMIT_BREAK_VALUE 0x14000000
 
 #undef SA_RESTART     /* not the same as defining BROKEN_SA_RESTART */
 
 #undef TIOCSIGSEND		/* defined in usg5-4-common.h */
 
-/* Tested on Irix 6.5.  SCM worked on earlier versions.  */
-#define GC_SETJMP_WORKS 1

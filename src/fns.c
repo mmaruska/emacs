@@ -3945,12 +3945,6 @@ hash_clear (struct Lisp_Hash_Table *h)
 			   Weak Hash Tables
  ************************************************************************/
 
-void
-init_weak_hash_tables (void)
-{
-  weak_hash_tables = NULL;
-}
-
 /* Sweep weak hash table H.  REMOVE_ENTRIES_P non-zero means remove
    entries from the table that don't survive the current GC.
    REMOVE_ENTRIES_P zero means mark entries that are in use.  Value is
@@ -5027,10 +5021,4 @@ this variable.  */);
   defsubr (&Smd5);
   defsubr (&Ssecure_hash);
   defsubr (&Slocale_info);
-}
-
-
-void
-init_fns (void)
-{
 }
