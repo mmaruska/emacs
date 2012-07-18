@@ -1,3 +1,78 @@
+2012-07-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix sweep_vectors to handle large bool vectors correctly.
+	* alloc.c (sweep_vectors): Account total_vector_bytes for
+	bool vectors larger than VBLOCK_BYTES_MAX.
+
+2012-07-18  Chong Yidong  <cyd@gnu.org>
+
+	* frame.c (x_set_frame_parameters): Revert bogus change introduced
+	in 2012-05-25 commit by Paul Eggert (Bug#11738).
+
+2012-07-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Return more descriptive data from Fgarbage_collect.
+	Suggested by Stefan Monnier in
+	http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00369.html.
+	* alloc.c (bounded_number): New function.
+	(total_buffers, total_vectors): New variable.
+	(total_string_size): Rename to total_string_bytes, adjust users.
+	(total_vector_size): Rename to total_vector_bytes, adjust users.
+	(sweep_vectors): Account total_vectors and total_vector_bytes.
+	(Fgarbage_collect): New return value.  Adjust documentation.
+	(gc_sweep): Account total_buffers.
+	(Fmemory_free, Fmemory_use_counts): Use bounded_number.
+	(VECTOR_SIZE): Remove.
+	* data.c (Qfloat, Qvector, Qsymbol, Qstring, Qcons): Make global.
+	(Qinterval, Qmisc): New symbols.
+	(syms_of_data): Initialize them.
+	* lisp.h (Qinterval, Qsymbol, Qstring, Qmisc, Qvector, Qfloat)
+	(Qcons, Qbuffer): New declarations.
+
+2012-07-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (Fmemory_free): Account for memory-free's own storage.
+	Round up, not down.  Improve doc.
+
+2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Restore old code in allocate_string_data to avoid Faset breakage.
+	Reported by Julien Danjou <julien@danjou.info> in
+	http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00371.html.
+	* alloc.c (allocate_string_data): Restore old code with minor
+	adjustments, fix comment to explain this subtle issue.
+
+2012-07-17  Eli Zaretskii  <eliz@gnu.org>
+
+	Remove FILE_SYSTEM_CASE.
+	* s/msdos.h (FILE_SYSTEM_CASE): Don't define.
+
+	* fileio.c (FILE_SYSTEM_CASE): Don't define.
+	(Ffile_name_directory, Fexpand_file_name): Don't use FILE_SYSTEM_CASE.
+	Fixes problems on MS-DOS with Vtemp_file_name_pattern when
+	call-process-region passes it through expand-file-name.
+
+	* dired.c (file_name_completion): Don't use FILE_SYSTEM_CASE.
+
+2012-07-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	Fix crash when creating indirect buffer (Bug#11917)
+	* buffer.c (buffer_lisp_local_variables): Add argument CLONE.
+	Don't handle unbound variables specially if non-zero.
+	(Fbuffer_local_variables): Pass zero.
+	(clone_per_buffer_values): Pass non-zero.
+
+2012-07-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gnutls.c (emacs_gnutls_handshake): Revert last change.  Add QUIT
+	to make the loop interruptible.
+
+2012-07-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gnutls.c (emacs_gnutls_handshake): Only retry if
+	GNUTLS_E_INTERRUPTED.
+
+2012-07-17  Eli Zaretskii  <eliz@gnu.org>
 2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Cleanup and convert miscellaneous checks to eassert.

@@ -189,9 +189,9 @@ int abort_on_gc;
 
 /* Number of live and free conses etc.  */
 
-static EMACS_INT total_conses, total_markers, total_symbols, total_vector_size;
+static EMACS_INT total_conses, total_markers, total_symbols, total_buffers;
 static EMACS_INT total_free_conses, total_free_markers, total_free_symbols;
-static EMACS_INT total_free_floats, total_floats, total_free_vector_bytes;
+static EMACS_INT total_free_floats, total_floats;
 
 /* Points to memory space allocated as "spare", to be freed if we run
    out of memory.  We keep one large block, four cons-blocks, and
@@ -1708,7 +1708,7 @@ static EMACS_INT total_strings, total_free_strings;
 
 /* Number of bytes used by live strings.  */
 
-static EMACS_INT total_string_size;
+static EMACS_INT total_string_bytes;
 
 /* Given a pointer to a Lisp_String S which is on the free-list
    string_free_list, return a pointer to its successor in the
@@ -1971,9 +1971,9 @@ void
 allocate_string_data (struct Lisp_String *s,
 		      EMACS_INT nchars, EMACS_INT nbytes)
 {
-  struct sdata *data;
+  struct sdata *data, *old_data;
   struct sblock *b;
-  ptrdiff_t needed;
+  ptrdiff_t needed, old_nbytes;
 
   if (STRING_BYTES_MAX < nbytes)
     string_overflow ();
@@ -1981,6 +1981,13 @@ allocate_string_data (struct Lisp_String *s,
   /* Determine the number of bytes needed to store NBYTES bytes
      of string data.  */
   needed = SDATA_SIZE (nbytes);
+  if (s->data)
+    {
+      old_data = SDATA_OF_STRING (s);
+      old_nbytes = GC_STRING_BYTES (s);
+    }
+  else
+    old_data = NULL;
 
   MALLOC_BLOCK_INPUT;
 
@@ -2050,6 +2057,16 @@ allocate_string_data (struct Lisp_String *s,
   memcpy ((char *) data + needed, string_overrun_cookie,
 	  GC_STRING_OVERRUN_COOKIE_SIZE);
 #endif
+
+  /* Note that Faset may call to this function when S has already data
+     assigned.  In this case, mark data as free by setting it's string
+     back-pointer to null, and record the size of the data in it.  */
+  if (old_data)
+    {
+      SDATA_NBYTES (old_data) = old_nbytes;
+      old_data->string = NULL;
+    }
+
   consing_since_gc += needed;
 }
 
@@ -2064,7 +2081,7 @@ sweep_strings (void)
 
   string_free_list = NULL;
   total_strings = total_free_strings = 0;
-  total_string_size = 0;
+  total_string_bytes = 0;
 
   /* Scan strings_blocks, free Lisp_Strings that aren't marked.  */
   for (b = string_blocks; b; b = next)
@@ -2090,7 +2107,7 @@ sweep_strings (void)
 		    UNMARK_BALANCE_INTERVALS (s->intervals);
 
 		  ++total_strings;
-		  total_string_size += STRING_BYTES (s);
+		  total_string_bytes += STRING_BYTES (s);
 		}
 	      else
 		{
@@ -2940,6 +2957,14 @@ static struct Lisp_Vector *large_vectors;
 
 Lisp_Object zero_vector;
 
+/* Number of live vectors.  */
+
+static EMACS_INT total_vectors;
+
+/* Number of bytes used by live and free vectors.  */
+
+static EMACS_INT total_vector_bytes, total_free_vector_bytes;
+
 /* Get a new vector block.  */
 
 static struct vector_block *
@@ -3030,12 +3055,6 @@ allocate_vector_from_block (size_t nbytes)
   return vector;
  }
 
-/* Return how many Lisp_Objects can be stored in V.  */
-
-#define VECTOR_SIZE(v) ((v)->header.size & PSEUDOVECTOR_FLAG ?		\
-			(PSEUDOVECTOR_SIZE_MASK & (v)->header.size) :	\
-			(v)->header.size)
-
 /* Nonzero if VECTOR pointer is valid pointer inside BLOCK.  */
 
 #define VECTOR_IN_BLOCK(vector, block)		\
@@ -3060,7 +3079,7 @@ sweep_vectors (void)
   struct vector_block *block = vector_blocks, **bprev = &vector_blocks;
   struct Lisp_Vector *vector, *next, **vprev = &large_vectors;
 
-  total_free_vector_bytes = total_vector_size = 0;
+  total_vectors = total_vector_bytes = total_free_vector_bytes = 0;
   memset (vector_free_lists, 0, sizeof (vector_free_lists));
 
   /* Looking through vector blocks.  */
@@ -3075,7 +3094,8 @@ sweep_vectors (void)
 	  if (VECTOR_MARKED_P (vector))
 	    {
 	      VECTOR_UNMARK (vector);
-	      total_vector_size += VECTOR_SIZE (vector);
+	      total_vectors++;
+	      total_vector_bytes += vector->header.next.nbytes;
 	      next = ADVANCE (vector, vector->header.next.nbytes);
 	    }
 	  else
@@ -3131,7 +3151,28 @@ sweep_vectors (void)
       if (VECTOR_MARKED_P (vector))
 	{
 	  VECTOR_UNMARK (vector);
-	  total_vector_size += VECTOR_SIZE (vector);
+	  total_vectors++;
+	  if (vector->header.size & PSEUDOVECTOR_FLAG)
+	    {
+	      if (((vector->header.size & PVEC_TYPE_MASK)
+		   >> PSEUDOVECTOR_SIZE_BITS) == PVEC_BOOL_VECTOR)
+		{
+		  struct Lisp_Bool_Vector *b
+		    = (struct Lisp_Bool_Vector *) vector;
+		  total_vector_bytes += header_size + sizeof (b->size)
+		    + (b->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
+		    / BOOL_VECTOR_BITS_PER_CHAR;
+		}
+	      else
+		/* All other pseudovectors are small enough to be
+		   allocated from vector blocks.  This code should
+		   be redesigned if some pseudovector type grows
+		   beyond VBLOCK_BYTES_MAX.  */
+		abort ();
+	    }
+	  else
+	    total_vector_bytes
+	      += header_size + vector->header.size * word_size;
 	  vprev = &vector->header.next.vector;
 	}
       else
@@ -5322,16 +5363,28 @@ inhibit_garbage_collection (void)
   return count;
 }
 
+/* Used to avoid possible overflows when
+   converting from C to Lisp integers.  */
+
+static inline Lisp_Object
+bounded_number (EMACS_INT number)
+{
+  return make_number (min (MOST_POSITIVE_FIXNUM, number));
+}
 
 DEFUN ("garbage-collect", Fgarbage_collect, Sgarbage_collect, 0, 0, "",
        doc: /* Reclaim storage for Lisp objects no longer needed.
 Garbage collection happens automatically if you cons more than
 `gc-cons-threshold' bytes of Lisp data since previous garbage collection.
 `garbage-collect' normally returns a list with info on amount of space in use:
- ((USED-CONSES . FREE-CONSES) (USED-SYMS . FREE-SYMS)
-  (USED-MISCS . FREE-MISCS) USED-STRING-CHARS USED-VECTOR-SLOTS
-  (USED-FLOATS . FREE-FLOATS) (USED-INTERVALS . FREE-INTERVALS)
-  (USED-STRINGS . FREE-STRINGS))
+ ((CONS INTERNAL-SIZE USED-CONSES FREE-CONSES)
+  (SYMBOL INTERNAL-SIZE USED-SYMBOLS FREE-SYMBOLS)
+  (MISC INTERNAL-SIZE USED-MISCS FREE-MISCS)
+  (STRING INTERNAL-SIZE USED-STRINGS USED-STRING-BYTES FREE-STRING)
+  (VECTOR INTERNAL-SIZE USED-VECTORS USED-VECTOR-BYTES FREE-VECTOR-BYTES)
+  (FLOAT INTERNAL-SIZE USED-FLOATS FREE-FLOATS)
+  (INTERVAL INTERNAL-SIZE USED-INTERVALS FREE-INTERVALS)
+  (BUFFER INTERNAL-SIZE USED-BUFFERS))
 However, if there was overflow in pure space, `garbage-collect'
 returns nil, because real GC can't be done.
 See Info node `(elisp)Garbage Collection'.  */)
@@ -5578,8 +5631,8 @@ See Info node `(elisp)Garbage Collection'.  */)
       tot += total_conses  * sizeof (struct Lisp_Cons);
       tot += total_symbols * sizeof (struct Lisp_Symbol);
       tot += total_markers * sizeof (union Lisp_Misc);
-      tot += total_string_size;
-      tot += total_vector_size * sizeof (Lisp_Object);
+      tot += total_string_bytes;
+      tot += total_vector_bytes;
       tot += total_floats  * sizeof (struct Lisp_Float);
       tot += total_intervals * sizeof (struct interval);
       tot += total_strings * sizeof (struct Lisp_String);
@@ -5604,20 +5657,38 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   unbind_to (count, Qnil);
 
-  total[0] = Fcons (make_number (total_conses),
-		    make_number (total_free_conses));
-  total[1] = Fcons (make_number (total_symbols),
-		    make_number (total_free_symbols));
-  total[2] = Fcons (make_number (total_markers),
-		    make_number (total_free_markers));
-  total[3] = make_number (total_string_size);
-  total[4] = make_number (total_vector_size);
-  total[5] = Fcons (make_number (total_floats),
-		    make_number (total_free_floats));
-  total[6] = Fcons (make_number (total_intervals),
-		    make_number (total_free_intervals));
-  total[7] = Fcons (make_number (total_strings),
-		    make_number (total_free_strings));
+  total[0] = list4 (Qcons, make_number (sizeof (struct Lisp_Cons)),
+		    bounded_number (total_conses),
+                    bounded_number (total_free_conses));
+
+  total[1] = list4 (Qsymbol, make_number (sizeof (struct Lisp_Symbol)),
+		    bounded_number (total_symbols),
+                    bounded_number (total_free_symbols));
+
+  total[2] = list4 (Qmisc, make_number (sizeof (union Lisp_Misc)),
+		    bounded_number (total_markers),
+		    bounded_number (total_free_markers));
+
+  total[3] = list5 (Qstring, make_number (sizeof (struct Lisp_String)),
+		    bounded_number (total_strings),
+		    bounded_number (total_string_bytes),
+		    bounded_number (total_free_strings));
+
+  total[4] = list5 (Qvector, make_number (sizeof (struct Lisp_Vector)),
+		    bounded_number (total_vectors),
+		    bounded_number (total_vector_bytes),
+		    bounded_number (total_free_vector_bytes));
+
+  total[5] = list4 (Qfloat, make_number (sizeof (struct Lisp_Float)),
+		    bounded_number (total_floats),
+                    bounded_number (total_free_floats));
+
+  total[6] = list4 (Qinterval, make_number (sizeof (struct interval)),
+		    bounded_number (total_intervals),
+                    bounded_number (total_free_intervals));
+
+  total[7] = list3 (Qbuffer, make_number (sizeof (struct buffer)),
+		    bounded_number (total_buffers));
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
   {
@@ -6518,6 +6589,7 @@ gc_sweep (void)
   {
     register struct buffer *buffer = all_buffers, *prev = 0, *next;
 
+    total_buffers = 0;
     while (buffer)
       if (!VECTOR_MARKED_P (buffer))
 	{
@@ -6533,6 +6605,7 @@ gc_sweep (void)
 	{
 	  VECTOR_UNMARK (buffer);
 	  UNMARK_BALANCE_INTERVALS (BUF_INTERVALS (buffer));
+	  total_buffers++;
 	  prev = buffer, buffer = buffer->header.next.buffer;
 	}
   }
@@ -6564,33 +6637,30 @@ We divide the value by 1024 to make sure it fits in a Lisp integer.  */)
 }
 
 DEFUN ("memory-free", Fmemory_free, Smemory_free, 0, 0, 0,
-       doc: /* Return a list of two counters that measure how much free memory
-is hold by the Emacs process.  Both counters are in KBytes.  First
-counter shows how much memory holds in a free lists maintained by
-the Emacs itself.  Second counter shows how much free memory is in
-the heap (freed by Emacs but not released back to the operating
-system).  If the second counter is zero, heap statistics is not
-available.  */)
+       doc: /* Return a list (E H) of two measures of free memory.
+E counts free lists maintained by Emacs itself.  H counts the heap,
+freed by Emacs but not released to the operating system; this is zero
+if heap statistics are not available.  Both counters are in units of
+1024 bytes, rounded up.  */)
      (void)
 {
-  Lisp_Object data[2];
-  
-  data[0] = make_number
-    (min (MOST_POSITIVE_FIXNUM,
-	  (total_free_conses * sizeof (struct Lisp_Cons)
-	   + total_free_markers * sizeof (union Lisp_Misc)
-	   + total_free_symbols * sizeof (struct Lisp_Symbol)
-	   + total_free_floats * sizeof (struct Lisp_Float)
-	   + total_free_intervals * sizeof (struct interval)
-	   + total_free_strings * sizeof (struct Lisp_String)
-	   + total_free_vector_bytes) / 1024));
+  /* Make the return value first, so that its storage is accounted for.  */
+  Lisp_Object val = Fmake_list (make_number (2), make_number (0));
+
+  XSETCAR (val,
+	   bounded_number
+	   ((total_free_conses * sizeof (struct Lisp_Cons)
+	     + total_free_markers * sizeof (union Lisp_Misc)
+	     + total_free_symbols * sizeof (struct Lisp_Symbol)
+	     + total_free_floats * sizeof (struct Lisp_Float)
+	     + total_free_intervals * sizeof (struct interval)
+	     + total_free_strings * sizeof (struct Lisp_String)
+	     + total_free_vector_bytes
+	     + 1023) >> 10));
 #ifdef DOUG_LEA_MALLOC
-  data[1] = make_number
-    (min (MOST_POSITIVE_FIXNUM, mallinfo ().fordblks / 1024));
-#else
-  data[1] = make_number (0);
+  XSETCAR (XCDR (val), bounded_number ((mallinfo ().fordblks + 1023) >> 10));
 #endif
-  return Flist (2, data);
+  return val;
 }
 
 DEFUN ("memory-use-counts", Fmemory_use_counts, Smemory_use_counts, 0, 0, 0,
@@ -6610,14 +6680,14 @@ Frames, windows, buffers, and subprocesses count as vectors
 {
   Lisp_Object consed[8];
 
-  consed[0] = make_number (min (MOST_POSITIVE_FIXNUM, cons_cells_consed));
-  consed[1] = make_number (min (MOST_POSITIVE_FIXNUM, floats_consed));
-  consed[2] = make_number (min (MOST_POSITIVE_FIXNUM, vector_cells_consed));
-  consed[3] = make_number (min (MOST_POSITIVE_FIXNUM, symbols_consed));
-  consed[4] = make_number (min (MOST_POSITIVE_FIXNUM, string_chars_consed));
-  consed[5] = make_number (min (MOST_POSITIVE_FIXNUM, misc_objects_consed));
-  consed[6] = make_number (min (MOST_POSITIVE_FIXNUM, intervals_consed));
-  consed[7] = make_number (min (MOST_POSITIVE_FIXNUM, strings_consed));
+  consed[0] = bounded_number (cons_cells_consed);
+  consed[1] = bounded_number (floats_consed);
+  consed[2] = bounded_number (vector_cells_consed);
+  consed[3] = bounded_number (symbols_consed);
+  consed[4] = bounded_number (string_chars_consed);
+  consed[5] = bounded_number (misc_objects_consed);
+  consed[6] = bounded_number (intervals_consed);
+  consed[7] = bounded_number (strings_consed);
 
   return Flist (8, consed);
 }
