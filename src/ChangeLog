@@ -1,3 +1,560 @@
+2012-07-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (accessibilityAttributeValue): New function. (Bug#11134).
+
+2012-07-21  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (decode_any_window): Signal an error if the window is
+	on a dead frame (Bug#11984).
+
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Add indirection counting to speed up Fkill_buffer.
+	* buffer.h (struct buffer): New member.
+	* buffer.c (Fget_buffer_create): Set indirection counter to 0.
+	(Fmake_indirect_buffer): Set indirection counter to -1, increment
+	base buffer indirection counter.
+	(compact_buffer): If ENABLE_CHECKING, verify indirection counters.
+	(Fkill_buffer): Adjust indirection counters as needed, don't walk
+	through buffer list if indirection counter is 0.
+
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Extend the value returned by Fgarbage_collect with heap statistics.
+	* alloc.c (Qheap): New symbol.
+	(syms_of_alloc): DEFSYM it.
+	(Fgarbage_collect): If DOUG_LEA_MALLOC, add mallinfo data.
+	(Fmemory_free): Remove.
+	(syms_of_alloc): Don't defsubr it.
+	* buffer.c (Fcompact_buffer): Remove.
+	(syms_of_buffer): Don't defsubr it.
+
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Make maybe_gc inline.
+	Verify that inlining is always possible (GCC 4.7.1, -O3 -Winline).
+	* lisp.h (consing_since_gc, gc_relative_threshold)
+	(memory_full_cons_threshold): Revert declaration.
+	(maybe_gc): Remove prototype, define as inline.
+	* alloc.c: Remove old commented-out code.
+	(consing_since_gc, gc_relative_threshold)
+	(memory_full_cons_threshold): Revert to global.
+	(maybe_gc): Remove.
+
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Simple wrapper for make_unibyte_string, adjust font_open_by_name.
+	* lisp.h (build_unibyte_string): New function.
+	* dosfns.c, fileio.c, fns.c, ftfont.c, process.c:
+	* sysdep.c, w32fns.c, xfns.c: Use it.
+	* font.c (font_open_by_name): Change 2nd and 3rd args to the only arg
+	of type Lisp_Object to avoid redundant calls to make_unibyte_string.
+	Adjust users accordingly.
+	* font.h (font_open_by_name): Adjust prototype.
+
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup calls to Fgarbage_collect.
+	* lisp.h (maybe_gc): New prototype.
+	(consing_since_gc, gc_relative_threshold, memory_full_cons_threshold):
+	Remove declarations.
+	* alloc.c (maybe_gc): New function.
+	(consing_since_gc, gc_relative_threshold, memory_full_cons_threshold):
+	Make them static.
+	* bytecode.c (MAYBE_GC): Use maybe_gc.
+	* eval.c (eval_sub, Ffuncall): Likewise.
+	* keyboard.c (read_char): Likewise.  Adjust call to maybe_gc
+	to avoid dependency from auto-save feature.
+
+2012-07-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* buffer.h (FOR_EACH_BUFFER): Rename from 'for_each_buffer'.
+	(FOR_EACH_PER_BUFFER_OBJECT_AT): Rename from
+	'for_each_per_buffer_object_at'.
+	All uses changed.  It's better to use upper-case for macros that
+	cannot be implemented as functions, to give the reader a clue
+	that they're special.
+
+2012-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (Fgarbage_collect): Tweak docstring.
+
+2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Tweak the value returned from Fgarbage_collect again.
+	* alloc.c (Fgarbage_collect): New return value, as confirmed in
+	http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00418.html.
+	Adjust documentation.
+	(total_vector_bytes): Rename to total_vector_slots, adjust
+	accounting.
+	(total_free_vector_bytes): Rename to total_free_vector_slots,
+	adjust accounting.
+	(Qstring_bytes, Qvector_slots): New symbols.
+	(syms_of_alloc): DEFSYM them.
+
+2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Buffer compaction primitive which may be used from Lisp.
+	* buffer.c (compact_buffer, Fcompact_buffer): New function.
+	(syms_of_buffer): Register Fcompact_buffer.
+	* alloc.c (Fgarbage_collect): Use compact_buffer.
+	* buffer.h (compact_buffer): New prototype.
+	(struct buffer_text): New member.
+
+2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	New macro to iterate over all buffers, miscellaneous cleanups.
+	* lisp.h (all_buffers): Remove declaration.
+	* buffer.h (all_buffers): Add declaration, with comment.
+	(for_each_buffer): New macro.
+	* alloc.c (Fgarbage_collect, mark_object): Use it.
+	* buffer.c (Fkill_buffer, Fbuffer_swap_text, Fset_buffer_multibyte)
+	(init_buffer): Likewise.
+	* data.c (Fset_default): Likewise.
+	* coding.c (code_conversion_restore): Remove redundant check
+	for dead buffer.
+	* buffer.c (Fkill_buffer): Likewise.  Remove obsolete comment.
+
+2012-07-18  Andreas Schwab  <schwab@linux-m68k.org>
+
+	Fix bug that created negative-length intervals.
+	* intervals.c (merge_interval_right, merge_interval_left):
+	Do not zero out this interval if it is absorbed by its children,
+	as this interval's total length doesn't change in that case.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00403.html>.
+
+2012-07-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (Fmake_bool_vector): Fix off-by-8 bug
+	when invoking (make-bool-vector N t) and N is a positive
+	multiple of 8 -- the last 8 bits were mistakenly cleared.
+
+	Remove some struct layout assumptions in bool vectors.
+	* alloc.c (bool_header_size): New constant.
+	(header_size, word_size): Move earlier, as they're now used earlier.
+	Use 'word_size' in a few more places, where it's appropriate.
+	(Fmake_bool_vector, sweep_vectors): Don't assume that there is no
+	padding before the data member of a bool vector.
+	(sweep_vectors): Use PSEUDOVECTOR_TYPEP, in an eassert, rather
+	than doing the check by hand with an abort ().
+
+2012-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fdefvar): Don't check constants since we only set the var if
+	it's not yet defined anyway (bug#11904).
+
+	* lisp.h (last_undo_boundary): Declare new var.
+	* keyboard.c (command_loop_1): Set it.
+	* cmds.c (Fself_insert_command): Use it to only remove boundaries that
+	were auto-added by the command loop (bug#11774).
+
+2012-07-18  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* w32font.c (Qsymbol): Remove local definition.
+	(syms_of_w32font): Don't DEFSYM it.
+
+2012-07-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix sweep_vectors to handle large bool vectors correctly.
+	* alloc.c (sweep_vectors): Account total_vector_bytes for
+	bool vectors larger than VBLOCK_BYTES_MAX.
+
+2012-07-18  Chong Yidong  <cyd@gnu.org>
+
+	* frame.c (x_set_frame_parameters): Revert bogus change introduced
+	in 2012-05-25 commit by Paul Eggert (Bug#11738).
+
+2012-07-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Return more descriptive data from Fgarbage_collect.
+	Suggested by Stefan Monnier in
+	http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00369.html.
+	* alloc.c (bounded_number): New function.
+	(total_buffers, total_vectors): New variable.
+	(total_string_size): Rename to total_string_bytes, adjust users.
+	(total_vector_size): Rename to total_vector_bytes, adjust users.
+	(sweep_vectors): Account total_vectors and total_vector_bytes.
+	(Fgarbage_collect): New return value.  Adjust documentation.
+	(gc_sweep): Account total_buffers.
+	(Fmemory_free, Fmemory_use_counts): Use bounded_number.
+	(VECTOR_SIZE): Remove.
+	* data.c (Qfloat, Qvector, Qsymbol, Qstring, Qcons): Make global.
+	(Qinterval, Qmisc): New symbols.
+	(syms_of_data): Initialize them.
+	* lisp.h (Qinterval, Qsymbol, Qstring, Qmisc, Qvector, Qfloat)
+	(Qcons, Qbuffer): New declarations.
+
+2012-07-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (Fmemory_free): Account for memory-free's own storage.
+	Round up, not down.  Improve doc.
+
+2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Restore old code in allocate_string_data to avoid Faset breakage.
+	Reported by Julien Danjou <julien@danjou.info> in
+	http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00371.html.
+	* alloc.c (allocate_string_data): Restore old code with minor
+	adjustments, fix comment to explain this subtle issue.
+
+2012-07-17  Eli Zaretskii  <eliz@gnu.org>
+
+	Remove FILE_SYSTEM_CASE.
+	* s/msdos.h (FILE_SYSTEM_CASE): Don't define.
+
+	* fileio.c (FILE_SYSTEM_CASE): Don't define.
+	(Ffile_name_directory, Fexpand_file_name): Don't use FILE_SYSTEM_CASE.
+	Fixes problems on MS-DOS with Vtemp_file_name_pattern when
+	call-process-region passes it through expand-file-name.
+
+	* dired.c (file_name_completion): Don't use FILE_SYSTEM_CASE.
+
+2012-07-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	Fix crash when creating indirect buffer (Bug#11917)
+	* buffer.c (buffer_lisp_local_variables): Add argument CLONE.
+	Don't handle unbound variables specially if non-zero.
+	(Fbuffer_local_variables): Pass zero.
+	(clone_per_buffer_values): Pass non-zero.
+
+2012-07-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gnutls.c (emacs_gnutls_handshake): Revert last change.  Add QUIT
+	to make the loop interruptible.
+
+2012-07-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gnutls.c (emacs_gnutls_handshake): Only retry if
+	GNUTLS_E_INTERRUPTED.
+
+2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup and convert miscellaneous checks to eassert.
+	* alloc.c (mark_interval): Fix comment, partially rephrase
+	old comment from intervals.h (see below).
+	* intervals.c (find_interval, adjust_intervals_for_insertion)
+	(delete_interval, adjust_intervals_for_deletion)
+	(graft_intervals_into_buffer, temp_set_point_both, copy_intervals):
+	Convert to eassert.
+	(adjust_intervals_for_insertion, make_new_interval):
+	Remove obsolete and unused code.
+	* intervals.h (struct interval): Remove obsolete comment.
+	* textprotp.c (erase_properties): Remove unused code.
+	(Fadd_text_properties, set_text_properties_1, Fremove_text_properties)
+	(Fremove_list_of_text_properties): Convert to eassert.
+
+2012-07-17  Chong Yidong  <cyd@gnu.org>
+
+	* editfns.c (Finsert_char): Doc fix.
+
+2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix previous change to make Fmemory_free always accurate.
+	* alloc.c (make_interval): Update total_free_intervals.
+	(make_float): Likewise for total_free_floats.
+	(free_cons, Fcons): Likewise for total_free_conses.
+	(SETUP_ON_FREE_LIST, allocate_vector_from_block):
+	Likewise for total_free_vector_bytes.
+	(Fmake_symbol): Likewise for total_free_symbols.
+	(bytes_free): Remove.
+
+2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Simple free memory accounting feature.
+	* alloc.c (bytes_free, total_free_vector_bytes): New variable.
+	(sweep_vectors): Accumulate size of free vectors.
+	(Fgarbage_collect): Setup bytes_free.
+	(Fmemory_free): New function.
+	(syms_of_alloc): Register it.
+
+2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup overlays checking.
+	* buffer.h (OVERLAY_VALID): Remove as useless synonym of OVERLAYP.
+	* buffer.c (overlay_touches_p, recenter_overlay_lists): Change to
+	eassert and OVERLAYP.
+	(sort_overlays): Change to use OVERLAYP.
+
+2012-07-16  René Kyllingstad  <Rene@Kyllingstad.com>  (tiny change)
+
+	* editfns.c (Finsert_char): Make it interactive, and make the
+	second arg optional.  Copy interactive spec and docstring from
+	ucs-insert.
+
+2012-07-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* floatfns.c (Fabs): Do not wrap fabs inside IN_FLOAT (Bug#11913).
+	Unlike the other wrapped functions, fabs has an unspecified
+	effect on errno.
+
+2012-07-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (keyDown): Interpret flags without left/right bits
+	as the left key (Bug#11670).
+
+2012-07-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Remove empty and useless init functions.
+	* lisp.h (init_character_once, init_fns, init_image)
+	(init_filelock, init_sound): Remove prototype.
+	* character.c (init_character_once): Remove.
+	* filelock.c (init_filelock): Likewise.
+	* fns.c (init_fns): Likewise.
+	* image.c (init_image): Likewise.
+	* sound.c (init_sound): Likewise.
+	* emacs.c (main): Adjust accordingly.
+
+2012-07-16  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* gtkutil.h: Tiny cleanups.
+	(use_old_gtk_file_dialog): Remove useless declaration.
+	(xg_uses_old_file_dialog): Add suggested const attribute.
+
+2012-07-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (MAX_STRONG_CHAR_SEARCH): New macro.
+	(bidi_paragraph_init): Use it to limit search forward for a strong
+	directional character in abnormally large paragraphs full of
+	neutral or weak characters.  (Bug#11943)
+
+2012-07-15  Stefano Facchini  <stefano.facchini@gmail.com>  (tiny change)
+
+	* gtkutil.c (xg_create_tool_bar): Apply "primary-toolbar" style to
+	the toolbar (Bug#9451).
+	(xg_make_tool_item): Give the widget event box a transparent
+	background.
+
+2012-07-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup basic allocation variables and functions.
+	* alloc.c (ignore_warnings, init_intervals, init_float)
+	(init_cons, init_symbol, init_marker): Remove.
+	(interval_block_index): Initialize to INTERVAL_BLOCK_SIZE.
+	(float_block_index): Initialize to FLOAT_BLOCK_SIZE.
+	(cons_block_index): Initialize to CONS_BLOCK_SIZE.
+	(symbol_block_size): Initialize to SYMBOL_BLOCK_SIZE.
+	(marker_block_index): Initialize to MARKER_BLOCK_SIZE.
+	(staticidx, init_alloc_once, init_strings, free_ablock):
+	Remove redundant initialization.
+	* fns.c (init_weak_hash_tables): Remove.
+	* lisp.h (init_weak_hash_tables): Remove prototype.
+
+2012-07-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use zero_vector where appropriate.
+	* alloc.c (zero_vector): Define as Lisp_Object.  Adjust users
+	accordingly.
+	* lisp.h (zero_vector): New declaration.
+	* font.c (null_vector): Remove.
+	(syms_of_font): Remove initialization and staticpro.
+	(font_list_entities, font_find_for_lface): Change to use zero_vector.
+	* keymap.c (Faccessible_keymaps): Likewise.
+
+2012-07-15  Leo Liu  <sdl.web@gmail.com>
+
+	* fringe.c: Fix typo in comments.
+
+2012-07-14  Leo Liu  <sdl.web@gmail.com>
+
+	* fringe.c: Add a new bitmap exclamation-mark.
+
+2012-07-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* gmalloc.c (GMALLOC_INHIBIT_VALLOC): Don't reference.
+
+	* s/msdos.h (BSD_SYSTEM, DATA_START, GC_SETJMP_WORKS, HAVE_MOUSE)
+	(HAVE_MENUS): Don't define, defined by editing config.in with
+	msdos/sed2v2.inp.
+	(GMALLOC_INHIBIT_VALLOC): Don't define.
+	(MODE_LINE_BINARY_TEXT): Remove, not used anymore.
+
+2012-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* s/ms-w32.h (GC_SETJMP_WORKS, GC_MARK_STACK): Set in nt/config.nt.
+
+2012-07-14  Glenn Morris  <rgm@gnu.org>
+
+	* s/aix4-2.h, s/freebsd.h, s/gnu-linux.h, s/hpux10-20.h:
+	* s/irix6-5.h, s/netbsd.h, s/sol2-6.h, s/unixware.h:
+	Let configure set GC_SETJMP_WORKS, GC_MARK_STACK.
+
+2012-07-13  Glenn Morris  <rgm@gnu.org>
+
+	* s/gnu-linux.h (GC_MARK_SECONDARY_STACK): Let configure set it.
+
+	* s/usg5-4-common.h (SETUP_SLAVE_PTY): Let configure set it.
+	* s/irix6-5.h (SETUP_SLAVE_PTY): No more need to unset it.
+
+2012-07-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (uRect): Only define if NS_IMPL_GNUSTEP.
+	(x_free_frame_resources): Pass x_free_frame_resources to NSTRACE.
+	(ns_lisp_to_color, ns_string_to_lispmod, ns_term_init)
+	(ns_term_shutdown, requestService, initFrameFromEmacs): Use SSDATA
+	where appropriate.
+	(ns_exec_path, ns_load_path, changeFont): Put () around assignment used
+	as boolean expression.
+	(x_set_window_size): Remove unused variable toolbar.
+	(ns_get_color_default, ns_mod_to_lisp): Remove.
+	(ns_mouse_position): Remove unused variables xchar and ychar.
+	(ns_compute_glyph_string_overhangs): Remove unused variable face.
+	(ns_set_vertical_scroll_bar): Remove unused variable count.
+	(ns_delete_terminal): Remove unused variable i.
+	(ns_term_init): Remove unused variables r, g and b.
+	(mouseDown): Remove unused variable window.
+	(windowDidResize): Move definition of theWindow inside NS_IMPL_GNUSTEP.
+	(initFrameFromEmacs): Remove unused variable vbextra.
+	(mouseEntered): Remove unused variables p and dpyinfo.
+	(mouseExited): Remove unused variables p and r.
+	(ns_define_frame_cursor, ns_clear_frame_area)
+	(ns_draw_window_cursor, ns_initialize_display_info): Make static.
+	(menuDown): Assign [sender tag] to variable and cast the variable.
+
+	* nsterm.h (menuDown): Add id as type to argument sender.
+	(ns_display_info_for_name): Add Lisp_Object argument.
+	(ns_term_init): Add Lisp_Object argument.
+	(ns_map_event_to_object): Add void argument.
+	(ns_string_from_pasteboard, ns_string_to_pasteboard): Add correct
+	prototype with arguments and only declare if __OBJC__.
+	(nxatoms_of_nsselect): Add void argument.
+	(ns_lisp_to_cursor_type): Add Lisp_Object argument.
+	(ns_alloc_autorelease_pool): Add void argument.
+	(ns_release_autorelease_pool): Add void* argument.
+	(ns_get_defaults_value): Add const char* argument.
+
+	* nsmenu.m (ns_update_menubar, ns_menu_show, process_dialog)
+	(initFromContents): Use SSDATA where appropriate.
+	(ns_update_menubar): Add braces to ambigous if-else.
+	(initWithTitle): Put () around assignment in if statement.
+	(ns_menu_show): Remove unused variables window and keymap.
+	(update_frame_tool_bar): Remove unused variable selected_p.
+	(initWithContentRect): Remove unused variable this_cmd_name.
+
+	* nsimage.m (ns_load_image, allocInitFromFile): Use SSDATA where
+	appropriate.
+	(setXBMColor): Remove unused variable len.
+	(setPixmapData): Put () around assignment in loop statement.
+
+	* nsfont.m (ns_get_family, ns_lang_to_script, ns_otf_to_script)
+	(ns_registry_to_script, ns_get_req_script, nsfont_open): Use SSDATA
+	where appropriate.
+	(ns_get_covering_families, ns_findfonts, nsfont_list_family): Put ()
+	around assignment in loop statement.
+	(nsfont_open): Remove unused variable i.
+	(nsfont_open): Remove unused variable len.
+	(nsfont_draw): Remove unused variable cs.
+
+	* nsfns.m (x_set_icon_name, ns_set_name_internal)
+	(ns_set_name_as_filename, ns_implicitly_set_icon_type)
+	(x_set_icon_type, ns_lisp_to_cursor_type, Fns_read_file_name)
+	(Fns_get_resource, Fns_set_resource, Fx_open_connection)
+	(Fns_font_name, Fns_perform_service)
+	(Fns_convert_utf8_nfd_to_nfc, ns_do_applescript)
+	(Fns_do_applescript, Fx_show_tip): Use SSDATA where appropriate.
+	(ns_set_name): Remove unused variable view.
+	(x_set_menu_bar_lines): Remove unused variable olines.
+	(x_set_tool_bar_lines): Remove unused variable root_window.
+	(Fns_list_colors): Put () around assignment in while statement.
+	(Fns_perform_service): Remove unused variable len.
+	(Fns_display_usable_bounds): Remove unused variable top.
+	(syms_of_nsfns): Remove unused variable i.
+
+	* nsmenu.m (ns_update_menubar): Exchange place of argument 2 and 3 to
+	memcpy (Bug#11907).
+
+2012-07-13  Kalle Kankare  <kalle.kankare@iki.fi>  (tiny change)
+
+	* image.c (Fimagemagick_types): Initialize ex with GetExceptionInfo
+	and free it with DestroyExceptionInfo (Bug#11558).
+
+2012-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* s/ms-w32.h (FIRST_PTY_LETTER, HAVE_SOCKETS): Move to nt/config.nt.
+	(HAVE_ATTRIBUTE_ALIGNED, HAVE_C99_STRTOLD, HAVE___BUILTIN_UNWIND_INIT):
+	Set here, not in nt/config.nt.
+
+2012-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_in_display_line_to): On GUI terminals, allow
+	cursor overflow into the last glyph on display line when the right
+	fringe is off.  (Bug#11832)
+
+2012-07-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c (produce_special_glyphs): Now static.
+	* dispextern.h (produce_special_glyphs): Remove decl.
+
+2012-07-13  Glenn Morris  <rgm@gnu.org>
+
+	* s/bsd-common, s/cygwin.h: Remove empty files.
+	* s/freebsd.h, s/netbsd.h: Do not include bsd-common.h.
+
+	* s/usg5-4-common.h (USG, USG5):
+	* s/template.h (USG5, USG, HPUX, BSD4_2, BSD_SYSTEM):
+	* s/sol2-6.h (SOLARIS2):
+	* s/irix6-5.h (IRIX6_5):
+	* s/hpux10-20.h (USG, USG5, HPUX):
+	* s/gnu-linux.h (USG, GNU_LINUX):
+	* s/freebsd.h (BSD_SYSTEM):
+	* s/darwin.h (BSD4_2, BSD_SYSTEM, DARWIN_OS):
+	* s/cygwin.h (CYGWIN):
+	* s/bsd-common.h (BSD_SYSTEM, BSD4_2):
+	* s/aix4-2.h (USG, USG5, _AIX): Move "system type" macros to configure.
+
+2012-07-13  BT Templeton  <bpt@hcoop.net>  (tiny change)
+
+	* nsfont.m (ns_charset_covers): Don't abort if no bitmap (Bug#11853).
+
+2012-07-13  Glenn Morris  <rgm@gnu.org>
+
+	* s/usg5-4-common.h (NSIG_MINIMUM): Let configure set it.
+
+	* s/gnu-linux.h, s/irix6-5.h: Let configure set ULIMIT_BREAK_VALUE.
+
+	* process.c (init_process_emacs): Replace MIN_PTY_KERNEL_VERSION.
+	* s/darwin.h (MIN_PTY_KERNEL_VERSION): Remove single-use macro.
+
+2012-07-12  Glenn Morris  <rgm@gnu.org>
+
+	* s/darwin.h (SYSTEM_PURESIZE_EXTRA): Move to configure.
+
+	* process.c (init_process_emacs): Rename from init_process.
+	The old name is also the name of a Mach system call.
+	* lisp.h, emacs.c: Update for this name change.
+	* nsgui.h, sysselect.h, s/darwin.h: Remove workaround that is no
+	longer needed.
+
+2012-07-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (insert_left_trunc_glyphs): Fix incorrect size in
+	memmove call that removes glyphs covered by the left truncation
+	glyph.  Improve commentary.
+	(display_line): Fix display of continuation glyphs on GUI frames
+	when the right fringe is turned off and variable-size fonts are
+	used in the window.  Move the code that appends a stretch glyph to
+	produce_special_glyphs, so that it could be used for truncation
+	and continuation glyphs alike.
+	(produce_special_glyphs) [HAVE_WINDOW_SYSTEM]: Produce a stretch
+	glyph of a suitably computed width, to align the special glyphs at
+	the window margin.  Code moved from display_line.  (Bug#11832)
+
+2012-07-12  Glenn Morris  <rgm@gnu.org>
+
+	* s/aix4-2.h, s/hpux10-20.h: Let configure set NO_EDITRES.
+
+	* s/gnu-linux.h, s/hpux10-20.h:
+	Do not unconditionally define HAVE_XRMSETDATABASE.
+
+	* s/gnu-linux.h (UNIX98_PTYS): Let configure set it.
+
+2012-07-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix typos that broke OS X build.
+	Reported by Randal L. Schwartz in
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00225.html>.
+	* nsterm.m (ns_timeout): Add missing local decl.
+	(ns_get_color): snprintf -> sprintf, to fix typo.
+
 2012-07-12  Glenn Morris  <rgm@gnu.org>
 
 	* src/s/aix4-2.h, src/s/cygwin.h, src/s/darwin.h:
@@ -178,7 +735,7 @@
 	not functions.  All uses rewritten to use the following, respectively:
 	(emacs_secs_addr, invalid_emacs_time, get_emacs_time)
 	(add_emacs_time, sub_emacs_time): New functions.
-	* atimer.c: Don't include <sys/time.h>,	as "systime.h" does this.
+	* atimer.c: Don't include <sys/time.h>, as "systime.h" does this.
 	* fileio.c (Fcopy_file):
 	* xterm.c (XTflash): Get the current time closer to when it's used.
 	* makefile.w32-in ($(BLD)/atimer.$(O)): Update dependencies.
@@ -499,7 +1056,7 @@
 	X Windows version.  Doc fix.
 	* xfns.c (Fx_window_property): Doc fix.  (Bug#11870)
 
-2012-07-06  Juanma Barranquero	<lekktu@gmail.com>
+2012-07-06  Juanma Barranquero  <lekktu@gmail.com>
 	    Eli Zaretskii  <eliz@gnu.org>
 
 	* s/ms-w32.h: Settings not specific to Windows moved to nt/config.nt.
@@ -738,7 +1295,7 @@
 	* alloc.c (PSEUDOVECTOR_NBYTES): Remove stray ';'
 	that causes compilation to fail on pre-C99 compilers.
 
-2012-07-04  Juanma Barranquero	<lekktu@gmail.com>
+2012-07-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* s/ms-w32.h (LISP_FLOAT_TYPE, HAVE_MEMCMP, HAVE_MEMCPY)
 	(HAVE_MEMMOVE, HAVE_MEMSET): Don't set, obsolete.

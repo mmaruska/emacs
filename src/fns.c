@@ -2818,7 +2818,7 @@ The data read from the system are decoded using `locale-coding-system'.  */)
       for (i = 0; i < 7; i++)
 	{
 	  str = nl_langinfo (days[i]);
-	  val = make_unibyte_string (str, strlen (str));
+	  val = build_unibyte_string (str);
 	  /* Fixme: Is this coding system necessarily right, even if
 	     it is consistent with CODESET?  If not, what to do?  */
 	  Faset (v, make_number (i),
@@ -2842,7 +2842,7 @@ The data read from the system are decoded using `locale-coding-system'.  */)
       for (i = 0; i < 12; i++)
 	{
 	  str = nl_langinfo (months[i]);
-	  val = make_unibyte_string (str, strlen (str));
+	  val = build_unibyte_string (str);
 	  Faset (v, make_number (i),
 		 code_convert_string_norecord (val, Vlocale_coding_system, 0));
 	}
@@ -3945,12 +3945,6 @@ hash_clear (struct Lisp_Hash_Table *h)
 			   Weak Hash Tables
  ************************************************************************/
 
-void
-init_weak_hash_tables (void)
-{
-  weak_hash_tables = NULL;
-}
-
 /* Sweep weak hash table H.  REMOVE_ENTRIES_P non-zero means remove
    entries from the table that don't survive the current GC.
    REMOVE_ENTRIES_P zero means mark entries that are in use.  Value is
@@ -5027,10 +5021,4 @@ this variable.  */);
   defsubr (&Smd5);
   defsubr (&Ssecure_hash);
   defsubr (&Slocale_info);
-}
-
-
-void
-init_fns (void)
-{
 }

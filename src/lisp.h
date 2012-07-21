@@ -2091,14 +2091,6 @@ extern void process_quit_flag (void);
 extern Lisp_Object Vascii_downcase_table;
 extern Lisp_Object Vascii_canon_table;
 
-/* Number of bytes of structure consed since last GC.  */
-
-extern EMACS_INT consing_since_gc;
-
-extern EMACS_INT gc_relative_threshold;
-
-extern EMACS_INT memory_full_cons_threshold;
-
 /* Structure for recording stack slots that need marking.  */
 
 /* This is a chain of structures, each of which points at a Lisp_Object
@@ -2332,7 +2324,8 @@ extern Lisp_Object Qoverflow_error, Qunderflow_error;
 extern Lisp_Object Qfloatp;
 extern Lisp_Object Qnumberp, Qnumber_or_marker_p;
 
-extern Lisp_Object Qinteger;
+extern Lisp_Object Qinteger, Qinterval, Qsymbol, Qstring;
+extern Lisp_Object Qmisc, Qvector, Qfloat, Qcons, Qbuffer;
 
 extern Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 
@@ -2402,7 +2395,6 @@ extern ptrdiff_t chars_in_text (const unsigned char *, ptrdiff_t);
 extern ptrdiff_t multibyte_chars_in_text (const unsigned char *, ptrdiff_t);
 extern int multibyte_char_to_unibyte (int) ATTRIBUTE_CONST;
 extern int multibyte_char_to_unibyte_safe (int) ATTRIBUTE_CONST;
-extern void init_character_once (void) ATTRIBUTE_CONST;
 extern void syms_of_character (void);
 
 /* Defined in charset.c */
@@ -2437,8 +2429,6 @@ Lisp_Object make_hash_table (Lisp_Object, Lisp_Object, Lisp_Object,
 ptrdiff_t hash_lookup (struct Lisp_Hash_Table *, Lisp_Object, EMACS_UINT *);
 ptrdiff_t hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 		    EMACS_UINT);
-void init_weak_hash_tables (void);
-extern void init_fns (void) ATTRIBUTE_CONST;
 
 extern Lisp_Object substring_both (Lisp_Object, ptrdiff_t, ptrdiff_t,
 				   ptrdiff_t, ptrdiff_t);
@@ -2474,7 +2464,6 @@ extern Lisp_Object QCascent, QCmargin, QCrelief;
 extern Lisp_Object QCconversion;
 extern int x_bitmap_mask (struct frame *, ptrdiff_t);
 extern void syms_of_image (void);
-extern void init_image (void) ATTRIBUTE_CONST;
 
 /* Defined in insdel.c */
 extern Lisp_Object Qinhibit_modification_hooks;
@@ -2605,7 +2594,11 @@ extern void mark_object (Lisp_Object);
 extern void refill_memory_reserve (void);
 #endif
 extern const char *pending_malloc_warning;
+extern Lisp_Object zero_vector;
 extern Lisp_Object *stack_base;
+extern EMACS_INT consing_since_gc;
+extern EMACS_INT gc_relative_threshold;
+extern EMACS_INT memory_full_cons_threshold;
 extern Lisp_Object list1 (Lisp_Object);
 extern Lisp_Object list2 (Lisp_Object, Lisp_Object);
 extern Lisp_Object list3 (Lisp_Object, Lisp_Object, Lisp_Object);
@@ -2618,6 +2611,15 @@ extern Lisp_Object make_string (const char *, ptrdiff_t);
 extern Lisp_Object make_formatted_string (char *, const char *, ...)
   ATTRIBUTE_FORMAT_PRINTF (2, 3);
 extern Lisp_Object make_unibyte_string (const char *, ptrdiff_t);
+
+/* Make unibyte string from C string when the length isn't known.  */
+
+static inline Lisp_Object
+build_unibyte_string (const char *str)
+{
+  return make_unibyte_string (str, strlen (str));
+}
+
 extern Lisp_Object make_multibyte_string (const char *, ptrdiff_t, ptrdiff_t);
 extern Lisp_Object make_event_array (int, Lisp_Object *);
 extern Lisp_Object make_uninit_string (EMACS_INT);
@@ -2860,7 +2862,6 @@ extern Lisp_Object set_buffer_if_live (Lisp_Object);
 extern Lisp_Object other_buffer_safely (Lisp_Object);
 extern Lisp_Object Qpriority, Qwindow, Qbefore_string, Qafter_string;
 extern Lisp_Object get_truename_buffer (Lisp_Object);
-extern struct buffer *all_buffers;
 extern void init_buffer_once (void);
 extern void init_buffer (void);
 extern void syms_of_buffer (void);
@@ -2923,7 +2924,7 @@ extern ptrdiff_t find_before_next_newline (ptrdiff_t, ptrdiff_t, ptrdiff_t);
 extern void syms_of_search (void);
 extern void clear_regexp_cache (void);
 
-/* Defined in minibuf.c */
+/* Defined in minibuf.c.  */
 
 extern Lisp_Object Qcompletion_ignore_case;
 extern Lisp_Object Vminibuffer_list;
@@ -2932,25 +2933,25 @@ extern Lisp_Object get_minibuffer (EMACS_INT);
 extern void init_minibuf_once (void);
 extern void syms_of_minibuf (void);
 
-/* Defined in callint.c */
+/* Defined in callint.c.  */
 
 extern Lisp_Object Qminus, Qplus;
 extern Lisp_Object Qwhen;
 extern Lisp_Object Qcall_interactively, Qmouse_leave_buffer_hook;
 extern void syms_of_callint (void);
 
-/* Defined in casefiddle.c */
+/* Defined in casefiddle.c.  */
 
 extern Lisp_Object Qidentity;
 extern void syms_of_casefiddle (void);
 extern void keys_of_casefiddle (void);
 
-/* Defined in casetab.c */
+/* Defined in casetab.c.  */
 
 extern void init_casetab_once (void);
 extern void syms_of_casetab (void);
 
-/* Defined in keyboard.c */
+/* Defined in keyboard.c.  */
 
 extern Lisp_Object echo_message_buffer;
 extern struct kboard *echo_kboard;
@@ -2958,6 +2959,7 @@ extern void cancel_echoing (void);
 extern Lisp_Object Qdisabled, QCfilter;
 extern Lisp_Object Qup, Qdown, Qbottom;
 extern Lisp_Object Qtop;
+extern Lisp_Object last_undo_boundary;
 extern int input_pending;
 extern Lisp_Object menu_bar_items (Lisp_Object);
 extern Lisp_Object tool_bar_items (Lisp_Object, int *);
@@ -2978,13 +2980,13 @@ extern void init_keyboard (void);
 extern void syms_of_keyboard (void);
 extern void keys_of_keyboard (void);
 
-/* Defined in indent.c */
+/* Defined in indent.c.  */
 extern ptrdiff_t current_column (void);
 extern void invalidate_current_column (void);
 extern int indented_beyond_p (ptrdiff_t, ptrdiff_t, EMACS_INT);
 extern void syms_of_indent (void);
 
-/* Defined in frame.c */
+/* Defined in frame.c.  */
 extern Lisp_Object Qonly;
 extern Lisp_Object Qvisible;
 extern void store_frame_param (struct frame *, Lisp_Object, Lisp_Object);
@@ -2997,7 +2999,7 @@ extern Lisp_Object frame_buffer_predicate (Lisp_Object);
 extern void frames_discard_buffer (Lisp_Object);
 extern void syms_of_frame (void);
 
-/* Defined in emacs.c */
+/* Defined in emacs.c.  */
 extern char **initial_argv;
 extern int initial_argc;
 #if defined (HAVE_X_WINDOWS) || defined (HAVE_NS)
@@ -3060,7 +3062,7 @@ extern void add_gpm_wait_descriptor (int);
 extern void delete_gpm_wait_descriptor (int);
 #endif
 extern void close_process_descs (void);
-extern void init_process (void);
+extern void init_process_emacs (void);
 extern void syms_of_process (void);
 extern void setup_process_coding_systems (Lisp_Object);
 
@@ -3162,11 +3164,9 @@ extern void lock_file (Lisp_Object);
 extern void unlock_file (Lisp_Object);
 extern void unlock_buffer (struct buffer *);
 extern void syms_of_filelock (void);
-extern void init_filelock (void);
 
 /* Defined in sound.c */
 extern void syms_of_sound (void);
-extern void init_sound (void) ATTRIBUTE_CONST;
 
 /* Defined in category.c */
 extern void init_category_once (void);
@@ -3435,5 +3435,17 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 
 
 #include "globals.h"
+
+/* Check whether it's time for GC, and run it if so.  */
+
+static inline void
+maybe_gc (void)
+{
+  if ((consing_since_gc > gc_cons_threshold
+       && consing_since_gc > gc_relative_threshold)
+      || (!NILP (Vmemory_full)
+	  && consing_since_gc > memory_full_cons_threshold))
+    Fgarbage_collect ();
+}
 
 #endif /* EMACS_LISP_H */

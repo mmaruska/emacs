@@ -113,6 +113,8 @@ treated as images.
 ** Face underlining can now use a wave.
 See the "Face Attributes" section of the Elisp manual.
 
+** New fringe bitmap exclamation-mark.
+
 ** String values for `initial-buffer-choice' also apply to emacsclient
 frames, if emacsclient is only told to open a new frame without
 specifying any file to visit or expression to evaluate.
@@ -138,6 +140,10 @@ invokes `set-buffer-file-coding-system'.
 ** Setting `enable-remote-dir-locals' to non-nil allows directory
 local variables on remote hosts.
 
++++
+** `insert-char' is now a command, and `ucs-insert' an obsolete alias
+for it.
+
 
 * Editing Changes in Emacs 24.2
 
@@ -153,10 +159,15 @@ prompts for a column number.
 ** `mouse-avoidance-banish-position' can now be used to customize
 `mouse-avoidance-mode' further.
 
+** `M-=' is now bound to `count-words', not `count-words-region'.
+
 ** `C-M-f' and `C-M-b' will now move to the path name separator
 character when doing minibuffer filename prompts.
 
 ** `goto-char' is now bound to `M-g c'.
+
+** New command `C-x r M-w' (copy-rectangle-as-kill).
+It copies the region-rectangle as the last rectangle kill.
 
 ** New input method `vietnamese-vni'.
 
@@ -268,6 +279,10 @@ to highlight changes in context diffs.
 ** Ediff now uses the same color scheme as Diff mode
 on high color displays.
 
+** Flymake uses fringe bitmaps to indicate errors and warnings.
+See flymake-fringe-indicator-position, flymake-error-bitmap and
+flymake-warning-bitmap.
+
 ** `sh-script'
 *** Pairing of parens/quotes uses electric-pair-mode instead of skeleton-pair.
 *** `sh-electric-here-document-mode' now controls auto-insertion of here-docs.
@@ -334,6 +349,12 @@ these commands now).
 
 ** erc will look up server/channel names via auth-source and use the
 channel keys found, if any.
+
+** Dired
+
+*** `dired-do-async-shell-command' executes each file sequentially
+if the command ends in `;' (when operating on multiple files).
+Othwerwise, it executes the command on each file in parallel.
 
 ** FFAP
 
@@ -472,9 +493,13 @@ still be supported for Emacs 24.x.
 
 *** `facemenu-unlisted-faces'
 *** `rmail-decode-mime-charset'
+*** `last-input-char' and `last-command-char'
 
 
 * Lisp changes in Emacs 24.2
+
+** `toggle-read-only' accepts a second argument specifying whether to
+print a message, if called from Lisp.
 
 ** CL-style generalized variables are now in core Elisp.
 `setf' is autoloaded and `push' and `pop' accept generalized variables.

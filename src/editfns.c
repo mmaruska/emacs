@@ -2368,11 +2368,35 @@ usage: (insert-before-markers-and-inherit &rest ARGS)  */)
   return Qnil;
 }
 
-DEFUN ("insert-char", Finsert_char, Sinsert_char, 2, 3, 0,
+DEFUN ("insert-char", Finsert_char, Sinsert_char, 1, 3,
+       "(list (read-char-by-name \"Insert character (Unicode name or hex): \")\
+	 (prefix-numeric-value current-prefix-arg)\
+	 t))",
        doc: /* Insert COUNT copies of CHARACTER.
-Point, and before-insertion markers, are relocated as in the function `insert'.
-The optional third arg INHERIT, if non-nil, says to inherit text properties
-from adjoining text, if those properties are sticky.  */)
+Interactively, prompt for CHARACTER.  You can specify CHARACTER in one
+of these ways:
+
+ - As its Unicode character name, e.g. \"LATIN SMALL LETTER A\".
+   Completion is available; if you type a substring of the name
+   preceded by an asterisk `*', Emacs shows all names which include
+   that substring, not necessarily at the beginning of the name.
+
+ - As a hexadecimal code point, e.g. 263A.  Note that code points in
+   Emacs are equivalent to Unicode up to 10FFFF (which is the limit of
+   the Unicode code space).
+
+ - As a code point with a radix specified with #, e.g. #o21430
+   (octal), #x2318 (hex), or #10r8984 (decimal).
+
+If called interactively, COUNT is given by the prefix argument.  If
+omitted or nil, it defaults to 1.
+
+Inserting the character(s) relocates point and before-insertion
+markers in the same ways as the function `insert'.
+
+The optional third argument INHERIT, if non-nil, says to inherit text
+properties from adjoining text, if those properties are sticky.  If
+called interactively, INHERIT is t.  */)
   (Lisp_Object character, Lisp_Object count, Lisp_Object inherit)
 {
   int i, stringlen;
@@ -2382,6 +2406,8 @@ from adjoining text, if those properties are sticky.  */)
   char string[4000];
 
   CHECK_CHARACTER (character);
+  if (NILP (count))
+    XSETFASTINT (count, 1);
   CHECK_NUMBER (count);
   c = XFASTINT (character);
 

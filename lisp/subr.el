@@ -732,7 +732,7 @@ Subkeymaps may be modified but are not canonicalized."
 (put 'keyboard-translate-table 'char-table-extra-slots 0)
 
 (defun keyboard-translate (from to)
-  "Translate character FROM to TO at a low level.
+  "Translate character FROM to TO on the current terminal.
 This function creates a `keyboard-translate-table' if necessary
 and then modifies one entry in it."
   (or (char-table-p keyboard-translate-table)
@@ -909,17 +909,9 @@ The normal global definition of the character C-x indirects to this keymap.")
 
 (defsubst eventp (obj)
   "True if the argument is an event object."
-  (or (and (integerp obj)
-           ;; FIXME: Why bother?
-	   ;; Filter out integers too large to be events.
-	   ;; M is the biggest modifier.
-	   (zerop (logand obj (lognot (1- (lsh ?\M-\^@ 1)))))
-	   (characterp (event-basic-type obj)))
-      (and (symbolp obj)
-	   (get obj 'event-symbol-elements))
-      (and (consp obj)
-	   (symbolp (car obj))
-	   (get (car obj) 'event-symbol-elements))))
+  (or (integerp obj)
+      (and (symbolp obj) obj (not (keywordp obj)))
+      (and (consp obj) (symbolp (car obj)))))
 
 (defun event-modifiers (event)
   "Return a list of symbols representing the modifier keys in event EVENT.
@@ -1271,16 +1263,6 @@ to reread, so it now uses nil to mean `no event', instead of -1."
 (make-obsolete-variable 'translation-table-for-input nil "23.1")
 
 (defvaralias 'messages-buffer-max-lines 'message-log-max)
-
-;; These aliases exist in Emacs 19.34, and probably before, but were
-;; only marked as obsolete in 23.1.
-;; The lisp manual (since at least Emacs 21) describes them as
-;; existing "for compatibility with Emacs version 18".
-(define-obsolete-variable-alias 'last-input-char 'last-input-event
-  "at least 19.34")
-(define-obsolete-variable-alias 'last-command-char 'last-command-event
-  "at least 19.34")
-
 
 ;;;; Alternate names for functions - these are not being phased out.
 

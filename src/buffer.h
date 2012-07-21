@@ -436,6 +436,9 @@ struct buffer_text
 
     EMACS_INT overlay_modiff;	/* Counts modifications to overlays.  */
 
+    EMACS_INT compact;		/* Set to modiff each time when compact_buffer
+				   is called for this buffer.  */
+
     /* Minimum value of GPT - BEG since last redisplay that finished.  */
     ptrdiff_t beg_unchanged;
 
@@ -772,6 +775,11 @@ struct buffer
      In an ordinary buffer, it is 0.  */
   struct buffer *base_buffer;
 
+  /* In an indirect buffer, this is -1. In an ordinary buffer,
+     it's the number of indirect buffers which shares our text;
+     zero means that we're the only owner of this text.  */
+  int indirections;
+
   /* A non-zero value in slot IDX means that per-buffer variable
      with index IDX has a local value in this buffer.  The index IDX
      for a buffer-local variable is stored in that variable's slot
@@ -857,6 +865,15 @@ struct buffer
 };
 
 
+/* Chain of all buffers, including killed ones.  */
+
+extern struct buffer *all_buffers;
+
+/* Used to iterate over the chain above.  */
+
+#define FOR_EACH_BUFFER(b) \
+  for ((b) = all_buffers; (b); (b) = (b)->header.next.buffer)
+
 /* This points to the current buffer.  */
 
 extern struct buffer *current_buffer;
@@ -894,6 +911,7 @@ extern struct buffer buffer_local_symbols;
 
 extern void delete_all_overlays (struct buffer *);
 extern void reset_buffer (struct buffer *);
+extern int compact_buffer (struct buffer *);
 extern void evaporate_overlays (ptrdiff_t);
 extern ptrdiff_t overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
 			      ptrdiff_t *len_ptr, ptrdiff_t *next_ptr,
@@ -971,10 +989,6 @@ BUF_FETCH_MULTIBYTE_CHAR (struct buffer *buf, ptrdiff_t pos)
 
 /* Overlays */
 
-/* 1 if the OV is an overlay object.  */
-
-#define OVERLAY_VALID(OV) (OVERLAYP (OV))
-
 /* Return the marker that stands for where OV starts in the buffer.  */
 
 #define OVERLAY_START(OV) (XOVERLAY (OV)->start)
@@ -1012,7 +1026,7 @@ extern int last_per_buffer_idx;
    Lisp_Objects except undo_list).  If you add, remove, or reorder
    Lisp_Objects in a struct buffer, make sure that this is still correct.  */
 
-#define for_each_per_buffer_object_at(offset)				 \
+#define FOR_EACH_PER_BUFFER_OBJECT_AT(offset)				 \
   for (offset = PER_BUFFER_VAR_OFFSET (name);				 \
        offset <= PER_BUFFER_VAR_OFFSET (cursor_in_non_selected_windows); \
        offset += sizeof (Lisp_Object))

@@ -1104,12 +1104,8 @@ case $opsys in
 esac
 
 
-# Configure gnulib before invoking PKG_CHECK_MODULES, as the latter might
-# for example add -lrt to RSVG_LIBS, which would then cause gnulib to
-# incorrectly conclude that -lrt is not needed to link clock_gettime.
-gl_ASSERT_NO_GNULIB_POSIXCHECK
-gl_ASSERT_NO_GNULIB_TESTS
-gl_INIT
+pre_PKG_CONFIG_CFLAGS=$CFLAGS
+pre_PKG_CONFIG_LIBS=$LIBS
 
 AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
 
@@ -2137,6 +2133,7 @@ dnl tranle@intellicorp.com says libXmu.a can need XtMalloc in libXt.a to link.
   fi
   AC_CHECK_LIB(Xmu, XmuConvertStandardSelection)
   test $ac_cv_lib_Xmu_XmuConvertStandardSelection = no && LIBS="$OLDLIBS"
+  dnl ac_cv_lib_Xmu_XmuConvertStandardSelection is also referenced below.
 fi
 AC_SUBST(LIBXTR6)
 
@@ -3149,10 +3146,36 @@ AC_DEFINE(HAVE_SOCKETS, 1, [Define if the system supports
   4.2-compatible sockets.])
 
 
+AH_TEMPLATE(NO_EDITRES, [Define if XEditRes should not be used.])
+
+case $opsys in
+  aix4-2)
+    dnl Unfortunately without libXmu we cannot support EditRes.
+    if test x$ac_cv_lib_Xmu_XmuConvertStandardSelection != xyes; then
+      AC_DEFINE(NO_EDITRES, 1)
+    fi
+    ;;
+
+  hpux*)
+    dnl Assar Westerlund <assar@sics.se> says this is necessary for
+    dnl HP-UX 10.20, and that it works for HP-UX 0 as well.
+    AC_DEFINE(NO_EDITRES, 1)
+    ;;
+esac
+
+
 case $opsys in
   darwin | gnu | hpux* | *bsd )
     AC_DEFINE(NO_TERMIO, 1, [Define if termio.h should not be included.])
-  ;;
+    ;;
+
+  irix6-5 | sol2* | unixware )
+    dnl Some SVr4s don't define NSIG in sys/signal.h for ANSI environments;
+    dnl instead, there's a system variable _sys_nsig.  Unfortunately, we
+    dnl need the constant to dimension an array.  So wire in the appropriate
+    dnl value here.
+    AC_DEFINE(NSIG_MINIMUM, 32, [Minimum value of NSIG.])
+    ;;
 esac
 
 
@@ -3340,6 +3363,7 @@ case $opsys in
   gnu-linux | gnu-kfreebsd )
     dnl if HAVE_GRANTPT
     if test "x$ac_cv_func_grantpt" = xyes; then
+      AC_DEFINE(UNIX98_PTYS, 1, [Define if the system has Unix98 PTYs.])
       AC_DEFINE(PTY_ITERATION, [int i; for (i = 0; i < 1; i++)] )
       dnl Note that grantpt and unlockpt may fork.  We must block SIGCHLD
       dnl to prevent sigchld_handler from intercepting the child's death.
@@ -3377,17 +3401,13 @@ case $opsys in
     dnl Not used, because PTY_ITERATION is defined.
     AC_DEFINE(FIRST_PTY_LETTER, ['q'])
     AC_DEFINE(PTY_OPEN, [ { struct sigaction ocstat, cstat; struct stat stb; char * name; sigemptyset(&cstat.sa_mask); cstat.sa_handler = SIG_DFL; cstat.sa_flags = 0; sigaction(SIGCLD, &cstat, &ocstat); name = _getpty (&fd, O_RDWR | O_NDELAY, 0600, 0); sigaction(SIGCLD, &ocstat, (struct sigaction *)0); if (name == 0) return -1; if (fd < 0) return -1; if (fstat (fd, &stb) < 0) return -1; strcpy (pty_name, name); }] )
-    dnl No need to get the pty name at all. 
+    dnl No need to get the pty name at all.
     AC_DEFINE(PTY_NAME_SPRINTF, [] )
     dnl No need to use sprintf to get the tty name--we get that from _getpty.
     AC_DEFINE(PTY_TTY_NAME_SPRINTF, [] )
     ;;
 
   sol2* )
-    dnl This change means that we don't loop through allocate_pty too
-    dnl many times in the (rare) event of a failure.
-    AC_DEFINE(FIRST_PTY_LETTER, ['z'])
-    AC_DEFINE(PTY_NAME_SPRINTF, [strcpy (pty_name, "/dev/ptmx");] )
     dnl Uses sigblock/sigunblock rather than sighold/sigrelse,
     dnl which appear to be BSD4.1 specific.  It may also be appropriate
     dnl for SVR4.x (x<2) but I'm not sure.   fnf@cygnus.com
@@ -3397,11 +3417,21 @@ case $opsys in
     AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptsname (int), *ptyname; sigblock (sigmask (SIGCLD)); if (grantpt (fd) == -1) { emacs_close (fd); return -1; } sigunblock (sigmask (SIGCLD)); if (unlockpt (fd) == -1) { emacs_close (fd); return -1; } if (!(ptyname = ptsname (fd))) { emacs_close (fd); return -1; } snprintf (pty_name, sizeof pty_name, "%s", ptyname); }] )
     ;;
 
-  dnl Comments are as per sol2*.
   unixware )
+    dnl Comments are as per sol2*.
+    AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptsname (int), *ptyname; sigblock(sigmask(SIGCLD)); if (grantpt(fd) == -1) fatal("could not grant slave pty"); sigunblock(sigmask(SIGCLD)); if (unlockpt(fd) == -1) fatal("could not unlock slave pty"); if (!(ptyname = ptsname(fd))) fatal ("could not enable slave pty"); snprintf (pty_name, sizeof pty_name, "%s", ptyname); }] )
+    ;;
+esac
+
+
+case $opsys in
+  sol2* | unixware )
+    dnl This change means that we don't loop through allocate_pty too
+    dnl many times in the (rare) event of a failure.
     AC_DEFINE(FIRST_PTY_LETTER, ['z'])
     AC_DEFINE(PTY_NAME_SPRINTF, [strcpy (pty_name, "/dev/ptmx");] )
-    AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptsname (int), *ptyname; sigblock(sigmask(SIGCLD)); if (grantpt(fd) == -1) fatal("could not grant slave pty"); sigunblock(sigmask(SIGCLD)); if (unlockpt(fd) == -1) fatal("could not unlock slave pty"); if (!(ptyname = ptsname(fd))) fatal ("could not enable slave pty"); snprintf (pty_name, sizeof pty_name, "%s", ptyname); }] )
+    dnl Push various streams modules onto a PTY channel.  Used in process.c.
+    AC_DEFINE(SETUP_SLAVE_PTY, [if (ioctl (xforkin, I_PUSH, "ptem") == -1) fatal ("ioctl I_PUSH ptem"); if (ioctl (xforkin, I_PUSH, "ldterm") == -1) fatal ("ioctl I_PUSH ldterm"); if (ioctl (xforkin, I_PUSH, "ttcompat") == -1) fatal ("ioctl I_PUSH ttcompat");], [How to set up a slave PTY, if needed.])
     ;;
 esac
 
@@ -3416,7 +3446,7 @@ case $opsys in
     AC_DEFINE(SIGNALS_VIA_CHARACTERS, 1)
     ;;
 
-  dnl 21 Jun 06: Eric Hanchrow <offby1@blarg.net> says this works. 
+  dnl 21 Jun 06: Eric Hanchrow <offby1@blarg.net> says this works.
   dnl FIXME Does gnu-kfreebsd have linux/version.h?  It seems unlikely...
   gnu-linux | gnu-kfreebsd )
 
@@ -3453,7 +3483,7 @@ case $opsys in
 
   gnu | gnu-linux | gnu-kfreebsd )
     AC_MSG_CHECKING([for style of pending output formalism])
-    dnl In autoconf 2.67 (?) and later, we could use a single test
+    dnl In autoconf 2.67 and later, we could use a single test
     dnl since the preprocessed output is accessible in "conftest.i".
     AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
 #include <stdio.h>
@@ -3525,6 +3555,7 @@ case $opsys in
 esac
 
 
+AH_TEMPLATE(ULIMIT_BREAK_VALUE, [Undocumented.])
 AH_TEMPLATE(TAB3, [Undocumented.])
 
 case $opsys in
@@ -3535,11 +3566,83 @@ case $opsys in
     AC_DEFINE(TAB3, OXTABS)
     ;;
 
+  gnu-linux | gnu-kfreebsd )
+    dnl libc-linux/sysdeps/linux/i386/ulimit.c says that due to shared
+    dnl library, we cannot get the maximum address for brk.
+    AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
+#ifndef __i386__
+# error "not i386"
+#endif
+      ]], [[]])], AC_DEFINE(ULIMIT_BREAK_VALUE, [(32*1024*1024)]), [])
+
+    AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
+#ifndef __ia64__
+# error "not ia64"
+#endif
+      ]], [[]])], AC_DEFINE(GC_MARK_SECONDARY_STACK(),
+        [do { extern void *__libc_ia64_register_backing_store_base; __builtin_ia64_flushrs (); mark_memory (__libc_ia64_register_backing_store_base, __builtin_ia64_bsp ());} while (0)],
+        [Mark a secondary stack, like the register stack on the ia64.]), [])
+    ;;
+
   hpux*)
     AC_DEFINE(RUN_TIME_REMAP, 1, [Define if emacs.c needs to call
       run_time_remap; for HPUX.])
     ;;
+
+  irix6-5)
+    dnl Ulimit(UL_GMEMLIM) is busted...
+    AC_DEFINE(ULIMIT_BREAK_VALUE, [0x14000000])
+    ;;
 esac
+
+
+dnl These won't be used automatically yet.  We also need to know, at least,
+dnl that the stack is continuous.
+AH_TEMPLATE(GC_SETJMP_WORKS, [Define if setjmp is known to save all
+  registers relevant for conservative garbage collection in the jmp_buf.])
+
+AH_TEMPLATE(GC_MARK_STACK, [Define to GC_USE_GCPROS_AS_BEFORE if
+  conservative garbage collection is not known to work.])
+
+
+case $opsys in
+  aix4-2 | hpux* | unixware)
+    dnl Conservative garbage collection has not been tested, so for now
+    dnl play it safe and stick with the old-fashioned way of marking.
+    AC_DEFINE(GC_MARK_STACK, [GC_USE_GCPROS_AS_BEFORE])
+    ;;
+
+  dnl Not all the architectures are tested, but there are Debian packages
+  dnl for SCM and/or Guile on them, so the technique must work.  See also
+  dnl comments in alloc.c concerning setjmp and gcc.
+  dnl Fixme: it's probably safe to just use the GCC conditional below.
+  gnu-linux | gnu-kfreebsd )
+    AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
+#if defined __i386__ || defined __sparc__ || defined __mc68000__ \
+  || defined __alpha__ || defined __mips__ || defined __s390__ \
+  || defined __arm__ || defined __powerpc__ || defined __amd64__ \
+  || defined __ia64__ || defined __sh__
+/* ok */
+#else
+# error "setjmp not known to work on this arch"
+#endif
+    ]], [[]])], AC_DEFINE(GC_SETJMP_WORKS, 1),
+      AC_DEFINE(GC_MARK_STACK, [GC_USE_GCPROS_AS_BEFORE]) )
+    ;;
+esac
+
+
+if test x$GCC = xyes; then
+   dnl GC_SETJMP_WORKS is nearly always appropriate for GCC.
+   AC_DEFINE(GC_SETJMP_WORKS, 1)
+else
+  case $opsys in
+    dnl irix: Tested on Irix 6.5.  SCM worked on earlier versions.
+    freebsd | netbsd | openbsd | irix6-5 | sol2* )
+      AC_DEFINE(GC_SETJMP_WORKS, 1)
+      ;;
+  esac
+fi                              dnl GCC?
 
 
 dnl Used in xfaces.c.
@@ -3547,6 +3650,88 @@ case $opsys in
   hpux* | sol2* )
     AC_DEFINE(XOS_NEEDS_TIME_H, 1, [Compensate for a bug in Xos.h on
       some systems, where it requires time.h.])
+    ;;
+esac
+
+
+dnl Define symbols to identify the version of Unix this is.
+dnl Define all the symbols that apply correctly.
+AH_TEMPLATE(BSD4_2, [Define if the system is compatible with BSD 4.2.])
+AH_TEMPLATE(BSD_SYSTEM, [Define if the system is compatible with BSD 4.2.])
+AH_TEMPLATE(USG, [Define if the system is compatible with System III.])
+AH_TEMPLATE(USG5, [Define if the system is compatible with System V.])
+
+case $opsys in
+  aix4-2)
+    AC_DEFINE(USG, [])
+    AC_DEFINE(USG5, [])
+    dnl This symbol should be defined on AIX Version 3  ???????
+    AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
+#ifndef _AIX
+# error "_AIX not defined"
+#endif
+    ]], [[]])], [], AC_DEFINE(_AIX, [], [Define if the system is AIX.]))
+    ;;
+
+  cygwin)
+    opsysfile=
+    AC_DEFINE(CYGWIN, 1, [Define if the system is Cygwin.])
+    ;;
+
+  darwin)
+    dnl BSD4_3 and BSD4_4 are already defined in sys/param.h.
+    AC_DEFINE(BSD4_2, [])
+    AC_DEFINE(BSD_SYSTEM, [])
+    dnl More specific than the above two.  We cannot use __APPLE__ as this
+    dnl may not be defined on non-OSX Darwin, and we cannot define DARWIN
+    dnl here because Panther and lower CoreFoundation.h uses DARWIN to
+    dnl distinguish OS X from pure Darwin.
+    AC_DEFINE(DARWIN_OS, [], [Define if the system is Darwin.])
+    ;;
+
+  freebsd)
+    AC_DEFINE(BSD4_2, [])
+    dnl Hack to avoid calling AC_PREPROC_IFELSE multiple times.
+    dnl Would not be needed with autoconf >= 2.67, where the
+    dnl preprocessed output is accessible in "conftest.i".
+    AC_DEFINE(BSD_SYSTEM_AHB, 1, [Define if AH_BOTTOM should change BSD_SYSTEM.])
+    ;;
+
+  gnu | netbsd | openbsd )
+    AC_DEFINE(BSD4_2, [])
+    AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[
+#ifndef BSD_SYSTEM
+# error "BSD_SYSTEM not defined"
+#endif
+    ]], [[]])], [], AC_DEFINE(BSD_SYSTEM, 43) )
+    ;;
+
+  gnu-linux | gnu-kfreebsd )
+    AC_DEFINE(USG, [])
+    AC_DEFINE(GNU_LINUX, [], [Define if ths system is compatible with GNU/Linux.])
+    ;;
+
+  hpux*)
+    AC_DEFINE(USG, [])
+    AC_DEFINE(USG5, [])
+    AC_DEFINE(HPUX, [], [Define if the system is HPUX.])
+    ;;
+
+  irix6-5)
+    AC_DEFINE(USG, [])
+    AC_DEFINE(USG5, [])
+    AC_DEFINE(IRIX6_5, [], [Define if the system is IRIX.])
+    ;;
+
+  sol2*)
+    AC_DEFINE(USG, [])
+    AC_DEFINE(USG5, [])
+    AC_DEFINE(SOLARIS2, [], [Define if the system is Solaris.])
+    ;;
+
+  unixware)
+    AC_DEFINE(USG, [])
+    AC_DEFINE(USG5, [])
     ;;
 esac
 
@@ -3562,7 +3747,7 @@ case $opsys in
       using GTK.])
     ;;
 
-  gnu) opsysfile="s/bsd-common.h" ;;
+  gnu) opsysfile= ;;
 
   gnu-kfreebsd) opsysfile="s/gnu-linux.h" ;;
 
@@ -3817,6 +4002,24 @@ AC_SUBST(CYGWIN_OBJ)
 AC_SUBST(PRE_ALLOC_OBJ)
 AC_SUBST(POST_ALLOC_OBJ)
 
+# Configure gnulib.  Although this does not affect CFLAGS or LIBS permanently.
+# it temporarily reverts them to their pre-pkg-config values,
+# because gnulib needs to work with both src (which uses the
+# pkg-config stuff) and lib-src (which does not).  For example, gnulib
+# may need to determine whether LIB_CLOCK_GETTIME should contain -lrt,
+# and it therefore needs to run in an environment where LIBS does not
+# already contain -lrt merely because 'pkg-config --libs' printed '-lrt'
+# for some package unrelated to lib-src.
+SAVE_CFLAGS=$CFLAGS
+SAVE_LIBS=$LIBS
+CFLAGS=$pre_PKG_CONFIG_CFLAGS
+LIBS="$LIB_PTHREAD $pre_PKG_CONFIG_LIBS"
+gl_ASSERT_NO_GNULIB_POSIXCHECK
+gl_ASSERT_NO_GNULIB_TESTS
+gl_INIT
+CFLAGS=$SAVE_CFLAGS
+LIBS=$SAVE_LIBS
+
 case "$opsys" in
   aix4-2) LD_SWITCH_SYSTEM_TEMACS="-Wl,-bnodelcsect" ;;
 
@@ -3991,6 +4194,19 @@ AH_BOTTOM([
 # error "alloca not available on this machine"
 #endif
 
+/* This silences a few compilation warnings on FreeBSD.  */
+#ifdef BSD_SYSTEM_AHB
+#undef BSD_SYSTEM_AHB
+#undef BSD_SYSTEM
+#if __FreeBSD__ == 1
+#define BSD_SYSTEM 199103
+#elif __FreeBSD__ == 2
+#define BSD_SYSTEM 199306
+#elif __FreeBSD__ >= 3
+#define BSD_SYSTEM 199506
+#endif
+#endif
+
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
@@ -4009,13 +4225,14 @@ AH_BOTTOM([
 # include config_opsysfile
 #endif
 
-/* GNUstep needs a bit more pure memory.  Of the existing knobs,
-   SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.
-  (There is probably a better place to do this, but right now the
-   Cocoa side does this in s/darwin.h and we cannot parallel this
-   exactly since GNUstep is multi-OS.  */
-#if defined HAVE_NS && defined NS_IMPL_GNUSTEP
+/* Mac OS X / GNUstep need a bit more pure memory.  Of the existing knobs,
+   SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
+#ifdef HAVE_NS
+#if defined NS_IMPL_GNUSTEP
 #  define SYSTEM_PURESIZE_EXTRA 30000
+#elif defined DARWIN_OS
+#  define SYSTEM_PURESIZE_EXTRA 200000
+#endif
 #endif
 
 #ifdef emacs /* Don't do this for lib-src.  */
@@ -4067,15 +4284,6 @@ AH_BOTTOM([
 #undef noinline
 #endif
 
-/* These won't be used automatically yet.  We also need to know, at least,
-   that the stack is continuous.  */
-#ifdef __GNUC__
-#  ifndef GC_SETJMP_WORKS
-  /* GC_SETJMP_WORKS is nearly always appropriate for GCC.  */
-#    define GC_SETJMP_WORKS 1
-#  endif
-#endif
-
 #endif /* EMACS_CONFIG_H */
 
 /*
@@ -4090,7 +4298,11 @@ End:
 #### It makes printing result more understandable as using GTK sets
 #### toolkit_scroll_bars to yes by default.
 if test "${HAVE_GTK}" = "yes"; then
-  USE_X_TOOLKIT=GTK
+  if test "${with_gtk3}" = "yes"; then
+    USE_X_TOOLKIT=GTK3
+  else
+    USE_X_TOOLKIT=GTK
+  fi
 fi
 
 echo "

@@ -1,3 +1,377 @@
+2012-07-21  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/cc-cmds.el (c-defun-name): Use
+	match-string-no-properties instead for consistency.
+
+2012-07-20  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/cc-cmds.el (c-defun-name): Handle objc selectors properly.
+	(Bug#7879)
+
+	* progmodes/cc-langs.el (c-symbol-start): Include char _ (bug#11986).
+
+2012-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* userlock.el, emacs-lisp/map-ynp.el: Declare part of `emacs' package.
+	* progmodes/bug-reference.el, misearch.el: Provide themselves
+	(bug#11915).
+
+	* progmodes/cperl-mode.el (cperl-unwind-to-safe): Don't inf-loop at end
+	of narrowed buffer (bug#11966).
+
+2012-07-20  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el (ses-rename-cell): Set new name also in reference list of
+	cells of which the renamed cell depends.
+
+2012-07-20  Masatake YAMATO  <yamato@redhat.com>
+
+	* term/x-win.el (x-menu-bar-open): Use `frame-parameter'
+	to check whether menu-bar is shown or not.  If not shown,
+	show the menu-bar as a popup menu instead of using tmm.
+	* mouse.el (popup-menu): Accept `point' as `position' argument.
+
+2012-07-20  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-parse-partial): No error when end
+	up inside string symbol literal (bug#11923).
+
+2012-07-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (fancy-startup-text): Read the whole tutorial, not
+	just its first 256 bytes.  Prevents gibberish in display of the
+	tutorial title.
+
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Drop idle buffer compaction due to an absence of the
+	proved efficiency.
+	* compact.el: Remove.
+
+2012-07-19  Sam Steingold  <sds@gnu.org>
+
+	* vc/vc-dispatcher.el (vc-compilation-mode): Add, based on
+	vc-bzr-pull & vc-bzr-merge-branch.
+	* vc/vc-bzr.el (vc-bzr-pull, vc-bzr-merge-branch): Use it.
+	(vc-bzr-error-regexp-alist): Rename from vc-bzr-error-regex-alist
+	for consistency with compilation-error-regexp-alist.
+	* vc/vc-git.el (vc-git-error-regexp-alist): Add.
+	(vc-git-pull, vc-git-merge-branch): Call vc-compilation-mode.
+	* vc/vc-hg.el (vc-hg-error-regexp-alist): Add.
+	(vc-hg-pull, vc-hg-merge-branch): Call vc-compilation-mode.
+
+2012-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/chart.el: Use lexical-binding.
+	(chart-emacs-storage): Don't hardcode the list of entries.
+
+2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Next round of tweaks caused by Fgarbage_collect changes.
+	* emacs-lisp/chart.el (chart-emacs-storage): Adjust again.
+
+2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Compact buffers when idle.
+	* compact.el: New file.
+
+2012-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (eventp): Presume that if it looks vaguely like an event,
+	it's an event (bug#10190).
+
+2012-07-19  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Enhancements to ppss related code (thanks Stefan).
+	* progmodes/python.el (python-indent-context)
+	(python-indent-calculate-indentation, python-indent-dedent-line)
+	(python-indent-electric-colon, python-nav-forward-block)
+	(python-mode-abbrev-table)
+	(python-info-assignment-continuation-line-p): Simplify checks
+	for ppss context.
+	(python-info-continuation-line-p): Cleanup.
+	(python-info-ppss-context): Do not catch 'quote.
+	(python-info-ppss-context-type)
+	(python-info-ppss-comment-or-string-p): Simplify.
+
+2012-07-18  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el: Enhancements to eldoc support.
+	(python-info-current-symbol): New function.
+	(python-eldoc-at-point): Use python-info-current-symbol.
+	(python-info-current-defun): Fix cornercase on first defun scan.
+	(python-eldoc--get-doc-at-point): Use python-info-current-symbol
+	and signal error when no inferior python process is available.
+
+2012-07-18  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/vc-git.el (vc-git-state): Don't call `vc-git-registered',
+	assume it's always t.
+	(vc-git-registered): Remove caching, the function is only called
+	once.
+	(vc-git-branches): Use `vc-git--call' instead of `call-process'.
+
+2012-07-18  Chong Yidong  <cyd@gnu.org>
+
+	* subr.el (last-input-char, last-command-char): Remove (Bug#9195).
+
+	* simple.el (count-words): Report on narrowing (Bug#9959).
+
+	* bindings.el: Bind M-= to count-words.
+
+	* faces.el (face-spec-reset-face): Handle reverse video (Bug#4238).
+
+2012-07-18  Masatake YAMATO  <yamato@redhat.com>
+
+	* progmodes/sh-script.el (sh-imenu-generic-expression):
+	Capture a function with `function' keyword and without parentheses
+	like "function FOO" (bug#11856).
+
+2012-07-18  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* window.el (split-window-sensibly): Make WINDOW argument
+	optional.
+
+2012-07-18  Chong Yidong  <cyd@gnu.org>
+
+	* subr.el (keyboard-translate): Doc fix (Bug#7261).
+
+	* isearch.el (isearch-mode-map): Handle C-x 8 key translations,
+	and make C-x 8 RET exit isearch (Bug#11439).
+
+	* international/iso-transl.el: Move isearch-mode-map key
+	definitions to isearch.el.
+
+2012-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio.el: Adapt further to gv.el (bug#11970).
+	(eieio-defclass): Use gv-define-setter when possible.
+
+2012-07-18  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Reflect recent changes in Fgarbage_collect.
+	* emacs-lisp/chart.el (chart-emacs-storage): Change to
+	reflect new format of data returned by Fgarbage_collect.
+
+2012-07-17  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	New utility functions + python-info-ppss-context fix (Bug#11910).
+	* progmodes/python.el (python-info-beginning-of-block-statement-p)
+	(python-info-ppss-comment-or-string-p): New functions.
+	(python-info-ppss-context): Small fix for string check.
+
+2012-07-17  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-do-async-shell-command): Doc fix.
+	(dired-do-async-shell-command): Don't add `*' at the end of the
+	command (Bug#11815).
+	(dired-do-shell-command): Doc fix.
+	(dired-shell-stuff-it): Strip the trailing "&" and ";" if any.
+	Join the individual commands using either "&" or ";" as the
+	separator depending on the values of these trailing characters.
+	At the end re-add the trailing "&".  (Bug#10598)
+
+	* simple.el (async-shell-command): Sync the interactive spec with
+	`shell-command'.  Doc fix.
+	(shell-command): Doc fix.
+
+2012-07-17  Juri Linkov  <juri@jurta.org>
+
+	* descr-text.el (describe-char): Fix format args.  (Bug#10129)
+
+2012-07-17  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Final renames and doc fixes for movement commands (bug#11899).
+	* progmodes/python.el (python-nav-beginning-of-statement):
+	Rename from python-nav-statement-start.
+	(python-nav-end-of-statement): Rename from
+	python-nav-statement-end.
+	(python-nav-beginning-of-block): Rename from
+	python-nav-block-start.
+	(python-nav-end-of-block): Rename from python-nav-block-end.
+
+2012-07-17  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-shell-send-string-no-output):
+	Allow accept-process-output to quit, keeping shell process ready for
+	future interactions (Bug#11868).
+
+2012-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-progv): Use a properly prefixed var name.
+
+	* emacs-lisp/elint.el (elint-find-args-in-code):
+	Use help-function-arglist, so as to handle lexical byte-code.
+
+	* progmodes/sh-script.el (sh-syntax-propertize-function): Fix last
+	change (bug#11826).
+
+2012-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cc-engine.el (c-forward-sws, c-backward-sws):
+	Avoid spuriously marking the buffer as modified because of c-is-sws.
+
+	* progmodes/sh-script.el (sh-syntax-propertize-function): Mark "${#VAR"
+	as not-a-comment (bug#11946).
+
+	* emacs-lisp/macroexp.el (macroexp-let2): Use more informative names
+	for uninterned vars.
+
+	* xt-mouse.el (xterm-mouse-translate-1, xterm-mouse-event-read):
+	Use read-event since we don't really want to read chars but bytes.
+
+	* textmodes/tex-mode.el (tex-font-lock-keywords-1): Highlight not only
+	$$..$$ but also $..$ using regexps (bug#11953).
+	Use tex-verbatim for \url and \path.
+	(tex-font-lock-keywords): Define as defconst like the others.
+	(tex-common-initialization): Don't use font-lock-syntax-table any more.
+
+2012-07-16  René Kyllingstad  <Rene@Kyllingstad.com>  (tiny change)
+
+	* international/mule-cmds.el (ucs-insert): Make it an obsolete
+	alias for insert-char.
+
+2012-07-16  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el: Simplified imenu implementation.
+	(python-nav-jump-to-defun): Remove command.
+	(python-mode-map): Use `imenu' instead.
+	(python-nav-list-defun-positions-cache)
+	(python-imenu-include-defun-type, python-imenu-make-tree)
+	(python-imenu-subtree-root-label, python-imenu-index-alist):
+	Remove vars.
+	(python-nav-list-defun-positions, python-nav-read-defun)
+	(python-imenu-tree-assoc, python-imenu-make-element-tree)
+	(python-imenu-make-tree, python-imenu-create-index):
+	Remove functions.
+	(python-mode): Update to interact with imenu by setting
+	`imenu-extract-index-name-function' only.
+
+2012-07-16  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el: Enhancements to navigation commands.
+	(python-nav-backward-sentence)
+	(python-nav-forward-sentence): Remove.
+	(python-nav-backward-statement, python-nav-forward-statement)
+	(python-nav-statement-start, python-nav-statement-end)
+	(python-nav-backward-block, python-nav-forward-block)
+	(python-nav-block-start, python-nav-block-end)
+	(python-nav-forward-sexp-function)
+	(python-info-current-line-comment-p)
+	(python-info-current-line-empty-p): New functions.
+	(python-indent-context): Use `python-nav-statement-start'.
+
+2012-07-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* eshell/em-ls.el (eshell/ls): Use `apply'.
+
+	* eshell/em-unix.el (eshell/su, eshell/sudo): Apply Tramp's ad-hoc
+	multi-hops, instead of Tramp internals.
+
+	* vc/ediff.el (ediff-directories): Add trailing space to prompts.
+
+	* vc/ediff-diff.el (ediff-same-file-contents): Handle the case,
+	when F1 and F2 are located on different hosts.
+
+2012-07-14  Chong Yidong  <cyd@gnu.org>
+
+	* xt-mouse.el: Implement extended mouse coordinates (Bug#10642).
+	(xterm-mouse-translate): Move code into xterm-mouse-translate-1.
+	(xterm-mouse-translate-extended, xterm-mouse-translate-1)
+	(xterm-mouse--read-event-sequence-1000)
+	(xterm-mouse--read-event-sequence-1006): New functions.  For old
+	mouse protocol, handle M-mouse-X events correctly.
+	(xterm-mouse-event): New arg specifying mouse protocol.
+	(turn-on-xterm-mouse-tracking-on-terminal)
+	(turn-off-xterm-mouse-tracking-on-terminal): Send DEC 1006
+	sequence to toggle extended coordinates on newer XTerms.
+	This appears to be harmless on terminals which do not support this.
+
+2012-07-14  Leo Liu  <sdl.web@gmail.com>
+
+	Add fringe bitmap indicators for flymake.  (Bug#11253)
+	* progmodes/flymake.el (flymake-highlight-line): Use fringe bitmaps.
+	(flymake-make-overlay): New arg BITMAP.
+	(flymake-error-bitmap, flymake-warning-bitmap)
+	(flymake-fringe-indicator-position): New user variables.
+
+	* fringe.el: New bitmap exclamation-mark.
+
+2012-07-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* progmodes/cc-cmds.el (c-defun-name): Recognize Objective-C methods
+	also (Bug#7879).
+
+2012-07-14  Chong Yidong  <cyd@gnu.org>
+
+	* electric.el (electric-pair-post-self-insert-function): Fix pair
+	insertion in empty-region case (Bug#11520).
+
+2012-07-14  Chong Yidong  <cyd@gnu.org>
+
+	* bindings.el: Consolidate ctl-x-r-map bindings.
+	Bind copy-rectangle-as-kill to C-x r w.
+
+	* rect.el, register.el: Move bindings to bindings.el.
+
+2012-07-14  Reuben Thomas  <rrt@sc3d.org>
+
+	* rect.el (copy-rectangle-as-kill): New command (Bug#739).
+
+2012-07-13  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/cl.el (labels): Remove spurious quote.  (Bug#11938)
+
+2012-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bindings.el (top): Use `mapc' instead of `mapcar'.
+
+	* loadup.el (top): Remove bogus `if' choice (brought by revno:88805).
+
+2012-07-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* progmodes/sql.el (sql-comint): Suppress the check for program on
+	remote hosts.  Reported by Francis Devereux <francis@devrx.org>.
+	(Bug#11908)
+
+2012-07-13  Chong Yidong  <cyd@gnu.org>
+
+	* bindings.el: Assign a non-nil permanent-local property to
+	per-buffer variables which lack a default value (Bug#11930).
+
+	* help-fns.el (describe-variable): In the "automatically becomes
+	local" notice, take note of permanent-local variables.
+
+2012-07-13  Chong Yidong  <cyd@gnu.org>
+
+	* files.el (toggle-read-only): Doc fix and code cleanup.  New arg
+	to allow printing the message when called from Lisp.
+
+	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
+	Remove toggle-read-only.
+
+	* bs.el (bs-toggle-readonly):
+	* buff-menu.el (Buffer-menu-toggle-read-only):
+	Remove with-no-warnings around toggle-read-only.
+
+	* ffap.el (ffap--toggle-read-only): Accept a list of buffers.
+	Remove with-no-warnings around toggle-read-only.
+	(ffap-read-only, ffap-read-only-other-window)
+	(ffap-read-only-other-frame): Callers changed.
+
+	* help-mode.el: Don't require view package.
+	(help-mode-finish): Set buffer-read-only instead of calling
+	toggle-read-only.
+
+	* bindings.el (mode-line-toggle-read-only):
+	* dired.el (dired-toggle-read-only):
+	* ibuffer.el (ibuffer-do-toggle-read-only): Call toggle-read-only
+	with non-nil second arg.
+
+	* emacs-lisp/eieio-custom.el (eieio-customize-object):
+	* vc/ediff.el (ediff-set-read-only-in-buf-A): Set buffer-read-only
+	directly.
+
 2012-07-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-recompile-directory): Use cl-incf,
@@ -174,6 +548,12 @@
 	read-file-name-completion-ignore-case is non-nil.  Don't use
 	case-fold-search for this purpose.  (Bug#11827)
 
+2012-07-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* calendar/cal-dst.el (calendar-current-time-zone):
+	Return calendar-current-time-zone-cache if non-nil.
+
+2012-07-17  Masatake YAMATO  <yamato@redhat.com>
 2012-07-06  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* calendar/cal-dst.el (calendar-current-time-zone):
@@ -337,12 +717,12 @@
 	`git-registered'.
 	(vc-git-mode-line-string): Call `vc-working-revision' instead of
 	`vc-git-working-revision' in order to benefit from the cache.
-	(vc-git-root): Use cache property `git-root'.
+	(vc-git-root): Use cache property `git-root'.  (Bug#11757)
 
 2012-06-30  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* vc/vc-hooks.el (vc-before-save): Clear cache if file has been
-	removed (likely outside Emacs).
+	removed (likely outside Emacs).  (Bug#11757)
 
 2012-06-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -1684,7 +2064,7 @@
 
 2012-06-05  Sam Steingold  <sds@gnu.org>
 
-	* calendar/calendar.el (calendar-exit): reinstate the 2012-03-28
+	* calendar/calendar.el (calendar-exit): Reinstate the 2012-03-28
 	patch (Bug#11140).
 
 2012-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -3549,7 +3929,7 @@
 
 	* textmodes/ispell.el (ispell-buffer-session-localwords):
 	New buffer-local variable to hold buffer session localwords.
-	(ispell-kill-ispell): add option 'clear to delete session
+	(ispell-kill-ispell): Add option 'clear to delete session
 	localwords.
 	(ispell-command-loop, ispell-change-dictionary)
 	(ispell-buffer-local-words): Preserve session localwords when
@@ -3999,7 +4379,7 @@
 
 2012-04-16  Chong Yidong  <cyd@gnu.org>
 
-	* image.el (imagemagick--extension-regexp): New variable.
+	* image.el (imagemagick--file-regexp): New variable.
 	(imagemagick-register-types): Use it.
 	(imagemagick-types-inhibit): Add :set function.  Allow new value
 	of t to inhibit all types.

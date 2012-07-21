@@ -84,10 +84,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "commands.h"
 
-#ifndef FILE_SYSTEM_CASE
-#define FILE_SYSTEM_CASE(filename)  (filename)
-#endif
-
 /* Nonzero during writing of auto-save files.  */
 static int auto_saving;
 
@@ -163,8 +159,7 @@ report_file_error (const char *string, Lisp_Object data)
 
   synchronize_system_messages_locale ();
   str = strerror (errorno);
-  errstring = code_convert_string_norecord (make_unibyte_string (str,
-								 strlen (str)),
+  errstring = code_convert_string_norecord (build_unibyte_string (str),
 					    Vlocale_coding_system, 0);
 
   while (1)
@@ -334,7 +329,6 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
       return STRINGP (handled_name) ? handled_name : Qnil;
     }
 
-  filename = FILE_SYSTEM_CASE (filename);
 #ifdef DOS_NT
   beg = alloca (SBYTES (filename) + 1);
   memcpy (beg, SSDATA (filename), SBYTES (filename) + 1);
@@ -861,7 +855,6 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	UNGCPRO;
       }
   }
-  name = FILE_SYSTEM_CASE (name);
   multibyte = STRING_MULTIBYTE (name);
   if (multibyte != STRING_MULTIBYTE (default_directory))
     {
@@ -1664,7 +1657,7 @@ those `/' is discarded.  */)
 	       env variables twice should be acceptable. Note that
 	       decoding may cause a garbage collect.  */
 	    Lisp_Object orig, decoded;
-	    orig = make_unibyte_string (o, strlen (o));
+	    orig = build_unibyte_string (o);
 	    decoded = DECODE_FILE (orig);
 	    total += SBYTES (decoded);
 	    substituted = 1;
