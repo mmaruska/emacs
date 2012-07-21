@@ -691,18 +691,6 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
       /* Do it before evaluating the initial value, for self-references.  */
       XSYMBOL (sym)->declared_special = 1;
 
-      if (SYMBOL_CONSTANT_P (sym))
-	{
-	  /* For upward compatibility, allow (defvar :foo (quote :foo)).  */
-	  Lisp_Object tem1 = Fcar (tail);
-	  if (! (CONSP (tem1)
-		 && EQ (XCAR (tem1), Qquote)
-		 && CONSP (XCDR (tem1))
-		 && EQ (XCAR (XCDR (tem1)), sym)))
-	    error ("Constant symbol `%s' specified in defvar",
-		   SDATA (SYMBOL_NAME (sym)));
-	}
-
       if (NILP (tem))
 	Fset_default (sym, eval_sub (Fcar (tail)));
       else
@@ -2052,15 +2040,7 @@ eval_sub (Lisp_Object form)
     return form;
 
   QUIT;
-  if ((consing_since_gc > gc_cons_threshold
-       && consing_since_gc > gc_relative_threshold)
-      ||
-      (!NILP (Vmemory_full) && consing_since_gc > memory_full_cons_threshold))
-    {
-      GCPRO1 (form);
-      Fgarbage_collect ();
-      UNGCPRO;
-    }
+  maybe_gc ();
 
   if (++lisp_eval_depth > max_lisp_eval_depth)
     {
@@ -2749,11 +2729,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   ptrdiff_t i;
 
   QUIT;
-  if ((consing_since_gc > gc_cons_threshold
-       && consing_since_gc > gc_relative_threshold)
-      ||
-      (!NILP (Vmemory_full) && consing_since_gc > memory_full_cons_threshold))
-    Fgarbage_collect ();
+  maybe_gc ();
 
   if (++lisp_eval_depth > max_lisp_eval_depth)
     {

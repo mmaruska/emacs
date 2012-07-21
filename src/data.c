@@ -1401,7 +1401,7 @@ for this variable.  */)
 	      {
 		struct buffer *b;
 
-		for (b = all_buffers; b; b = b->header.next.buffer)
+		FOR_EACH_BUFFER (b)
 		  if (!PER_BUFFER_VALUE_P (b, idx))
 		    PER_BUFFER_VALUE (b, offset) = value;
 	      }

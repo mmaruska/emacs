@@ -258,6 +258,7 @@ static char *stack_copy;
 static ptrdiff_t stack_copy_size;
 #endif
 
+static Lisp_Object Qstring_bytes, Qvector_slots, Qheap;
 static Lisp_Object Qgc_cons_threshold;
 Lisp_Object Qchar_table_extra_slots;
 
@@ -280,6 +281,14 @@ static void free_large_strings (void);
 static void sweep_strings (void);
 static void free_misc (Lisp_Object);
 extern Lisp_Object which_symbols (Lisp_Object, EMACS_INT) EXTERNALLY_VISIBLE;
+
+/* Handy constants for vectorlike objects.  */
+enum
+  {
+    header_size = offsetof (struct Lisp_Vector, contents),
+    bool_header_size = offsetof (struct Lisp_Bool_Vector, data),
+    word_size = sizeof (Lisp_Object)
+  };
 
 /* When scanning the C stack for live Lisp objects, Emacs keeps track
    of what memory allocated via lisp_malloc is intended for what
@@ -2356,6 +2365,8 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   ptrdiff_t length_in_chars;
   EMACS_INT length_in_elts;
   int bits_per_value;
+  int extra_bool_elts = ((bool_header_size - header_size + word_size - 1)
+			 / word_size);
 
   CHECK_NATNUM (length);
 
@@ -2363,9 +2374,7 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
 
   length_in_elts = (XFASTINT (length) + bits_per_value - 1) / bits_per_value;
 
-  /* We must allocate one more elements than LENGTH_IN_ELTS for the
-     slot `size' of the struct Lisp_Bool_Vector.  */
-  val = Fmake_vector (make_number (length_in_elts + 1), Qnil);
+  val = Fmake_vector (make_number (length_in_elts + extra_bool_elts), Qnil);
 
   /* No Lisp_Object to trace in there.  */
   XSETPVECTYPESIZE (XVECTOR (val), PVEC_BOOL_VECTOR, 0);
@@ -2381,7 +2390,7 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
 
       /* Clear any extraneous bits in the last byte.  */
       p->data[length_in_chars - 1]
-	&= (1 << (XINT (length) % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
+	&= (1 << ((XFASTINT (length) - 1) % BOOL_VECTOR_BITS_PER_CHAR + 1)) - 1;
     }
 
   return val;
@@ -2874,12 +2883,10 @@ DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
 
 #define VECTOR_BLOCK_SIZE 4096
 
-/* Handy constants for vectorlike objects.  */
+/* Align allocation request sizes to be a multiple of ROUNDUP_SIZE.  */
 enum
   {
-    header_size = offsetof (struct Lisp_Vector, contents),
-    word_size = sizeof (Lisp_Object),
-    roundup_size = COMMON_MULTIPLE (sizeof (Lisp_Object),
+    roundup_size = COMMON_MULTIPLE (word_size,
 				    USE_LSB_TAG ? 1 << GCTYPEBITS : 1)
   };
 
@@ -2905,7 +2912,7 @@ verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
 /* Size of the largest vector allocated from block.  */
 
 #define VBLOCK_BYTES_MAX					\
-  vroundup ((VECTOR_BLOCK_BYTES / 2) - sizeof (Lisp_Object))
+  vroundup ((VECTOR_BLOCK_BYTES / 2) - word_size)
 
 /* We maintain one free list for each possible block-allocated
    vector size, and this is the number of free lists we have.  */
@@ -2931,7 +2938,7 @@ verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
     eassert ((index) < VECTOR_MAX_FREE_LIST_INDEX);		\
     (v)->header.next.vector = vector_free_lists[index];		\
     vector_free_lists[index] = (v);				\
-    total_free_vector_bytes += (nbytes);			\
+    total_free_vector_slots += (nbytes) / word_size;		\
   } while (0)
 
 struct vector_block
@@ -2961,9 +2968,9 @@ Lisp_Object zero_vector;
 
 static EMACS_INT total_vectors;
 
-/* Number of bytes used by live and free vectors.  */
+/* Total size of live and free vectors, in Lisp_Object units.  */
 
-static EMACS_INT total_vector_bytes, total_free_vector_bytes;
+static EMACS_INT total_vector_slots, total_free_vector_slots;
 
 /* Get a new vector block.  */
 
@@ -3010,7 +3017,7 @@ allocate_vector_from_block (size_t nbytes)
       vector = vector_free_lists[index];
       vector_free_lists[index] = vector->header.next.vector;
       vector->header.next.nbytes = nbytes;
-      total_free_vector_bytes -= nbytes;
+      total_free_vector_slots -= nbytes / word_size;
       return vector;
     }
 
@@ -3025,7 +3032,7 @@ allocate_vector_from_block (size_t nbytes)
 	vector = vector_free_lists[index];
 	vector_free_lists[index] = vector->header.next.vector;
 	vector->header.next.nbytes = nbytes;
-	total_free_vector_bytes -= nbytes;
+	total_free_vector_slots -= nbytes / word_size;
 
 	/* Excess bytes are used for the smaller vector,
 	   which should be set on an appropriate free list.  */
@@ -3079,7 +3086,7 @@ sweep_vectors (void)
   struct vector_block *block = vector_blocks, **bprev = &vector_blocks;
   struct Lisp_Vector *vector, *next, **vprev = &large_vectors;
 
-  total_vectors = total_vector_bytes = total_free_vector_bytes = 0;
+  total_vectors = total_vector_slots = total_free_vector_slots = 0;
   memset (vector_free_lists, 0, sizeof (vector_free_lists));
 
   /* Looking through vector blocks.  */
@@ -3095,7 +3102,7 @@ sweep_vectors (void)
 	    {
 	      VECTOR_UNMARK (vector);
 	      total_vectors++;
-	      total_vector_bytes += vector->header.next.nbytes;
+	      total_vector_slots += vector->header.next.nbytes / word_size;
 	      next = ADVANCE (vector, vector->header.next.nbytes);
 	    }
 	  else
@@ -3154,25 +3161,21 @@ sweep_vectors (void)
 	  total_vectors++;
 	  if (vector->header.size & PSEUDOVECTOR_FLAG)
 	    {
-	      if (((vector->header.size & PVEC_TYPE_MASK)
-		   >> PSEUDOVECTOR_SIZE_BITS) == PVEC_BOOL_VECTOR)
-		{
-		  struct Lisp_Bool_Vector *b
-		    = (struct Lisp_Bool_Vector *) vector;
-		  total_vector_bytes += header_size + sizeof (b->size)
-		    + (b->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
-		    / BOOL_VECTOR_BITS_PER_CHAR;
-		}
-	      else
-		/* All other pseudovectors are small enough to be
-		   allocated from vector blocks.  This code should
-		   be redesigned if some pseudovector type grows
-		   beyond VBLOCK_BYTES_MAX.  */
-		abort ();
+	      struct Lisp_Bool_Vector *b = (struct Lisp_Bool_Vector *) vector;
+
+	      /* All non-bool pseudovectors are small enough to be allocated
+		 from vector blocks.  This code should be redesigned if some
+		 pseudovector type grows beyond VBLOCK_BYTES_MAX.  */
+	      eassert (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_BOOL_VECTOR));
+
+	      total_vector_slots
+		+= (bool_header_size
+		    + ((b->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
+		       / BOOL_VECTOR_BITS_PER_CHAR)) / word_size;
 	    }
 	  else
-	    total_vector_bytes
-	      += header_size + vector->header.size * word_size;
+	    total_vector_slots
+	      += header_size / word_size + vector->header.size;
 	  vprev = &vector->header.next.vector;
 	}
       else
@@ -5261,8 +5264,7 @@ make_pure_vector (ptrdiff_t len)
 {
   Lisp_Object new;
   struct Lisp_Vector *p;
-  size_t size = (offsetof (struct Lisp_Vector, contents)
-		 + len * sizeof (Lisp_Object));
+  size_t size = header_size + len * word_size;
 
   p = (struct Lisp_Vector *) pure_alloc (size, Lisp_Vectorlike);
   XSETVECTOR (new, p);
@@ -5376,25 +5378,25 @@ DEFUN ("garbage-collect", Fgarbage_collect, Sgarbage_collect, 0, 0, "",
        doc: /* Reclaim storage for Lisp objects no longer needed.
 Garbage collection happens automatically if you cons more than
 `gc-cons-threshold' bytes of Lisp data since previous garbage collection.
-`garbage-collect' normally returns a list with info on amount of space in use:
- ((CONS INTERNAL-SIZE USED-CONSES FREE-CONSES)
-  (SYMBOL INTERNAL-SIZE USED-SYMBOLS FREE-SYMBOLS)
-  (MISC INTERNAL-SIZE USED-MISCS FREE-MISCS)
-  (STRING INTERNAL-SIZE USED-STRINGS USED-STRING-BYTES FREE-STRING)
-  (VECTOR INTERNAL-SIZE USED-VECTORS USED-VECTOR-BYTES FREE-VECTOR-BYTES)
-  (FLOAT INTERNAL-SIZE USED-FLOATS FREE-FLOATS)
-  (INTERVAL INTERNAL-SIZE USED-INTERVALS FREE-INTERVALS)
-  (BUFFER INTERNAL-SIZE USED-BUFFERS))
+`garbage-collect' normally returns a list with info on amount of space in use,
+where each entry has the form (NAME SIZE USED FREE), where:
+- NAME is a symbol describing the kind of objects this entry represents,
+- SIZE is the number of bytes used by each one,
+- USED is the number of those objects that were found live in the heap,
+- FREE is the number of those objects that are not live but that Emacs
+  keeps around for future allocations (maybe because it does not know how
+  to return them to the OS).
 However, if there was overflow in pure space, `garbage-collect'
 returns nil, because real GC can't be done.
 See Info node `(elisp)Garbage Collection'.  */)
   (void)
 {
   register struct specbinding *bind;
+  register struct buffer *nextb;
   char stack_top_variable;
   ptrdiff_t i;
   int message_p;
-  Lisp_Object total[8];
+  Lisp_Object total[11];
   ptrdiff_t count = SPECPDL_INDEX ();
   EMACS_TIME t1;
 
@@ -5410,40 +5412,8 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   /* Don't keep undo information around forever.
      Do this early on, so it is no problem if the user quits.  */
-  {
-    register struct buffer *nextb = all_buffers;
-
-    while (nextb)
-      {
-	/* If a buffer's undo list is Qt, that means that undo is
-	   turned off in that buffer.  Calling truncate_undo_list on
-	   Qt tends to return NULL, which effectively turns undo back on.
-	   So don't call truncate_undo_list if undo_list is Qt.  */
-	if (! NILP (nextb->BUFFER_INTERNAL_FIELD (name))
-	    && ! EQ (nextb->BUFFER_INTERNAL_FIELD (undo_list), Qt))
-	  truncate_undo_list (nextb);
-
-	/* Shrink buffer gaps, but skip indirect and dead buffers.  */
-	if (nextb->base_buffer == 0 && !NILP (nextb->BUFFER_INTERNAL_FIELD (name))
-	    && ! nextb->text->inhibit_shrinking)
-	  {
-	    /* If a buffer's gap size is more than 10% of the buffer
-	       size, or larger than 2000 bytes, then shrink it
-	       accordingly.  Keep a minimum size of 20 bytes.  */
-	    int size = min (2000, max (20, (nextb->text->z_byte / 10)));
-
-	    if (nextb->text->gap_size > size)
-	      {
-		struct buffer *save_current = current_buffer;
-		current_buffer = nextb;
-		make_gap (-(nextb->text->gap_size - size));
-		current_buffer = save_current;
-	      }
-	  }
-
-	nextb = nextb->header.next.buffer;
-      }
-  }
+  FOR_EACH_BUFFER (nextb)
+    compact_buffer (nextb);
 
   t1 = current_emacs_time ();
 
@@ -5491,8 +5461,6 @@ See Info node `(elisp)Garbage Collection'.  */)
   shrink_regexp_cache ();
 
   gc_in_progress = 1;
-
-  /* clear_marks (); */
 
   /* Mark all the special slots that serve as the roots of accessibility.  */
 
@@ -5557,48 +5525,42 @@ See Info node `(elisp)Garbage Collection'.  */)
      Look thru every buffer's undo list
      for elements that update markers that were not marked,
      and delete them.  */
-  {
-    register struct buffer *nextb = all_buffers;
-
-    while (nextb)
-      {
-	/* If a buffer's undo list is Qt, that means that undo is
-	   turned off in that buffer.  Calling truncate_undo_list on
-	   Qt tends to return NULL, which effectively turns undo back on.
-	   So don't call truncate_undo_list if undo_list is Qt.  */
-	if (! EQ (nextb->BUFFER_INTERNAL_FIELD (undo_list), Qt))
-	  {
-	    Lisp_Object tail, prev;
-	    tail = nextb->BUFFER_INTERNAL_FIELD (undo_list);
-	    prev = Qnil;
-	    while (CONSP (tail))
-	      {
-		if (CONSP (XCAR (tail))
-		    && MARKERP (XCAR (XCAR (tail)))
-		    && !XMARKER (XCAR (XCAR (tail)))->gcmarkbit)
-		  {
-		    if (NILP (prev))
-		      nextb->BUFFER_INTERNAL_FIELD (undo_list) = tail = XCDR (tail);
-		    else
-		      {
-			tail = XCDR (tail);
-			XSETCDR (prev, tail);
-		      }
-		  }
-		else
-		  {
-		    prev = tail;
-		    tail = XCDR (tail);
-		  }
-	      }
-	  }
-	/* Now that we have stripped the elements that need not be in the
-	   undo_list any more, we can finally mark the list.  */
-	mark_object (nextb->BUFFER_INTERNAL_FIELD (undo_list));
-
-	nextb = nextb->header.next.buffer;
-      }
-  }
+  FOR_EACH_BUFFER (nextb)
+    {
+      /* If a buffer's undo list is Qt, that means that undo is
+	 turned off in that buffer.  Calling truncate_undo_list on
+	 Qt tends to return NULL, which effectively turns undo back on.
+	 So don't call truncate_undo_list if undo_list is Qt.  */
+      if (! EQ (nextb->BUFFER_INTERNAL_FIELD (undo_list), Qt))
+	{
+	  Lisp_Object tail, prev;
+	  tail = nextb->BUFFER_INTERNAL_FIELD (undo_list);
+	  prev = Qnil;
+	  while (CONSP (tail))
+	    {
+	      if (CONSP (XCAR (tail))
+		  && MARKERP (XCAR (XCAR (tail)))
+		  && !XMARKER (XCAR (XCAR (tail)))->gcmarkbit)
+		{
+		  if (NILP (prev))
+		    nextb->BUFFER_INTERNAL_FIELD (undo_list) = tail = XCDR (tail);
+		  else
+		    {
+		      tail = XCDR (tail);
+		      XSETCDR (prev, tail);
+		    }
+		}
+	      else
+		{
+		  prev = tail;
+		  tail = XCDR (tail);
+		}
+	    }
+	}
+      /* Now that we have stripped the elements that need not be in the
+	 undo_list any more, we can finally mark the list.  */
+      mark_object (nextb->BUFFER_INTERNAL_FIELD (undo_list));
+    }
 
   gc_sweep ();
 
@@ -5616,7 +5578,6 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   CHECK_CONS_LIST ();
 
-  /* clear_marks (); */
   gc_in_progress = 0;
 
   consing_since_gc = 0;
@@ -5632,7 +5593,7 @@ See Info node `(elisp)Garbage Collection'.  */)
       tot += total_symbols * sizeof (struct Lisp_Symbol);
       tot += total_markers * sizeof (union Lisp_Misc);
       tot += total_string_bytes;
-      tot += total_vector_bytes;
+      tot += total_vector_slots * word_size;
       tot += total_floats  * sizeof (struct Lisp_Float);
       tot += total_intervals * sizeof (struct interval);
       tot += total_strings * sizeof (struct Lisp_String);
@@ -5669,26 +5630,39 @@ See Info node `(elisp)Garbage Collection'.  */)
 		    bounded_number (total_markers),
 		    bounded_number (total_free_markers));
 
-  total[3] = list5 (Qstring, make_number (sizeof (struct Lisp_String)),
+  total[3] = list4 (Qstring, make_number (sizeof (struct Lisp_String)),
 		    bounded_number (total_strings),
-		    bounded_number (total_string_bytes),
 		    bounded_number (total_free_strings));
 
-  total[4] = list5 (Qvector, make_number (sizeof (struct Lisp_Vector)),
-		    bounded_number (total_vectors),
-		    bounded_number (total_vector_bytes),
-		    bounded_number (total_free_vector_bytes));
+  total[4] = list3 (Qstring_bytes, make_number (1),
+		    bounded_number (total_string_bytes));
 
-  total[5] = list4 (Qfloat, make_number (sizeof (struct Lisp_Float)),
+  total[5] = list3 (Qvector, make_number (sizeof (struct Lisp_Vector)),
+		    bounded_number (total_vectors));
+
+  total[6] = list4 (Qvector_slots, make_number (word_size),
+		    bounded_number (total_vector_slots),
+		    bounded_number (total_free_vector_slots));
+
+  total[7] = list4 (Qfloat, make_number (sizeof (struct Lisp_Float)),
 		    bounded_number (total_floats),
                     bounded_number (total_free_floats));
 
-  total[6] = list4 (Qinterval, make_number (sizeof (struct interval)),
+  total[8] = list4 (Qinterval, make_number (sizeof (struct interval)),
 		    bounded_number (total_intervals),
                     bounded_number (total_free_intervals));
 
-  total[7] = list3 (Qbuffer, make_number (sizeof (struct buffer)),
+  total[9] = list3 (Qbuffer, make_number (sizeof (struct buffer)),
 		    bounded_number (total_buffers));
+
+  total[10] = list4 (Qheap, make_number (1024),
+#ifdef DOUG_LEA_MALLOC
+		     bounded_number ((mallinfo ().uordblks + 1023) >> 10),
+		     bounded_number ((mallinfo ().fordblks + 1023) >> 10)
+#else
+		     Qnil, Qnil
+#endif
+		     );
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
   {
@@ -5986,9 +5960,10 @@ mark_object (Lisp_Object arg)
 #ifdef GC_CHECK_MARKED_OBJECTS
 	    if (po != &buffer_defaults && po != &buffer_local_symbols)
 	      {
-		struct buffer *b = all_buffers;
-		for (; b && b != po; b = b->header.next.buffer)
-		  ;
+		struct buffer *b;
+		FOR_EACH_BUFFER (b)
+		  if (b == po)
+		    break;
 		if (b == NULL)
 		  abort ();
 	      }
@@ -6636,33 +6611,6 @@ We divide the value by 1024 to make sure it fits in a Lisp integer.  */)
   return end;
 }
 
-DEFUN ("memory-free", Fmemory_free, Smemory_free, 0, 0, 0,
-       doc: /* Return a list (E H) of two measures of free memory.
-E counts free lists maintained by Emacs itself.  H counts the heap,
-freed by Emacs but not released to the operating system; this is zero
-if heap statistics are not available.  Both counters are in units of
-1024 bytes, rounded up.  */)
-     (void)
-{
-  /* Make the return value first, so that its storage is accounted for.  */
-  Lisp_Object val = Fmake_list (make_number (2), make_number (0));
-
-  XSETCAR (val,
-	   bounded_number
-	   ((total_free_conses * sizeof (struct Lisp_Cons)
-	     + total_free_markers * sizeof (union Lisp_Misc)
-	     + total_free_symbols * sizeof (struct Lisp_Symbol)
-	     + total_free_floats * sizeof (struct Lisp_Float)
-	     + total_free_intervals * sizeof (struct interval)
-	     + total_free_strings * sizeof (struct Lisp_String)
-	     + total_free_vector_bytes
-	     + 1023) >> 10));
-#ifdef DOUG_LEA_MALLOC
-  XSETCAR (XCDR (val), bounded_number ((mallinfo ().fordblks + 1023) >> 10));
-#endif
-  return val;
-}
-
 DEFUN ("memory-use-counts", Fmemory_use_counts, Smemory_use_counts, 0, 0, 0,
        doc: /* Return a list of counters that measure how much consing there has been.
 Each of these counters increments for a certain kind of object.
@@ -6877,6 +6825,10 @@ do hash-consing of the objects allocated to pure space.  */);
 	       doc: /* Non-nil means Emacs cannot get much more Lisp memory.  */);
   Vmemory_full = Qnil;
 
+  DEFSYM (Qstring_bytes, "string-bytes");
+  DEFSYM (Qvector_slots, "vector-slots");
+  DEFSYM (Qheap, "heap");
+
   DEFSYM (Qgc_cons_threshold, "gc-cons-threshold");
   DEFSYM (Qchar_table_extra_slots, "char-table-extra-slots");
 
@@ -6899,7 +6851,6 @@ The time is in seconds as a floating point value.  */);
   defsubr (&Spurecopy);
   defsubr (&Sgarbage_collect);
   defsubr (&Smemory_limit);
-  defsubr (&Smemory_free);
   defsubr (&Smemory_use_counts);
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES

@@ -1318,6 +1318,9 @@ cancel_hourglass_unwind (Lisp_Object arg)
 }
 #endif
 
+/* The last boundary auto-added to buffer-undo-list.  */
+Lisp_Object last_undo_boundary;
+
 /* FIXME: This is wrong rather than test window-system, we should call
    a new set-selection, which will then dispatch to x-set-selection, or
    tty-set-selection, or w32-set-selection, ...  */
@@ -1565,7 +1568,13 @@ command_loop_1 (void)
 #endif
 
             if (NILP (KVAR (current_kboard, Vprefix_arg))) /* FIXME: Why?  --Stef  */
-              Fundo_boundary ();
+              {
+		Lisp_Object undo = BVAR (current_buffer, undo_list);
+		Fundo_boundary ();
+		last_undo_boundary
+		  = (EQ (undo, BVAR (current_buffer, undo_list))
+		     ? Qnil : BVAR (current_buffer, undo_list));
+	      }
             Fcommand_execute (Vthis_command, Qnil, Qnil, Qnil);
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -2696,17 +2705,13 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 	      && ! CONSP (Vunread_command_events))
 	    {
 	      Fdo_auto_save (Qnil, Qnil);
-
-	      /* If we have auto-saved and there is still no input
-		 available, garbage collect if there has been enough
-		 consing going on to make it worthwhile.  */
-	      if (!detect_input_pending_run_timers (0)
-		  && consing_since_gc > gc_cons_threshold / 2)
-		Fgarbage_collect ();
-
 	      redisplay ();
 	    }
 	}
+
+      /* If there is still no input available, ask for GC.  */
+      if (!detect_input_pending_run_timers (0))
+	maybe_gc ();
     }
 
   /* Notify the caller if an autosave hook, or a timer, sentinel or

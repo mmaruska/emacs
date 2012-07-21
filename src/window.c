@@ -144,11 +144,15 @@ decode_window (register Lisp_Object window)
 static struct window *
 decode_any_window (register Lisp_Object window)
 {
+  struct window *w;
+
   if (NILP (window))
     return XWINDOW (selected_window);
 
   CHECK_WINDOW (window);
-  return XWINDOW (window);
+  w = XWINDOW (window);
+  CHECK_LIVE_FRAME (w->frame);
+  return w;
 }
 
 DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
@@ -484,9 +488,7 @@ for future use.  */)
   (Lisp_Object window, Lisp_Object limit)
 {
   register struct window *w = decode_any_window (window);
-
   w->combination_limit = limit;
-
   return w->combination_limit;
 }
 

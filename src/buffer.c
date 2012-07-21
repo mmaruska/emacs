@@ -329,7 +329,9 @@ even if it is dead.  The return value is never nil.  */)
 
   /* An ordinary buffer uses its own struct buffer_text.  */
   b->text = &b->own_text;
-  b->base_buffer = 0;
+  b->base_buffer = NULL;
+  /* No one shares the text with us now.  */
+  b->indirections = 0;
 
   BUF_GAP_SIZE (b) = 20;
   BLOCK_INPUT;
@@ -460,7 +462,7 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
 {
   int offset;
 
-  for_each_per_buffer_object_at (offset)
+  FOR_EACH_PER_BUFFER_OBJECT_AT (offset)
     {
       Lisp_Object obj;
 
@@ -568,12 +570,18 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
 
   b = allocate_buffer ();
 
+  /* No double indirection - if base buffer is indirect,
+     new buffer becomes an indirect to base's base.  */
   b->base_buffer = (XBUFFER (base_buffer)->base_buffer
 		    ? XBUFFER (base_buffer)->base_buffer
 		    : XBUFFER (base_buffer));
 
   /* Use the base buffer's text object.  */
   b->text = b->base_buffer->text;
+  /* We have no own text.  */
+  b->indirections = -1;
+  /* Notify base buffer that we share the text now.  */
+  b->base_buffer->indirections++;
 
   b->pt = b->base_buffer->pt;
   b->begv = b->base_buffer->begv;
@@ -612,7 +620,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
       eassert (NILP (BVAR (b->base_buffer, begv_marker)));
       eassert (NILP (BVAR (b->base_buffer, zv_marker)));
 
-      BVAR (b->base_buffer, pt_marker) 
+      BVAR (b->base_buffer, pt_marker)
 	= build_marker (b->base_buffer, b->base_buffer->pt, b->base_buffer->pt_byte);
 
       BVAR (b->base_buffer, begv_marker)
@@ -817,7 +825,7 @@ reset_buffer_local_variables (register struct buffer *b, int permanent_too)
       SET_PER_BUFFER_VALUE_P (b, i, 0);
 
   /* For each slot that has a default value, copy that into the slot.  */
-  for_each_per_buffer_object_at (offset)
+  FOR_EACH_PER_BUFFER_OBJECT_AT (offset)
     {
       int idx = PER_BUFFER_IDX (offset);
       if ((idx > 0
@@ -862,7 +870,7 @@ is first appended to NAME, to speed up finding a non-existent buffer.  */)
     {
       /* Note fileio.c:make_temp_name does random differently.  */
       tem2 = concat2 (name, make_formatted_string
-		      (number, "-%"pI"d", 
+		      (number, "-%"pI"d",
 		       XFASTINT (Frandom (make_number (999999)))));
       tem = Fget_buffer (tem2);
       if (NILP (tem))
@@ -1072,7 +1080,7 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
   {
     int offset, idx;
 
-    for_each_per_buffer_object_at (offset)
+    FOR_EACH_PER_BUFFER_OBJECT_AT (offset)
       {
 	idx = PER_BUFFER_IDX (offset);
 	if ((idx == -1 || PER_BUFFER_VALUE_P (buf, idx))
@@ -1434,14 +1442,55 @@ No argument or nil as argument means do this for the current buffer.  */)
   return Qnil;
 }
 
-/*
-  DEFVAR_LISP ("kill-buffer-hook", ..., "\
-Hook to be run (by `run-hooks', which see) when a buffer is killed.\n\
-The buffer being killed will be current while the hook is running.\n\
+/* Truncate undo list and shrink the gap of BUFFER.  */
 
-Functions run by this hook are supposed to not change the current
-buffer.  See `kill-buffer'."
-*/
+int
+compact_buffer (struct buffer *buffer)
+{
+  /* Verify indirection counters.  */
+  if (buffer->base_buffer)
+    {
+      eassert (buffer->indirections == -1);
+      eassert (buffer->base_buffer->indirections > 0);
+    }
+  else
+    eassert (buffer->indirections >= 0);
+
+  /* Skip dead buffers, indirect buffers and buffers
+     which aren't changed since last compaction.  */
+  if (!NILP (buffer->BUFFER_INTERNAL_FIELD (name))
+      && (buffer->base_buffer == NULL)
+      && (buffer->text->compact != buffer->text->modiff))
+    {
+      /* If a buffer's undo list is Qt, that means that undo is
+	 turned off in that buffer.  Calling truncate_undo_list on
+	 Qt tends to return NULL, which effectively turns undo back on.
+	 So don't call truncate_undo_list if undo_list is Qt.  */
+      if (!EQ (buffer->BUFFER_INTERNAL_FIELD (undo_list), Qt))
+	truncate_undo_list (buffer);
+
+      /* Shrink buffer gaps.  */
+      if (!buffer->text->inhibit_shrinking)
+	{
+	  /* If a buffer's gap size is more than 10% of the buffer
+	     size, or larger than 2000 bytes, then shrink it
+	     accordingly.  Keep a minimum size of 20 bytes.  */
+	  int size = min (2000, max (20, (buffer->text->z_byte / 10)));
+
+	  if (buffer->text->gap_size > size)
+	    {
+	      struct buffer *save_current = current_buffer;
+	      current_buffer = buffer;
+	      make_gap (-(buffer->text->gap_size - size));
+	      current_buffer = save_current;
+	    }
+	}
+      buffer->text->compact = buffer->text->modiff;
+      return 1;
+    }
+  return 0;
+}
+
 DEFUN ("kill-buffer", Fkill_buffer, Skill_buffer, 0, 1, "bKill buffer: ",
        doc: /* Kill the buffer specified by BUFFER-OR-NAME.
 The argument may be a buffer or the name of an existing buffer.
@@ -1523,19 +1572,26 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   if (EQ (buffer, XWINDOW (minibuf_window)->buffer))
     return Qnil;
 
-  /* When we kill a base buffer, kill all its indirect buffers.
+  /* Notify our base buffer that we don't share the text anymore.  */
+  if (b->base_buffer)
+    {
+      eassert (b->indirections == -1);
+      b->base_buffer->indirections--;
+      eassert (b->base_buffer->indirections >= 0);
+    }
+
+  /* When we kill an ordinary buffer which shares it's buffer text
+     with indirect buffer(s), we must kill indirect buffer(s) too.
      We do it at this stage so nothing terrible happens if they
      ask questions or their hooks get errors.  */
-  if (! b->base_buffer)
+  if (!b->base_buffer && b->indirections > 0)
     {
       struct buffer *other;
 
       GCPRO1 (buffer);
 
-      for (other = all_buffers; other; other = other->header.next.buffer)
-	/* all_buffers contains dead buffers too;
-	   don't re-kill them.  */
-	if (other->base_buffer == b && !NILP (BVAR (other, name)))
+      FOR_EACH_BUFFER (other)
+	if (other->base_buffer == b)
 	  {
 	    Lisp_Object buf;
 	    XSETBUFFER (buf, other);
@@ -2052,7 +2108,7 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
 
   { /* This is probably harder to make work.  */
     struct buffer *other;
-    for (other = all_buffers; other; other = other->header.next.buffer)
+    FOR_EACH_BUFFER (other)
       if (other->base_buffer == other_buffer
 	  || other->base_buffer == current_buffer)
 	error ("One of the buffers to swap has indirect buffers");
@@ -2429,7 +2485,7 @@ current buffer is cleared.  */)
 
   /* Copy this buffer's new multibyte status
      into all of its indirect buffers.  */
-  for (other = all_buffers; other; other = other->header.next.buffer)
+  FOR_EACH_BUFFER (other)
     if (other->base_buffer == current_buffer && !NILP (BVAR (other, name)))
       {
 	BVAR (other, enable_multibyte_characters)
@@ -5035,7 +5091,7 @@ init_buffer (void)
       Map new memory.  */
    struct buffer *b;
 
-   for (b = all_buffers; b; b = b->header.next.buffer)
+   FOR_EACH_BUFFER (b)
      if (b->text->beg == NULL)
        enlarge_buffer_text (b, 0);
  }
@@ -5994,7 +6050,6 @@ and `bury-buffer-internal'.  */);
   defsubr (&Smake_indirect_buffer);
   defsubr (&Sgenerate_new_buffer_name);
   defsubr (&Sbuffer_name);
-/*defsubr (&Sbuffer_number);*/
   defsubr (&Sbuffer_file_name);
   defsubr (&Sbuffer_base_buffer);
   defsubr (&Sbuffer_local_value);

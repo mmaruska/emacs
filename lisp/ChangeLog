@@ -1,4 +1,140 @@
+2012-07-21  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/cc-cmds.el (c-defun-name): Use
+	match-string-no-properties instead for consistency.
+
+2012-07-20  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/cc-cmds.el (c-defun-name): Handle objc selectors properly.
+	(Bug#7879)
+
+	* progmodes/cc-langs.el (c-symbol-start): Include char _ (bug#11986).
+
+2012-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* userlock.el, emacs-lisp/map-ynp.el: Declare part of `emacs' package.
+	* progmodes/bug-reference.el, misearch.el: Provide themselves
+	(bug#11915).
+
+	* progmodes/cperl-mode.el (cperl-unwind-to-safe): Don't inf-loop at end
+	of narrowed buffer (bug#11966).
+
+2012-07-20  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el (ses-rename-cell): Set new name also in reference list of
+	cells of which the renamed cell depends.
+
+2012-07-20  Masatake YAMATO  <yamato@redhat.com>
+
+	* term/x-win.el (x-menu-bar-open): Use `frame-parameter'
+	to check whether menu-bar is shown or not.  If not shown,
+	show the menu-bar as a popup menu instead of using tmm.
+	* mouse.el (popup-menu): Accept `point' as `position' argument.
+
+2012-07-20  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-parse-partial): No error when end
+	up inside string symbol literal (bug#11923).
+
+2012-07-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (fancy-startup-text): Read the whole tutorial, not
+	just its first 256 bytes.  Prevents gibberish in display of the
+	tutorial title.
+
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Drop idle buffer compaction due to an absence of the
+	proved efficiency.
+	* compact.el: Remove.
+
+2012-07-19  Sam Steingold  <sds@gnu.org>
+
+	* vc/vc-dispatcher.el (vc-compilation-mode): Add, based on
+	vc-bzr-pull & vc-bzr-merge-branch.
+	* vc/vc-bzr.el (vc-bzr-pull, vc-bzr-merge-branch): Use it.
+	(vc-bzr-error-regexp-alist): Rename from vc-bzr-error-regex-alist
+	for consistency with compilation-error-regexp-alist.
+	* vc/vc-git.el (vc-git-error-regexp-alist): Add.
+	(vc-git-pull, vc-git-merge-branch): Call vc-compilation-mode.
+	* vc/vc-hg.el (vc-hg-error-regexp-alist): Add.
+	(vc-hg-pull, vc-hg-merge-branch): Call vc-compilation-mode.
+
+2012-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/chart.el: Use lexical-binding.
+	(chart-emacs-storage): Don't hardcode the list of entries.
+
+2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Next round of tweaks caused by Fgarbage_collect changes.
+	* emacs-lisp/chart.el (chart-emacs-storage): Adjust again.
+
+2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Compact buffers when idle.
+	* compact.el: New file.
+
+2012-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (eventp): Presume that if it looks vaguely like an event,
+	it's an event (bug#10190).
+
+2012-07-19  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Enhancements to ppss related code (thanks Stefan).
+	* progmodes/python.el (python-indent-context)
+	(python-indent-calculate-indentation, python-indent-dedent-line)
+	(python-indent-electric-colon, python-nav-forward-block)
+	(python-mode-abbrev-table)
+	(python-info-assignment-continuation-line-p): Simplify checks
+	for ppss context.
+	(python-info-continuation-line-p): Cleanup.
+	(python-info-ppss-context): Do not catch 'quote.
+	(python-info-ppss-context-type)
+	(python-info-ppss-comment-or-string-p): Simplify.
+
+2012-07-18  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el: Enhancements to eldoc support.
+	(python-info-current-symbol): New function.
+	(python-eldoc-at-point): Use python-info-current-symbol.
+	(python-info-current-defun): Fix cornercase on first defun scan.
+	(python-eldoc--get-doc-at-point): Use python-info-current-symbol
+	and signal error when no inferior python process is available.
+
+2012-07-18  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* vc/vc-git.el (vc-git-state): Don't call `vc-git-registered',
+	assume it's always t.
+	(vc-git-registered): Remove caching, the function is only called
+	once.
+	(vc-git-branches): Use `vc-git--call' instead of `call-process'.
+
 2012-07-18  Chong Yidong  <cyd@gnu.org>
+
+	* subr.el (last-input-char, last-command-char): Remove (Bug#9195).
+
+	* simple.el (count-words): Report on narrowing (Bug#9959).
+
+	* bindings.el: Bind M-= to count-words.
+
+	* faces.el (face-spec-reset-face): Handle reverse video (Bug#4238).
+
+2012-07-18  Masatake YAMATO  <yamato@redhat.com>
+
+	* progmodes/sh-script.el (sh-imenu-generic-expression):
+	Capture a function with `function' keyword and without parentheses
+	like "function FOO" (bug#11856).
+
+2012-07-18  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* window.el (split-window-sensibly): Make WINDOW argument
+	optional.
+
+2012-07-18  Chong Yidong  <cyd@gnu.org>
+
+	* subr.el (keyboard-translate): Doc fix (Bug#7261).
 
 	* isearch.el (isearch-mode-map): Handle C-x 8 key translations,
 	and make C-x 8 RET exit isearch (Bug#11439).
@@ -44,9 +180,10 @@
 	* descr-text.el (describe-char): Fix format args.  (Bug#10129)
 
 2012-07-17  Fabián Ezequiel Gallina  <fgallina@cuca>
+
 	Final renames and doc fixes for movement commands (bug#11899).
-	* progmodes/python.el (python-nav-beginning-of-statement): Rename
-	from python-nav-statement-start.
+	* progmodes/python.el (python-nav-beginning-of-statement):
+	Rename from python-nav-statement-start.
 	(python-nav-end-of-statement): Rename from
 	python-nav-statement-end.
 	(python-nav-beginning-of-block): Rename from
@@ -55,8 +192,8 @@
 
 2012-07-17  Fabián Ezequiel Gallina  <fgallina@cuca>
 
-	* progmodes/python.el (python-shell-send-string-no-output): Allow
-	accept-process-output to quit, keeping shell process ready for
+	* progmodes/python.el (python-shell-send-string-no-output):
+	Allow accept-process-output to quit, keeping shell process ready for
 	future interactions (Bug#11868).
 
 2012-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>

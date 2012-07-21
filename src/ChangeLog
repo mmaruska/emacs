@@ -1,3 +1,158 @@
+2012-07-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (accessibilityAttributeValue): New function. (Bug#11134).
+
+2012-07-21  Chong Yidong  <cyd@gnu.org>
+
+	* window.c (decode_any_window): Signal an error if the window is
+	on a dead frame (Bug#11984).
+
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Add indirection counting to speed up Fkill_buffer.
+	* buffer.h (struct buffer): New member.
+	* buffer.c (Fget_buffer_create): Set indirection counter to 0.
+	(Fmake_indirect_buffer): Set indirection counter to -1, increment
+	base buffer indirection counter.
+	(compact_buffer): If ENABLE_CHECKING, verify indirection counters.
+	(Fkill_buffer): Adjust indirection counters as needed, don't walk
+	through buffer list if indirection counter is 0.
+
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Extend the value returned by Fgarbage_collect with heap statistics.
+	* alloc.c (Qheap): New symbol.
+	(syms_of_alloc): DEFSYM it.
+	(Fgarbage_collect): If DOUG_LEA_MALLOC, add mallinfo data.
+	(Fmemory_free): Remove.
+	(syms_of_alloc): Don't defsubr it.
+	* buffer.c (Fcompact_buffer): Remove.
+	(syms_of_buffer): Don't defsubr it.
+
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Make maybe_gc inline.
+	Verify that inlining is always possible (GCC 4.7.1, -O3 -Winline).
+	* lisp.h (consing_since_gc, gc_relative_threshold)
+	(memory_full_cons_threshold): Revert declaration.
+	(maybe_gc): Remove prototype, define as inline.
+	* alloc.c: Remove old commented-out code.
+	(consing_since_gc, gc_relative_threshold)
+	(memory_full_cons_threshold): Revert to global.
+	(maybe_gc): Remove.
+
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Simple wrapper for make_unibyte_string, adjust font_open_by_name.
+	* lisp.h (build_unibyte_string): New function.
+	* dosfns.c, fileio.c, fns.c, ftfont.c, process.c:
+	* sysdep.c, w32fns.c, xfns.c: Use it.
+	* font.c (font_open_by_name): Change 2nd and 3rd args to the only arg
+	of type Lisp_Object to avoid redundant calls to make_unibyte_string.
+	Adjust users accordingly.
+	* font.h (font_open_by_name): Adjust prototype.
+
+2012-07-20  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup calls to Fgarbage_collect.
+	* lisp.h (maybe_gc): New prototype.
+	(consing_since_gc, gc_relative_threshold, memory_full_cons_threshold):
+	Remove declarations.
+	* alloc.c (maybe_gc): New function.
+	(consing_since_gc, gc_relative_threshold, memory_full_cons_threshold):
+	Make them static.
+	* bytecode.c (MAYBE_GC): Use maybe_gc.
+	* eval.c (eval_sub, Ffuncall): Likewise.
+	* keyboard.c (read_char): Likewise.  Adjust call to maybe_gc
+	to avoid dependency from auto-save feature.
+
+2012-07-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* buffer.h (FOR_EACH_BUFFER): Rename from 'for_each_buffer'.
+	(FOR_EACH_PER_BUFFER_OBJECT_AT): Rename from
+	'for_each_per_buffer_object_at'.
+	All uses changed.  It's better to use upper-case for macros that
+	cannot be implemented as functions, to give the reader a clue
+	that they're special.
+
+2012-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (Fgarbage_collect): Tweak docstring.
+
+2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Tweak the value returned from Fgarbage_collect again.
+	* alloc.c (Fgarbage_collect): New return value, as confirmed in
+	http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00418.html.
+	Adjust documentation.
+	(total_vector_bytes): Rename to total_vector_slots, adjust
+	accounting.
+	(total_free_vector_bytes): Rename to total_free_vector_slots,
+	adjust accounting.
+	(Qstring_bytes, Qvector_slots): New symbols.
+	(syms_of_alloc): DEFSYM them.
+
+2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Buffer compaction primitive which may be used from Lisp.
+	* buffer.c (compact_buffer, Fcompact_buffer): New function.
+	(syms_of_buffer): Register Fcompact_buffer.
+	* alloc.c (Fgarbage_collect): Use compact_buffer.
+	* buffer.h (compact_buffer): New prototype.
+	(struct buffer_text): New member.
+
+2012-07-19  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	New macro to iterate over all buffers, miscellaneous cleanups.
+	* lisp.h (all_buffers): Remove declaration.
+	* buffer.h (all_buffers): Add declaration, with comment.
+	(for_each_buffer): New macro.
+	* alloc.c (Fgarbage_collect, mark_object): Use it.
+	* buffer.c (Fkill_buffer, Fbuffer_swap_text, Fset_buffer_multibyte)
+	(init_buffer): Likewise.
+	* data.c (Fset_default): Likewise.
+	* coding.c (code_conversion_restore): Remove redundant check
+	for dead buffer.
+	* buffer.c (Fkill_buffer): Likewise.  Remove obsolete comment.
+
+2012-07-18  Andreas Schwab  <schwab@linux-m68k.org>
+
+	Fix bug that created negative-length intervals.
+	* intervals.c (merge_interval_right, merge_interval_left):
+	Do not zero out this interval if it is absorbed by its children,
+	as this interval's total length doesn't change in that case.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00403.html>.
+
+2012-07-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (Fmake_bool_vector): Fix off-by-8 bug
+	when invoking (make-bool-vector N t) and N is a positive
+	multiple of 8 -- the last 8 bits were mistakenly cleared.
+
+	Remove some struct layout assumptions in bool vectors.
+	* alloc.c (bool_header_size): New constant.
+	(header_size, word_size): Move earlier, as they're now used earlier.
+	Use 'word_size' in a few more places, where it's appropriate.
+	(Fmake_bool_vector, sweep_vectors): Don't assume that there is no
+	padding before the data member of a bool vector.
+	(sweep_vectors): Use PSEUDOVECTOR_TYPEP, in an eassert, rather
+	than doing the check by hand with an abort ().
+
+2012-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fdefvar): Don't check constants since we only set the var if
+	it's not yet defined anyway (bug#11904).
+
+	* lisp.h (last_undo_boundary): Declare new var.
+	* keyboard.c (command_loop_1): Set it.
+	* cmds.c (Fself_insert_command): Use it to only remove boundaries that
+	were auto-added by the command loop (bug#11774).
+
+2012-07-18  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* w32font.c (Qsymbol): Remove local definition.
+	(syms_of_w32font): Don't DEFSYM it.
+
 2012-07-18  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix sweep_vectors to handle large bool vectors correctly.
@@ -72,7 +227,6 @@
 	* gnutls.c (emacs_gnutls_handshake): Only retry if
 	GNUTLS_E_INTERRUPTED.
 
-2012-07-17  Eli Zaretskii  <eliz@gnu.org>
 2012-07-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Cleanup and convert miscellaneous checks to eassert.

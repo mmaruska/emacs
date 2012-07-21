@@ -1,4 +1,4 @@
-;;; python.el --- Python's flying circus support for Emacs -*- coding: utf-8 -*-
+;;; python.el --- Python's flying circus support for Emacs
 
 ;; Copyright (C) 2003-2012  Free Software Foundation, Inc.
 
@@ -656,9 +656,7 @@ START is the buffer position where the sexp starts."
                          (while (and (re-search-backward
                                       (python-rx block-start) nil t)
                                      (or
-                                      (python-info-ppss-context 'string)
-                                      (python-info-ppss-context 'comment)
-                                      (python-info-ppss-context 'paren)
+                                      (python-info-ppss-context-type)
                                       (python-info-continuation-line-p))))
                          (when (looking-at (python-rx block-start))
                            (point-marker)))))
@@ -726,13 +724,9 @@ START is the buffer position where the sexp starts."
                  (goto-char (line-end-position))
                  (while (and (re-search-backward
                               "\\." (line-beginning-position) t)
-                             (or (python-info-ppss-context 'comment)
-                                 (python-info-ppss-context 'string)
-                                 (python-info-ppss-context 'paren))))
+                             (python-info-ppss-context-type)))
                  (if (and (looking-at "\\.")
-                          (not (or (python-info-ppss-context 'comment)
-                                   (python-info-ppss-context 'string)
-                                   (python-info-ppss-context 'paren))))
+                          (not (python-info-ppss-context-type)))
                      ;; The indentation is the same column of the
                      ;; first matching dot that's not inside a
                      ;; comment, a string or a paren
@@ -888,8 +882,7 @@ See `python-indent-line' for details."
 (defun python-indent-dedent-line ()
   "De-indent current line."
   (interactive "*")
-  (when (and (not (or (python-info-ppss-context 'string)
-                      (python-info-ppss-context 'comment)))
+  (when (and (not (python-info-ppss-comment-or-string-p))
              (<= (point-marker) (save-excursion
                                   (back-to-indentation)
                                   (point-marker)))
@@ -980,8 +973,7 @@ With numeric ARG, just insert that many colons.  With
   (when (and (not arg)
              (eolp)
              (not (equal ?: (char-after (- (point-marker) 2))))
-             (not (or (python-info-ppss-context 'string)
-                      (python-info-ppss-context 'comment))))
+             (not (python-info-ppss-comment-or-string-p)))
     (let ((indentation (current-indentation))
           (calculated-indentation (python-indent-calculate-indentation)))
       (python-info-closing-block-message)
@@ -1209,17 +1201,13 @@ backward to previous block."
       (python-nav-end-of-statement)
       (while (and
               (re-search-forward block-start-regexp nil t)
-              (or (python-info-ppss-context 'string)
-                  (python-info-ppss-context 'comment)
-                  (python-info-ppss-context 'paren))))
+              (python-info-ppss-context-type)))
       (setq arg (1- arg)))
     (while (< arg 0)
       (python-nav-beginning-of-statement)
       (while (and
               (re-search-backward block-start-regexp nil t)
-              (or (python-info-ppss-context 'string)
-                  (python-info-ppss-context 'comment)
-                  (python-info-ppss-context 'paren))))
+              (python-info-ppss-context-type)))
       (setq arg (1+ arg)))
     (python-nav-beginning-of-statement)
     (if (not (looking-at (python-rx block-start)))
@@ -2249,8 +2237,7 @@ the if condition."
   ;; Only expand in code.
   :enable-function (lambda ()
                      (and
-                      (not (or (python-info-ppss-context 'string)
-                               (python-info-ppss-context 'comment)))
+                      (not (python-info-ppss-comment-or-string-p))
                       python-skeleton-autoinsert)))
 
 (defmacro python-skeleton-define (name doc &rest skel)
@@ -2262,7 +2249,7 @@ be added to `python-mode-abbrev-table'."
          (function-name (intern (concat "python-skeleton-" name))))
     `(progn
        (define-abbrev python-mode-abbrev-table ,name "" ',function-name
-	 :system t)
+         :system t)
        (setq python-skeleton-available
              (cons ',function-name python-skeleton-available))
        (define-skeleton ,function-name
@@ -2487,46 +2474,19 @@ Runs COMMAND, a shell command, as if by `compile'.  See
 
 (defun python-eldoc--get-doc-at-point (&optional force-input force-process)
   "Internal implementation to get documentation at point.
-If not FORCE-INPUT is passed then what `current-word' returns
-will be used.  If not FORCE-PROCESS is passed what
-`python-shell-get-process' returns is used."
+If not FORCE-INPUT is passed then what
+`python-info-current-symbol' returns will be used.  If not
+FORCE-PROCESS is passed what `python-shell-get-process' returns
+is used."
   (let ((process (or force-process (python-shell-get-process))))
     (if (not process)
-        "Eldoc needs an inferior Python process running."
-      (let* ((current-defun (python-info-current-defun))
-             (input (or force-input
-                        (with-syntax-table python-dotty-syntax-table
-                          (if (not current-defun)
-                              (current-word)
-                            (concat current-defun "." (current-word))))))
-             (ppss (syntax-ppss))
-             (help (when (and
-                          input
-                          (not (string= input (concat current-defun ".")))
-                          (not (or (python-info-ppss-context 'string ppss)
-                                   (python-info-ppss-context 'comment ppss))))
-                     (when (string-match
-                            (concat
-                             (regexp-quote (concat current-defun "."))
-                             "self\\.") input)
-                       (with-temp-buffer
-                         (insert input)
-                         (goto-char (point-min))
-                         (forward-word)
-                         (forward-char)
-                         (delete-region
-                          (point-marker) (search-forward "self."))
-                         (setq input (buffer-substring
-                                      (point-min) (point-max)))))
-                     (python-shell-send-string-no-output
-                      (format python-eldoc-string-code input) process))))
-        (with-current-buffer (process-buffer process)
-          (when comint-last-prompt-overlay
-            (delete-region comint-last-input-end
-                           (overlay-start comint-last-prompt-overlay))))
-        (when (and help
-                   (not (string= help "\n")))
-          help)))))
+        (error "Eldoc needs an inferior Python process running")
+      (let ((input (or force-input
+                       (python-info-current-symbol t))))
+        (and input
+             (python-shell-send-string-no-output
+              (format python-eldoc-string-code input)
+              process))))))
 
 (defun python-eldoc-function ()
   "`eldoc-documentation-function' for Python.
@@ -2539,17 +2499,16 @@ inferior python process is updated properly."
   "Get help on SYMBOL using `help'.
 Interactively, prompt for symbol."
   (interactive
-   (let ((symbol (with-syntax-table python-dotty-syntax-table
-                   (current-word)))
+   (let ((symbol (python-info-current-symbol t))
          (enable-recursive-minibuffers t))
      (list (read-string (if symbol
                             (format "Describe symbol (default %s): " symbol)
                           "Describe symbol: ")
                         nil nil symbol))))
-  (let ((process (python-shell-get-process)))
-    (if (not process)
-        (message "Eldoc needs an inferior Python process running.")
-      (message (python-eldoc--get-doc-at-point symbol process)))))
+  (message (python-eldoc--get-doc-at-point symbol)))
+
+(add-to-list 'debug-ignored-errors
+             "^Eldoc needs an inferior Python process running.")
 
 
 ;;; Misc helpers
@@ -2561,18 +2520,27 @@ This function is compatible to be used as
 `add-log-current-defun-function' since it returns nil if point is
 not inside a defun."
   (let ((names '())
-        (min-indent)
+        (starting-indentation)
+        (starting-point)
         (first-run t))
     (save-restriction
       (widen)
       (save-excursion
+        (setq starting-point (point-marker))
+        (setq starting-indentation (save-excursion
+                                     (python-nav-beginning-of-statement)
+                                     (current-indentation)))
         (end-of-line 1)
-        (setq min-indent (current-indentation))
         (while (python-beginning-of-defun-function 1)
-          (when (or (< (current-indentation) min-indent)
-                    first-run)
+          (when (or (< (current-indentation) starting-indentation)
+                    (and first-run
+                         (<
+                          starting-point
+                          (save-excursion
+                            (python-end-of-defun-function)
+                            (point-marker)))))
             (setq first-run nil)
-            (setq min-indent (current-indentation))
+            (setq starting-indentation (current-indentation))
             (looking-at python-nav-beginning-of-defun-regexp)
             (setq names (cons
                          (if (not include-type)
@@ -2583,6 +2551,30 @@ not inside a defun."
                          names))))))
     (when names
       (mapconcat (lambda (string) string) names "."))))
+
+(defun python-info-current-symbol (&optional replace-self)
+  "Return current symbol using dotty syntax.
+With optional argument REPLACE-SELF convert \"self\" to current
+parent defun name."
+  (let ((name
+         (and (not (python-info-ppss-comment-or-string-p))
+              (with-syntax-table python-dotty-syntax-table
+                (let ((sym (symbol-at-point)))
+                  (and sym
+                       (substring-no-properties (symbol-name sym))))))))
+    (when name
+      (if (not replace-self)
+          name
+        (let ((current-defun (python-info-current-defun)))
+          (if (not current-defun)
+              name
+            (replace-regexp-in-string
+             (python-rx line-start word-start "self" word-end ?.)
+             (concat
+              (mapconcat 'identity
+                         (butlast (split-string current-defun "\\."))
+                         ".") ".")
+             name)))))))
 
 (defsubst python-info-beginning-of-block-statement-p ()
   "Return non-nil if current statement opens a block."
@@ -2681,23 +2673,19 @@ where the continued line ends."
         (cond ((equal context-type 'paren)
                ;; Lines inside a paren are always a continuation line
                ;; (except the first one).
-               (when (equal (python-info-ppss-context-type) 'paren)
-                 (python-util-forward-comment -1)
-                 (python-util-forward-comment -1)
-                 (point-marker)))
-              ((or (equal context-type 'comment)
-                   (equal context-type 'string))
+               (python-util-forward-comment -1)
+               (point-marker))
+              ((member context-type '(string comment))
                ;; move forward an roll again
                (goto-char context-start)
                (python-util-forward-comment)
                (python-info-continuation-line-p))
               (t
-               ;; Not within a paren, string or comment, the only way we are
-               ;; dealing with a continuation line is that previous line
-               ;; contains a backslash, and this can only be the previous line
-               ;; from current
+               ;; Not within a paren, string or comment, the only way
+               ;; we are dealing with a continuation line is that
+               ;; previous line contains a backslash, and this can
+               ;; only be the previous line from current
                (back-to-indentation)
-               (python-util-forward-comment -1)
                (python-util-forward-comment -1)
                (when (and (equal (1- line-start) (line-number-at-pos))
                           (python-info-line-ends-backslash-p))
@@ -2726,45 +2714,37 @@ operator."
                                                     assignment-operator
                                                     not-simple-operator)
                                          (line-end-position) t)
-                      (not (or (python-info-ppss-context 'string)
-                               (python-info-ppss-context 'paren)
-                               (python-info-ppss-context 'comment)))))
+                      (not (python-info-ppss-context-type))))
         (skip-syntax-forward "\s")
         (point-marker)))))
 
 (defun python-info-ppss-context (type &optional syntax-ppss)
   "Return non-nil if point is on TYPE using SYNTAX-PPSS.
-TYPE can be 'comment, 'string or 'paren.  It returns the start
+TYPE can be `comment', `string' or `paren'.  It returns the start
 character address of the specified TYPE."
   (let ((ppss (or syntax-ppss (syntax-ppss))))
     (case type
-      ('comment
+      (comment
        (and (nth 4 ppss)
             (nth 8 ppss)))
-      ('string
+      (string
        (and (not (nth 4 ppss))
             (nth 8 ppss)))
-      ('paren
+      (paren
        (nth 1 ppss))
       (t nil))))
 
 (defun python-info-ppss-context-type (&optional syntax-ppss)
   "Return the context type using SYNTAX-PPSS.
-The type returned can be 'comment, 'string or 'paren."
+The type returned can be `comment', `string' or `paren'."
   (let ((ppss (or syntax-ppss (syntax-ppss))))
     (cond
-     ((and (nth 4 ppss)
-           (nth 8 ppss))
-      'comment)
-     ((nth 8 ppss)
-      'string)
-     ((nth 1 ppss)
-      'paren)
-     (t nil))))
+     ((nth 8 ppss) (if (nth 4 ppss) 'comment 'string))
+     ((nth 1 ppss) 'paren))))
 
 (defsubst python-info-ppss-comment-or-string-p ()
   "Return non-nil if point is inside 'comment or 'string."
-  (car (member (python-info-ppss-context-type) '(string comment))))
+  (nth 8 (syntax-ppss)))
 
 (defun python-info-looking-at-beginning-of-defun (&optional syntax-ppss)
   "Check if point is at `beginning-of-defun' using SYNTAX-PPSS."
@@ -2906,4 +2886,10 @@ if that value is non-nil."
 
 
 (provide 'python)
+
+;; Local Variables:
+;; coding: utf-8
+;; indent-tabs-mode: nil
+;; End:
+
 ;;; python.el ends here
