@@ -1,4 +1,4 @@
-From 58decf81fd156aaf50367536e4a68663f8372927 Mon Sep 17 00:00:00 2001
+From eefe99cd9bfd8052a7f0acb72a8e453fffbbae0f Mon Sep 17 00:00:00 2001
 From: Rob Browning <rlb@defaultvalue.org>
 Date: Thu, 24 Feb 2011 23:27:14 +0100
 Subject: [PATCH 07/10] (emacs-version) has been modified to indicate Debian
@@ -25,5 +25,5 @@ index e63c51d..ed6815b 100644
  		 system-configuration
  		 (cond ((featurep 'motif)
 -- 
-1.7.10
+1.7.10.4
 

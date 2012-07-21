@@ -1,4 +1,4 @@
-From 81e6f2847c4e0096db69b419d4812b52a6b493e9 Mon Sep 17 00:00:00 2001
+From f299d1c52a53101a16a589e2f5e50fdc83ca01ef Mon Sep 17 00:00:00 2001
 From: Romain Francoise <rfrancoise@debian.org>
 Date: Thu, 24 Feb 2011 23:27:40 +0100
 Subject: [PATCH 08/10] Some documentation references to /usr/local have been
@@ -59,5 +59,5 @@ index ff67324..df3af61 100644
  .
  .SH UNRESTRICTIONS
 -- 
-1.7.10
+1.7.10.4
 

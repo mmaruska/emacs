@@ -1,4 +1,4 @@
-From 024027ce7a9e2d345aa3db20c50036a64d128fdf Mon Sep 17 00:00:00 2001
+From 267db5880057ab9438b620c75e72db4aec37fc4c Mon Sep 17 00:00:00 2001
 From: Rob Browning <rlb@defaultvalue.org>
 Date: Thu, 24 Feb 2011 23:21:33 +0100
 Subject: [PATCH 01/10] Define a Debian-specific Emacs flavor
@@ -9,7 +9,7 @@ Signed-off-by: Julien Danjou <julien@danjou.info>
  1 file changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/lisp/startup.el b/lisp/startup.el
-index 3adc2ca..0ff155c 100644
+index e861a33..4aaa373 100644
 --- a/lisp/startup.el
 +++ b/lisp/startup.el
 @@ -384,6 +384,10 @@ from being initialized."
@@ -39,5 +39,5 @@ index 3adc2ca..0ff155c 100644
      ;; Sites should not disable this.  Only individuals should disable
      ;; the startup screen.
 -- 
-1.7.10
+1.7.10.4
 

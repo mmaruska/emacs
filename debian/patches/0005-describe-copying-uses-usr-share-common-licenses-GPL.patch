@@ -1,4 +1,4 @@
-From 9b7a0e7255911e0e78947d7df941732dcc5468fb Mon Sep 17 00:00:00 2001
+From fb1e5a0421e301970f8a07d014ab004708598c7f Mon Sep 17 00:00:00 2001
 From: Romain Francoise <rfrancoise@debian.org>
 Date: Thu, 24 Feb 2011 23:26:08 +0100
 Subject: [PATCH 05/10] (describe-copying) uses /usr/share/common-licenses/GPL
@@ -28,5 +28,5 @@ index c02b058..fb4a6e9 100644
  (defun describe-gnu-project ()
    "Display info on the GNU project."
 -- 
-1.7.10
+1.7.10.4
 
