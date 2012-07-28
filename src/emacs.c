@@ -96,31 +96,6 @@ extern void moncontrol (int mode);
 static const char emacs_version[] = VERSION;
 static const char emacs_copyright[] = "Copyright (C) 2012 Free Software Foundation, Inc.";
 
-/* Make these values available in GDB, which doesn't see macros.  */
-
-#if USE_LSB_TAG
-int gdb_use_lsb EXTERNALLY_VISIBLE = 1;
-#else
-int gdb_use_lsb EXTERNALLY_VISIBLE = 0;
-#endif
-#ifndef CHECK_LISP_OBJECT_TYPE
-int gdb_use_struct EXTERNALLY_VISIBLE = 0;
-#else
-int gdb_use_struct EXTERNALLY_VISIBLE = 1;
-#endif
-int gdb_valbits EXTERNALLY_VISIBLE = VALBITS;
-int gdb_gctypebits EXTERNALLY_VISIBLE = GCTYPEBITS;
-#if defined DATA_SEG_BITS && !USE_LSB_TAG
-uintptr_t gdb_data_seg_bits EXTERNALLY_VISIBLE = DATA_SEG_BITS;
-#else
-uintptr_t gdb_data_seg_bits EXTERNALLY_VISIBLE = 0;
-#endif
-ptrdiff_t PVEC_FLAG EXTERNALLY_VISIBLE = PSEUDOVECTOR_FLAG;
-ptrdiff_t gdb_array_mark_flag EXTERNALLY_VISIBLE = ARRAY_MARK_FLAG;
-/* GDB might say "No enum type named pvec_type" if we don't have at
-   least one symbol with that type, and then xbacktrace could fail.  */
-enum pvec_type const gdb_pvec_type EXTERNALLY_VISIBLE = 0;
-
 /* Empty lisp strings.  To avoid having to build any others.  */
 Lisp_Object empty_unibyte_string, empty_multibyte_string;
 

@@ -3411,6 +3411,9 @@ ns_read_socket (struct terminal *terminal, int expected,
 
 /* NSTRACE (ns_read_socket); */
 
+  if ([NSApp modalWindow] != nil)
+    return -1;
+
   if (interrupt_input_blocked)
     {
       interrupt_input_pending = 1;
@@ -5059,9 +5062,9 @@ ns_term_shutdown (int sig)
 }
 
 
-- (long)conversationIdentifier
+- (NSInteger)conversationIdentifier
 {
-  return (long)self;
+  return (NSInteger)self;
 }
 
 
@@ -6038,6 +6041,7 @@ ns_term_shutdown (int sig)
 
 @implementation EmacsWindow
 
+#ifdef NS_IMPL_COCOA
 - (id)accessibilityAttributeValue:(NSString *)attribute
 {
   Lisp_Object str = Qnil;
@@ -6092,6 +6096,7 @@ ns_term_shutdown (int sig)
   
   return [super accessibilityAttributeValue:attribute];
 }
+#endif /* NS_IMPL_COCOA */
 
 /* If we have multiple monitors, one above the other, we don't want to
    restrict the height to just one monitor.  So we override this.  */
