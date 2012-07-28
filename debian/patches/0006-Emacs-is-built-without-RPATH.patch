@@ -1,4 +1,4 @@
-From a8c5d2dddf75571cbcbd10670d52bae460179001 Mon Sep 17 00:00:00 2001
+From dc9be2bbbbe27700f73d2ec41e4b7b82d1fbd2bf Mon Sep 17 00:00:00 2001
 From: Romain Francoise <rfrancoise@debian.org>
 Date: Thu, 24 Feb 2011 23:26:42 +0100
 Subject: [PATCH 06/10] Emacs is built without RPATH.

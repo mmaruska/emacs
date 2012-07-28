@@ -1,4 +1,4 @@
-From f99ac16a92d7b4bf4c748f48f57915dd68d18174 Mon Sep 17 00:00:00 2001
+From 6702992718c2c1104066f540b7a85bea3e95ca16 Mon Sep 17 00:00:00 2001
 From: Romain Francoise <rfrancoise@debian.org>
 Date: Thu, 24 Feb 2011 23:22:49 +0100
 Subject: [PATCH 02/10] `mail-from-style' is set to 'system-default by default

@@ -1,4 +1,4 @@
-From a325371d41018112bcd626822dbef486e241e5ae Mon Sep 17 00:00:00 2001
+From ac33a1d05b8732dc3b506df42e1ae13df23bc94e Mon Sep 17 00:00:00 2001
 From: Romain Francoise <rfrancoise@debian.org>
 Date: Thu, 24 Feb 2011 23:23:26 +0100
 Subject: [PATCH 03/10] M-x report-emacs-bug includes the package version
@@ -9,7 +9,7 @@ Signed-off-by: Julien Danjou <julien@danjou.info>
  1 file changed, 5 insertions(+)
 
 diff --git a/lisp/mail/emacsbug.el b/lisp/mail/emacsbug.el
-index 94c2235..c413231 100644
+index 8cc72e1..9ae89be 100644
 --- a/lisp/mail/emacsbug.el
 +++ b/lisp/mail/emacsbug.el
 @@ -241,6 +241,11 @@ usually do not have translators for other languages.\n\n")))
