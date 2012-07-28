@@ -45,22 +45,24 @@ extern void check_cons_list (void);
    EMACS_INT_MAX - maximum value of EMACS_INT; can be used in #if
    pI - printf length modifier for EMACS_INT
    EMACS_UINT - unsigned variant of EMACS_INT */
-#ifndef EMACS_INT
+#ifndef EMACS_INT_MAX
 # if LONG_MAX < LLONG_MAX && defined WIDE_EMACS_INT
-#  define EMACS_INT long long
+typedef long long int EMACS_INT;
+typedef unsigned long long int EMACS_UINT;
 #  define EMACS_INT_MAX LLONG_MAX
 #  define pI "ll"
 # elif INT_MAX < LONG_MAX
-#  define EMACS_INT long
+typedef long int EMACS_INT;
+typedef unsigned long int EMACS_UINT;
 #  define EMACS_INT_MAX LONG_MAX
 #  define pI "l"
 # else
-#  define EMACS_INT int
+typedef int EMACS_INT;
+typedef unsigned int EMACS_UINT;
 #  define EMACS_INT_MAX INT_MAX
 #  define pI ""
 # endif
 #endif
-#define EMACS_UINT unsigned EMACS_INT
 
 /* Number of bits in some machine integer types.  */
 enum
@@ -153,8 +155,23 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
    variable VAR of type TYPE with the added requirement that it be
    TYPEBITS-aligned.  */
 
+enum Lisp_Bits
+  {
+    /* Number of bits in a Lisp_Object tag.  This can be used in #if,
+       and for GDB's sake also as a regular symbol.  */
+    GCTYPEBITS =
 #define GCTYPEBITS 3
-#define VALBITS (BITS_PER_EMACS_INT - GCTYPEBITS)
+	GCTYPEBITS,
+
+    /* Number of bits in a Lisp_Object value, not counting the tag.  */
+    VALBITS = BITS_PER_EMACS_INT - GCTYPEBITS,
+
+    /* Number of bits in a Lisp fixnum tag.  */
+    INTTYPEBITS = GCTYPEBITS - 1,
+
+    /* Number of bits in a Lisp fixnum value, not counting the tag.  */
+    FIXNUM_BITS = VALBITS + 1
+  };
 
 /* The maximum value that can be stored in a EMACS_INT, assuming all
    bits other than the type bits contribute to a nonnegative signed value.
@@ -197,7 +214,12 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
 #  endif
 # endif
 #endif
-#ifndef USE_LSB_TAG
+#ifdef USE_LSB_TAG
+# undef USE_LSB_TAG
+enum enum_USE_LSB_TAG { USE_LSB_TAG = 1 };
+# define USE_LSB_TAG 1
+#else
+enum enum_USE_LSB_TAG { USE_LSB_TAG = 0 };
 # define USE_LSB_TAG 0
 #endif
 
@@ -216,8 +238,6 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
 
 /* Lisp integers use 2 tags, to give them one extra bit, thus
    extending their range from, e.g., -2^28..2^28-1 to -2^29..2^29-1.  */
-#define INTTYPEBITS (GCTYPEBITS - 1)
-#define FIXNUM_BITS (VALBITS + 1)
 #define INTMASK (EMACS_INT_MAX >> (INTTYPEBITS - 1))
 #define LISP_INT_TAG Lisp_Int0
 #define case_Lisp_Int case Lisp_Int0: case Lisp_Int1
@@ -313,6 +333,8 @@ LISP_MAKE_RVALUE (Lisp_Object o)
 
 #define LISP_INITIALLY_ZERO {0}
 
+#undef CHECK_LISP_OBJECT_TYPE
+enum CHECK_LISP_OBJECT_TYPE { CHECK_LISP_OBJECT_TYPE = 1 };
 #else /* CHECK_LISP_OBJECT_TYPE */
 
 /* If a struct type is not wanted, define Lisp_Object as just a number.  */
@@ -322,6 +344,7 @@ typedef EMACS_INT Lisp_Object;
 #define XIL(i) (i)
 #define LISP_MAKE_RVALUE(o) (0+(o))
 #define LISP_INITIALLY_ZERO 0
+enum CHECK_LISP_OBJECT_TYPE { CHECK_LISP_OBJECT_TYPE = 0 };
 #endif /* CHECK_LISP_OBJECT_TYPE */
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
@@ -363,18 +386,31 @@ enum pvec_type
   PVEC_FONT			= 0x40
 };
 
-/* For convenience, we also store the number of elements in these bits.
-   Note that this size is not necessarily the memory-footprint size, but
-   only the number of Lisp_Object fields (that need to be traced by the GC).
-   The distinction is used e.g. by Lisp_Process which places extra
-   non-Lisp_Object fields at the end of the structure.  */
-#define PSEUDOVECTOR_SIZE_BITS 16
-#define PSEUDOVECTOR_SIZE_MASK ((1 << PSEUDOVECTOR_SIZE_BITS) - 1)
-#define PVEC_TYPE_MASK (0x0fff << PSEUDOVECTOR_SIZE_BITS)
+/* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
+   which were stored in a Lisp_Object.  */
+#ifndef DATA_SEG_BITS
+# define DATA_SEG_BITS 0
+#endif
+enum { gdb_DATA_SEG_BITS = DATA_SEG_BITS };
+#undef DATA_SEG_BITS
 
-/* Number of bits to put in each character in the internal representation
-   of bool vectors.  This should not vary across implementations.  */
-#define BOOL_VECTOR_BITS_PER_CHAR 8
+enum More_Lisp_Bits
+  {
+    DATA_SEG_BITS = gdb_DATA_SEG_BITS,
+
+    /* For convenience, we also store the number of elements in these bits.
+       Note that this size is not necessarily the memory-footprint size, but
+       only the number of Lisp_Object fields (that need to be traced by GC).
+       The distinction is used, e.g., by Lisp_Process, which places extra
+       non-Lisp_Object fields at the end of the structure.  */
+    PSEUDOVECTOR_SIZE_BITS = 16,
+    PSEUDOVECTOR_SIZE_MASK = (1 << PSEUDOVECTOR_SIZE_BITS) - 1,
+    PVEC_TYPE_MASK = 0x0fff << PSEUDOVECTOR_SIZE_BITS,
+
+    /* Number of bits to put in each character in the internal representation
+       of bool vectors.  This should not vary across implementations.  */
+    BOOL_VECTOR_BITS_PER_CHAR = 8
+  };
 
 /* These macros extract various sorts of values from a Lisp_Object.
  For example, if tem is a Lisp_Object whose type is Lisp_Cons,
@@ -385,6 +421,7 @@ enum pvec_type
 
 #if USE_LSB_TAG
 
+#define VALMASK (-1 << GCTYPEBITS)
 #define TYPEMASK ((1 << GCTYPEBITS) - 1)
 #define XTYPE(a) ((enum Lisp_Type) (XLI (a) & TYPEMASK))
 #define XINT(a) (XLI (a) >> INTTYPEBITS)
@@ -419,7 +456,7 @@ enum pvec_type
   ((var) = XIL ((EMACS_INT) ((EMACS_UINT) (type) << VALBITS)  \
 		+ ((intptr_t) (ptr) & VALMASK)))
 
-#ifdef DATA_SEG_BITS
+#if DATA_SEG_BITS
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
    which were stored in a Lisp_Object */
 #define XPNTR(a) ((uintptr_t) ((XLI (a) & VALMASK)) | DATA_SEG_BITS))
@@ -1288,12 +1325,13 @@ struct Lisp_Marker
 struct Lisp_Overlay
 /* An overlay's real data content is:
    - plist
-   - buffer
-   - insertion type of both ends
-   - start & start_byte
-   - end & end_byte
-   - next (singly linked list of overlays).
-   - start_next and end_next (singly linked list of markers).
+   - buffer (really there are two buffer pointers, one per marker,
+     and both points to the same buffer)
+   - insertion type of both ends (per-marker fields)
+   - start & start byte (of start marker)
+   - end & end byte (of end marker)
+   - next (singly linked list of overlays)
+   - next fields of start and end markers (singly linked list of markers).
    I.e. 9words plus 2 bits, 3words of which are for external linked lists.
 */
   {
@@ -2605,7 +2643,8 @@ extern Lisp_Object list3 (Lisp_Object, Lisp_Object, Lisp_Object);
 extern Lisp_Object list4 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
 extern Lisp_Object list5 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object,
 			  Lisp_Object);
-extern Lisp_Object allocate_misc (void);
+enum constype {CONSTYPE_HEAP, CONSTYPE_PURE};
+extern Lisp_Object listn (enum constype, ptrdiff_t, Lisp_Object, ...);
 extern _Noreturn void string_overflow (void);
 extern Lisp_Object make_string (const char *, ptrdiff_t);
 extern Lisp_Object make_formatted_string (char *, const char *, ...)
@@ -2667,6 +2706,7 @@ extern Lisp_Object make_float (double);
 extern void display_malloc_warning (void);
 extern ptrdiff_t inhibit_garbage_collection (void);
 extern Lisp_Object make_save_value (void *, ptrdiff_t);
+extern Lisp_Object build_overlay (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void free_marker (Lisp_Object);
 extern void free_cons (struct Lisp_Cons *);
 extern void init_alloc_once (void);
@@ -2819,7 +2859,6 @@ extern Lisp_Object unbind_to (ptrdiff_t, Lisp_Object);
 extern _Noreturn void error (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 extern _Noreturn void verror (const char *, va_list)
   ATTRIBUTE_FORMAT_PRINTF (1, 0);
-extern void do_autoload (Lisp_Object, Lisp_Object);
 extern Lisp_Object un_autoload (Lisp_Object);
 extern void init_eval_once (void);
 extern Lisp_Object safe_call (ptrdiff_t, Lisp_Object *);
@@ -2831,7 +2870,7 @@ extern void mark_backtrace (void);
 #endif
 extern void syms_of_eval (void);
 
-/* Defined in editfns.c */
+/* Defined in editfns.c.  */
 extern Lisp_Object Qfield;
 extern void insert1 (Lisp_Object);
 extern Lisp_Object format2 (const char *, Lisp_Object, Lisp_Object);
@@ -2848,7 +2887,7 @@ const char *get_system_name (void);
 extern void syms_of_editfns (void);
 extern void set_time_zone_rule (const char *);
 
-/* Defined in buffer.c */
+/* Defined in buffer.c.  */
 extern int mouse_face_overlay_overlaps (Lisp_Object);
 extern _Noreturn void nsberror (Lisp_Object);
 extern void adjust_overlays_for_insert (ptrdiff_t, ptrdiff_t);
@@ -2867,7 +2906,7 @@ extern void init_buffer (void);
 extern void syms_of_buffer (void);
 extern void keys_of_buffer (void);
 
-/* Defined in marker.c */
+/* Defined in marker.c.  */
 
 extern ptrdiff_t marker_position (Lisp_Object);
 extern ptrdiff_t marker_byte_position (Lisp_Object);

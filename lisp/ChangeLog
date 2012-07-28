@@ -1,7 +1,180 @@
+2012-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (custom-deps, finder-data, updates, compile)
+	(compile-always, compile-first)
+	($(lisp)/calendar/cal-loaddefs.el)
+	($(lisp)/calendar/diary-loaddefs.el)
+	($(lisp)/calendar/hol-loaddefs.el, $(lisp)/mh-e/mh-loaddefs.el)
+	($(lisp)/net/tramp-loaddefs.el, bootstrap)
+	($(lisp)/progmodes/cc-mode.elc): Depend on $(lisp)subdirs.el,
+	instead of on update-subdirs.
+	(bootstrap-clean): Delete $(lisp)/subdirs.el.
+
+2012-07-28  Chong Yidong  <cyd@gnu.org>
+
+	* simple.el (delete-trailing-lines): New option.
+	(delete-trailing-whitespace): Obey it (Bug#11879).
+
+2012-07-28  David Engster  <deng@randomsample.de>
+
+	* xml.el (xml-node-name, xml-parse-file, xml-parse-region):
+	Explanation of new 'symbol-qnames feature in doc-strings.
+	(xml-maybe-do-ns): Return expanded names as plain symbols if
+	'symbol-qnames was provided in XML-NS argument (Bug#11916).
+	(xml-parse-tag-1): Deal with new definition of PARSE-NS argument.
+
+2012-07-27  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	Consistent completion in inferior python with emacs -nw.
+	* progmodes/python.el (inferior-python-mode): replace "<tab>"
+	binding in inferior-python-mode-map with "\t".
+	(python-shell-completion-complete-at-point)
+	(python-completion-complete-at-point): Remove interactive spec.
+
+2012-07-27  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calccomp.el (math-compose-expr): Undo previous change.
+
+2012-07-27  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-mode-map): Added keybinding for
+	run-python.
+	(python-shell-make-comint): Fix pop-to-buffer call.
+	(run-python): Autoload.  New arg SHOW.
+	(python-shell-get-or-create-process): Do not pop python process
+	buffer.
+
+2012-07-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* notifications.el (notifications-on-action-signal)
+	(notifications-on-closed-signal): Use also the bus address for the map.
+	(notifications-notify, notifications-close-notification)
+	(notifications-get-capabilities):  Add optional argument BUS.
+
+2012-07-27  Tassilo Horn  <tsdh@gnu.org>
+
+	* textmodes/reftex-vars.el (reftex-label-alist-builtin): Add
+	support for the lstlisting and minted environments, and for the
+	ctable macro.
+	* textmodes/reftex.el (reftex-compile-variables): Also recognize
+	labels written in keyvals syntax.
+
+2012-07-27  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calccomp.el (math-compose-expr): Use parentheses when
+	there is a product in the denominator of a fraction.
+
+2012-07-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(lisp)/calendar/cal-loaddefs.el)
+	($(lisp)/calendar/diary-loaddefs.el)
+	($(lisp)/calendar/hol-loaddefs.el, $(lisp)/mh-e/mh-loaddefs.el)
+	($(lisp)/net/tramp-loaddefs.el): Depend on update-subdirs.  Fixes
+	failures in parallel bootstrap because subdirs.el is being
+	rewritten while the autoload files are built at the same time,
+	which needs to load subdirs.el.
+
+2012-07-26  Martin Rudalics  <rudalics@gmx.at>
+
+	* mouse.el (popup-menu): Fix doc-string and re-indent code.
+	(mouse-drag-line): Don't exit tracking when a switch-frame or
+	switch-window event occurs (Bug#12006).
+
+2012-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (popup-menu): Fix last change.
+
+2012-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Autoload from Lisp with more care.  Follow aliases when looking for
+	function properties.
+	* subr.el (autoloadp): New function.
+	(symbol-file): Use it.
+	(function-get): New function.
+	* emacs-lisp/macroexp.el (macroexp--expand-all): Use function-get and
+	autoload-do-load.
+	* emacs-lisp/lisp-mode.el (lisp-font-lock-syntactic-face-function)
+	(lisp-indent-function):
+	* emacs-lisp/gv.el (gv-get):
+	* emacs-lisp/edebug.el (get-edebug-spec, edebug-basic-spec):
+	* emacs-lisp/byte-opt.el (byte-optimize-form):
+	* emacs-lisp/bytecomp.el (byte-compile-arglist-warn):
+	* emacs-lisp/autoload.el (make-autoload, autoload-print-form):
+	Use function-get.
+	* emacs-lisp/cl.el: Don't propagate function properties any more.
+
+	* speedbar.el (speedbar-add-localized-speedbar-support):
+	* emacs-lisp/disass.el (disassemble-internal):
+	* desktop.el (desktop-load-file):
+	* help-fns.el (help-function-arglist, find-lisp-object-file-name)
+	(describe-function-1):
+	* emacs-lisp/find-func.el (find-function-noselect):
+	* emacs-lisp/elp.el (elp-instrument-function):
+	* emacs-lisp/advice.el (ad-has-proper-definition):
+	* apropos.el (apropos-safe-documentation, apropos-macrop):
+	* emacs-lisp/debug.el (debug-on-entry):
+	* emacs-lisp/cl-macs.el (cl-compiler-macroexpand):
+	* emacs-lisp/byte-opt.el (byte-compile-inline-expand):
+	* calc/calc.el (name): Use autoloadp & autoload-do-load.
+
+2012-07-25  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	* international/mule-cmds.el (ucs-insert): Mark it as an obsolete
+	function, not an obsolete variable (Bug#12046).
+
+2012-07-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* faces.el (face-spec-reset-face): Fix last change.  (Bug#12042)
+
+2012-07-25  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* emacs-lisp/pp.el (pp-display-expression): Select old selected
+	window only if it is still live (Bug#12034).
+
+2012-07-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* subr.el (redirect-frame-focus): Add advertised calling
+	convention (Bug#12030).
+
+2012-07-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer typical American spelling for "acknowledgment".
+	* vc/add-log.el (change-log-acknowledgment): Rename from
+	change-log-acknowledgement, with an alias for the old name.
+
+2012-07-25  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc-alg.el (math-simplify-divide): Don't cross multiply
+	in an equation when the lhs is a variable.
+
+2012-07-24  Julien Danjou  <julien@danjou.info>
+
+	* net/netrc.el (netrc-find-service-number, netrc-store-data):
+	Remove, unused.
+
+2012-07-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (command-line): Don't display an empty user name in
+	the error message about non-existent home directory, when
+	init-file-user was set to an empty string.  See
+	http://lists.gnu.org/archive/html/bug-gnu-emacs/2012-07/msg00835.html
+	for the details and context.
+
+2012-07-22  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el (ses-cell-formula-aset): New macro.
+	(ses-cell-references-aset): New macro.
+	(ses-cell-p): New function.
+	(ses-rename-cell): Do no longer rely on complex operations like
+	ses-cell-set-formula or ses-set-cell to change the cell and handle
+	the undo at the same time, but rather use lower level new macros
+	`ses-cell-formula-aset' and `ses-cell-references-aset' and handle
+	the undo directly. Refresh the mode line.
+
 2012-07-21  Leo Liu  <sdl.web@gmail.com>
 
-	* progmodes/cc-cmds.el (c-defun-name): Use
-	match-string-no-properties instead for consistency.
+	* progmodes/cc-cmds.el (c-defun-name):
+	Use match-string-no-properties instead for consistency.
 
 2012-07-20  Leo Liu  <sdl.web@gmail.com>
 
@@ -535,7 +708,7 @@
 2012-07-06  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* window.el (quit-window): Always restore window height when
-	it's saved in quit-restore parameter.
+	it's saved in quit-restore parameter (Bug#11810).
 
 2012-07-06  Glenn Morris  <rgm@gnu.org>
 

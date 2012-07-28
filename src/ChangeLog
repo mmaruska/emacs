@@ -1,6 +1,282 @@
+2012-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (init_iterator): Don't reference tip_frame in a build
+	--without-x.  (Bug#11742)
+
+2012-07-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Adjust GDB to reflect pvec_type changes (Bug#12036).
+	* .gdbinit (xvectype, xpr, xbacktrace): Adjust to reflect the
+	2012-07-04 changes to pseudovector representation.  Problem
+	reported by Eli Zaretskii in <http://bugs.gnu.org/12036#30>.
+
+2012-07-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (XD_DBUS_VALIDATE_BUS_ADDRESS): Canonicalize session
+	bus address.
+	(xd_close_bus, Fdbus_init_bus): Handle reference counter properly.
+
+2012-07-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* alloc.c (listn): Fix the order the arguments are consed onto the
+	list.
+
+	* lisp.h (enum constype): Use CONSTYPE_HEAP and CONSTYPE_PURE for
+	enumeration constants, as PURE and HEAP are too general, and clash
+	with other headers and sources, such as gmalloc.c and the
+	MS-Windows system headers.  All users changed.
+
+2012-07-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Revert last save_excursion_save and save_excursion_restore changes.
+	* alloc.c, editfns.c, marker.c, lisp.h: Revert.
+	Lots of crashes reported by Chong Yidong <cyd@gnu.org>.
+
+2012-07-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix recently-introduced typos in Windows port.
+	Reported by Martin Rudalics <rudalics@gmx.at>.
+	* w32.c (init_environment): Replace comma with semicolon.
+	* w32fns.c (syms_of_w32fns): Add missing parenthesis.
+
+2012-07-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve GDB symbol export (Bug#12036).
+	* .gdbinit (xgetptr, xgetint, xgettype): Set $bugfix in different
+	arms of an 'if', not using conditional expressions; otherwise GDB
+	complains about the types in the unevaluated arm when the argument
+	is an integer literal.
+	(xgetint): Simplify expression.
+	* alloc.c (gdb_make_enums_visible): New constant.  This ports to
+	GCC 3.4.2 the export of symbols to GDB.  Problem reported by Eli
+	Zaretskii in <http://bugs.gnu.org/12036#13>.
+	* lisp.h (PUBLISH_TO_GDB): Remove.  All uses removed.  No longer
+	needed now that we have gdb_make_enums_visible.
+	(enum CHECK_LISP_OBJECT_TYPE, enum Lisp_Bits, enum More_Lisp_Bits)
+	(enum enum_USE_LSB_TAG):
+	New enum types, packaging up enums that need to be exported to GDB.
+
+2012-07-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Utility function to make a list from specified amount of objects.
+	* lisp.h (enum constype): New datatype.
+	(listn): New prototype.
+	* alloc.c (listn): New function.
+	(Fmemory_use_count, syms_of_alloc): Use it.
+	* buffer.c (syms_of_buffer): Likewise.
+	* callint.c (syms_of_callint): Likewise.
+	* charset.c (define_charset_internal): Likewise.
+	* coding.c (syms_of_coding): Likewise.
+	* keymap.c (syms_of_keymap): Likewise.
+	* search.c (syms_of_search): Likewise.
+	* syntax.c (syms_of_syntax): Likewise.
+	* w32.c (init_environment): Likewise.
+	* w32fns.c (Fw32_battery_status, syms_of_w32fns): Likewise.
+	* xdisp.c (syms_of_xdisp): Likewise.
+	* xfns.c (syms_of_xfns): Likewise.
+
+2012-07-27  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fast save_excursion_save and save_excursion_restore.
+	* lisp.h (struct Lisp_Excursion): New data type.
+	(PVEC_EXCURSION): New pseudovector type.
+	(XEXCURSION, XSETEXCURSION, EXCURSIONP): Convenient macros
+	to deal with it.  Adjust comments.
+	(init_marker, attach_marker): New prototype.
+	(unchain_marker): Adjust prototype.
+	* marker.c (attach_marker): Change to global.
+	(init_marker): New function.
+	* alloc.c (Fmake_marker, build_marker): Use it.
+	(build_marker): More easserts.
+	(mark_object): Handle struct Lisp_Excursion.
+	* editfns.c (save_excursion_save, save_excursion_restore):
+	Reimplement to use struct Lisp_Excursion.  Add comments.
+
+2012-07-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix export of symbols to GDB (Bug#12036).
+	* alloc.c (ARRAY_MARK_FLAG_VAL, PSEUDOVECTOR_FLAG_VAL, VALMASK_VAL)
+	(ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, VALMASK): Move these here from
+	emacs.c, as this is a more-suitable home.  Had this been done earlier
+	the fix for 12036 would have avoided some of the problems noted in
+	<http://bugs.gnu.org/12036#13> by Eli Zaretskii, as the scope problems
+	would have been more obvious.
+	* emacs.c: Do not include <verify.h>; no longer needed.
+	(gdb_CHECK_LISP_OBJECT_TYPE, gdb_DATA_SEG_BITS)
+	(gdb_GCTYPEBITS, gdb_USE_LSB_TAG)
+	(CHECK_LISP_OBJECT_TYPE, DATA_SEG_BITS, GCTYPEBITS, USE_LSB_TAG):
+	Remove; now done in lisp.h.
+	* lisp.h (PUBLISH_TO_GDB): New macro.
+	(GCTYPEBITS, USE_LSB_TAG, CHECK_LISP_OBJECT_TYPE, enum pvec_type)
+	(DATA_SEG_BITS): Use it.
+	(GCTYPEBITS, USE_LSB_TAG): Now also an enum, for GDB.
+	(CHECK_LISP_OBJECT_TYPE, DATA_SEG_BITS): Now just an enum, for GDB.
+	* mem-limits.h (EXCEEDS_LISP_PTR): Redo so that DATA_SEG_BITS need
+	not be usable in #if.  This simplifies things.
+
+2012-07-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/emacs.$(O)): Update dependencies.
+
+2012-07-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify export of symbols to GDB (Bug#12036).
+	* .gdbinit (xgetptr, xgetint, xgettype): Don't use "set $bugfix =
+	$bugfix.i", as this doesn't work (with GDB 7.4.1, anyway).
+	(xgetptr, xgetint, xgettype, xcoding, xcharset, xprintbytestr):
+	Adjust to changes in lisp.h and emacs.c, by using
+	CHECK_LISP_OBJECT_TYPE rather than gdb_use_struct, VALMASK instead
+	of $valmask, DATA_SEG_BITS instead of gdb_data_seg_bits,
+	INTTYPEBITS instead of gdb_gctypebits - 1, USE_LSB_TAG instead of
+	gdb_use_lsb, (1 << GCTYPEBITS) - 1 instead of $tagmask, VALBITS
+	instead of gdb_valbits.
+	(xvectype, xvector, xpr, xprintstr, xbacktrace): Similarly, use
+	PSEUDOVECTOR_FLAG instead of PVEC_FLAG, and ARRAY_MARK_FLAG
+	instead of gdb_array_mark_flag.
+	(xboolvector): Get size from $->size, not $->header.size.
+	Use BOOL_VECTOR_BITS_PER_CHAR rather than mystery constants.
+	(xreload, hook-run, hookpost-run): Remove.
+	* emacs.c: Include <verify.h>.
+	(gdb_use_lsb, gdb_use_struct, gdb_valbits, gdb_gctypebits)
+	(gdb_data_seg_bits, PVEC_FLAG, gdb_array_mark_flag, gdb_pvec_type):
+	Remove.
+	(gdb_CHECK_LISP_OBJECT_TYPE, gdb_DATA_SEG_BITS, gdb_GCTYPEBITS)
+	(gdb_USE_LSB_TAG): New enum constants.
+	(CHECK_LISP_OBJECT_TYPE, DATA_SEG_BITS, GCTYPEBITS, USE_LSB_TAG):
+	Also define these as enum constants, so they're visible to GDB.
+	(ARRAY_MARK_FLAG_VAL, PSEUDOVECTOR_FLAG_VAL, VALMASK_VAL): New macros.
+	(ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, VALMASK): Also define these
+	as constants, so they're visible to GDB.
+	* lisp.h (VALBITS, INTTYPEBITS, FIXNUM_BITS, PSEUDOVECTOR_SIZE_BITS)
+	(PSEUDOVECTOR_SIZE_MASK, PVEC_TYPE_MASK, BOOL_VECTOR_BITS_PER_CHAR):
+	Now enum constants, not macros, so they're visible to GDB.
+	(CHECK_LISP_OBJECT_TYPE, DATA_SEG_BITS): Default to 0, as this is
+	more convenient now.  All uses changed.
+	(VALMASK) [USE_LSB_TAG]: Also define in this case.
+	* mem-limits.h (EXCEEDS_LISP_PTR): Adjust to DATA_SEG_BITS change.
+
+2012-07-26  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Explicitly free restriction data that are not needed anymore.
+	* editfns.c (save_restriction_restore): Free restriction data.
+
+2012-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fautoload_do_load): Rename from do_autoload, export to Lisp,
+	add argument, tune behavior, and adjust all callers.
+
+2012-07-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use typedef for EMACS_INT, EMACS_UINT.
+	* lisp.h, s/ms-w32.h (EMACS_INT, EMACS_UINT): Use typedefs rather
+	than macros.  This simplifies debugging in the usual case, since
+	it lets GDB show addresses as 'EMACS_INT *' rather than 'long int *'
+	and it allows expressions involving EMACS_INT casts.
+	* .gdbinit (xreload): Simplify by using EMACS_INT cast.
+
+2012-07-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_read_socket): Return early if there is a modal
+	window (Bug#12043).
+
+2012-07-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (Fredirect_frame_focus): In doc-string don't mention
+	that FOCUS-FRAME can be omitted.
+
+2012-07-25  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Adjust buffer text indirection counters at the end of Fkill_buffer.
+	* buffer.c (Fkill_buffer): Adjust indirection counters when the
+	buffer is definitely dead.  This should really fix an issue reported
+	by Christoph Scholtes again.  (Bug#12007).
+	(init_buffer_once): Initialize indirection counters of
+	buffer_defaults and buffer_local_symbols (for sanity and safety).
+
+2012-07-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (init_iterator): Don't compute dimensions of truncation
+	and continuation glyphs on tooltip frames, leave them at zero.
+	Avoids continued lines in tooltips.  (Bug#11832)
+
+2012-07-24  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Simplify copy_overlay.
+	* buffer.c (copy_overlay): Simplify.  Use build_marker.
+	* lisp.h (struct Lisp_Overlay): Restore comment with minor tweaks.
+
+2012-07-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* print.c (print_object): Don't crash when a frame's name is nil
+	or invalid.  (Bug#12025)
+
+	* window.c (decode_any_window): Disable CHECK_LIVE_FRAME test, as
+	it signals an error when a tooltip frame is being created.
+
+2012-07-23  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup miscellaneous objects allocation and initialization.
+	* alloc.c (allocate_misc): Change to static.  Add argument to
+	specify the subtype.  Adjust comment and users.
+	(build_overlay): New function.
+	* buffer.c (copy_overlays, Fmake_overlay): Use it.
+	* lisp.h (struct Lisp_Overlay): Remove obsolete comment.
+	(allocate_misc): Remove prototype.
+	(build_overlay): Add prototype.
+
+2012-07-23  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Swap buffer text indirection counters in Fbuffer_swap_text.
+	* buffer.c (Fbuffer_swap_text): Swap indirections too.
+	This avoids crash reported by Christoph Scholtes at
+	http://lists.gnu.org/archive/html/bug-gnu-emacs/2012-07/msg00785.html.
+
+2012-07-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsmenu.m (Popdown_data): New struct.
+	(pop_down_menu): p->pointer is Popdown_data.  Release the pool and
+	free Popdown_data.
+	(ns_popup_dialog): Use NSAutoreleasePool and pass it to pop_down_menu.
+	(initWithContentRect): Make imgView and contentView non-static
+	and autorelease them.  Also autorelease img and matrix (Bug#12005).
+	(dealloc): Remove (Bug#12005).
+
+2012-07-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Adjust consing_since_gc when objects are explicitly freed.
+	* alloc.c (GC_DEFAULT_THRESHOLD): New macro.
+	(Fgarbage_collect): Use it.  Change minimum to 1/10 of default.
+	(free_cons, free_misc): Subtract object size from consing_since_gc.
+
+2012-07-22  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Simplify and cleanup markers positioning code.
+	* marker.c (attach_marker): More useful eassert.
+	(live_buffer, set_marker_internal): New function.
+	(Fset_marker, set_marker_restricted): Use set_marker_internal.
+	(set_marker_both, set_marker_restricted_both): Use live_buffer.
+
+2012-07-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* buffer.h (struct buffer.indirections): Now ptrdiff_t, not int,
+	as it's limited by the amount of memory, not by INT_MAX.
+
+2012-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (keys_of_keyboard): Bind language-change to 'ignore'
+	in special-event-map.  See the discussion at
+	http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00417.html
+	for the reasons.
+
+	* w32menu.c (add_menu_item): Cast to ULONG_PTR when assigning
+	info.dwItemData.  Fixes crashes on 64-bit Windows.  Suggested by
+	Fabrice Popineau <fabrice.popineau@supelec.fr>.
+
 2012-07-21  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (accessibilityAttributeValue): New function. (Bug#11134).
+	(conversationIdentifier): Return value is NSInteger.
+	* nsterm.m (accessibilityAttributeValue): Surround with NS_IMPL_COCOA.
 
 2012-07-21  Chong Yidong  <cyd@gnu.org>
 

@@ -1,3 +1,19 @@
+2012-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Character Sets): Fix a typo.  (Bug#12062)
+
+2012-07-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer typical American spelling for "acknowledgment".
+	* intro.texi (Acknowledgments): Rename from Acknowledgements.
+
+2012-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* commands.texi (Special Events): Mention language-change event.
+	(Input Events, Interactive Codes):
+	* keymaps.texi (Key Sequences): Mention events that are
+	non-keyboard but also non-mouse events.
+
 2012-07-17  Chong Yidong  <cyd@gnu.org>
 
 	* text.texi (Insertion): Document insert-char changes.

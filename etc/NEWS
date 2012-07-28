@@ -147,6 +147,10 @@ for it.
 
 * Editing Changes in Emacs 24.2
 
+** New option `delete-trailing-lines' specifies whether the
+M-x delete-trailing-lines command should delete trailing lines at the
+end of the buffer.  It defaults to t.
+
 ** Search changes
 
 *** Global `M-s _' starts a symbol (identifier) incremental search,
@@ -354,7 +358,7 @@ channel keys found, if any.
 
 *** `dired-do-async-shell-command' executes each file sequentially
 if the command ends in `;' (when operating on multiple files).
-Othwerwise, it executes the command on each file in parallel.
+Otherwise, it executes the command on each file in parallel.
 
 ** FFAP
 
@@ -497,6 +501,10 @@ still be supported for Emacs 24.x.
 
 
 * Lisp changes in Emacs 24.2
+
+** New functions `autoloadp' and `autoload-do-load'.
+
+** `function-get' fetches the property of a function, following aliases.
 
 ** `toggle-read-only' accepts a second argument specifying whether to
 print a message, if called from Lisp.

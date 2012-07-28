@@ -161,6 +161,10 @@ static pthread_mutex_t alloc_mutex;
 
 #define GC_STRING_BYTES(S)	(STRING_BYTES (S))
 
+/* Default value of gc_cons_threshold (see below).  */
+
+#define GC_DEFAULT_THRESHOLD (100000 * sizeof (Lisp_Object))
+
 /* Global variables.  */
 struct emacs_globals globals;
 
@@ -2711,6 +2715,7 @@ free_cons (struct Lisp_Cons *ptr)
   ptr->car = Vdead;
 #endif
   cons_free_list = ptr;
+  consing_since_gc -= sizeof *ptr;
   total_free_conses++;
 }
 
@@ -2806,6 +2811,38 @@ list5 (Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3, Lisp_Object arg4, L
 						       Fcons (arg5, Qnil)))));
 }
 
+/* Make a list of COUNT Lisp_Objects, where ARG is the
+   first one.  Allocate conses from pure space if TYPE
+   is CONSTYPE_PURE, or allocate as usual if type is CONSTYPE_HEAP.  */
+
+Lisp_Object
+listn (enum constype type, ptrdiff_t count, Lisp_Object arg, ...)
+{
+  va_list ap;
+  ptrdiff_t i;
+  Lisp_Object val, *objp;
+
+  /* Change to SAFE_ALLOCA if you hit this eassert.  */
+  eassert (count <= MAX_ALLOCA / sizeof (Lisp_Object));
+
+  objp = alloca (count * sizeof (Lisp_Object));
+  objp[0] = arg;
+  va_start (ap, arg);
+  for (i = 1; i < count; i++)
+    objp[i] = va_arg (ap, Lisp_Object);
+  va_end (ap);
+
+  for (val = Qnil, i = count - 1; i >= 0; i--)
+    {
+      if (type == CONSTYPE_PURE)
+	val = pure_cons (objp[i], val);
+      else if (type == CONSTYPE_HEAP)
+	val = Fcons (objp[i], val);
+      else
+	abort ();
+    }
+  return val;
+}
 
 DEFUN ("list", Flist, Slist, 0, MANY, 0,
        doc: /* Return a newly created list with specified arguments as elements.
@@ -3559,10 +3596,10 @@ static int marker_block_index = MARKER_BLOCK_SIZE;
 
 static union Lisp_Misc *marker_free_list;
 
-/* Return a newly allocated Lisp_Misc object, with no substructure.  */
+/* Return a newly allocated Lisp_Misc object of specified TYPE.  */
 
-Lisp_Object
-allocate_misc (void)
+static Lisp_Object
+allocate_misc (enum Lisp_Misc_Type type)
 {
   Lisp_Object val;
 
@@ -3594,6 +3631,7 @@ allocate_misc (void)
   --total_free_markers;
   consing_since_gc += sizeof (union Lisp_Misc);
   misc_objects_consed++;
+  XMISCTYPE (val) = type;
   XMISCANY (val)->gcmarkbit = 0;
   return val;
 }
@@ -3606,7 +3644,7 @@ free_misc (Lisp_Object misc)
   XMISCTYPE (misc) = Lisp_Misc_Free;
   XMISC (misc)->u_free.chain = marker_free_list;
   marker_free_list = XMISC (misc);
-
+  consing_since_gc -= sizeof (union Lisp_Misc);
   total_free_markers++;
 }
 
@@ -3620,13 +3658,27 @@ make_save_value (void *pointer, ptrdiff_t integer)
   register Lisp_Object val;
   register struct Lisp_Save_Value *p;
 
-  val = allocate_misc ();
-  XMISCTYPE (val) = Lisp_Misc_Save_Value;
+  val = allocate_misc (Lisp_Misc_Save_Value);
   p = XSAVE_VALUE (val);
   p->pointer = pointer;
   p->integer = integer;
   p->dogc = 0;
   return val;
+}
+
+/* Return a Lisp_Misc_Overlay object with specified START, END and PLIST.  */
+
+Lisp_Object
+build_overlay (Lisp_Object start, Lisp_Object end, Lisp_Object plist)
+{
+  register Lisp_Object overlay;
+
+  overlay = allocate_misc (Lisp_Misc_Overlay);
+  OVERLAY_START (overlay) = start;
+  OVERLAY_END (overlay) = end;
+  OVERLAY_PLIST (overlay) = plist;
+  XOVERLAY (overlay)->next = NULL;
+  return overlay;
 }
 
 DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
@@ -3636,8 +3688,7 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
   register Lisp_Object val;
   register struct Lisp_Marker *p;
 
-  val = allocate_misc ();
-  XMISCTYPE (val) = Lisp_Misc_Marker;
+  val = allocate_misc (Lisp_Misc_Marker);
   p = XMARKER (val);
   p->buffer = 0;
   p->bytepos = 0;
@@ -3662,8 +3713,7 @@ build_marker (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t bytepos)
   /* Every character is at least one byte.  */
   eassert (charpos <= bytepos);
 
-  obj = allocate_misc ();
-  XMISCTYPE (obj) = Lisp_Misc_Marker;
+  obj = allocate_misc (Lisp_Misc_Marker);
   m = XMARKER (obj);
   m->buffer = buf;
   m->charpos = charpos;
@@ -5581,8 +5631,8 @@ See Info node `(elisp)Garbage Collection'.  */)
   gc_in_progress = 0;
 
   consing_since_gc = 0;
-  if (gc_cons_threshold < 10000)
-    gc_cons_threshold = 10000;
+  if (gc_cons_threshold < GC_DEFAULT_THRESHOLD / 10)
+    gc_cons_threshold = GC_DEFAULT_THRESHOLD / 10;
 
   gc_relative_threshold = 0;
   if (FLOATP (Vgc_cons_percentage))
@@ -6626,18 +6676,15 @@ Frames, windows, buffers, and subprocesses count as vectors
   (but the contents of a buffer's text do not count here).  */)
   (void)
 {
-  Lisp_Object consed[8];
-
-  consed[0] = bounded_number (cons_cells_consed);
-  consed[1] = bounded_number (floats_consed);
-  consed[2] = bounded_number (vector_cells_consed);
-  consed[3] = bounded_number (symbols_consed);
-  consed[4] = bounded_number (string_chars_consed);
-  consed[5] = bounded_number (misc_objects_consed);
-  consed[6] = bounded_number (intervals_consed);
-  consed[7] = bounded_number (strings_consed);
-
-  return Flist (8, consed);
+  return listn (CONSTYPE_HEAP, 8,
+		bounded_number (cons_cells_consed),
+		bounded_number (floats_consed),
+		bounded_number (vector_cells_consed),
+		bounded_number (symbols_consed),
+		bounded_number (string_chars_consed),
+		bounded_number (misc_objects_consed),
+		bounded_number (intervals_consed),
+		bounded_number (strings_consed));
 }
 
 /* Find at most FIND_MAX symbols which have OBJ as their value or
@@ -6731,7 +6778,7 @@ init_alloc_once (void)
 #endif
 
   refill_memory_reserve ();
-  gc_cons_threshold = 100000 * sizeof (Lisp_Object);
+  gc_cons_threshold = GC_DEFAULT_THRESHOLD;
 }
 
 void
@@ -6818,8 +6865,8 @@ do hash-consing of the objects allocated to pure space.  */);
   /* We build this in advance because if we wait until we need it, we might
      not be able to allocate the memory to hold it.  */
   Vmemory_signal_data
-    = pure_cons (Qerror,
-		 pure_cons (build_pure_c_string ("Memory exhausted--use M-x save-some-buffers then exit and restart Emacs"), Qnil));
+    = listn (CONSTYPE_PURE, 2, Qerror,
+	     build_pure_c_string ("Memory exhausted--use M-x save-some-buffers then exit and restart Emacs"));
 
   DEFVAR_LISP ("memory-full", Vmemory_full,
 	       doc: /* Non-nil means Emacs cannot get much more Lisp memory.  */);
@@ -6857,3 +6904,42 @@ The time is in seconds as a floating point value.  */);
   defsubr (&Sgc_status);
 #endif
 }
+
+/* Make some symbols visible to GDB.  This section is last, so that
+   the #undef lines don't mess up later code.  */
+
+/* When compiled with GCC, GDB might say "No enum type named
+   pvec_type" if we don't have at least one symbol with that type, and
+   then xbacktrace could fail.  Similarly for the other enums and
+   their values.  */
+union
+{
+  enum CHECK_LISP_OBJECT_TYPE CHECK_LISP_OBJECT_TYPE;
+  enum enum_USE_LSB_TAG enum_USE_LSB_TAG;
+  enum Lisp_Bits Lisp_Bits;
+  enum More_Lisp_Bits More_Lisp_Bits;
+  enum pvec_type pvec_type;
+} const EXTERNALLY_VISIBLE gdb_make_enums_visible = {0};
+
+/* These symbols cannot be done as enums, since values might not be
+   in 'int' range.  Each symbol X has a corresponding X_VAL symbol,
+   verified to have the correct value.  */
+
+#define ARRAY_MARK_FLAG_VAL PTRDIFF_MIN
+#define PSEUDOVECTOR_FLAG_VAL (PTRDIFF_MAX - PTRDIFF_MAX / 2)
+#define VALMASK_VAL (USE_LSB_TAG ? -1 << GCTYPEBITS : VAL_MAX)
+
+verify (ARRAY_MARK_FLAG_VAL == ARRAY_MARK_FLAG);
+verify (PSEUDOVECTOR_FLAG_VAL == PSEUDOVECTOR_FLAG);
+verify (VALMASK_VAL == VALMASK);
+
+#undef ARRAY_MARK_FLAG
+#undef PSEUDOVECTOR_FLAG
+#undef VALMASK
+
+ptrdiff_t const EXTERNALLY_VISIBLE
+  ARRAY_MARK_FLAG = ARRAY_MARK_FLAG_VAL,
+  PSEUDOVECTOR_FLAG = PSEUDOVECTOR_FLAG_VAL;
+
+EMACS_INT const EXTERNALLY_VISIBLE
+  VALMASK = VALMASK_VAL;

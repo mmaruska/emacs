@@ -410,36 +410,24 @@ even if it is dead.  The return value is never nil.  */)
 static struct Lisp_Overlay *
 copy_overlays (struct buffer *b, struct Lisp_Overlay *list)
 {
-  Lisp_Object buffer;
   struct Lisp_Overlay *result = NULL, *tail = NULL;
-
-  XSETBUFFER (buffer, b);
 
   for (; list; list = list->next)
     {
-      Lisp_Object overlay, start, end, old_overlay;
-      ptrdiff_t charpos;
+      Lisp_Object overlay, start, end;
+      struct Lisp_Marker *m;
 
-      XSETMISC (old_overlay, list);
-      charpos = marker_position (OVERLAY_START (old_overlay));
-      start = Fmake_marker ();
-      Fset_marker (start, make_number (charpos), buffer);
-      XMARKER (start)->insertion_type
-	= XMARKER (OVERLAY_START (old_overlay))->insertion_type;
+      eassert (MARKERP (list->start));
+      m = XMARKER (list->start);
+      start = build_marker (b, m->charpos, m->bytepos);
+      XMARKER (start)->insertion_type = m->insertion_type;
 
-      charpos = marker_position (OVERLAY_END (old_overlay));
-      end = Fmake_marker ();
-      Fset_marker (end, make_number (charpos), buffer);
-      XMARKER (end)->insertion_type
-	= XMARKER (OVERLAY_END (old_overlay))->insertion_type;
+      eassert (MARKERP (list->end));
+      m = XMARKER (list->end);
+      end = build_marker (b, m->charpos, m->bytepos);
+      XMARKER (end)->insertion_type = m->insertion_type;
 
-      overlay = allocate_misc ();
-      XMISCTYPE (overlay) = Lisp_Misc_Overlay;
-      OVERLAY_START (overlay) = start;
-      OVERLAY_END (overlay) = end;
-      OVERLAY_PLIST (overlay) = Fcopy_sequence (OVERLAY_PLIST (old_overlay));
-      XOVERLAY (overlay)->next = NULL;
-
+      overlay = build_overlay (start, end, Fcopy_sequence (list->plist));
       if (tail)
 	tail = tail->next = XOVERLAY (overlay);
       else
@@ -1572,14 +1560,6 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   if (EQ (buffer, XWINDOW (minibuf_window)->buffer))
     return Qnil;
 
-  /* Notify our base buffer that we don't share the text anymore.  */
-  if (b->base_buffer)
-    {
-      eassert (b->indirections == -1);
-      b->base_buffer->indirections--;
-      eassert (b->base_buffer->indirections >= 0);
-    }
-
   /* When we kill an ordinary buffer which shares it's buffer text
      with indirect buffer(s), we must kill indirect buffer(s) too.
      We do it at this stage so nothing terrible happens if they
@@ -1720,7 +1700,15 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   BVAR (b, name) = Qnil;
 
   BLOCK_INPUT;
-  if (! b->base_buffer)
+  if (b->base_buffer)
+    {
+      /* Notify our base buffer that we don't share the text anymore.  */
+      eassert (b->indirections == -1);
+      b->base_buffer->indirections--;
+      eassert (b->base_buffer->indirections >= 0);
+    }
+  else
+    /* No one shares our buffer text, can free it.  */
     free_buffer_text (b);
 
   if (b->newline_cache)
@@ -2145,6 +2133,7 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   swapfield (zv_byte, ptrdiff_t);
   eassert (!current_buffer->base_buffer);
   eassert (!other_buffer->base_buffer);
+  swapfield (indirections, ptrdiff_t);
   current_buffer->clip_changed = 1;	other_buffer->clip_changed = 1;
   swapfield (newline_cache, struct region_cache *);
   swapfield (width_run_cache, struct region_cache *);
@@ -3639,12 +3628,7 @@ for the rear of the overlay advance when text is inserted there
   if (!NILP (rear_advance))
     XMARKER (end)->insertion_type = 1;
 
-  overlay = allocate_misc ();
-  XMISCTYPE (overlay) = Lisp_Misc_Overlay;
-  XOVERLAY (overlay)->start = beg;
-  XOVERLAY (overlay)->end = end;
-  XOVERLAY (overlay)->plist = Qnil;
-  XOVERLAY (overlay)->next = NULL;
+  overlay = build_overlay (beg, end, Qnil);
 
   /* Put the new overlay on the wrong list.  */
   end = OVERLAY_END (overlay);
@@ -4913,6 +4897,9 @@ init_buffer_once (void)
   /* Prevent GC from getting confused.  */
   buffer_defaults.text = &buffer_defaults.own_text;
   buffer_local_symbols.text = &buffer_local_symbols.own_text;
+  /* No one will share the text with these buffers, but let's play it safe.  */
+  buffer_defaults.indirections = 0;
+  buffer_local_symbols.indirections = 0;
   BUF_INTERVALS (&buffer_defaults) = 0;
   BUF_INTERVALS (&buffer_local_symbols) = 0;
   XSETPVECTYPESIZE (&buffer_defaults, PVEC_BUFFER, pvecsize);
@@ -5225,7 +5212,7 @@ syms_of_buffer (void)
   DEFSYM (Qkill_buffer_query_functions, "kill-buffer-query-functions");
 
   Fput (Qprotected_field, Qerror_conditions,
-	pure_cons (Qprotected_field, pure_cons (Qerror, Qnil)));
+	listn (CONSTYPE_PURE, 2, Qprotected_field, Qerror));
   Fput (Qprotected_field, Qerror_message,
 	build_pure_c_string ("Attempt to modify a protected field"));
 

@@ -2733,20 +2733,29 @@ init_iterator (struct it *it, struct window *w,
 
   /* Get dimensions of truncation and continuation glyphs.  These are
      displayed as fringe bitmaps under X, but we need them for such
-     frames when the fringes are turned off.  */
-  if (it->line_wrap == TRUNCATE)
+     frames when the fringes are turned off.  But leave the dimensions
+     zero for tooltip frames, as these glyphs look ugly there and also
+     sabotage calculations of tooltip dimensions in x-show-tip.  */
+#ifdef HAVE_WINDOW_SYSTEM
+  if (!(FRAME_WINDOW_P (it->f)
+	&& FRAMEP (tip_frame)
+	&& it->f == XFRAME (tip_frame)))
+#endif
     {
-      /* We will need the truncation glyph.  */
-      eassert (it->glyph_row == NULL);
-      produce_special_glyphs (it, IT_TRUNCATION);
-      it->truncation_pixel_width = it->pixel_width;
-    }
-  else
-    {
-      /* We will need the continuation glyph.  */
-      eassert (it->glyph_row == NULL);
-      produce_special_glyphs (it, IT_CONTINUATION);
-      it->continuation_pixel_width = it->pixel_width;
+      if (it->line_wrap == TRUNCATE)
+	{
+	  /* We will need the truncation glyph.  */
+	  eassert (it->glyph_row == NULL);
+	  produce_special_glyphs (it, IT_TRUNCATION);
+	  it->truncation_pixel_width = it->pixel_width;
+	}
+      else
+	{
+	  /* We will need the continuation glyph.  */
+	  eassert (it->glyph_row == NULL);
+	  produce_special_glyphs (it, IT_CONTINUATION);
+	  it->continuation_pixel_width = it->pixel_width;
+	}
     }
 
   /* Reset these values to zero because the produce_special_glyphs
@@ -28927,14 +28936,14 @@ and is used only on frames for which no explicit name has been set
 \(see `modify-frame-parameters').  */);
   Vicon_title_format
     = Vframe_title_format
-    = pure_cons (intern_c_string ("multiple-frames"),
-		 pure_cons (build_pure_c_string ("%b"),
-			    pure_cons (pure_cons (empty_unibyte_string,
-						  pure_cons (intern_c_string ("invocation-name"),
-							     pure_cons (build_pure_c_string ("@"),
-									pure_cons (intern_c_string ("system-name"),
-										   Qnil)))),
-				       Qnil)));
+    = listn (CONSTYPE_PURE, 3,
+	     intern_c_string ("multiple-frames"),
+	     build_pure_c_string ("%b"),
+	     listn (CONSTYPE_PURE, 4,
+		    empty_unibyte_string,
+		    intern_c_string ("invocation-name"),
+		    build_pure_c_string ("@"),
+		    intern_c_string ("system-name")));
 
   DEFVAR_LISP ("message-log-max", Vmessage_log_max,
     doc: /* Maximum number of lines to keep in the message log buffer.
