@@ -1,4 +1,4 @@
-From 4551f5cd5e977ab30b6b9fca2574a91de2a92711 Mon Sep 17 00:00:00 2001
+From 3a52ded1d40c375b6f066669de25029eb34d8432 Mon Sep 17 00:00:00 2001
 From: Julien Danjou <julien@danjou.info>
 Date: Fri, 25 Feb 2011 12:54:05 +0100
 Subject: [PATCH 04/10] Debian-related items were added to the Help menu
@@ -8,10 +8,10 @@ Subject: [PATCH 04/10] Debian-related items were added to the Help menu
  1 file changed, 33 insertions(+)
 
 diff --git a/lisp/menu-bar.el b/lisp/menu-bar.el
-index 619510e..dfc3205 100644
+index 75814fb..eabb611 100644
 --- a/lisp/menu-bar.el
 +++ b/lisp/menu-bar.el
-@@ -1625,6 +1625,28 @@ key, a click, or a menu-item"))
+@@ -1623,6 +1623,28 @@ key, a click, or a menu-item"))
    (info "elisp")
    (Info-index topic))
  
@@ -40,7 +40,7 @@ index 619510e..dfc3205 100644
  (defvar menu-bar-search-documentation-menu
    (let ((menu (make-sparse-keymap "Search Documentation")))
  
-@@ -1737,6 +1759,17 @@ key, a click, or a menu-item"))
+@@ -1735,6 +1757,17 @@ key, a click, or a menu-item"))
        `(menu-item "Describe" ,menu-bar-describe-menu))
      (bindings--define-key menu [search-documentation]
        `(menu-item "Search Documentation" ,menu-bar-search-documentation-menu))

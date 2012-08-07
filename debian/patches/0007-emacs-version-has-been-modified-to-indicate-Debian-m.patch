@@ -1,4 +1,4 @@
-From 3b53cd892e8b168381043ddc76f1fe8feae68313 Mon Sep 17 00:00:00 2001
+From b3cbab96b52423cfe1873e61a34d7bf9240432b9 Mon Sep 17 00:00:00 2001
 From: Rob Browning <rlb@defaultvalue.org>
 Date: Thu, 24 Feb 2011 23:27:14 +0100
 Subject: [PATCH 07/10] (emacs-version) has been modified to indicate Debian
