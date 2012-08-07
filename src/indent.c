@@ -1136,7 +1136,6 @@ compute_motion (ptrdiff_t from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
   ptrdiff_t width_run_end   = from;
   ptrdiff_t width_run_width = 0;
   Lisp_Object *width_table;
-  Lisp_Object buffer;
 
   /* The next buffer pos where we should consult the width run cache. */
   ptrdiff_t next_width_run = from;
@@ -1156,7 +1155,6 @@ compute_motion (ptrdiff_t from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
 
   struct composition_it cmp_it;
 
-  XSETBUFFER (buffer, current_buffer);
   XSETWINDOW (window, win);
 
   width_run_cache_on_off ();
@@ -2006,9 +2004,9 @@ whether or not it is currently displayed in some window.  */)
       old_buffer = w->buffer;
       old_charpos = XMARKER (w->pointm)->charpos;
       old_bytepos = XMARKER (w->pointm)->bytepos;
-      XSETBUFFER (w->buffer, current_buffer);
-      set_marker_both
-	(w->pointm, w->buffer, BUF_PT (current_buffer), BUF_PT_BYTE (current_buffer));
+      WSET (w, buffer, Fcurrent_buffer ());
+      set_marker_both (w->pointm, w->buffer,
+		       BUF_PT (current_buffer), BUF_PT_BYTE (current_buffer));
     }
 
   if (noninteractive)
@@ -2149,8 +2147,9 @@ whether or not it is currently displayed in some window.  */)
 
   if (BUFFERP (old_buffer))
     {
-      w->buffer = old_buffer;
-      set_marker_both (w->pointm, w->buffer, old_charpos, old_bytepos);
+      WSET (w, buffer, old_buffer);
+      set_marker_both (w->pointm, w->buffer,
+		       old_charpos, old_bytepos);
     }
 
   RETURN_UNGCPRO (make_number (it.vpos));

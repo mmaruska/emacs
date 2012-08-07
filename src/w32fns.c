@@ -1,4 +1,4 @@
-/* Graphical user interface functions for the Microsoft W32 API.
+/* Graphical user interface functions for the Microsoft Windows API.
 
 Copyright (C) 1989, 1992-2012  Free Software Foundation, Inc.
 
@@ -1489,7 +1489,7 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   else if (!NILP (arg) || NILP (oldval))
     return;
 
-  f->icon_name = arg;
+  FSET (f, icon_name, arg);
 
 #if 0
   if (f->output_data.w32->icon_bitmap != 0)
@@ -1685,7 +1685,7 @@ x_set_name (struct frame *f, Lisp_Object name, int explicit)
   if (! NILP (Fstring_equal (name, f->name)))
     return;
 
-  f->name = name;
+  FSET (f, name, name);
 
   /* For setting the frame title, the title parameter should override
      the name parameter.  */
@@ -1733,7 +1733,7 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 
   update_mode_lines = 1;
 
-  f->title = name;
+  FSET (f, title, name);
 
   if (NILP (name))
     name = f->name;
@@ -2882,7 +2882,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		      key.uChar.AsciiChar = 0;
 		      key.dwControlKeyState = modifiers;
 
-		      add = w32_kbd_patch_key (&key);
+		      add = w32_kbd_patch_key (&key, w32_keyboard_codepage);
 		      /* 0 means an unrecognized keycode, negative means
 			 dead key.  Ignore both.  */
 		      while (--add >= 0)
@@ -2892,7 +2892,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			    (hwnd, WM_CHAR,
                              (unsigned char) key.uChar.AsciiChar, lParam,
 			     w32_get_key_modifiers (wParam, lParam));
-			  w32_kbd_patch_key (&key);
+			  w32_kbd_patch_key (&key, w32_keyboard_codepage);
 			}
 		      return 0;
 		    }
@@ -3897,7 +3897,7 @@ w32_window (struct frame *f, long window_prompting, int minibuffer_only)
 
     f->explicit_name = 0;
     name = f->name;
-    f->name = Qnil;
+    FSET (f, name, Qnil);
     x_set_name (f, name, explicit);
   }
 
@@ -4146,11 +4146,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.w32 = xzalloc (sizeof (struct w32_output));
   FRAME_FONTSET (f) = -1;
 
-  f->icon_name
-    = x_get_arg (dpyinfo, parameters, Qicon_name, "iconName", "Title",
-                   RES_TYPE_STRING);
+  FSET (f, icon_name,
+	x_get_arg (dpyinfo, parameters, Qicon_name, "iconName", "Title",
+                   RES_TYPE_STRING));
   if (! STRINGP (f->icon_name))
-    f->icon_name = Qnil;
+    FSET (f, icon_name, Qnil);
 
 /*  FRAME_W32_DISPLAY_INFO (f) = dpyinfo; */
 
@@ -4179,12 +4179,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
      be set.  */
   if (EQ (name, Qunbound) || NILP (name))
     {
-      f->name = build_string (dpyinfo->w32_id_name);
+      FSET (f, name, build_string (dpyinfo->w32_id_name));
       f->explicit_name = 0;
     }
   else
     {
-      f->name = name;
+      FSET (f, name, name);
       f->explicit_name = 1;
       /* use the frame's title when getting resources for this frame.  */
       specbind (Qx_resource_name, name);
@@ -4359,7 +4359,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
      by x_get_arg and friends, now go in the misc. alist of the frame.  */
   for (tem = parameters; CONSP (tem); tem = XCDR (tem))
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
-      f->param_alist = Fcons (XCAR (tem), f->param_alist);
+      FSET (f, param_alist, Fcons (XCAR (tem), f->param_alist));
 
   UNGCPRO;
 
@@ -5231,7 +5231,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   f->output_data.w32 = xzalloc (sizeof (struct w32_output));
 
   FRAME_FONTSET (f)  = -1;
-  f->icon_name = Qnil;
+  FSET (f, icon_name, Qnil);
 
 #ifdef GLYPH_DEBUG
   image_cache_refcount =
@@ -5246,12 +5246,12 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
      be set.  */
   if (EQ (name, Qunbound) || NILP (name))
     {
-      f->name = build_string (dpyinfo->w32_id_name);
+      FSET (f, name, build_string (dpyinfo->w32_id_name));
       f->explicit_name = 0;
     }
   else
     {
-      f->name = name;
+      FSET (f, name, name);
       f->explicit_name = 1;
       /* use the frame's title when getting resources for this frame.  */
       specbind (Qx_resource_name, name);
@@ -5617,7 +5617,8 @@ Text larger than the specified size is clipped.  */)
 
   /* Set up the frame's root window.  */
   w = XWINDOW (FRAME_ROOT_WINDOW (f));
-  w->left_col = w->top_line = make_number (0);
+  WSET (w, left_col, make_number (0));
+  WSET (w, top_line, make_number (0));
 
   if (CONSP (Vx_max_tooltip_size)
       && INTEGERP (XCAR (Vx_max_tooltip_size))
@@ -5625,13 +5626,13 @@ Text larger than the specified size is clipped.  */)
       && INTEGERP (XCDR (Vx_max_tooltip_size))
       && XINT (XCDR (Vx_max_tooltip_size)) > 0)
     {
-      w->total_cols = XCAR (Vx_max_tooltip_size);
-      w->total_lines = XCDR (Vx_max_tooltip_size);
+      WSET (w, total_cols, XCAR (Vx_max_tooltip_size));
+      WSET (w, total_lines, XCDR (Vx_max_tooltip_size));
     }
   else
     {
-      w->total_cols = make_number (80);
-      w->total_lines = make_number (40);
+      WSET (w, total_cols, make_number (80));
+      WSET (w, total_lines, make_number (40));
     }
 
   FRAME_TOTAL_COLS (f) = XINT (w->total_cols);
@@ -5702,7 +5703,7 @@ Text larger than the specified size is clipped.  */)
       /* w->total_cols and FRAME_TOTAL_COLS want the width in columns,
 	 not in pixels.  */
       width /= WINDOW_FRAME_COLUMN_WIDTH (w);
-      w->total_cols = make_number (width);
+      WSET (w, total_cols, make_number (width));
       FRAME_TOTAL_COLS (f) = width;
       adjust_glyphs (f);
       w->pseudo_window_p = 1;
@@ -6575,7 +6576,7 @@ If the underlying system call fails, value is nil.  */)
   value = Qnil;
 
   /* Determining the required information on Windows turns out, sadly,
-     to be more involved than one would hope.  The original Win32 api
+     to be more involved than one would hope.  The original Windows API
      call for this will return bogus information on some systems, but we
      must dynamically probe for the replacement api, since that was
      added rather late on.  */

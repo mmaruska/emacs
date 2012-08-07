@@ -1,4 +1,30 @@
-2012-07-27  Julien Danjou  <jd@dex.adm.naquadah.org>
+2012-08-06  Julien Danjou  <julien@danjou.info>
+
+	* gnus-demon.el (gnus-demon-add-handler, gnus-demon-remove-handler):
+	Remove autoload, already handled by gnus.el.
+
+2012-08-05  Julien Danjou  <julien@danjou.info>
+
+	* gnus-demon.el (gnus-demon-add-handler, gnus-demon-remove-handler):
+	Add autoload.
+
+2012-07-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.el (gnus-valid-select-methods): Fix custom type.
+
+2012-07-29  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-sources, auth-source-backend-parse)
+	(auth-source-macos-keychain-search)
+	(auth-source-macos-keychain-search-items)
+	(auth-source-macos-keychain-result-append)
+	(auth-source-macos-keychain-create): Support Mac OS X Keychains in
+	auth-source.el through the /usr/bin/security utility.
+	(auth-sources): Fix syntax error.
+	(auth-source-macos-keychain-result-append): Fix variable name.
+	(auth-sources, auth-source-macos-keychain-result-append): More fixes.
+
+2012-07-27  Julien Danjou  <julien@danjou.info>
 
 	* message.el (fboundp): Add a defalias on `mail-dont-reply-to' for
 	Emacs < 24.1

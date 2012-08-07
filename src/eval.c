@@ -976,7 +976,7 @@ definitions to shadow the loaded ones for use in file byte-compilation.  */)
 	  tem = Fassq (sym, environment);
 	  if (NILP (tem))
 	    {
-	      def = XSYMBOL (sym)->function;
+	      def = SVAR (XSYMBOL (sym), function);
 	      if (!EQ (def, Qunbound))
 		continue;
 	    }
@@ -1893,9 +1893,9 @@ this does nothing and returns nil.  */)
   CHECK_STRING (file);
 
   /* If function is defined and not as an autoload, don't override.  */
-  if (!EQ (XSYMBOL (function)->function, Qunbound)
-      && !(CONSP (XSYMBOL (function)->function)
-	   && EQ (XCAR (XSYMBOL (function)->function), Qautoload)))
+  if (!EQ (SVAR (XSYMBOL (function), function), Qunbound)
+      && !(CONSP (SVAR (XSYMBOL (function), function))
+	   && EQ (XCAR (SVAR (XSYMBOL (function), function)), Qautoload)))
     return Qnil;
 
   if (NILP (Vpurify_flag))
@@ -2081,7 +2081,7 @@ eval_sub (Lisp_Object form)
   /* Optimize for no indirection.  */
   fun = original_fun;
   if (SYMBOLP (fun) && !EQ (fun, Qunbound)
-      && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
+      && (fun = SVAR (XSYMBOL (fun), function), SYMBOLP (fun)))
     fun = indirect_function (fun);
 
   if (SUBRP (fun))
@@ -2094,7 +2094,7 @@ eval_sub (Lisp_Object form)
       args_left = original_args;
       numargs = Flength (args_left);
 
-      CHECK_CONS_LIST ();
+      check_cons_list ();
 
       if (XINT (numargs) < XSUBR (fun)->min_args
 	  || (XSUBR (fun)->max_args >= 0
@@ -2222,7 +2222,7 @@ eval_sub (Lisp_Object form)
       else
 	xsignal1 (Qinvalid_function, original_fun);
     }
-  CHECK_CONS_LIST ();
+  check_cons_list ();
 
   lisp_eval_depth--;
   if (backtrace.debug_on_exit)
@@ -2266,7 +2266,7 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
 
   /* Optimize for no indirection.  */
   if (SYMBOLP (fun) && !EQ (fun, Qunbound)
-      && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
+      && (fun = SVAR (XSYMBOL (fun), function), SYMBOLP (fun)))
     fun = indirect_function (fun);
   if (EQ (fun, Qunbound))
     {
@@ -2301,7 +2301,7 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
       gcpro1.nvars = 1 + numargs;
     }
 
-  memcpy (funcall_args, args, nargs * sizeof (Lisp_Object));
+  memcpy (funcall_args, args, nargs * word_size);
   /* Spread the last arg we got.  Its first element goes in
      the slot that it used to occupy, hence this value of I.  */
   i = nargs - 1;
@@ -2762,7 +2762,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   if (debug_on_next_call)
     do_debug_on_call (Qlambda);
 
-  CHECK_CONS_LIST ();
+  check_cons_list ();
 
   original_fun = args[0];
 
@@ -2771,7 +2771,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   /* Optimize for no indirection.  */
   fun = original_fun;
   if (SYMBOLP (fun) && !EQ (fun, Qunbound)
-      && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
+      && (fun = SVAR (XSYMBOL (fun), function), SYMBOLP (fun)))
     fun = indirect_function (fun);
 
   if (SUBRP (fun))
@@ -2794,7 +2794,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	    {
 	      internal_args = alloca (XSUBR (fun)->max_args
 				      * sizeof *internal_args);
-	      memcpy (internal_args, args + 1, numargs * sizeof (Lisp_Object));
+	      memcpy (internal_args, args + 1, numargs * word_size);
 	      for (i = numargs; i < XSUBR (fun)->max_args; i++)
 		internal_args[i] = Qnil;
 	    }
@@ -2871,13 +2871,13 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
       else if (EQ (funcar, Qautoload))
 	{
 	  Fautoload_do_load (fun, original_fun, Qnil);
-	  CHECK_CONS_LIST ();
+	  check_cons_list ();
 	  goto retry;
 	}
       else
 	xsignal1 (Qinvalid_function, original_fun);
     }
-  CHECK_CONS_LIST ();
+  check_cons_list ();
   lisp_eval_depth--;
   if (backtrace.debug_on_exit)
     val = call_debugger (Fcons (Qexit, Fcons (val, Qnil)));

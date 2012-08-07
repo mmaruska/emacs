@@ -2138,7 +2138,7 @@ static Lisp_Object
 font_vconcat_entity_vectors (Lisp_Object list)
 {
   int nargs = XINT (Flength (list));
-  Lisp_Object *args = alloca (sizeof (Lisp_Object) * nargs);
+  Lisp_Object *args = alloca (word_size * nargs);
   int i;
 
   for (i = 0; i < nargs; i++, list = XCDR (list))
@@ -2227,7 +2227,7 @@ font_sort_entities (Lisp_Object list, Lisp_Object prefer, Lisp_Object frame, int
       maxlen = ASIZE (vec);
     }
 
-  SAFE_ALLOCA (data, struct font_sort_data *, (sizeof *data) * maxlen);
+  data = SAFE_ALLOCA (maxlen * sizeof *data);
   best_score = 0xFFFFFFFF;
   best_entity = Qnil;
 
@@ -4722,7 +4722,7 @@ the corresponding element is nil.  */)
 	  Lisp_Object elt = AREF (object, XFASTINT (from) + i);
 	  CHECK_CHARACTER (elt);
 	}
-      chars = &(AREF (object, XFASTINT (from)));
+      chars = aref_addr (object, XFASTINT (from));
     }
 
   vec = Fmake_vector (make_number (len), Qnil);

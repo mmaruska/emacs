@@ -19,6 +19,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#define BUFFER_INLINE EXTERN_INLINE
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/param.h>
@@ -56,7 +58,7 @@ struct buffer *all_buffers;
    Setting the default value also goes through the alist of buffers
    and stores into each buffer that does not say it has a local value.  */
 
-DECL_ALIGN (struct buffer, buffer_defaults);
+struct buffer alignas (GCALIGNMENT) buffer_defaults;
 
 /* A Lisp_Object pointer to the above, used for staticpro */
 
@@ -83,7 +85,7 @@ struct buffer buffer_local_flags;
 /* This structure holds the names of symbols whose values may be
    buffer-local.  It is indexed and accessed in the same way as the above. */
 
-DECL_ALIGN (struct buffer, buffer_local_symbols);
+struct buffer alignas (GCALIGNMENT) buffer_local_symbols;
 
 /* A Lisp_Object pointer to the above, used for staticpro */
 static Lisp_Object Vbuffer_local_symbols;
@@ -97,7 +99,7 @@ static Lisp_Object Vbuffer_local_symbols;
 /* Maximum length of an overlay vector.  */
 #define OVERLAY_COUNT_MAX						\
   ((ptrdiff_t) min (MOST_POSITIVE_FIXNUM,				\
-		    min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object)))
+		    min (PTRDIFF_MAX, SIZE_MAX) / word_size))
 
 /* Flags indicating which built-in buffer-local variables
    are permanent locals.  */
@@ -417,17 +419,17 @@ copy_overlays (struct buffer *b, struct Lisp_Overlay *list)
       Lisp_Object overlay, start, end;
       struct Lisp_Marker *m;
 
-      eassert (MARKERP (list->start));
-      m = XMARKER (list->start);
+      eassert (MARKERP (MVAR (list, start)));
+      m = XMARKER (MVAR (list, start));
       start = build_marker (b, m->charpos, m->bytepos);
       XMARKER (start)->insertion_type = m->insertion_type;
 
-      eassert (MARKERP (list->end));
-      m = XMARKER (list->end);
+      eassert (MARKERP (MVAR (list, end)));
+      m = XMARKER (MVAR (list, end));
       end = build_marker (b, m->charpos, m->bytepos);
       XMARKER (end)->insertion_type = m->insertion_type;
 
-      overlay = build_overlay (start, end, Fcopy_sequence (list->plist));
+      overlay = build_overlay (start, end, Fcopy_sequence (MVAR (list, plist)));
       if (tail)
 	tail = tail->next = XOVERLAY (overlay);
       else
@@ -657,10 +659,11 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
 static void
 drop_overlay (struct buffer *b, struct Lisp_Overlay *ov)
 {
-  eassert (b == XBUFFER (Fmarker_buffer (ov->start)));
-  modify_overlay (b, marker_position (ov->start), marker_position (ov->end));
-  Fset_marker (ov->start, Qnil, Qnil);
-  Fset_marker (ov->end, Qnil, Qnil);
+  eassert (b == XBUFFER (Fmarker_buffer (MVAR (ov, start))));
+  modify_overlay (b, marker_position (MVAR (ov, start)),
+		  marker_position (MVAR (ov, end)));
+  Fset_marker (MVAR (ov, start), Qnil, Qnil);
+  Fset_marker (MVAR (ov, end), Qnil, Qnil);
 
 }
 
@@ -1446,7 +1449,7 @@ compact_buffer (struct buffer *buffer)
 
   /* Skip dead buffers, indirect buffers and buffers
      which aren't changed since last compaction.  */
-  if (!NILP (buffer->BUFFER_INTERNAL_FIELD (name))
+  if (!NILP (buffer->INTERNAL_FIELD (name))
       && (buffer->base_buffer == NULL)
       && (buffer->text->compact != buffer->text->modiff))
     {
@@ -1454,7 +1457,7 @@ compact_buffer (struct buffer *buffer)
 	 turned off in that buffer.  Calling truncate_undo_list on
 	 Qt tends to return NULL, which effectively turns undo back on.
 	 So don't call truncate_undo_list if undo_list is Qt.  */
-      if (!EQ (buffer->BUFFER_INTERNAL_FIELD (undo_list), Qt))
+      if (!EQ (buffer->INTERNAL_FIELD (undo_list), Qt))
 	truncate_undo_list (buffer);
 
       /* Shrink buffer gaps.  */
@@ -1764,8 +1767,8 @@ record_buffer (Lisp_Object buffer)
   Vinhibit_quit = tem;
 
   /* Update buffer list of selected frame.  */
-  f->buffer_list = Fcons (buffer, Fdelq (buffer, f->buffer_list));
-  f->buried_buffer_list = Fdelq (buffer, f->buried_buffer_list);
+  FSET (f, buffer_list, Fcons (buffer, Fdelq (buffer, f->buffer_list)));
+  FSET (f, buried_buffer_list, Fdelq (buffer, f->buried_buffer_list));
 
   /* Run buffer-list-update-hook.  */
   if (!NILP (Vrun_hooks))
@@ -1802,8 +1805,9 @@ DEFUN ("bury-buffer-internal", Fbury_buffer_internal, Sbury_buffer_internal,
   Vinhibit_quit = tem;
 
   /* Update buffer lists of selected frame.  */
-  f->buffer_list = Fdelq (buffer, f->buffer_list);
-  f->buried_buffer_list = Fcons (buffer, Fdelq (buffer, f->buried_buffer_list));
+  FSET (f, buffer_list, Fdelq (buffer, f->buffer_list));
+  FSET (f, buried_buffer_list,
+	Fcons (buffer, Fdelq (buffer, f->buried_buffer_list)));
 
   /* Run buffer-list-update-hook.  */
   if (!NILP (Vrun_hooks))
@@ -2193,7 +2197,8 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
 	    && (EQ (XWINDOW (w)->buffer, buf1)
 		|| EQ (XWINDOW (w)->buffer, buf2)))
 	  Fset_marker (XWINDOW (w)->pointm,
-		       make_number (BUF_BEGV (XBUFFER (XWINDOW (w)->buffer))),
+		       make_number
+		       (BUF_BEGV (XBUFFER (XWINDOW (w)->buffer))),
 		       XWINDOW (w)->buffer);
 	w = Fnext_window (w, Qt, Qt);
       }
@@ -3884,7 +3889,7 @@ OVERLAY.  */)
 {
   CHECK_OVERLAY (overlay);
 
-  return Fcopy_sequence (XOVERLAY (overlay)->plist);
+  return Fcopy_sequence (MVAR (XOVERLAY (overlay), plist));
 }
 
 
@@ -4060,7 +4065,7 @@ DEFUN ("overlay-get", Foverlay_get, Soverlay_get, 2, 2, 0,
   (Lisp_Object overlay, Lisp_Object prop)
 {
   CHECK_OVERLAY (overlay);
-  return lookup_char_property (XOVERLAY (overlay)->plist, prop, 0);
+  return lookup_char_property (MVAR (XOVERLAY (overlay), plist), prop, 0);
 }
 
 DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
@@ -4075,7 +4080,7 @@ VALUE will be returned.*/)
 
   buffer = Fmarker_buffer (OVERLAY_START (overlay));
 
-  for (tail = XOVERLAY (overlay)->plist;
+  for (tail = MVAR (XOVERLAY (overlay), plist);
        CONSP (tail) && CONSP (XCDR (tail));
        tail = XCDR (XCDR (tail)))
     if (EQ (XCAR (tail), prop))
@@ -4086,8 +4091,8 @@ VALUE will be returned.*/)
       }
   /* It wasn't in the list, so add it to the front.  */
   changed = !NILP (value);
-  XOVERLAY (overlay)->plist
-    = Fcons (prop, Fcons (value, XOVERLAY (overlay)->plist));
+  MVAR (XOVERLAY (overlay), plist)
+    = Fcons (prop, Fcons (value, MVAR (XOVERLAY (overlay), plist)));
  found:
   if (! NILP (buffer))
     {
@@ -4262,7 +4267,7 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, int after,
     ptrdiff_t i;
 
     memcpy (copy, XVECTOR (last_overlay_modification_hooks)->contents,
-	    size * sizeof (Lisp_Object));
+	    size * word_size);
     gcpro1.var = copy;
     gcpro1.nvars = size;
 
@@ -4881,8 +4886,7 @@ init_buffer_once (void)
      sure that this is still correct.  Otherwise, mark_vectorlike may not
      trace all Lisp_Objects in buffer_defaults and buffer_local_symbols.  */
   const int pvecsize
-    = (offsetof (struct buffer, own_text) - sizeof (struct vectorlike_header))
-    / sizeof (Lisp_Object);
+    = (offsetof (struct buffer, own_text) - header_size) / word_size;
 
   memset (buffer_permanent_local_flags, 0, sizeof buffer_permanent_local_flags);
 
@@ -4967,7 +4971,7 @@ init_buffer_once (void)
      The local flag bits are in the local_var_flags slot of the buffer.  */
 
   /* Nothing can work if this isn't true */
-  { verify (sizeof (EMACS_INT) == sizeof (Lisp_Object)); }
+  { verify (sizeof (EMACS_INT) == word_size); }
 
   /* 0 means not a lisp var, -1 means always local, else mask */
   memset (&buffer_local_flags, 0, sizeof buffer_local_flags);
@@ -5457,17 +5461,17 @@ Use the command `abbrev-mode' to change this variable.  */);
 		     doc: /* Non-nil if searches and matches should ignore case.  */);
 
   DEFVAR_PER_BUFFER ("fill-column", &BVAR (current_buffer, fill_column),
-		     make_number (LISP_INT_TAG),
+		     make_number (Lisp_Int0),
 		     doc: /* Column beyond which automatic line-wrapping should happen.
 Interactively, you can set the buffer local value using \\[set-fill-column].  */);
 
   DEFVAR_PER_BUFFER ("left-margin", &BVAR (current_buffer, left_margin),
-		     make_number (LISP_INT_TAG),
+		     make_number (Lisp_Int0),
 		     doc: /* Column for the default `indent-line-function' to indent to.
 Linefeed indents to this column in Fundamental mode.  */);
 
   DEFVAR_PER_BUFFER ("tab-width", &BVAR (current_buffer, tab_width),
-		     make_number (LISP_INT_TAG),
+		     make_number (Lisp_Int0),
 		     doc: /* Distance between tab stops (for display of tab characters), in columns.
 This should be an integer greater than zero.  */);
 
@@ -5588,7 +5592,7 @@ If it is nil, that means don't auto-save this buffer.  */);
 Backing up is done before the first time the file is saved.  */);
 
   DEFVAR_PER_BUFFER ("buffer-saved-size", &BVAR (current_buffer, save_length),
-		     make_number (LISP_INT_TAG),
+		     make_number (Lisp_Int0),
 		     doc: /* Length of current buffer when last read in, saved or auto-saved.
 0 initially.
 -1 means auto-saving turned off until next real save.

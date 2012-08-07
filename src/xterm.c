@@ -520,7 +520,7 @@ x_set_frame_alpha (struct frame *f)
     if (rc == Success && actual != None)
       {
         unsigned long value = *(unsigned long *)data;
-	XFree ((void *) data);
+	XFree (data);
 	if (value == opac)
 	  {
 	    x_uncatch_errors ();
@@ -1438,12 +1438,12 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 
 #ifdef USE_X_TOOLKIT
 
-static struct frame *x_frame_of_widget (Widget);
 static Boolean cvt_string_to_pixel (Display *, XrmValue *, Cardinal *,
                                     XrmValue *, XrmValue *, XtPointer *);
 static void cvt_pixel_dtor (XtAppContext, XrmValue *, XtPointer,
                             XrmValue *, Cardinal *);
 
+#ifdef USE_LUCID
 
 /* Return the frame on which widget WIDGET is used.. Abort if frame
    cannot be determined.  */
@@ -1478,9 +1478,6 @@ x_frame_of_widget (Widget widget)
   abort ();
 }
 
-
-#ifdef USE_LUCID
-
 /* Allocate a color which is lighter or darker than *PIXEL by FACTOR
    or DELTA.  Try a color with RGB values multiplied by FACTOR first.
    If this produces the same color as PIXEL, try a color where all RGB
@@ -1496,7 +1493,7 @@ x_alloc_lighter_color_for_widget (Widget widget, Display *display, Colormap cmap
   return x_alloc_lighter_color (f, display, cmap, pixel, factor, delta);
 }
 
-#endif
+#endif /* USE_LUCID */
 
 
 /* Structure specifying which arguments should be passed by Xt to
@@ -3588,7 +3585,7 @@ x_frame_rehighlight (struct x_display_info *dpyinfo)
 	   : dpyinfo->x_focus_frame);
       if (! FRAME_LIVE_P (dpyinfo->x_highlight_frame))
 	{
-	  FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame) = Qnil;
+	  FSET (dpyinfo->x_focus_frame, focus_frame, Qnil);
 	  dpyinfo->x_highlight_frame = dpyinfo->x_focus_frame;
 	}
     }
@@ -3713,7 +3710,7 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
       dpyinfo->alt_mod_mask &= ~dpyinfo->meta_mod_mask;
     }
 
-  XFree ((char *) syms);
+  XFree (syms);
   XFreeModifiermap (mods);
 }
 
@@ -4635,7 +4632,7 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
   Widget widget;
   Arg av[20];
   int ac = 0;
-  char const *scroll_bar_name = SCROLL_BAR_NAME;
+  const char *scroll_bar_name = SCROLL_BAR_NAME;
   unsigned long pixel;
 
   BLOCK_INPUT;
@@ -4665,7 +4662,7 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
     }
 
   widget = XmCreateScrollBar (f->output_data.x->edit_widget,
-			      scroll_bar_name, av, ac);
+			      (char *) scroll_bar_name, av, ac);
 
   /* Add one callback for everything that can happen.  */
   XtAddCallback (widget, XmNdecrementCallback, xm_scroll_callback,
@@ -4960,6 +4957,7 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
   struct frame *f = XFRAME (w->frame);
   struct scroll_bar *bar
     = ALLOCATE_PSEUDOVECTOR (struct scroll_bar, x_window, PVEC_OTHER);
+  Lisp_Object barobj;
 
   BLOCK_INPUT;
 
@@ -5020,7 +5018,8 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
   /* Add bar to its frame's list of scroll bars.  */
   bar->next = FRAME_SCROLL_BARS (f);
   bar->prev = Qnil;
-  XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
+  XSETVECTOR (barobj, bar);
+  FSET (f, scroll_bars, barobj);
   if (!NILP (bar->next))
     XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
 
@@ -5183,7 +5182,7 @@ x_scroll_bar_remove (struct scroll_bar *bar)
 #endif
 
   /* Dissociate this scroll bar from its window.  */
-  XWINDOW (bar->window)->vertical_scroll_bar = Qnil;
+  WSET (XWINDOW (bar->window), vertical_scroll_bar, Qnil);
 
   UNBLOCK_INPUT;
 }
@@ -5198,6 +5197,7 @@ static void
 XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int position)
 {
   struct frame *f = XFRAME (w->frame);
+  Lisp_Object barobj;
   struct scroll_bar *bar;
   int top, height, left, sb_left, width, sb_width;
   int window_y, window_height;
@@ -5395,7 +5395,8 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
     }
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
 
-  XSETVECTOR (w->vertical_scroll_bar, bar);
+  XSETVECTOR (barobj, bar);
+  WSET (w, vertical_scroll_bar, barobj);
 }
 
 
@@ -5419,12 +5420,12 @@ XTcondemn_scroll_bars (FRAME_PTR frame)
     {
       Lisp_Object bar;
       bar = FRAME_SCROLL_BARS (frame);
-      FRAME_SCROLL_BARS (frame) = XSCROLL_BAR (bar)->next;
+      FSET (frame, scroll_bars, XSCROLL_BAR (bar)->next);
       XSCROLL_BAR (bar)->next = FRAME_CONDEMNED_SCROLL_BARS (frame);
       XSCROLL_BAR (bar)->prev = Qnil;
       if (! NILP (FRAME_CONDEMNED_SCROLL_BARS (frame)))
 	XSCROLL_BAR (FRAME_CONDEMNED_SCROLL_BARS (frame))->prev = bar;
-      FRAME_CONDEMNED_SCROLL_BARS (frame) = bar;
+      FSET (frame, condemned_scroll_bars, bar);
     }
 }
 
@@ -5437,6 +5438,7 @@ XTredeem_scroll_bar (struct window *window)
 {
   struct scroll_bar *bar;
   struct frame *f;
+  Lisp_Object barobj;
 
   /* We can't redeem this window's scroll bar if it doesn't have one.  */
   if (NILP (window->vertical_scroll_bar))
@@ -5455,7 +5457,7 @@ XTredeem_scroll_bar (struct window *window)
 	return;
       else if (EQ (FRAME_CONDEMNED_SCROLL_BARS (f),
 		   window->vertical_scroll_bar))
-	FRAME_CONDEMNED_SCROLL_BARS (f) = bar->next;
+	FSET (f, condemned_scroll_bars, bar->next);
       else
 	/* If its prev pointer is nil, it must be at the front of
 	   one or the other!  */
@@ -5469,7 +5471,8 @@ XTredeem_scroll_bar (struct window *window)
 
   bar->next = FRAME_SCROLL_BARS (f);
   bar->prev = Qnil;
-  XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
+  XSETVECTOR (barobj, bar);
+  FSET (f, scroll_bars, barobj);
   if (! NILP (bar->next))
     XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
 }
@@ -5486,7 +5489,7 @@ XTjudge_scroll_bars (FRAME_PTR f)
 
   /* Clear out the condemned list now so we won't try to process any
      more events on the hapless scroll bars.  */
-  FRAME_CONDEMNED_SCROLL_BARS (f) = Qnil;
+  FSET (f, condemned_scroll_bars, Qnil);
 
   for (; ! NILP (bar); bar = next)
     {
@@ -10120,7 +10123,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	terminal->kboard->next_kboard = all_kboards;
 	all_kboards = terminal->kboard;
 
-	if (!EQ (XSYMBOL (Qvendor_specific_keysyms)->function, Qunbound))
+	if (!EQ (SVAR (XSYMBOL (Qvendor_specific_keysyms), function), Qunbound))
 	  {
 	    char *vendor = ServerVendor (dpy);
 
@@ -10402,13 +10405,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   connection = ConnectionNumber (dpyinfo->display);
   dpyinfo->connection = connection;
-
-  {
-    dpyinfo->gray
-      = XCreatePixmapFromBitmapData (dpyinfo->display, dpyinfo->root_window,
-				     gray_bits, gray_width, gray_height,
-				     1, 0, 1);
-  }
+  dpyinfo->gray
+    = XCreatePixmapFromBitmapData (dpyinfo->display, dpyinfo->root_window,
+				   gray_bits, gray_width, gray_height,
+				   1, 0, 1);
 
 #ifdef HAVE_X_I18N
   xim_initialize (dpyinfo, resource_name);

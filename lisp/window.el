@@ -2669,6 +2669,8 @@ that is already visible in another window on the same frame."
 (defun switch-to-prev-buffer (&optional window bury-or-kill)
   "In WINDOW switch to previous buffer.
 WINDOW must be a live window and defaults to the selected one.
+Return the buffer switched to, nil if no suitable buffer could be
+found.
 
 Optional argument BURY-OR-KILL non-nil means the buffer currently
 shown in WINDOW is about to be buried or killed and consequently
@@ -2679,7 +2681,7 @@ shall not be switched to in future invocations of this command."
 	 (old-buffer (window-buffer window))
 	 ;; Save this since it's destroyed by `set-window-buffer'.
 	 (next-buffers (window-next-buffers window))
-	 entry new-buffer killed-buffers visible)
+	 entry buffer new-buffer killed-buffers visible)
     (when (window-dedicated-p window)
       (error "Window %s is dedicated to buffer %s" window old-buffer))
 
@@ -2687,20 +2689,20 @@ shall not be switched to in future invocations of this command."
       ;; Scan WINDOW's previous buffers first, skipping entries of next
       ;; buffers.
       (dolist (entry (window-prev-buffers window))
-	(when (and (setq new-buffer (car entry))
-		   (or (buffer-live-p new-buffer)
+	(when (and (setq buffer (car entry))
+		   (or (buffer-live-p buffer)
 		       (not (setq killed-buffers
-				  (cons new-buffer killed-buffers))))
-		   (not (eq new-buffer old-buffer))
-                   (or bury-or-kill
-		       (not (memq new-buffer next-buffers))))
+				  (cons buffer killed-buffers))))
+		   (not (eq buffer old-buffer))
+                   (or bury-or-kill (not (memq buffer next-buffers))))
 	  (if (and (not switch-to-visible-buffer)
-		   (get-buffer-window new-buffer frame))
+		   (get-buffer-window buffer frame))
 	      ;; Try to avoid showing a buffer visible in some other window.
-	      (setq visible new-buffer)
-          (set-window-buffer-start-and-point
-           window new-buffer (nth 1 entry) (nth 2 entry))
-          (throw 'found t))))
+	      (setq visible buffer)
+	    (setq new-buffer buffer)
+	    (set-window-buffer-start-and-point
+	     window new-buffer (nth 1 entry) (nth 2 entry))
+	    (throw 'found t))))
       ;; Scan reverted buffer list of WINDOW's frame next, skipping
       ;; entries of next buffers.  Note that when we bury or kill a
       ;; buffer we don't reverse the global buffer list to avoid showing
@@ -2767,13 +2769,15 @@ shall not be switched to in future invocations of this command."
 
 (defun switch-to-next-buffer (&optional window)
   "In WINDOW switch to next buffer.
-WINDOW must be a live window and defaults to the selected one."
+WINDOW must be a live window and defaults to the selected one.
+Return the buffer switched to, nil if no suitable buffer could be
+found."
   (interactive)
   (let* ((window (window-normalize-window window t))
 	 (frame (window-frame window))
 	 (old-buffer (window-buffer window))
 	 (next-buffers (window-next-buffers window))
-	 new-buffer entry killed-buffers visible)
+	 buffer new-buffer entry killed-buffers visible)
     (when (window-dedicated-p window)
       (error "Window %s is dedicated to buffer %s" window old-buffer))
 
@@ -2804,16 +2808,17 @@ WINDOW must be a live window and defaults to the selected one."
       ;; Scan WINDOW's reverted previous buffers last (must not use
       ;; nreverse here!)
       (dolist (entry (reverse (window-prev-buffers window)))
-	(when (and (setq new-buffer (car entry))
-		   (or (buffer-live-p new-buffer)
+	(when (and (setq buffer (car entry))
+		   (or (buffer-live-p buffer)
 		       (not (setq killed-buffers
-				  (cons new-buffer killed-buffers))))
-		   (not (eq new-buffer old-buffer)))
+				  (cons buffer killed-buffers))))
+		   (not (eq buffer old-buffer)))
 	  (if (and (not switch-to-visible-buffer)
-		   (get-buffer-window new-buffer frame))
+		   (get-buffer-window buffer frame))
 	      ;; Try to avoid showing a buffer visible in some other window.
 	      (unless visible
-		(setq visible new-buffer))
+		(setq visible buffer))
+	    (setq new-buffer buffer)
 	    (set-window-buffer-start-and-point
 	     window new-buffer (nth 1 entry) (nth 2 entry))
 	    (throw 'found t))))
@@ -4597,27 +4602,26 @@ is passed unaltered to `display-buffer-record-window'. Set
 `window-dedicated-p' to DEDICATED if non-nil.  Return WINDOW if
 BUFFER and WINDOW are live."
   (when (and (buffer-live-p buffer) (window-live-p window))
-    (let* ((frame (window-frame window))
-	   (visible (frame-visible-p frame)))
-      (unless (eq buffer (window-buffer window))
-	(set-window-dedicated-p window nil)
-	(display-buffer-record-window type window buffer)
-	(set-window-buffer window buffer)
-	(when dedicated
-	  (set-window-dedicated-p window dedicated))
-	(when (memq type '(window frame))
-	  (set-window-prev-buffers window nil)))
+    (unless (eq buffer (window-buffer window))
+      (set-window-dedicated-p window nil)
+      (display-buffer-record-window type window buffer)
+      (set-window-buffer window buffer)
+      (when dedicated
+	(set-window-dedicated-p window dedicated))
+      (when (memq type '(window frame))
+	(set-window-prev-buffers window nil)))
+    window))
 
-      (unless (or (not visible)
-		  ;; Assume the selected frame is already visible enough.
-		  (eq frame (selected-frame))
-		  ;; Assume the frame from which we invoked the minibuffer
-		  ;; is visible.
-		  (and (minibuffer-window-active-p (selected-window))
-		       (eq frame (window-frame (minibuffer-selected-window)))))
-	(raise-frame frame))
-
-      window)))
+(defun window--maybe-raise-frame (frame)
+  (let ((visible (frame-visible-p frame)))
+    (unless (or (not visible)
+		;; Assume the selected frame is already visible enough.
+		(eq frame (selected-frame))
+		;; Assume the frame from which we invoked the
+		;; minibuffer is visible.
+		(and (minibuffer-window-active-p (selected-window))
+		     (eq frame (window-frame (minibuffer-selected-window)))))
+      (raise-frame frame))))
 
 ;; FIXME: Not implemented.
 ;; FIXME: By the way, there could be more levels of dedication:
@@ -4766,6 +4770,10 @@ Recognized alist entries include:
  `inhibit-same-window' -- A non-nil value prevents the same
                           window from being used for display.
 
+ `inhibit-switch-frame' -- A non-nil value prevents any other
+                           frame from being raised or selected,
+                           even if the window is displayed there.
+
  `reusable-frames' -- Value specifies frame(s) to search for a
                       window that already displays the buffer.
                       See `display-buffer-reuse-window'.
@@ -4867,7 +4875,11 @@ which frames to search for a reusable window:
 If ALIST contains no `reusable-frames' entry, search just the
 selected frame if `display-buffer-reuse-frames' and
 `pop-up-frames' are both nil; search all frames on the current
-terminal if either of those variables is non-nil."
+terminal if either of those variables is non-nil.
+
+If ALIST has a non-nil `inhibit-switch-frame' entry, then in the
+event that a window on another frame is chosen, avoid raising
+that frame."
   (let* ((alist-entry (assq 'reusable-frames alist))
 	 (frames (cond (alist-entry (cdr alist-entry))
 		       ((if (eq pop-up-frames 'graphic-only)
@@ -4882,8 +4894,10 @@ terminal if either of those variables is non-nil."
 		   (car (delq (selected-window)
 			      (get-buffer-window-list buffer 'nomini
 						      frames))))))
-    (when window
-      (window--display-buffer buffer window 'reuse))))
+    (when (window-live-p window)
+      (prog1 (window--display-buffer buffer window 'reuse)
+	(unless (cdr (assq 'inhibit-switch-frame alist))
+	  (window--maybe-raise-frame (window-frame window)))))))
 
 (defun display-buffer--special-action (buffer)
   "Return special display action for BUFFER, if any.
@@ -4900,23 +4914,32 @@ See `display-buffer' for the format of display actions."
                           (funcall special-display-function
                                    buffer ',(if (listp pars) pars)))))))))
 
-(defun display-buffer-pop-up-frame (buffer _alist)
+(defun display-buffer-pop-up-frame (buffer alist)
   "Display BUFFER in a new frame.
 This works by calling `pop-up-frame-function'.  If successful,
-return the window used; otherwise return nil."
+return the window used; otherwise return nil.
+
+If ALIST has a non-nil `inhibit-switch-frame' entry, avoid
+raising the new frame."
   (let ((fun pop-up-frame-function)
 	frame window)
     (when (and fun
 	       (setq frame (funcall fun))
 	       (setq window (frame-selected-window frame)))
-      (window--display-buffer
-       buffer window 'frame display-buffer-mark-dedicated))))
+      (prog1 (window--display-buffer buffer window
+				     'frame display-buffer-mark-dedicated)
+	(unless (cdr (assq 'inhibit-switch-frame alist))
+	  (window--maybe-raise-frame frame))))))
 
-(defun display-buffer-pop-up-window (buffer _alist)
+(defun display-buffer-pop-up-window (buffer alist)
   "Display BUFFER by popping up a new window.
 The new window is created on the selected frame, or in
 `last-nonminibuffer-frame' if no windows can be created there.
-If successful, return the new window; otherwise return nil."
+If successful, return the new window; otherwise return nil.
+
+If ALIST has a non-nil `inhibit-switch-frame' entry, then in the
+event that the new window is created on another frame, avoid
+raising the frame."
   (let ((frame (or (window--frame-usable-p (selected-frame))
 		   (window--frame-usable-p (last-nonminibuffer-frame))))
 	window)
@@ -4932,8 +4955,10 @@ If successful, return the new window; otherwise return nil."
 				 (get-largest-window frame t))
 				(window--try-to-split-window
 				 (get-lru-window frame t)))))
-      (window--display-buffer
-       buffer window 'window display-buffer-mark-dedicated))))
+      (prog1 (window--display-buffer buffer window
+				     'window display-buffer-mark-dedicated)
+	(unless (cdr (assq 'inhibit-switch-frame alist))
+	  (window--maybe-raise-frame (window-frame window)))))))
 
 (defun display-buffer--maybe-pop-up-frame-or-window (buffer alist)
   "Try displaying BUFFER based on `pop-up-frames' or `pop-up-windows'.
@@ -4953,7 +4978,11 @@ again with `display-buffer-pop-up-window'."
 (defun display-buffer-use-some-window (buffer alist)
   "Display BUFFER in an existing window.
 Search for a usable window, set that window to the buffer, and
-return the window.  If no suitable window is found, return nil."
+return the window.  If no suitable window is found, return nil.
+
+If ALIST has a non-nil `inhibit-switch-frame' entry, then in the
+event that a window in another frame is chosen, avoid raising
+that frame."
   (let* ((not-this-window (cdr (assq 'inhibit-same-window alist)))
 	 (frame (or (window--frame-usable-p (selected-frame))
 		    (window--frame-usable-p (last-nonminibuffer-frame))))
@@ -4970,9 +4999,11 @@ return the window.  If no suitable window is found, return nil."
 			     (eq window (selected-window)))
 		  window))
 	      (get-largest-window 0 not-this-window))))
-    (when window
+    (when (window-live-p window)
       (window--even-window-heights window)
-      (window--display-buffer buffer window 'reuse))))
+      (prog1 (window--display-buffer buffer window 'reuse)
+	(unless (cdr (assq 'inhibit-switch-frame alist))
+	  (window--maybe-raise-frame (window-frame window)))))))
 
 ;;; Display + selection commands:
 (defun pop-to-buffer (buffer &optional action norecord)

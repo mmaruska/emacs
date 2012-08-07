@@ -195,6 +195,7 @@ static int n_emacs_events_pending = 0;
 static NSMutableArray *ns_pending_files, *ns_pending_service_names,
   *ns_pending_service_args;
 static BOOL inNsSelect = 0;
+static BOOL ns_do_open_file = NO;
 
 /* Convert modifiers in a NeXTstep event to emacs style modifiers.  */
 #define NS_FUNCTION_KEY_MASK 0x800000
@@ -328,8 +329,7 @@ ns_exec_path (void)
   NSString *binDir = [bundle bundlePath];
   NSString *resourcePath, *resourcePaths;
   NSRange range;
-  BOOL onWindows = NO;       /* FIXME determine this somehow  */
-  NSString *pathSeparator = onWindows ? @";" : @":";
+  NSString *pathSeparator = [NSString stringWithFormat: @"%c", SEPCHAR];
   NSFileManager *fileManager = [NSFileManager defaultManager];
   NSArray *paths;
   NSEnumerator *pathEnum;
@@ -376,8 +376,7 @@ ns_load_path (void)
   NSBundle *bundle = [NSBundle mainBundle];
   NSString *resourceDir = [bundle resourcePath];
   NSString *resourcePath, *resourcePaths;
-  BOOL onWindows = NO;          /* FIXME determine this somehow */
-  NSString *pathSeparator = onWindows ? @";" : @":";
+  NSString *pathSeparator = [NSString stringWithFormat: @"%c", SEPCHAR];
   NSFileManager *fileManager = [NSFileManager defaultManager];
   BOOL isDir;
   NSArray *paths = [resourceDir stringsByAppendingPaths:
@@ -1019,7 +1018,7 @@ ns_frame_rehighlight (struct frame *frame)
            : dpyinfo->x_focus_frame);
       if (!FRAME_LIVE_P (dpyinfo->x_highlight_frame))
         {
-          FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame) = Qnil;
+          FSET (dpyinfo->x_focus_frame, focus_frame, Qnil);
           dpyinfo->x_highlight_frame = dpyinfo->x_focus_frame;
         }
     }
@@ -2266,7 +2265,6 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   if (p->which)
     {
       NSRect r = NSMakeRect (p->x+xAdjust, p->y, p->wd, p->h);
-      NSPoint pt = r.origin;
       EmacsImage *img = bimgs[p->which - 1];
 
       if (!img)
@@ -2289,9 +2287,13 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
          to erase the whole background. */
       [ns_lookup_indexed_color(face->background, f) set];
       NSRectFill (r);
-      pt.y += p->h;
       [img setXBMColor: ns_lookup_indexed_color(face->foreground, f)];
-      [img compositeToPoint: pt operation: NSCompositeSourceOver];
+      [img drawInRect: r
+              fromRect: NSZeroRect
+             operation: NSCompositeSourceOver
+              fraction: 1.0
+           respectFlipped: YES
+                hints: nil];
     }
   ns_unfocus (f);
 }
@@ -3034,8 +3036,12 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
 
   /* Draw the image.. do we need to draw placeholder if img ==nil? */
   if (img != nil)
-    [img compositeToPoint: NSMakePoint (x, y + s->slice.height)
-                operation: NSCompositeSourceOver];
+      [img drawInRect: br
+              fromRect: NSZeroRect
+             operation: NSCompositeSourceOver
+              fraction: 1.0
+           respectFlipped: YES
+                hints: nil];
 
   if (s->hl == DRAW_CURSOR)
     {
@@ -3670,7 +3676,7 @@ ns_set_vertical_scroll_bar (struct window *window,
         {
           bar = XNS_SCROLL_BAR (window->vertical_scroll_bar);
           [bar removeFromSuperview];
-          window->vertical_scroll_bar = Qnil;
+          WSET (window, vertical_scroll_bar, Qnil);
         }
       ns_clear_frame_area (f, sb_left, top, width, height);
       UNBLOCK_INPUT;
@@ -3681,7 +3687,7 @@ ns_set_vertical_scroll_bar (struct window *window,
     {
       ns_clear_frame_area (f, sb_left, top, width, height);
       bar = [[EmacsScroller alloc] initFrame: r window: win];
-      window->vertical_scroll_bar = make_save_value (bar, 0);
+      WSET (window, vertical_scroll_bar, make_save_value (bar, 0));
     }
   else
     {
@@ -3735,7 +3741,7 @@ ns_redeem_scroll_bar (struct window *window)
   NSTRACE (ns_redeem_scroll_bar);
   if (!NILP (window->vertical_scroll_bar))
     {
-      bar =XNS_SCROLL_BAR (window->vertical_scroll_bar);
+      bar = XNS_SCROLL_BAR (window->vertical_scroll_bar);
       [bar reprieve];
     }
 }
@@ -4025,7 +4031,7 @@ ns_term_init (Lisp_Object display_name)
   ns_pending_service_names = [[NSMutableArray alloc] init];
   ns_pending_service_args = [[NSMutableArray alloc] init];
 
-  /* Start app and create the main menu, window, view.
+/* Start app and create the main menu, window, view.
      Needs to be here because ns_initialize_display_info () uses AppKit classes.
      The view will then ask the NSApp to stop and return to Emacs. */
   [EmacsApp sharedApplication];
@@ -4205,7 +4211,7 @@ ns_term_init (Lisp_Object display_name)
 #endif /* MAC OS X menu setup */
 
   [NSApp run];
-
+  ns_do_open_file = YES;
   return dpyinfo;
 }
 
@@ -4432,7 +4438,7 @@ ns_term_shutdown (int sig)
     return NSTerminateNow;
 
     ret = NSRunAlertPanel(ns_app_name,
-                          [NSString stringWithUTF8String:"Exit requested.  Would you like to Save Buffers and Exit, or Cancel the request?"],
+                          @"Exit requested.  Would you like to Save Buffers and Exit, or Cancel the request?",
                           @"Save Buffers and Exit", @"Cancel", nil);
 
     if (ret == NSAlertDefaultReturn)
@@ -4446,7 +4452,8 @@ ns_term_shutdown (int sig)
 /*   Notification from the Workspace to open a file */
 - (BOOL)application: sender openFile: (NSString *)file
 {
-  [ns_pending_files addObject: file];
+  if (ns_do_open_file)
+    [ns_pending_files addObject: file];
   return YES;
 }
 
@@ -4454,7 +4461,8 @@ ns_term_shutdown (int sig)
 /*   Open a file as a temporary file */
 - (BOOL)application: sender openTempFile: (NSString *)file
 {
-  [ns_pending_files addObject: file];
+  if (ns_do_open_file)
+    [ns_pending_files addObject: file];
   return YES;
 }
 
@@ -4462,7 +4470,8 @@ ns_term_shutdown (int sig)
 /*   Notification from the Workspace to open a file noninteractively (?) */
 - (BOOL)application: sender openFileWithoutUI: (NSString *)file
 {
-  [ns_pending_files addObject: file];
+  if (ns_do_open_file)
+    [ns_pending_files addObject: file];
   return YES;
 }
 
@@ -4470,11 +4479,17 @@ ns_term_shutdown (int sig)
 /*   Notification from the Workspace to open multiple files */
 - (void)application: sender openFiles: (NSArray *)fileList
 {
-  NSEnumerator *files = [fileList objectEnumerator];
-  NSString *file;
-  while ((file = [files nextObject]) != nil)
-    [ns_pending_files addObject: file];
-
+  /* Don't open files from the command line, Cocoa parses the command line
+     wrong anyway, --option value tries to open value if --option is the last
+     option.  */
+  if (ns_do_open_file)
+    {
+      NSEnumerator *files = [fileList objectEnumerator];
+      NSString *file;
+      while ((file = [files nextObject]) != nil)
+        [ns_pending_files addObject: file];
+    }
+  
   [self replyToOpenOrPrint: NSApplicationDelegateReplySuccess];
 
 }
@@ -5759,7 +5774,7 @@ ns_term_shutdown (int sig)
   emacs_event->kind = TOOL_BAR_EVENT;
 /*   XSETINT (emacs_event->code, 0); */
   emacs_event->arg = AREF (emacsframe->tool_bar_items,
-                          idx + TOOL_BAR_ITEM_KEY);
+			   idx + TOOL_BAR_ITEM_KEY);
   emacs_event->modifiers = EV_MODIFIERS (theEvent);
   EV_TRAILER (theEvent);
   return self;
@@ -6260,7 +6275,7 @@ ns_term_shutdown (int sig)
 {
   NSTRACE (EmacsScroller_dealloc);
   if (!NILP (win))
-    XWINDOW (win)->vertical_scroll_bar = Qnil;
+    WSET (XWINDOW (win), vertical_scroll_bar, Qnil);
   [super dealloc];
 }
 

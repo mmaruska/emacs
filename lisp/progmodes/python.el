@@ -1354,14 +1354,6 @@ Restart the python shell after changing this variable for it to take effect."
   :group 'python
   :safe 'booleanp)
 
-(defcustom python-shell-send-setup-max-wait 5
-  "Seconds to wait for process output before code setup.
-If output is received before the specified time then control is
-returned in that moment and not after waiting."
-  :type 'integer
-  :group 'python
-  :safe 'integerp)
-
 (defcustom python-shell-process-environment nil
   "List of environment variables for Python shell.
 This variable follows the same rules as `process-environment'
@@ -1554,25 +1546,34 @@ variable.
          python-syntax-propertize-function))
   (compilation-shell-minor-mode 1))
 
-(defun python-shell-make-comint (cmd proc-name &optional pop)
+(defun python-shell-make-comint (cmd proc-name &optional pop internal)
   "Create a python shell comint buffer.
 CMD is the python command to be executed and PROC-NAME is the
 process name the comint buffer will get.  After the comint buffer
-is created the `inferior-python-mode' is activated.  If POP is
-non-nil the buffer is shown."
+is created the `inferior-python-mode' is activated.  When
+optional argument POP is non-nil the buffer is shown.  When
+optional argument INTERNAL is non-nil this process is run on a
+buffer with a name that starts with a space, following the Emacs
+convention for temporary/internal buffers, and also makes sure
+the user is not queried for confirmation when the process is
+killed."
   (save-excursion
-    (let* ((proc-buffer-name (format "*%s*" proc-name))
+    (let* ((proc-buffer-name
+            (format (if (not internal) "*%s*" " *%s*") proc-name))
            (process-environment (python-shell-calculate-process-environment))
            (exec-path (python-shell-calculate-exec-path)))
       (when (not (comint-check-proc proc-buffer-name))
         (let* ((cmdlist (split-string-and-unquote cmd))
-               (buffer (apply 'make-comint proc-name (car cmdlist) nil
-                              (cdr cmdlist)))
-               (current-buffer (current-buffer)))
+               (buffer (apply #'make-comint-in-buffer proc-name proc-buffer-name
+                              (car cmdlist) nil (cdr cmdlist)))
+               (current-buffer (current-buffer))
+               (process (get-buffer-process buffer)))
           (with-current-buffer buffer
             (inferior-python-mode)
-            (python-util-clone-local-variables current-buffer))))
-      (and pop (pop-to-buffer proc-buffer-name t))
+            (python-util-clone-local-variables current-buffer))
+          (accept-process-output process)
+          (and pop (pop-to-buffer buffer t))
+          (and internal (set-process-query-on-exit-flag process nil))))
       proc-buffer-name)))
 
 ;;;###autoload
@@ -1605,21 +1606,23 @@ process buffer for a list of commands.)"
   "Run an inferior Internal Python process.
 Input and output via buffer named after
 `python-shell-internal-buffer-name' and what
-`python-shell-internal-get-process-name' returns.  This new kind
-of shell is intended to be used for generic communication related
-to defined configurations.  The main difference with global or
-dedicated shells is that these ones are attached to a
-configuration, not a buffer.  This means that can be used for
-example to retrieve the sys.path and other stuff, without messing
-with user shells.  Runs the hook
-`inferior-python-mode-hook' (after the `comint-mode-hook' is
-run).  \(Type \\[describe-mode] in the process buffer for a list
-of commands.)"
-  (set-process-query-on-exit-flag
-   (get-buffer-process
-    (python-shell-make-comint
-     (python-shell-parse-command)
-     (python-shell-internal-get-process-name))) nil))
+`python-shell-internal-get-process-name' returns.
+
+This new kind of shell is intended to be used for generic
+communication related to defined configurations, the main
+difference with global or dedicated shells is that these ones are
+attached to a configuration, not a buffer.  This means that can
+be used for example to retrieve the sys.path and other stuff,
+without messing with user shells.  Note that
+`python-shell-enable-font-lock' and `inferior-python-mode-hook'
+are set to nil for these shells, so setup codes are not sent at
+startup."
+  (let ((python-shell-enable-font-lock nil)
+        (inferior-python-mode-hook nil))
+    (get-buffer-process
+     (python-shell-make-comint
+      (python-shell-parse-command)
+      (python-shell-internal-get-process-name) nil t))))
 
 (defun python-shell-get-process ()
   "Get inferior Python process for current buffer and return it."
@@ -1657,12 +1660,25 @@ This is really not necessary at all for the code to work but it's
 there for compatibility with CEDET.")
 (make-variable-buffer-local 'python-shell-internal-buffer)
 
+(defvar python-shell-internal-last-output nil
+  "Last output captured by the internal shell.
+This is really not necessary at all for the code to work but it's
+there for compatibility with CEDET.")
+(make-variable-buffer-local 'python-shell-internal-last-output)
+
 (defun python-shell-internal-get-or-create-process ()
   "Get or create an inferior Internal Python process."
   (let* ((proc-name (python-shell-internal-get-process-name))
-         (proc-buffer-name (format "*%s*" proc-name)))
-    (run-python-internal)
-    (setq python-shell-internal-buffer proc-buffer-name)
+         (proc-buffer-name (format " *%s*" proc-name)))
+    (when (not (process-live-p proc-name))
+      (run-python-internal)
+      (setq python-shell-internal-buffer proc-buffer-name)
+      ;; XXX: Why is this `sit-for' needed?
+      ;; `python-shell-make-comint' calls `accept-process-output'
+      ;; already but it is not helping to get proper output on
+      ;; 'gnu/linux when the internal shell process is not running and
+      ;; a call to `python-shell-internal-send-string' is issued.
+      (sit-for 0.1 t))
     (get-buffer-process proc-buffer-name)))
 
 (define-obsolete-function-alias
@@ -1670,6 +1686,9 @@ there for compatibility with CEDET.")
 
 (define-obsolete-variable-alias
   'python-buffer 'python-shell-internal-buffer "24.2")
+
+(define-obsolete-variable-alias
+  'python-preoutput-result 'python-shell-internal-last-output "24.2")
 
 (defun python-shell-send-string (string &optional process msg)
   "Send STRING to inferior Python PROCESS.
@@ -1722,11 +1741,14 @@ the output."
 (defun python-shell-internal-send-string (string)
   "Send STRING to the Internal Python interpreter.
 Returns the output.  See `python-shell-send-string-no-output'."
-  (python-shell-send-string-no-output
-   ;; Makes this function compatible with the old
-   ;; python-send-receive. (At least for CEDET).
-   (replace-regexp-in-string "_emacs_out +" "" string)
-   (python-shell-internal-get-or-create-process) nil))
+  ;; XXX Remove `python-shell-internal-last-output' once CEDET is
+  ;; updated to support this new mode.
+  (setq python-shell-internal-last-output
+        (python-shell-send-string-no-output
+         ;; Makes this function compatible with the old
+         ;; python-send-receive. (At least for CEDET).
+         (replace-regexp-in-string "_emacs_out +" "" string)
+         (python-shell-internal-get-or-create-process) nil)))
 
 (define-obsolete-function-alias
   'python-send-receive 'python-shell-internal-send-string "24.2")
@@ -1807,7 +1829,6 @@ This function takes the list of setup code to send from the
 `python-shell-setup-codes' list."
   (let ((msg "Sent %s")
         (process (get-buffer-process (current-buffer))))
-    (accept-process-output process python-shell-send-setup-max-wait)
     (dolist (code python-shell-setup-codes)
       (when code
         (message (format msg code))
