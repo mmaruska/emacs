@@ -3211,7 +3211,7 @@ substitute_in_interval (INTERVAL interval, Lisp_Object arg)
   Lisp_Object object      = Fcar (arg);
   Lisp_Object placeholder = Fcdr (arg);
 
-  SUBSTITUTE (interval->plist, interval->plist = true_value);
+  SUBSTITUTE (interval->plist, interval_set_plist (interval, true_value));
 }
 
 
@@ -3715,7 +3715,7 @@ it defaults to the value of `obarray'.  */)
       SET_SYMBOL_VAL (XSYMBOL (sym), sym);
     }
 
-  ptr = &AREF (obarray, XINT(tem));
+  ptr = aref_addr (obarray, XINT(tem));
   if (SYMBOLP (*ptr))
     XSYMBOL (sym)->next = XSYMBOL (*ptr);
   else
@@ -3797,9 +3797,13 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
   if (EQ (AREF (obarray, hash), tem))
     {
       if (XSYMBOL (tem)->next)
-	XSETSYMBOL (AREF (obarray, hash), XSYMBOL (tem)->next);
+	{
+	  Lisp_Object sym;
+	  XSETSYMBOL (sym, XSYMBOL (tem)->next);
+	  ASET (obarray, hash, sym);
+	}
       else
-	XSETINT (AREF (obarray, hash), 0);
+	ASET (obarray, hash, make_number (0));
     }
   else
     {
@@ -3922,13 +3926,13 @@ init_obarray (void)
   /* Fmake_symbol inits fields of new symbols with Qunbound and Qnil,
      so those two need to be fixed manually.  */
   SET_SYMBOL_VAL (XSYMBOL (Qunbound), Qunbound);
-  XSYMBOL (Qunbound)->function = Qunbound;
-  XSYMBOL (Qunbound)->plist = Qnil;
+  SVAR (XSYMBOL (Qunbound), function) = Qunbound;
+  SVAR (XSYMBOL (Qunbound), plist) = Qnil;
   /* XSYMBOL (Qnil)->function = Qunbound; */
   SET_SYMBOL_VAL (XSYMBOL (Qnil), Qnil);
   XSYMBOL (Qnil)->constant = 1;
   XSYMBOL (Qnil)->declared_special = 1;
-  XSYMBOL (Qnil)->plist = Qnil;
+  SVAR (XSYMBOL (Qnil), plist) = Qnil;
 
   Qt = intern_c_string ("t");
   SET_SYMBOL_VAL (XSYMBOL (Qt), Qt);
@@ -3950,7 +3954,7 @@ defsubr (struct Lisp_Subr *sname)
   Lisp_Object sym;
   sym = intern_c_string (sname->symbol_name);
   XSETTYPED_PVECTYPE (sname, size, PVEC_SUBR);
-  XSETSUBR (XSYMBOL (sym)->function, sname);
+  XSETSUBR (SVAR (XSYMBOL (sym), function), sname);
 }
 
 #ifdef NOTDEF /* Use fset in subr.el now!  */
@@ -4121,18 +4125,13 @@ init_lread (void)
    difference between initialized and !initialized in this case,
    so we'll have to do it unconditionally when Vinstallation_directory
    is non-nil.  */
-#ifdef HAVE_NS
-  /* loadpath already includes the app-bundle's site-lisp.  */
-  if (!no_site_lisp && !egetenv ("EMACSLOADPATH") && !loadpath)
-#else
   if (!no_site_lisp && !egetenv ("EMACSLOADPATH"))
-#endif
     {
       Lisp_Object sitelisp;
       sitelisp = decode_env_path (0, PATH_SITELOADSEARCH);
       if (! NILP (sitelisp)) Vload_path = nconc2 (sitelisp, Vload_path);
     }
-#else
+#else  /* !CANNOT_DUMP */
   if (NILP (Vpurify_flag))
     {
       normal = PATH_LOADSEARCH;
@@ -4270,12 +4269,7 @@ init_lread (void)
           load_path_check ();
 
           /* Add the site-lisp directories at the front.  */
-#ifdef HAVE_NS
-          /* loadpath already includes the app-bundle's site-lisp.  */
-          if (!no_site_lisp && !loadpath)
-#else
           if (!no_site_lisp)
-#endif
             {
               Lisp_Object sitelisp;
               sitelisp = decode_env_path (0, PATH_SITELOADSEARCH);
@@ -4299,7 +4293,7 @@ init_lread (void)
          be missing unless something went extremely (and improbably)
          wrong, in which case the build will fail in obvious ways.  */
     }
-#endif  /* CANNOT_DUMP */
+#endif  /* !CANNOT_DUMP */
 
   Vvalues = Qnil;
 
@@ -4323,12 +4317,10 @@ dir_warning (const char *format, Lisp_Object dirname)
   /* Don't log the warning before we've initialized!!  */
   if (initialized)
     {
-      char *buffer;
-      ptrdiff_t message_len;
       USE_SAFE_ALLOCA;
-      SAFE_ALLOCA (buffer, char *,
-		   SBYTES (dirname) + strlen (format) - (sizeof "%s" - 1) + 1);
-      message_len = esprintf (buffer, format, SDATA (dirname));
+      char *buffer = SAFE_ALLOCA (SBYTES (dirname)
+				  + strlen (format) - (sizeof "%s" - 1) + 1);
+      ptrdiff_t message_len = esprintf (buffer, format, SDATA (dirname));
       message_dolog (buffer, message_len, 0, STRING_MULTIBYTE (dirname));
       SAFE_FREE ();
     }

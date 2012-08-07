@@ -215,14 +215,14 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
       if (! NILP (Vlucid_menu_bar_dirty_flag))
 	call0 (Qrecompute_lucid_menubar);
       safe_run_hooks (Qmenu_bar_update_hook);
-      FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
+      FSET (f, menu_bar_items, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
 
       /* Now ready to go */
       items = FRAME_MENU_BAR_ITEMS (f);
 
       /* Save the frame's previous menu bar contents data */
       if (previous_menu_items_used)
-	memcpy (previous_items, &AREF (f->menu_bar_vector, 0),
+	memcpy (previous_items, aref_addr (f->menu_bar_vector, 0),
 		previous_menu_items_used * sizeof (Lisp_Object));
 
       /* parse stage 1: extract from lisp */
@@ -341,7 +341,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
         }
       /* The menu items are different, so store them in the frame */
       /* FIXME: this is not correct for single-submenu case */
-      f->menu_bar_vector = menu_items;
+      FSET (f, menu_bar_vector, menu_items);
       f->menu_bar_items_used = menu_items_used;
 
       /* Calls restore_menu_items, etc., as they were outside */
@@ -939,8 +939,7 @@ ns_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	  /* If this item has a null value,
 	     make the call_data null so that it won't display a box
 	     when the mouse is on it.  */
-	  wv->call_data
-	      = !NILP (def) ? (void *) &AREF (menu_items, i) : 0;
+	  wv->call_data = !NILP (def) ? aref_addr (menu_items, i) : 0;
 	  wv->enabled = !NILP (enable);
 
 	  if (NILP (type))
@@ -1102,7 +1101,7 @@ update_frame_tool_bar (FRAME_PTR f)
       NSDictionary *dict = [toolbar configurationDictionary];
       NSMutableDictionary *newDict = [dict mutableCopy];
       NSEnumerator *keys = [[dict allKeys] objectEnumerator];
-      NSObject *key;
+      id key;
       while ((key = [keys nextObject]) != nil)
         {
           NSObject *val = [dict objectForKey: key];
@@ -1453,7 +1452,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 
     unwind_data->pool = pool;
     unwind_data->dialog = dialog;
-    
+
     record_unwind_protect (pop_down_menu, make_save_value (unwind_data, 0));
     popup_activated_flag = 1;
     tem = [dialog runDialogAt: p];

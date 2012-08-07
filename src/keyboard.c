@@ -2185,14 +2185,7 @@ show_help_echo (Lisp_Object help, Lisp_Object window, Lisp_Object object,
   if (!NILP (help) && !STRINGP (help))
     {
       if (FUNCTIONP (help))
-	{
-	  Lisp_Object args[4];
-	  args[0] = help;
-	  args[1] = window;
-	  args[2] = object;
-	  args[3] = pos;
-	  help = safe_call (4, args);
-	}
+	help = safe_call (4, help, window, object, pos);
       else
 	help = safe_eval (help);
 
@@ -4466,6 +4459,7 @@ timer_check_2 (void)
 	    }
 
 	  nexttime = make_emacs_time (0, 0);
+          break;
 	}
       else
 	/* When we encounter a timer that is still waiting,
@@ -5326,7 +5320,7 @@ make_lispy_event (struct input_event *event)
 {
   int i;
 
-  switch (SWITCH_ENUM_CAST (event->kind))
+  switch (event->kind)
     {
       /* A simple keystroke.  */
     case ASCII_KEYSTROKE_EVENT:
@@ -5558,7 +5552,7 @@ make_lispy_event (struct input_event *event)
 	    mouse_syms = larger_vector (mouse_syms, incr, -1);
 	  }
 
-	start_pos_ptr = &AREF (button_down_location, button);
+	start_pos_ptr = aref_addr (button_down_location, button);
 	start_pos = *start_pos_ptr;
 	*start_pos_ptr = Qnil;
 
@@ -5966,7 +5960,7 @@ make_lispy_event (struct input_event *event)
 	    mouse_syms = larger_vector (mouse_syms, incr, -1);
 	  }
 
-	start_pos_ptr = &AREF (button_down_location, button);
+	start_pos_ptr = aref_addr (button_down_location, button);
 	start_pos = *start_pos_ptr;
 
 	position = make_lispy_position (f, event->x, event->y,
@@ -6487,7 +6481,7 @@ modify_event_symbol (ptrdiff_t symbol_num, int modifiers, Lisp_Object symbol_kin
 	  ptrdiff_t len = (SBYTES (name_alist_or_stem)
 			   + sizeof "-" + INT_STRLEN_BOUND (EMACS_INT));
 	  USE_SAFE_ALLOCA;
-	  SAFE_ALLOCA (buf, char *, len);
+	  buf = SAFE_ALLOCA (len);
 	  esprintf (buf, "%s-%"pI"d", SDATA (name_alist_or_stem),
 		    XINT (symbol_int) + 1);
 	  value = intern (buf);
@@ -7472,7 +7466,7 @@ menu_bar_items (Lisp_Object old)
     if (!NILP (Voverriding_local_map_menu_flag))
       {
 	/* Yes, use them (if non-nil) as well as the global map.  */
-	maps = (Lisp_Object *) alloca (3 * sizeof (maps[0]));
+	maps = alloca (3 * sizeof (maps[0]));
 	nmaps = 0;
 	if (!NILP (KVAR (current_kboard, Voverriding_terminal_local_map)))
 	  maps[nmaps++] = KVAR (current_kboard, Voverriding_terminal_local_map);
@@ -7532,9 +7526,9 @@ menu_bar_items (Lisp_Object old)
 	    tem2 = AREF (menu_bar_items_vector, i + 2);
 	    tem3 = AREF (menu_bar_items_vector, i + 3);
 	    if (end > i + 4)
-	      memmove (&AREF (menu_bar_items_vector, i),
-		       &AREF (menu_bar_items_vector, i + 4),
-		       (end - i - 4) * sizeof (Lisp_Object));
+	      memmove (aref_addr (menu_bar_items_vector, i),
+		       aref_addr (menu_bar_items_vector, i + 4),
+		       (end - i - 4) * word_size);
 	    ASET (menu_bar_items_vector, end - 4, tem0);
 	    ASET (menu_bar_items_vector, end - 3, tem1);
 	    ASET (menu_bar_items_vector, end - 2, tem2);
@@ -7582,9 +7576,9 @@ menu_bar_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy1, void *dumm
 	if (EQ (key, AREF (menu_bar_items_vector, i)))
 	  {
 	    if (menu_bar_items_index > i + 4)
-	      memmove (&AREF (menu_bar_items_vector, i),
-		       &AREF (menu_bar_items_vector, i + 4),
-		       (menu_bar_items_index - i - 4) * sizeof (Lisp_Object));
+	      memmove (aref_addr (menu_bar_items_vector, i),
+		       aref_addr (menu_bar_items_vector, i + 4),
+		       (menu_bar_items_index - i - 4) * word_size);
 	    menu_bar_items_index -= 4;
 	  }
     }
@@ -7901,7 +7895,8 @@ parse_menu_item (Lisp_Object item, int inmenubar)
 		    /* If the command is an alias for another
 		       (such as lmenu.el set it up), check if the
 		       original command matches the cached command.  */
-		    && !(SYMBOLP (def) && EQ (tem, XSYMBOL (def)->function))))
+		    && !(SYMBOLP (def)
+			 && EQ (tem, SVAR (XSYMBOL (def), function)))))
 	      keys = Qnil;
 	  }
 
@@ -8088,7 +8083,7 @@ process_tool_bar_item (Lisp_Object key, Lisp_Object def, Lisp_Object data, void 
 	      if (ntool_bar_items > i + TOOL_BAR_ITEM_NSLOTS)
 		memmove (v, v + TOOL_BAR_ITEM_NSLOTS,
 			 ((ntool_bar_items - i - TOOL_BAR_ITEM_NSLOTS)
-			  * sizeof (Lisp_Object)));
+			  * word_size));
 	      ntool_bar_items -= TOOL_BAR_ITEM_NSLOTS;
 	      break;
 	    }
@@ -8100,6 +8095,14 @@ process_tool_bar_item (Lisp_Object key, Lisp_Object def, Lisp_Object data, void 
     append_tool_bar_item ();
 
   UNGCPRO;
+}
+
+/* Access slot with index IDX of vector tool_bar_item_properties.  */
+#define PROP(IDX) AREF (tool_bar_item_properties, (IDX))
+static inline void
+set_prop (ptrdiff_t idx, Lisp_Object val)
+{
+  ASET (tool_bar_item_properties, idx, val);
 }
 
 
@@ -8152,9 +8155,6 @@ process_tool_bar_item (Lisp_Object key, Lisp_Object def, Lisp_Object data, void 
 static int
 parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
 {
-  /* Access slot with index IDX of vector tool_bar_item_properties.  */
-#define PROP(IDX) AREF (tool_bar_item_properties, (IDX))
-
   Lisp_Object filter = Qnil;
   Lisp_Object caption;
   int i, have_label = 0;
@@ -8178,15 +8178,15 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
   if (VECTORP (tool_bar_item_properties))
     {
       for (i = 0; i < TOOL_BAR_ITEM_NSLOTS; ++i)
-	PROP (i) = Qnil;
+	set_prop (i, Qnil);
     }
   else
     tool_bar_item_properties
       = Fmake_vector (make_number (TOOL_BAR_ITEM_NSLOTS), Qnil);
 
   /* Set defaults.  */
-  PROP (TOOL_BAR_ITEM_KEY) = key;
-  PROP (TOOL_BAR_ITEM_ENABLED_P) = Qt;
+  set_prop (TOOL_BAR_ITEM_KEY, key);
+  set_prop (TOOL_BAR_ITEM_ENABLED_P, Qt);
 
   /* Get the caption of the item.  If the caption is not a string,
      evaluate it to get a string.  If we don't get a string, skip this
@@ -8198,7 +8198,7 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
       if (!STRINGP (caption))
 	return 0;
     }
-  PROP (TOOL_BAR_ITEM_CAPTION) = caption;
+  set_prop (TOOL_BAR_ITEM_CAPTION, caption);
 
   /* If the rest following the caption is not a list, the menu item is
      either a separator, or invalid.  */
@@ -8207,7 +8207,7 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
     {
       if (menu_separator_name_p (SSDATA (caption)))
 	{
-	  PROP (TOOL_BAR_ITEM_TYPE) = Qt;
+	  set_prop (TOOL_BAR_ITEM_TYPE, Qt);
 #if !defined (USE_GTK) && !defined (HAVE_NS)
 	  /* If we use build_desired_tool_bar_string to render the
 	     tool bar, the separator is rendered as an image.  */
@@ -8223,7 +8223,7 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
     }
 
   /* Store the binding.  */
-  PROP (TOOL_BAR_ITEM_BINDING) = XCAR (item);
+  set_prop (TOOL_BAR_ITEM_BINDING, XCAR (item));
   item = XCDR (item);
 
   /* Ignore cached key binding, if any.  */
@@ -8242,9 +8242,9 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
 	{
 	  /* `:enable FORM'.  */
 	  if (!NILP (Venable_disabled_menus_and_buttons))
-	    PROP (TOOL_BAR_ITEM_ENABLED_P) = Qt;
+	    set_prop (TOOL_BAR_ITEM_ENABLED_P, Qt);
 	  else
-	    PROP (TOOL_BAR_ITEM_ENABLED_P) = value;
+	    set_prop (TOOL_BAR_ITEM_ENABLED_P, value);
 	}
       else if (EQ (ikey, QCvisible))
 	{
@@ -8255,17 +8255,16 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
 	}
       else if (EQ (ikey, QChelp))
         /* `:help HELP-STRING'.  */
-        PROP (TOOL_BAR_ITEM_HELP) = value;
+        set_prop (TOOL_BAR_ITEM_HELP, value);
       else if (EQ (ikey, QCvert_only))
         /* `:vert-only t/nil'.  */
-        PROP (TOOL_BAR_ITEM_VERT_ONLY) = value;
+        set_prop (TOOL_BAR_ITEM_VERT_ONLY, value);
       else if (EQ (ikey, QClabel))
         {
           const char *bad_label = "!!?GARBLED ITEM?!!";
           /* `:label LABEL-STRING'.  */
-          PROP (TOOL_BAR_ITEM_LABEL) = STRINGP (value)
-            ? value
-            : build_string (bad_label);
+          set_prop (TOOL_BAR_ITEM_LABEL,
+		    STRINGP (value) ? value : build_string (bad_label));
           have_label = 1;
         }
       else if (EQ (ikey, QCfilter))
@@ -8280,8 +8279,8 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
 	  selected = XCDR (value);
 	  if (EQ (type, QCtoggle) || EQ (type, QCradio))
 	    {
-	      PROP (TOOL_BAR_ITEM_SELECTED_P) = selected;
-	      PROP (TOOL_BAR_ITEM_TYPE) = type;
+	      set_prop (TOOL_BAR_ITEM_SELECTED_P, selected);
+	      set_prop (TOOL_BAR_ITEM_TYPE, type);
 	    }
 	}
       else if (EQ (ikey, QCimage)
@@ -8289,10 +8288,10 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
 		   || (VECTORP (value) && ASIZE (value) == 4)))
 	/* Value is either a single image specification or a vector
 	   of 4 such specifications for the different button states.  */
-	PROP (TOOL_BAR_ITEM_IMAGES) = value;
+	set_prop (TOOL_BAR_ITEM_IMAGES, value);
       else if (EQ (ikey, QCrtl))
         /* ':rtl STRING' */
-	PROP (TOOL_BAR_ITEM_RTL_IMAGE) = value;
+	set_prop (TOOL_BAR_ITEM_RTL_IMAGE, value);
     }
 
 
@@ -8334,18 +8333,19 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
 
       new_lbl = Fupcase_initials (build_string (label));
       if (SCHARS (new_lbl) <= tool_bar_max_label_size)
-        PROP (TOOL_BAR_ITEM_LABEL) = new_lbl;
+        set_prop (TOOL_BAR_ITEM_LABEL, new_lbl);
       else
-        PROP (TOOL_BAR_ITEM_LABEL) = empty_unibyte_string;
+        set_prop (TOOL_BAR_ITEM_LABEL, empty_unibyte_string);
       xfree (buf);
     }
 
   /* If got a filter apply it on binding.  */
   if (!NILP (filter))
-    PROP (TOOL_BAR_ITEM_BINDING)
-      = menu_item_eval_property (list2 (filter,
-					list2 (Qquote,
-					       PROP (TOOL_BAR_ITEM_BINDING))));
+    set_prop (TOOL_BAR_ITEM_BINDING,
+	      (menu_item_eval_property
+	       (list2 (filter,
+		       list2 (Qquote,
+			      PROP (TOOL_BAR_ITEM_BINDING))))));
 
   /* See if the binding is a keymap.  Give up if it is.  */
   if (CONSP (get_keymap (PROP (TOOL_BAR_ITEM_BINDING), 0, 1)))
@@ -8353,13 +8353,13 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
 
   /* Enable or disable selection of item.  */
   if (!EQ (PROP (TOOL_BAR_ITEM_ENABLED_P), Qt))
-    PROP (TOOL_BAR_ITEM_ENABLED_P)
-      = menu_item_eval_property (PROP (TOOL_BAR_ITEM_ENABLED_P));
+    set_prop (TOOL_BAR_ITEM_ENABLED_P,
+	      menu_item_eval_property (PROP (TOOL_BAR_ITEM_ENABLED_P)));
 
   /* Handle radio buttons or toggle boxes.  */
   if (!NILP (PROP (TOOL_BAR_ITEM_SELECTED_P)))
-    PROP (TOOL_BAR_ITEM_SELECTED_P)
-      = menu_item_eval_property (PROP (TOOL_BAR_ITEM_SELECTED_P));
+    set_prop (TOOL_BAR_ITEM_SELECTED_P,
+	      menu_item_eval_property (PROP (TOOL_BAR_ITEM_SELECTED_P)));
 
   return 1;
 
@@ -8830,9 +8830,9 @@ access_keymap_keyremap (Lisp_Object map, Lisp_Object key, Lisp_Object prompt,
   /* Handle a symbol whose function definition is a keymap
      or an array.  */
   if (SYMBOLP (next) && !NILP (Ffboundp (next))
-      && (ARRAYP (XSYMBOL (next)->function)
-	  || KEYMAPP (XSYMBOL (next)->function)))
-    next = Fautoload_do_load (XSYMBOL (next)->function, next, Qnil);
+      && (ARRAYP (SVAR (XSYMBOL (next), function))
+	  || KEYMAPP (SVAR (XSYMBOL (next), function))))
+    next = Fautoload_do_load (SVAR (XSYMBOL (next), function), next, Qnil);
 
   /* If the keymap gives a function, not an
      array, then call the function with one arg and use
@@ -10426,9 +10426,9 @@ DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
     {
       val = Fvector (NUM_RECENT_KEYS, keys);
       memcpy (XVECTOR (val)->contents, keys + recent_keys_index,
-	      (NUM_RECENT_KEYS - recent_keys_index) * sizeof (Lisp_Object));
+	      (NUM_RECENT_KEYS - recent_keys_index) * word_size);
       memcpy (XVECTOR (val)->contents + NUM_RECENT_KEYS - recent_keys_index,
-	      keys, recent_keys_index * sizeof (Lisp_Object));
+	      keys, recent_keys_index * word_size);
       return val;
     }
 }

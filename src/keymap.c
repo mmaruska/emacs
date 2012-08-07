@@ -2069,7 +2069,7 @@ The `kbd' macro is an approximate inverse of this.  */)
     size += XINT (Flength (prefix));
 
   /* This has one extra element at the end that we don't pass to Fconcat.  */
-  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object) / 4 < size)
+  if (min (PTRDIFF_MAX, SIZE_MAX) / word_size / 4 < size)
     memory_full (SIZE_MAX);
   SAFE_ALLOCA_LISP (args, size * 4);
 
@@ -2141,7 +2141,7 @@ The `kbd' macro is an approximate inverse of this.  */)
 		continue;
 	    }
 	  else
-	    XSETINT (key, (XINT (key) | meta_modifier) & ~0x80);
+	    XSETINT (key, XINT (key) | meta_modifier);
 	  add_meta = 0;
 	}
       else if (EQ (key, meta_prefix_char))
@@ -2304,11 +2304,10 @@ around function keys and event symbols.  */)
     {
       if (NILP (no_angles))
 	{
-	  char *buffer;
 	  Lisp_Object result;
 	  USE_SAFE_ALLOCA;
-	  SAFE_ALLOCA (buffer, char *,
-		       sizeof "<>" + SBYTES (SYMBOL_NAME (key)));
+	  char *buffer = SAFE_ALLOCA (sizeof "<>"
+				      + SBYTES (SYMBOL_NAME (key)));
 	  esprintf (buffer, "<%s>", SDATA (SYMBOL_NAME (key)));
 	  result = build_string (buffer);
 	  SAFE_FREE ();
