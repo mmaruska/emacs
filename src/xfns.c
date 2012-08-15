@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <math.h>
 #include <setjmp.h>
-#include <ctype.h>
 #include <unistd.h>
 
 /* This makes the fields of a Display accessible, in Xlib header files.  */
@@ -130,7 +129,6 @@ extern LWLIB_ID widget_id_tick;
 
 int x_in_use;
 
-static Lisp_Object Qnone;
 static Lisp_Object Qsuppress_icon;
 static Lisp_Object Qundefined_color;
 static Lisp_Object Qcompound_text, Qcancel_timer;
@@ -139,10 +137,6 @@ Lisp_Object Qfont_param;
 #ifdef GLYPH_DEBUG
 static ptrdiff_t image_cache_refcount;
 static int dpyinfo_refcount;
-#endif
-
-#if defined (USE_GTK) && defined (HAVE_FREETYPE)
-static char *x_last_font_name;
 #endif
 
 static struct x_display_info *x_display_info_for_name (Lisp_Object);
@@ -3462,7 +3456,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   if (FRAME_HAS_MINIBUF_P (f)
       && (!FRAMEP (KVAR (kb, Vdefault_minibuffer_frame))
           || !FRAME_LIVE_P (XFRAME (KVAR (kb, Vdefault_minibuffer_frame)))))
-    KVAR (kb, Vdefault_minibuffer_frame) = frame;
+    KSET (kb, Vdefault_minibuffer_frame, frame);
 
   /* All remaining specified parameters, which have not been "used"
      by x_get_arg and friends, now go in the misc. alist of the frame.  */
@@ -4592,10 +4586,12 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   XSETFRAME (frame, f);
 
   buffer = Fget_buffer_create (build_string (" *tip*"));
-  Fset_window_buffer (FRAME_ROOT_WINDOW (f), buffer, Qnil);
+  /* Use set_window_buffer instead of Fset_window_buffer (see
+     discussion of bug#11984, bug#12025, bug#12026).  */
+  set_window_buffer (FRAME_ROOT_WINDOW (f), buffer, 0, 0);
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (buffer));
-  BVAR (current_buffer, truncate_lines) = Qnil;
+  BSET (current_buffer, truncate_lines, Qnil);
   specbind (Qinhibit_read_only, Qt);
   specbind (Qinhibit_modification_hooks, Qt);
   Ferase_buffer ();
@@ -5092,7 +5088,7 @@ Text larger than the specified size is clipped.  */)
   /* Display the tooltip text in a temporary buffer.  */
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (XWINDOW (FRAME_ROOT_WINDOW (f))->buffer));
-  BVAR (current_buffer, truncate_lines) = Qnil;
+  BSET (current_buffer, truncate_lines, Qnil);
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
   SET_TEXT_POS (pos, BEGV, BEGV_BYTE);
@@ -5582,14 +5578,15 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
 #ifdef HAVE_FREETYPE
 
 DEFUN ("x-select-font", Fx_select_font, Sx_select_font, 0, 2, 0,
-       doc: /* Read a font name using a GTK font selection dialog.
-Return a GTK-style font string corresponding to the selection.
+       doc: /* Read a font using a GTK dialog.
+Return either a font spec (for GTK versions >= 3.2) or a string
+containing a GTK-style font name.
 
-If FRAME is omitted or nil, it defaults to the selected frame. */)
+FRAME is the frame on which to pop up the font chooser.  If omitted or
+nil, it defaults to the selected frame. */)
   (Lisp_Object frame, Lisp_Object ignored)
 {
   FRAME_PTR f = check_x_frame (frame);
-  char *name;
   Lisp_Object font;
   Lisp_Object font_param;
   char *default_name = NULL;
@@ -5620,31 +5617,8 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
         default_name = xstrdup (SSDATA (font_param));
     }
 
-  if (default_name == NULL && x_last_font_name != NULL)
-    default_name = xstrdup (x_last_font_name);
-
-  /* Convert fontconfig names to Gtk names, i.e. remove - before number */
-  if (default_name)
-    {
-      char *p = strrchr (default_name, '-');
-      if (p)
-        {
-          char *ep = p+1;
-          while (isdigit (*ep))
-            ++ep;
-          if (*ep == '\0') *p = ' ';
-        }
-    }
-
-  name = xg_get_font_name (f, default_name);
+  font = xg_get_font (f, default_name);
   xfree (default_name);
-
-  if (name)
-    {
-      font = build_string (name);
-      g_free (x_last_font_name);
-      x_last_font_name = name;
-    }
 
   UNBLOCK_INPUT;
 
@@ -5814,7 +5788,6 @@ syms_of_xfns (void)
   /* The section below is built by the lisp expression at the top of the file,
      just above where these variables are declared.  */
   /*&&& init symbols here &&&*/
-  DEFSYM (Qnone, "none");
   DEFSYM (Qsuppress_icon, "suppress-icon");
   DEFSYM (Qundefined_color, "undefined-color");
   DEFSYM (Qcompound_text, "compound-text");
@@ -6011,7 +5984,6 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
 
 #if defined (USE_GTK) && defined (HAVE_FREETYPE)
   defsubr (&Sx_select_font);
-  x_last_font_name = NULL;
 #endif
 }
 

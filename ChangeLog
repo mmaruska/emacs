@@ -1,3 +1,24 @@
+2012-08-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, incorporating:
+	2012-08-05 extern-inline: also ignore -Wmissing-declarations
+
+2012-08-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lib/makefile.w32-in (STAT_TIME_H): New macro.
+	(FTOASTR_C, $(BLD)/stat-time.$(O), $(BLD)/timespec.$(O))
+	($(BLD)/u64.$(O)): Update dependencies.
+
+2012-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* configure.ac (DIRECTORY_SEP): Move here from src/lisp.h.
+
+2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* configure.ac (--disable-features): Rename to --without-all.
+	(OPTION_DEFAULT_ON): Change to use with_features.
+	* INSTALL: Fix description.
+
 2012-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* configure.ac: New option --disable-features.

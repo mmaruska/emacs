@@ -93,7 +93,6 @@ static HWND hourglass_hwnd = NULL;
 
 static int w32_in_use;
 
-Lisp_Object Qnone;
 Lisp_Object Qsuppress_icon;
 Lisp_Object Qundefined_color;
 Lisp_Object Qcancel_timer;
@@ -188,6 +187,8 @@ static int image_cache_refcount, dpyinfo_refcount;
 #endif
 
 static HWND w32_visible_system_caret_hwnd;
+
+static int w32_unicode_gui;
 
 /* From w32menu.c  */
 extern HMENU current_popup_menu;
@@ -1780,23 +1781,37 @@ w32_load_cursor (LPCTSTR name)
 
 static LRESULT CALLBACK w32_wnd_proc (HWND, UINT, WPARAM, LPARAM);
 
+#define INIT_WINDOW_CLASS(WC)			  \
+  (WC).style = CS_HREDRAW | CS_VREDRAW;		  \
+  (WC).lpfnWndProc = (WNDPROC) w32_wnd_proc;      \
+  (WC).cbClsExtra = 0;                            \
+  (WC).cbWndExtra = WND_EXTRA_BYTES;              \
+  (WC).hInstance = hinst;                         \
+  (WC).hIcon = LoadIcon (hinst, EMACS_CLASS);     \
+  (WC).hCursor = w32_load_cursor (IDC_ARROW);     \
+  (WC).hbrBackground = NULL;                      \
+  (WC).lpszMenuName = NULL;                       \
+
 static BOOL
 w32_init_class (HINSTANCE hinst)
 {
-  WNDCLASS wc;
 
-  wc.style = CS_HREDRAW | CS_VREDRAW;
-  wc.lpfnWndProc = (WNDPROC) w32_wnd_proc;
-  wc.cbClsExtra = 0;
-  wc.cbWndExtra = WND_EXTRA_BYTES;
-  wc.hInstance = hinst;
-  wc.hIcon = LoadIcon (hinst, EMACS_CLASS);
-  wc.hCursor = w32_load_cursor (IDC_ARROW);
-  wc.hbrBackground = NULL; /* GetStockObject (WHITE_BRUSH);  */
-  wc.lpszMenuName = NULL;
-  wc.lpszClassName = EMACS_CLASS;
+  if (w32_unicode_gui)
+    {
+      WNDCLASSW  uwc;
+      INIT_WINDOW_CLASS(uwc);
+      uwc.lpszClassName = L"Emacs";
 
-  return (RegisterClass (&wc));
+      return RegisterClassW (&uwc);
+    }
+  else
+    {
+      WNDCLASS  wc;
+      INIT_WINDOW_CLASS(wc);
+      wc.lpszClassName = EMACS_CLASS;
+
+      return RegisterClassA (&wc);
+    }
 }
 
 static HWND
@@ -2246,7 +2261,7 @@ w32_msg_pump (deferred_msg * msg_buf)
 
   msh_mousewheel = RegisterWindowMessage (MSH_MOUSEWHEEL);
 
-  while (GetMessage (&msg, NULL, 0, 0))
+  while ((w32_unicode_gui ? GetMessageW : GetMessageA) (&msg, NULL, 0, 0))
     {
       if (msg.hwnd == NULL)
 	{
@@ -2341,7 +2356,10 @@ w32_msg_pump (deferred_msg * msg_buf)
 	}
       else
 	{
-	  DispatchMessage (&msg);
+	  if (w32_unicode_gui)
+	    DispatchMessageW (&msg);
+	  else
+	    DispatchMessageA (&msg);
 	}
 
       /* Exit nested loop when our deferred message has completed.  */
@@ -2918,8 +2936,18 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     case WM_SYSCHAR:
     case WM_CHAR:
-      post_character_message (hwnd, msg, wParam, lParam,
-			      w32_get_key_modifiers (wParam, lParam));
+      if (wParam > 255 )
+        {
+          W32Msg wmsg;
+
+          wmsg.dwModifiers = w32_get_key_modifiers (wParam, lParam);
+          signal_user_input ();
+          my_post_msg (&wmsg, hwnd, WM_UNICHAR, wParam, lParam);
+
+        }
+      else
+        post_character_message (hwnd, msg, wParam, lParam,
+                                w32_get_key_modifiers (wParam, lParam));
       break;
 
     case WM_UNICHAR:
@@ -3801,7 +3829,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 
     dflt:
-      return DefWindowProc (hwnd, msg, wParam, lParam);
+      return (w32_unicode_gui ? DefWindowProcW :  DefWindowProcA) (hwnd, msg, wParam, lParam);
     }
 
   /* The most common default return code for handled messages is 0.  */
@@ -4353,7 +4381,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   if (FRAME_HAS_MINIBUF_P (f)
       && (!FRAMEP (KVAR (kb, Vdefault_minibuffer_frame))
           || !FRAME_LIVE_P (XFRAME (KVAR (kb, Vdefault_minibuffer_frame)))))
-    KVAR (kb, Vdefault_minibuffer_frame) = frame;
+    KSET (kb, Vdefault_minibuffer_frame, frame);
 
   /* All remaining specified parameters, which have not been "used"
      by x_get_arg and friends, now go in the misc. alist of the frame.  */
@@ -5209,10 +5237,12 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   XSETFRAME (frame, f);
 
   buffer = Fget_buffer_create (build_string (" *tip*"));
-  Fset_window_buffer (FRAME_ROOT_WINDOW (f), buffer, Qnil);
+  /* Use set_window_buffer instead of Fset_window_buffer (see
+     discussion of bug#11984, bug#12025, bug#12026).  */
+  set_window_buffer (FRAME_ROOT_WINDOW (f), buffer, 0, 0);
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (buffer));
-  BVAR (current_buffer, truncate_lines) = Qnil;
+  BSET (current_buffer, truncate_lines, Qnil);
   specbind (Qinhibit_read_only, Qt);
   specbind (Qinhibit_modification_hooks, Qt);
   Ferase_buffer ();
@@ -5642,7 +5672,7 @@ Text larger than the specified size is clipped.  */)
   /* Display the tooltip text in a temporary buffer.  */
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (XWINDOW (FRAME_ROOT_WINDOW (f))->buffer));
-  BVAR (current_buffer, truncate_lines) = Qnil;
+  BSET (current_buffer, truncate_lines, Qnil);
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
   SET_TEXT_POS (pos, BEGV, BEGV_BYTE);
@@ -6779,7 +6809,6 @@ syms_of_w32fns (void)
 
   w32_visible_system_caret_hwnd = NULL;
 
-  DEFSYM (Qnone, "none");
   DEFSYM (Qsuppress_icon, "suppress-icon");
   DEFSYM (Qundefined_color, "undefined-color");
   DEFSYM (Qcancel_timer, "cancel-timer");
@@ -7153,6 +7182,11 @@ globals_of_w32fns (void)
 	      w32_ansi_code_page,
 	      doc: /* The ANSI code page used by the system.  */);
   w32_ansi_code_page = GetACP ();
+
+  if (os_subtype == OS_NT)
+    w32_unicode_gui = 1;
+  else
+    w32_unicode_gui = 0;
 
   /* MessageBox does not work without this when linked to comctl32.dll 6.0.  */
   InitCommonControls ();

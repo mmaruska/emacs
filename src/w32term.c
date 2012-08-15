@@ -5493,7 +5493,7 @@ x_set_offset (struct frame *f, register int xoff, register int yoff,
 
 
 /* Check if we need to resize the frame due to a fullscreen request.
-   If so needed, resize the frame. */
+   If so needed, resize the frame.  */
 static void
 x_check_fullscreen (struct frame *f)
 {
@@ -5513,7 +5513,7 @@ x_check_fullscreen (struct frame *f)
           SET_FRAME_GARBAGED (f);
           cancel_mouse_face (f);
 
-          /* Wait for the change of frame size to occur */
+          /* Wait for the change of frame size to occur.  */
           f->want_fullscreen |= FULLSCREEN_WAIT;
         }
     }
@@ -6232,7 +6232,7 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
      terminal like X does.  */
   terminal->kboard = xmalloc (sizeof (KBOARD));
   init_kboard (terminal->kboard);
-  KVAR (terminal->kboard, Vwindow_system) = intern ("w32");
+  KSET (terminal->kboard, Vwindow_system, intern ("w32"));
   terminal->kboard->next_kboard = all_kboards;
   all_kboards = terminal->kboard;
   /* Don't let the initial kboard remain current longer than necessary.

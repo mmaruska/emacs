@@ -139,7 +139,7 @@ static unsigned convert_ns_to_X_keysym[] =
 };
 
 static Lisp_Object Qmodifier_value;
-Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper, Qnone;
+Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper;
 extern Lisp_Object Qcursor_color, Qcursor_type, Qns, Qleft;
 
 static Lisp_Object QUTF8_STRING;
@@ -4051,7 +4051,7 @@ ns_term_init (Lisp_Object display_name)
 
   terminal->kboard = xmalloc (sizeof *terminal->kboard);
   init_kboard (terminal->kboard);
-  KVAR (terminal->kboard, Vwindow_system) = Qns;
+  KSET (terminal->kboard, Vwindow_system, Qns);
   terminal->kboard->next_kboard = all_kboards;
   all_kboards = terminal->kboard;
   /* Don't let the initial kboard remain current longer than necessary.
@@ -4448,11 +4448,20 @@ ns_term_shutdown (int sig)
     return NSTerminateNow;  /* just in case */
 }
 
+static int
+not_in_argv (NSString *arg)
+{
+  int k;
+  const char *a = [arg UTF8String];
+  for (k = 1; k < initial_argc; ++k)
+    if (strcmp (a, initial_argv[k]) == 0) return 0;
+  return 1;
+}
 
 /*   Notification from the Workspace to open a file */
 - (BOOL)application: sender openFile: (NSString *)file
 {
-  if (ns_do_open_file)
+  if (ns_do_open_file || not_in_argv (file))
     [ns_pending_files addObject: file];
   return YES;
 }
@@ -4461,7 +4470,7 @@ ns_term_shutdown (int sig)
 /*   Open a file as a temporary file */
 - (BOOL)application: sender openTempFile: (NSString *)file
 {
-  if (ns_do_open_file)
+  if (ns_do_open_file || not_in_argv (file))
     [ns_pending_files addObject: file];
   return YES;
 }
@@ -4470,25 +4479,22 @@ ns_term_shutdown (int sig)
 /*   Notification from the Workspace to open a file noninteractively (?) */
 - (BOOL)application: sender openFileWithoutUI: (NSString *)file
 {
-  if (ns_do_open_file)
+  if (ns_do_open_file || not_in_argv (file))
     [ns_pending_files addObject: file];
   return YES;
 }
 
-
 /*   Notification from the Workspace to open multiple files */
 - (void)application: sender openFiles: (NSArray *)fileList
 {
-  /* Don't open files from the command line, Cocoa parses the command line
-     wrong anyway, --option value tries to open value if --option is the last
-     option.  */
-  if (ns_do_open_file)
-    {
-      NSEnumerator *files = [fileList objectEnumerator];
-      NSString *file;
-      while ((file = [files nextObject]) != nil)
-        [ns_pending_files addObject: file];
-    }
+  NSEnumerator *files = [fileList objectEnumerator];
+  NSString *file;
+  /* Don't open files from the command line unconditionally,
+     Cocoa parses the command line wrong, --option value tries to open value
+     if --option is the last option.  */
+  while ((file = [files nextObject]) != nil) 
+    if (ns_do_open_file || not_in_argv (file))
+      [ns_pending_files addObject: file];
   
   [self replyToOpenOrPrint: NSApplicationDelegateReplySuccess];
 
@@ -6706,7 +6712,6 @@ syms_of_nsterm (void)
   DEFSYM (Qmeta, "meta");
   DEFSYM (Qsuper, "super");
   DEFSYM (Qcontrol, "control");
-  DEFSYM (Qnone, "none");
   DEFSYM (QUTF8_STRING, "UTF8_STRING");
 
   Fput (Qalt, Qmodifier_value, make_number (alt_modifier));

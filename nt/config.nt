@@ -1,7 +1,6 @@
 /* GNU Emacs site configuration template file.
 
-Copyright (C) 1988, 1993-1994, 2001-2012
-  Free Software Foundation, Inc.
+Copyright (C) 1988, 1993-1994, 2001-2012 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -130,6 +129,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
 #undef DGUX
+
+/* Character that separates directories in a file name. */
+#define DIRECTORY_SEP '/'
 
 /* Define if dispnew.c should include stdio_ext.h. */
 #undef DISPNEW_NEEDS_STDIO_EXT
@@ -1411,7 +1413,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef USG_SUBTTY_WORKS
 
 /* Version number of package */
-#define VERSION "24.1.50"
+#define VERSION "24.2.50"
 
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'wchar_t'. */
@@ -1561,7 +1563,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # if (__GNUC__ == 4 && 6 <= __GNUC_MINOR__) || 4 < __GNUC__
 #  define _GL_INLINE_HEADER_BEGIN \
      _Pragma ("GCC diagnostic push") \
-     _Pragma ("GCC diagnostic ignored \"-Wmissing-prototypes\"")
+     _Pragma ("GCC diagnostic ignored \"-Wmissing-prototypes\"") \
+     _Pragma ("GCC diagnostic ignored \"-Wmissing-declarations\"")
 #  define _GL_INLINE_HEADER_END \
      _Pragma ("GCC diagnostic pop")
 # endif

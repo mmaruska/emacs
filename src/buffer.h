@@ -193,9 +193,6 @@ INLINE_HEADER_BEGIN
 /* FIXME: should we move this into ->text->auto_save_modiff?  */
 #define BUF_AUTOSAVE_MODIFF(buf) ((buf)->auto_save_modified)
 
-/* Interval tree of buffer.  */
-#define BUF_INTERVALS(buf) ((buf)->text->intervals)
-
 /* Marker chain of buffer.  */
 #define BUF_MARKERS(buf) ((buf)->text->markers)
 
@@ -480,6 +477,7 @@ struct buffer_text
 /* Most code should use this macro to access Lisp fields in struct buffer.  */
 
 #define BVAR(buf, field) ((buf)->INTERNAL_FIELD (field))
+#define BSET(buf, field, value) ((buf)->INTERNAL_FIELD (field) = (value))
 
 /* This is the structure that the buffer Lisp object points to.  */
 
@@ -951,7 +949,47 @@ extern void mmap_set_vars (int);
 extern Lisp_Object Qbefore_change_functions;
 extern Lisp_Object Qafter_change_functions;
 extern Lisp_Object Qfirst_change_hook;
-
+
+/* Get text properties of B.  */
+
+BUFFER_INLINE INTERVAL
+buffer_get_intervals (struct buffer *b)
+{
+  eassert (b->text != NULL);
+  return b->text->intervals;
+}
+
+/* Set text properties of B to I.  */
+
+BUFFER_INLINE void
+buffer_set_intervals (struct buffer *b, INTERVAL i)
+{
+  eassert (b->text != NULL);
+  b->text->intervals = i;
+}
+
+/* Set an appropriate overlay of B.  */
+
+BUFFER_INLINE void
+buffer_set_overlays_before (struct buffer *b, struct Lisp_Overlay *o)
+{
+  b->overlays_before = o;
+}
+
+BUFFER_INLINE void
+buffer_set_overlays_after (struct buffer *b, struct Lisp_Overlay *o)
+{
+  b->overlays_after = o;
+}
+
+/* Non-zero if current buffer has overlays.  */
+
+BUFFER_INLINE int
+buffer_has_overlays (void)
+{
+  return current_buffer->overlays_before || current_buffer->overlays_after;
+}
+
 /* Return character code of multi-byte form at byte position POS.  If POS
    doesn't point the head of valid multi-byte form, only the byte at
    POS is returned.  No range checking.
@@ -991,15 +1029,15 @@ BUF_FETCH_MULTIBYTE_CHAR (struct buffer *buf, ptrdiff_t pos)
 
 /* Return the marker that stands for where OV starts in the buffer.  */
 
-#define OVERLAY_START(OV) MVAR (XOVERLAY (OV), start)
+#define OVERLAY_START(OV) XOVERLAY (OV)->start
 
 /* Return the marker that stands for where OV ends in the buffer.  */
 
-#define OVERLAY_END(OV) MVAR (XOVERLAY (OV), end)
+#define OVERLAY_END(OV) XOVERLAY (OV)->end
 
 /* Return the plist of overlay OV.  */
 
-#define OVERLAY_PLIST(OV) MVAR (XOVERLAY (OV), plist)
+#define OVERLAY_PLIST(OV) XOVERLAY (OV)->plist
 
 /* Return the actual buffer position for the marker P.
    We assume you know which buffer it's pointing into.  */

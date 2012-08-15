@@ -628,7 +628,7 @@ concat (ptrdiff_t nargs, Lisp_Object *args,
 	  ptrdiff_t thislen_byte = SBYTES (this);
 
 	  memcpy (SDATA (val) + toindex_byte, SDATA (this), SBYTES (this));
-	  if (! NULL_INTERVAL_P (STRING_INTERVALS (this)))
+	  if (string_get_intervals (this))
 	    {
 	      textprops[num_textprops].argnum = argnum;
 	      textprops[num_textprops].from = 0;
@@ -640,7 +640,7 @@ concat (ptrdiff_t nargs, Lisp_Object *args,
       /* Copy a single-byte string to a multibyte string.  */
       else if (STRINGP (this) && STRINGP (val))
 	{
-	  if (! NULL_INTERVAL_P (STRING_INTERVALS (this)))
+	  if (string_get_intervals (this))
 	    {
 	      textprops[num_textprops].argnum = argnum;
 	      textprops[num_textprops].from = 0;
@@ -1060,7 +1060,7 @@ If you're not sure, whether to use `string-as-multibyte' or
 	str_as_multibyte (SDATA (new_string), nbytes,
 			  SBYTES (string), NULL);
       string = new_string;
-      STRING_SET_INTERVALS (string, NULL_INTERVAL);
+      string_set_intervals (string, NULL);
     }
   return string;
 }
@@ -1868,7 +1868,7 @@ This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.  */)
   (Lisp_Object symbol, Lisp_Object propname)
 {
   CHECK_SYMBOL (symbol);
-  return Fplist_get (SVAR (XSYMBOL (symbol), plist), propname);
+  return Fplist_get (XSYMBOL (symbol)->plist, propname);
 }
 
 DEFUN ("plist-put", Fplist_put, Splist_put, 3, 3, 0,
@@ -1910,8 +1910,8 @@ It can be retrieved with `(get SYMBOL PROPNAME)'.  */)
   (Lisp_Object symbol, Lisp_Object propname, Lisp_Object value)
 {
   CHECK_SYMBOL (symbol);
-  SVAR (XSYMBOL (symbol), plist)
-    = Fplist_put (SVAR (XSYMBOL (symbol), plist), propname, value);
+  set_symbol_plist
+    (symbol, Fplist_put (XSYMBOL (symbol)->plist, propname, value));
   return value;
 }
 
@@ -2053,8 +2053,8 @@ internal_equal (register Lisp_Object o1, register Lisp_Object o2, int depth, int
 	      || !internal_equal (OVERLAY_END (o1), OVERLAY_END (o2),
 				  depth + 1, props))
 	    return 0;
-	  o1 = MVAR (XOVERLAY (o1), plist);
-	  o2 = MVAR (XOVERLAY (o2), plist);
+	  o1 = XOVERLAY (o1)->plist;
+	  o2 = XOVERLAY (o2)->plist;
 	  goto tail_recurse;
 	}
       if (MARKERP (o1))

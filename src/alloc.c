@@ -228,7 +228,7 @@ static ptrdiff_t pure_bytes_used_before_overflow;
 #define PURE_POINTER_P(P)					\
   ((uintptr_t) (P) - (uintptr_t) purebeg <= pure_size)
 
-/* Index in pure at which next pure Lisp object will be allocated.. */
+/* Index in pure at which next pure Lisp object will be allocated..  */
 
 static ptrdiff_t pure_bytes_used_lisp;
 
@@ -254,6 +254,14 @@ static char *stack_copy;
 static ptrdiff_t stack_copy_size;
 #endif
 
+static Lisp_Object Qconses;
+static Lisp_Object Qsymbols;
+static Lisp_Object Qmiscs;
+static Lisp_Object Qstrings;
+static Lisp_Object Qvectors;
+static Lisp_Object Qfloats;
+static Lisp_Object Qintervals;
+static Lisp_Object Qbuffers;
 static Lisp_Object Qstring_bytes, Qvector_slots, Qheap;
 static Lisp_Object Qgc_cons_threshold;
 Lisp_Object Qchar_table_extra_slots;
@@ -1542,36 +1550,14 @@ mark_interval (register INTERVAL i, Lisp_Object dummy)
   mark_object (i->plist);
 }
 
-
-/* Mark the interval tree rooted in TREE.  Don't call this directly;
-   use the macro MARK_INTERVAL_TREE instead.  */
-
-static void
-mark_interval_tree (register INTERVAL tree)
-{
-  /* No need to test if this tree has been marked already; this
-     function is always called through the MARK_INTERVAL_TREE macro,
-     which takes care of that.  */
-
-  traverse_intervals_noorder (tree, mark_interval, Qnil);
-}
-
-
 /* Mark the interval tree rooted in I.  */
 
-#define MARK_INTERVAL_TREE(i)				\
-  do {							\
-    if (!NULL_INTERVAL_P (i) && !i->gcmarkbit)		\
-      mark_interval_tree (i);				\
+#define MARK_INTERVAL_TREE(i)					\
+  do {								\
+    if (i && !i->gcmarkbit)					\
+      traverse_intervals_noorder (i, mark_interval, Qnil);	\
   } while (0)
 
-
-#define UNMARK_BALANCE_INTERVALS(i)			\
-  do {							\
-   if (! NULL_INTERVAL_P (i))				\
-     (i) = balance_intervals (i);			\
-  } while (0)
-
 /***********************************************************************
 			  String Allocation
  ***********************************************************************/
@@ -2100,8 +2086,8 @@ sweep_strings (void)
 		  /* String is live; unmark it and its intervals.  */
 		  UNMARK_STRING (s);
 
-		  if (!NULL_INTERVAL_P (s->intervals))
-		    UNMARK_BALANCE_INTERVALS (s->intervals);
+		  /* Do not use string_(set|get)_intervals here.  */
+		  s->intervals = balance_intervals (s->intervals);
 
 		  ++total_strings;
 		  total_string_bytes += STRING_BYTES (s);
@@ -2502,7 +2488,7 @@ make_uninit_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes)
     return empty_multibyte_string;
 
   s = allocate_string ();
-  s->intervals = NULL_INTERVAL;
+  s->intervals = NULL;
   allocate_string_data (s, nchars, nbytes);
   XSETSTRING (string, s);
   string_chars_consed += nbytes;
@@ -2691,7 +2677,7 @@ free_cons (struct Lisp_Cons *ptr)
 {
   ptr->u.chain = cons_free_list;
 #if GC_MARK_STACK
-  CVAR (ptr, car) = Vdead;
+  ptr->car = Vdead;
 #endif
   cons_free_list = ptr;
   consing_since_gc -= sizeof *ptr;
@@ -3522,12 +3508,12 @@ Its value and function definition are void, and its property list is nil.  */)
   MALLOC_UNBLOCK_INPUT;
 
   p = XSYMBOL (val);
-  SVAR (p, xname) = name;
-  SVAR (p, plist) = Qnil;
+  set_symbol_name (val, name);
+  set_symbol_plist (val, Qnil);
   p->redirect = SYMBOL_PLAINVAL;
   SET_SYMBOL_VAL (p, Qunbound);
-  SVAR (p, function) = Qunbound;
-  p->next = NULL;
+  set_symbol_function (val, Qunbound);
+  set_symbol_next (val, NULL);
   p->gcmarkbit = 0;
   p->interned = SYMBOL_UNINTERNED;
   p->constant = 0;
@@ -3654,7 +3640,7 @@ build_overlay (Lisp_Object start, Lisp_Object end, Lisp_Object plist)
   overlay = allocate_misc (Lisp_Misc_Overlay);
   OVERLAY_START (overlay) = start;
   OVERLAY_END (overlay) = end;
-  OVERLAY_PLIST (overlay) = plist;
+  set_overlay_plist (overlay, plist);
   XOVERLAY (overlay)->next = NULL;
   return overlay;
 }
@@ -4299,7 +4285,7 @@ live_cons_p (struct mem_node *m, void *p)
 	      && offset < (CONS_BLOCK_SIZE * sizeof b->conses[0])
 	      && (b != cons_block
 		  || offset / sizeof b->conses[0] < cons_block_index)
-	      && !EQ (CVAR ((struct Lisp_Cons *) p, car), Vdead));
+	      && !EQ (((struct Lisp_Cons *) p)->car, Vdead));
     }
   else
     return 0;
@@ -4325,7 +4311,7 @@ live_symbol_p (struct mem_node *m, void *p)
 	      && offset < (SYMBOL_BLOCK_SIZE * sizeof b->symbols[0])
 	      && (b != symbol_block
 		  || offset / sizeof b->symbols[0] < symbol_block_index)
-	      && !EQ (SVAR (((struct Lisp_Symbol *)p), function), Vdead));
+	      && !EQ (((struct Lisp_Symbol *)p)->function, Vdead));
     }
   else
     return 0;
@@ -5221,7 +5207,7 @@ make_pure_string (const char *data,
     }
   s->size = nchars;
   s->size_byte = multibyte ? nbytes : -1;
-  s->intervals = NULL_INTERVAL;
+  s->intervals = NULL;
   XSETSTRING (string, s);
   return string;
 }
@@ -5237,7 +5223,7 @@ make_pure_c_string (const char *data, ptrdiff_t nchars)
   s->size = nchars;
   s->size_byte = -1;
   s->data = (unsigned char *) data;
-  s->intervals = NULL_INTERVAL;
+  s->intervals = NULL;
   XSETSTRING (string, s);
   return string;
 }
@@ -5408,9 +5394,9 @@ See Info node `(elisp)Garbage Collection'.  */)
   char stack_top_variable;
   ptrdiff_t i;
   int message_p;
-  Lisp_Object total[11];
   ptrdiff_t count = SPECPDL_INDEX ();
   EMACS_TIME start;
+  Lisp_Object retval = Qnil;
 
   if (abort_on_gc)
     abort ();
@@ -5629,59 +5615,62 @@ See Info node `(elisp)Garbage Collection'.  */)
     }
 
   unbind_to (count, Qnil);
+  {
+    Lisp_Object total[11];
+    int total_size = 10;
 
-  total[0] = list4 (Qcons, make_number (sizeof (struct Lisp_Cons)),
-		    bounded_number (total_conses),
-                    bounded_number (total_free_conses));
+    total[0] = list4 (Qconses, make_number (sizeof (struct Lisp_Cons)),
+		      bounded_number (total_conses),
+		      bounded_number (total_free_conses));
 
-  total[1] = list4 (Qsymbol, make_number (sizeof (struct Lisp_Symbol)),
-		    bounded_number (total_symbols),
-                    bounded_number (total_free_symbols));
+    total[1] = list4 (Qsymbols, make_number (sizeof (struct Lisp_Symbol)),
+		      bounded_number (total_symbols),
+		      bounded_number (total_free_symbols));
 
-  total[2] = list4 (Qmisc, make_number (sizeof (union Lisp_Misc)),
-		    bounded_number (total_markers),
-		    bounded_number (total_free_markers));
+    total[2] = list4 (Qmiscs, make_number (sizeof (union Lisp_Misc)),
+		      bounded_number (total_markers),
+		      bounded_number (total_free_markers));
 
-  total[3] = list4 (Qstring, make_number (sizeof (struct Lisp_String)),
-		    bounded_number (total_strings),
-		    bounded_number (total_free_strings));
+    total[3] = list4 (Qstrings, make_number (sizeof (struct Lisp_String)),
+		      bounded_number (total_strings),
+		      bounded_number (total_free_strings));
 
-  total[4] = list3 (Qstring_bytes, make_number (1),
-		    bounded_number (total_string_bytes));
+    total[4] = list3 (Qstring_bytes, make_number (1),
+		      bounded_number (total_string_bytes));
 
-  total[5] = list3 (Qvector, make_number (sizeof (struct Lisp_Vector)),
-		    bounded_number (total_vectors));
+    total[5] = list3 (Qvectors, make_number (sizeof (struct Lisp_Vector)),
+		      bounded_number (total_vectors));
 
-  total[6] = list4 (Qvector_slots, make_number (word_size),
-		    bounded_number (total_vector_slots),
-		    bounded_number (total_free_vector_slots));
+    total[6] = list4 (Qvector_slots, make_number (word_size),
+		      bounded_number (total_vector_slots),
+		      bounded_number (total_free_vector_slots));
 
-  total[7] = list4 (Qfloat, make_number (sizeof (struct Lisp_Float)),
-		    bounded_number (total_floats),
-                    bounded_number (total_free_floats));
+    total[7] = list4 (Qfloats, make_number (sizeof (struct Lisp_Float)),
+		      bounded_number (total_floats),
+		      bounded_number (total_free_floats));
 
-  total[8] = list4 (Qinterval, make_number (sizeof (struct interval)),
-		    bounded_number (total_intervals),
-                    bounded_number (total_free_intervals));
+    total[8] = list4 (Qintervals, make_number (sizeof (struct interval)),
+		      bounded_number (total_intervals),
+		      bounded_number (total_free_intervals));
 
-  total[9] = list3 (Qbuffer, make_number (sizeof (struct buffer)),
-		    bounded_number (total_buffers));
+    total[9] = list3 (Qbuffers, make_number (sizeof (struct buffer)),
+		      bounded_number (total_buffers));
 
-  total[10] = list4 (Qheap, make_number (1024),
 #ifdef DOUG_LEA_MALLOC
-		     bounded_number ((mallinfo ().uordblks + 1023) >> 10),
-		     bounded_number ((mallinfo ().fordblks + 1023) >> 10)
-#else
-		     Qnil, Qnil
+    total_size++;
+    total[10] = list4 (Qheap, make_number (1024),
+                       bounded_number ((mallinfo ().uordblks + 1023) >> 10),
+                       bounded_number ((mallinfo ().fordblks + 1023) >> 10));
 #endif
-		     );
+    retval = Flist (total_size, total);
+  }
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
   {
     /* Compute average percentage of zombies.  */
-    double nlive =
-      (total_conses + total_symbols + total_markers + total_strings
-       + total_vectors + total_floats + total_intervals + total_buffers);
+    double nlive
+      = (total_conses + total_symbols + total_markers + total_strings
+         + total_vectors + total_floats + total_intervals + total_buffers);
 
     avg_live = (avg_live * ngcs + nlive) / (ngcs + 1);
     max_live = max (nlive, max_live);
@@ -5708,7 +5697,7 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   gcs_done++;
 
-  return Flist (sizeof total / sizeof *total, total);
+  return retval;
 }
 
 
@@ -5831,9 +5820,9 @@ mark_overlay (struct Lisp_Overlay *ptr)
   for (; ptr && !ptr->gcmarkbit; ptr = ptr->next)
     {
       ptr->gcmarkbit = 1;
-      mark_object (MVAR (ptr, start));
-      mark_object (MVAR (ptr, end));
-      mark_object (MVAR (ptr, plist));
+      mark_object (ptr->start);
+      mark_object (ptr->end);
+      mark_object (ptr->plist);
     }
 }
 
@@ -5847,7 +5836,7 @@ mark_buffer (struct buffer *buffer)
 
   /* ...but there are some buffer-specific things.  */
 
-  MARK_INTERVAL_TREE (BUF_INTERVALS (buffer));
+  MARK_INTERVAL_TREE (buffer_get_intervals (buffer));
 
   /* For now, we just don't mark the undo_list.  It's done later in
      a special way just before the sweep phase, and after stripping
@@ -6067,8 +6056,8 @@ mark_object (Lisp_Object arg)
 	  break;
 	CHECK_ALLOCATED_AND_LIVE (live_symbol_p);
 	ptr->gcmarkbit = 1;
-	mark_object (SVAR (ptr, function));
-	mark_object (SVAR (ptr, plist));
+	mark_object (ptr->function);
+	mark_object (ptr->plist);
 	switch (ptr->redirect)
 	  {
 	  case SYMBOL_PLAINVAL: mark_object (SYMBOL_VAL (ptr)); break;
@@ -6099,9 +6088,9 @@ mark_object (Lisp_Object arg)
 	    break;
 	  default: abort ();
 	  }
-	if (!PURE_POINTER_P (XSTRING (SVAR (ptr, xname))))
-	  MARK_STRING (XSTRING (SVAR (ptr, xname)));
-	MARK_INTERVAL_TREE (STRING_INTERVALS (SVAR (ptr, xname)));
+	if (!PURE_POINTER_P (XSTRING (ptr->name)))
+	  MARK_STRING (XSTRING (ptr->name));
+	MARK_INTERVAL_TREE (string_get_intervals (ptr->name));
 
 	ptr = ptr->next;
 	if (ptr)
@@ -6163,14 +6152,14 @@ mark_object (Lisp_Object arg)
 	CHECK_ALLOCATED_AND_LIVE (live_cons_p);
 	CONS_MARK (ptr);
 	/* If the cdr is nil, avoid recursion for the car.  */
-	if (EQ (CVAR (ptr, u.cdr), Qnil))
+	if (EQ (ptr->u.cdr, Qnil))
 	  {
-	    obj = CVAR (ptr, car);
+	    obj = ptr->car;
 	    cdr_count = 0;
 	    goto loop;
 	  }
-	mark_object (CVAR (ptr, car));
-	obj = CVAR (ptr, u.cdr);
+	mark_object (ptr->car);
+	obj = ptr->u.cdr;
 	cdr_count++;
 	if (cdr_count == mark_object_loop_halt)
 	  abort ();
@@ -6319,7 +6308,7 @@ gc_sweep (void)
 			cblk->conses[pos].u.chain = cons_free_list;
 			cons_free_list = &cblk->conses[pos];
 #if GC_MARK_STACK
-			CVAR (cons_free_list, car) = Vdead;
+			cons_free_list->car = Vdead;
 #endif
 		      }
 		    else
@@ -6467,7 +6456,7 @@ gc_sweep (void)
 	    /* Check if the symbol was created during loadup.  In such a case
 	       it might be pointed to by pure bytecode which we don't trace,
 	       so we conservatively assume that it is live.  */
-	    int pure_p = PURE_POINTER_P (XSTRING (sym->s.INTERNAL_FIELD (xname)));
+	    int pure_p = PURE_POINTER_P (XSTRING (sym->s.name));
 
 	    if (!sym->s.gcmarkbit && !pure_p)
 	      {
@@ -6476,7 +6465,7 @@ gc_sweep (void)
 		sym->s.next = symbol_free_list;
 		symbol_free_list = &sym->s;
 #if GC_MARK_STACK
-		SVAR (symbol_free_list, function) = Vdead;
+		symbol_free_list->function = Vdead;
 #endif
 		++this_free;
 	      }
@@ -6484,7 +6473,7 @@ gc_sweep (void)
 	      {
 		++num_used;
 		if (!pure_p)
-		  UNMARK_STRING (XSTRING (sym->s.INTERNAL_FIELD (xname)));
+		  UNMARK_STRING (XSTRING (sym->s.name));
 		sym->s.gcmarkbit = 0;
 	      }
 	  }
@@ -6586,7 +6575,8 @@ gc_sweep (void)
       else
 	{
 	  VECTOR_UNMARK (buffer);
-	  UNMARK_BALANCE_INTERVALS (BUF_INTERVALS (buffer));
+	  /* Do not use buffer_(set|get)_intervals here.  */
+	  buffer->text->intervals = balance_intervals (buffer->text->intervals);
 	  total_buffers++;
 	  prev = buffer, buffer = buffer->header.next.buffer;
 	}
@@ -6669,10 +6659,10 @@ which_symbols (Lisp_Object obj, EMACS_INT find_max)
 	       XSETSYMBOL (tem, sym);
 	       val = find_symbol_value (tem);
 	       if (EQ (val, obj)
-		   || EQ (SVAR (sym, function), obj)
-		   || (!NILP (SVAR (sym, function))
-		       && COMPILEDP (SVAR (sym, function))
-		       && EQ (AREF (SVAR (sym, function), COMPILED_BYTECODE), obj))
+		   || EQ (sym->function, obj)
+		   || (!NILP (sym->function)
+		       && COMPILEDP (sym->function)
+		       && EQ (AREF (sym->function, COMPILED_BYTECODE), obj))
 		   || (!NILP (val)
 		       && COMPILEDP (val)
 		       && EQ (AREF (val, COMPILED_BYTECODE), obj)))
@@ -6825,6 +6815,14 @@ do hash-consing of the objects allocated to pure space.  */);
 	       doc: /* Non-nil means Emacs cannot get much more Lisp memory.  */);
   Vmemory_full = Qnil;
 
+  DEFSYM (Qconses, "conses");
+  DEFSYM (Qsymbols, "symbols");
+  DEFSYM (Qmiscs, "miscs");
+  DEFSYM (Qstrings, "strings");
+  DEFSYM (Qvectors, "vectors");
+  DEFSYM (Qfloats, "floats");
+  DEFSYM (Qintervals, "intervals");
+  DEFSYM (Qbuffers, "buffers");
   DEFSYM (Qstring_bytes, "string-bytes");
   DEFSYM (Qvector_slots, "vector-slots");
   DEFSYM (Qheap, "heap");

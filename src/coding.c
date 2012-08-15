@@ -7102,8 +7102,17 @@ decode_coding (struct coding_system *coding)
 	set_buffer_internal (XBUFFER (coding->dst_object));
       if (GPT != PT)
 	move_gap_both (PT, PT_BYTE);
+
+      /* We must disable undo_list in order to record the whole insert
+	 transaction via record_insert at the end.  But doing so also
+	 disables the recording of the first change to the undo_list.
+	 Therefore we check for first change here and record it via
+	 record_first_change if needed.  */
+      if (MODIFF <= SAVE_MODIFF)
+	record_first_change ();
+
       undo_list = BVAR (current_buffer, undo_list);
-      BVAR (current_buffer, undo_list) = Qt;
+      BSET (current_buffer, undo_list, Qt);
     }
 
   coding->consumed = coding->consumed_char = 0;
@@ -7200,7 +7209,7 @@ decode_coding (struct coding_system *coding)
     decode_eol (coding);
   if (BUFFERP (coding->dst_object))
     {
-      BVAR (current_buffer, undo_list) = undo_list;
+      BSET (current_buffer, undo_list, undo_list);
       record_insert (coding->dst_pos, coding->produced_char);
     }
   return coding->result;
@@ -7568,8 +7577,8 @@ make_conversion_work_buffer (int multibyte)
      doesn't compile new regexps.  */
   Fset (Fmake_local_variable (Qinhibit_modification_hooks), Qt);
   Ferase_buffer ();
-  BVAR (current_buffer, undo_list) = Qt;
-  BVAR (current_buffer, enable_multibyte_characters) = multibyte ? Qt : Qnil;
+  BSET (current_buffer, undo_list, Qt);
+  BSET (current_buffer, enable_multibyte_characters, multibyte ? Qt : Qnil);
   set_buffer_internal (current);
   return workbuf;
 }
@@ -9294,9 +9303,9 @@ DEFUN ("set-terminal-coding-system-internal", Fset_terminal_coding_system_intern
   terminal_coding->src_multibyte = 1;
   terminal_coding->dst_multibyte = 0;
   if (terminal_coding->common_flags & CODING_REQUIRE_ENCODING_MASK)
-    term->charset_list = coding_charset_list (terminal_coding);
+    TSET (term, charset_list, coding_charset_list (terminal_coding));
   else
-    term->charset_list = Fcons (make_number (charset_ascii), Qnil);
+    TSET (term, charset_list, Fcons (make_number (charset_ascii), Qnil));
   return Qnil;
 }
 

@@ -141,7 +141,7 @@ recompute_width_table (struct buffer *buf, struct Lisp_Char_Table *disptab)
   struct Lisp_Vector *widthtab;
 
   if (!VECTORP (BVAR (buf, width_table)))
-    BVAR (buf, width_table) = Fmake_vector (make_number (256), make_number (0));
+    BSET (buf, width_table, Fmake_vector (make_number (256), make_number (0)));
   widthtab = XVECTOR (BVAR (buf, width_table));
   if (widthtab->header.size != 256)
     abort ();
@@ -166,7 +166,7 @@ width_run_cache_on_off (void)
         {
           free_region_cache (current_buffer->width_run_cache);
           current_buffer->width_run_cache = 0;
-          BVAR (current_buffer, width_table) = Qnil;
+          BSET (current_buffer, width_table, Qnil);
         }
     }
   else
@@ -336,9 +336,8 @@ current_column (void)
 
   /* If the buffer has overlays, text properties,
      or multibyte characters, use a more general algorithm.  */
-  if (BUF_INTERVALS (current_buffer)
-      || current_buffer->overlays_before
-      || current_buffer->overlays_after
+  if (buffer_get_intervals (current_buffer)
+      || buffer_has_overlays ()
       || Z != Z_BYTE)
     return current_column_1 ();
 
