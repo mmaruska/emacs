@@ -1,4 +1,4 @@
-From 27849d73c68e08f0bd2115e4222e2dbcb22427ed Mon Sep 17 00:00:00 2001
+From 2ea4b9326b022ca564207b31d8234c5a4c6b0eee Mon Sep 17 00:00:00 2001
 From: Romain Francoise <rfrancoise@debian.org>
 Date: Thu, 24 Feb 2011 23:27:40 +0100
 Subject: [PATCH 08/10] Some documentation references to /usr/local have been
@@ -10,7 +10,7 @@ Signed-off-by: Julien Danjou <julien@danjou.info>
  1 file changed, 7 insertions(+), 7 deletions(-)
 
 diff --git a/doc/man/emacs.1 b/doc/man/emacs.1
-index d3d8a00..16daf02 100644
+index a3d7380..d5f0d82 100644
 --- a/doc/man/emacs.1
 +++ b/doc/man/emacs.1
 @@ -541,29 +541,29 @@ distribution.
