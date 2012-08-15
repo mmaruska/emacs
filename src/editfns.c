@@ -882,7 +882,7 @@ save_excursion_restore (Lisp_Object info)
   info = XCDR (info);
   tem = XCAR (info);
   tem1 = BVAR (current_buffer, mark_active);
-  BVAR (current_buffer, mark_active) = tem;
+  BSET (current_buffer, mark_active, tem);
 
   /* If mark is active now, and either was not active
      or was at a different place, run the activate hook.  */
@@ -946,8 +946,8 @@ usage: (save-excursion &rest BODY)  */)
 }
 
 DEFUN ("save-current-buffer", Fsave_current_buffer, Ssave_current_buffer, 0, UNEVALLED, 0,
-       doc: /* Save the current buffer; execute BODY; restore the current buffer.
-Executes BODY just like `progn'.
+       doc: /* Record which buffer is current; execute BODY; make that buffer current.
+BODY is executed just like `progn'.
 usage: (save-current-buffer &rest BODY)  */)
   (Lisp_Object args)
 {
@@ -2816,13 +2816,13 @@ determines whether case is significant or ignored.  */)
 static Lisp_Object
 subst_char_in_region_unwind (Lisp_Object arg)
 {
-  return BVAR (current_buffer, undo_list) = arg;
+  return BSET (current_buffer, undo_list, arg);
 }
 
 static Lisp_Object
 subst_char_in_region_unwind_1 (Lisp_Object arg)
 {
-  return BVAR (current_buffer, filename) = arg;
+  return BSET (current_buffer, filename, arg);
 }
 
 DEFUN ("subst-char-in-region", Fsubst_char_in_region,
@@ -2896,11 +2896,11 @@ Both characters must have the same length of multi-byte form.  */)
     {
       record_unwind_protect (subst_char_in_region_unwind,
 			     BVAR (current_buffer, undo_list));
-      BVAR (current_buffer, undo_list) = Qt;
+      BSET (current_buffer, undo_list, Qt);
       /* Don't do file-locking.  */
       record_unwind_protect (subst_char_in_region_unwind_1,
 			     BVAR (current_buffer, filename));
-      BVAR (current_buffer, filename) = Qnil;
+      BSET (current_buffer, filename, Qnil);
     }
 
   if (pos_byte < GPT_BYTE)
@@ -2982,7 +2982,7 @@ Both characters must have the same length of multi-byte form.  */)
 		INC_POS (pos_byte_next);
 
 	      if (! NILP (noundo))
-		BVAR (current_buffer, undo_list) = tem;
+		BSET (current_buffer, undo_list, tem);
 
 	      UNGCPRO;
 	    }
@@ -3615,9 +3615,13 @@ where flags is [+ #-0]+, width is [0-9]+, and precision is .[0-9]+
 The + flag character inserts a + before any positive number, while a
 space inserts a space before any positive number; these flags only
 affect %d, %e, %f, and %g sequences, and the + flag takes precedence.
+The - and 0 flags affect the width specifier, as described below.
+
 The # flag means to use an alternate display form for %o, %x, %X, %e,
-%f, and %g sequences.  The - and 0 flags affect the width specifier,
-as described below.
+%f, and %g sequences: for %o, it ensures that the result begins with
+\"0\"; for %x and %X, it prefixes the result with \"0x\" or \"0X\";
+for %e, %f, and %g, it causes a decimal point to be included even if
+the precision is zero.
 
 The width specifier supplies a lower limit for the length of the
 printed representation.  The padding, if any, normally goes on the
@@ -3933,7 +3937,7 @@ usage: (format STRING &rest OBJECTS)  */)
 
 		  /* If this argument has text properties, record where
 		     in the result string it appears.  */
-		  if (STRING_INTERVALS (args[n]))
+		  if (string_get_intervals (args[n]))
 		    info[n].intervals = arg_intervals = 1;
 
 		  continue;
@@ -4277,7 +4281,7 @@ usage: (format STRING &rest OBJECTS)  */)
      arguments has text properties, set up text properties of the
      result string.  */
 
-  if (STRING_INTERVALS (args[0]) || arg_intervals)
+  if (string_get_intervals (args[0]) || arg_intervals)
     {
       Lisp_Object len, new_len, props;
       struct gcpro gcpro1;
@@ -4527,7 +4531,7 @@ Transposing beyond buffer boundaries is an error.  */)
   Lisp_Object buf;
 
   XSETBUFFER (buf, current_buffer);
-  cur_intv = BUF_INTERVALS (current_buffer);
+  cur_intv = buffer_get_intervals (current_buffer);
 
   validate_region (&startr1, &endr1);
   validate_region (&startr2, &endr2);
@@ -4637,7 +4641,7 @@ Transposing beyond buffer boundaries is an error.  */)
       /* Don't use Fset_text_properties: that can cause GC, which can
 	 clobber objects stored in the tmp_intervals.  */
       tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
-      if (!NULL_INTERVAL_P (tmp_interval3))
+      if (tmp_interval3)
 	set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
 
       /* First region smaller than second.  */
@@ -4696,11 +4700,11 @@ Transposing beyond buffer boundaries is an error.  */)
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
 
 	  tmp_interval3 = validate_interval_range (buf, &startr1, &endr1, 0);
-	  if (!NULL_INTERVAL_P (tmp_interval3))
+	  if (tmp_interval3)
 	    set_text_properties_1 (startr1, endr1, Qnil, buf, tmp_interval3);
 
 	  tmp_interval3 = validate_interval_range (buf, &startr2, &endr2, 0);
-	  if (!NULL_INTERVAL_P (tmp_interval3))
+	  if (tmp_interval3)
 	    set_text_properties_1 (startr2, endr2, Qnil, buf, tmp_interval3);
 
 	  temp = SAFE_ALLOCA (len1_byte);
@@ -4729,7 +4733,7 @@ Transposing beyond buffer boundaries is an error.  */)
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
 
 	  tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
-	  if (!NULL_INTERVAL_P (tmp_interval3))
+	  if (tmp_interval3)
 	    set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
 
 	  /* holds region 2 */
@@ -4762,7 +4766,7 @@ Transposing beyond buffer boundaries is an error.  */)
           tmp_interval2 = copy_intervals (cur_intv, start2, len2);
 
 	  tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
-	  if (!NULL_INTERVAL_P (tmp_interval3))
+	  if (tmp_interval3)
 	    set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
 
 	  /* holds region 1 */

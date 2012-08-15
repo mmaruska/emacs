@@ -65,7 +65,7 @@ Lisp_Object Qns_parse_geometry;
 
 Lisp_Object Qframep, Qframe_live_p;
 Lisp_Object Qicon, Qmodeline;
-Lisp_Object Qonly;
+Lisp_Object Qonly, Qnone;
 Lisp_Object Qx, Qw32, Qmac, Qpc, Qns;
 Lisp_Object Qvisible;
 Lisp_Object Qdisplay_type;
@@ -393,8 +393,8 @@ make_frame_without_minibuffer (register Lisp_Object mini_window, KBOARD *kb, Lis
           XSETFRAME (frame_dummy, f);
           GCPRO1 (frame_dummy);
 	  /* If there's no minibuffer frame to use, create one.  */
-	  KVAR (kb, Vdefault_minibuffer_frame) =
-	    call1 (intern ("make-initial-minibuffer-frame"), display);
+	  KSET (kb, Vdefault_minibuffer_frame,
+		call1 (intern ("make-initial-minibuffer-frame"), display));
           UNGCPRO;
 	}
 
@@ -407,10 +407,12 @@ make_frame_without_minibuffer (register Lisp_Object mini_window, KBOARD *kb, Lis
   /* Make the chosen minibuffer window display the proper minibuffer,
      unless it is already showing a minibuffer.  */
   if (NILP (Fmemq (XWINDOW (mini_window)->buffer, Vminibuffer_list)))
-    Fset_window_buffer (mini_window,
-			(NILP (Vminibuffer_list)
-			 ? get_minibuffer (0)
-			 : Fcar (Vminibuffer_list)), Qnil);
+    /* Use set_window_buffer instead of Fset_window_buffer (see
+       discussion of bug#11984, bug#12025, bug#12026).  */
+    set_window_buffer (mini_window,
+		       (NILP (Vminibuffer_list)
+			? get_minibuffer (0)
+			: Fcar (Vminibuffer_list)), 0, 0);
   return f;
 }
 
@@ -445,10 +447,12 @@ make_minibuffer_frame (void)
 
   /* Put the proper buffer in that window.  */
 
-  Fset_window_buffer (mini_window,
-		      (NILP (Vminibuffer_list)
-		       ? get_minibuffer (0)
-		       : Fcar (Vminibuffer_list)), Qnil);
+  /* Use set_window_buffer instead of Fset_window_buffer (see
+     discussion of bug#11984, bug#12025, bug#12026).  */
+  set_window_buffer (mini_window,
+		     (NILP (Vminibuffer_list)
+		      ? get_minibuffer (0)
+		      : Fcar (Vminibuffer_list)), 0, 0);
   return f;
 }
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -843,7 +847,7 @@ to that frame.  */)
   (Lisp_Object event)
 {
   /* Preserve prefix arg that the command loop just cleared.  */
-  KVAR (current_kboard, Vprefix_arg) = Vcurrent_prefix_arg;
+  KSET (current_kboard, Vprefix_arg, Vcurrent_prefix_arg);
   Frun_hooks (1, &Qmouse_leave_buffer_hook);
   return do_switch_frame (event, 0, 0, Qnil);
 }
@@ -1240,8 +1244,10 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   /* Don't allow minibuf_window to remain on a deleted frame.  */
   if (EQ (f->minibuffer_window, minibuf_window))
     {
-      Fset_window_buffer (sf->minibuffer_window,
-			  XWINDOW (minibuf_window)->buffer, Qnil);
+      /* Use set_window_buffer instead of Fset_window_buffer (see
+	 discussion of bug#11984, bug#12025, bug#12026).  */
+      set_window_buffer (sf->minibuffer_window,
+			 XWINDOW (minibuf_window)->buffer, 0, 0);
       minibuf_window = sf->minibuffer_window;
 
       /* If the dying minibuffer window was selected,
@@ -1435,11 +1441,11 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 	  if (NILP (frame_with_minibuf))
 	    abort ();
 
-	  KVAR (kb, Vdefault_minibuffer_frame) = frame_with_minibuf;
+	  KSET (kb, Vdefault_minibuffer_frame, frame_with_minibuf);
 	}
       else
 	/* No frames left on this kboard--say no minibuffer either.  */
-	KVAR (kb, Vdefault_minibuffer_frame) = Qnil;
+	KSET (kb, Vdefault_minibuffer_frame, Qnil);
     }
 
   /* Cause frame titles to update--necessary if we now have just one frame.  */
@@ -1677,7 +1683,7 @@ make_frame_visible_1 (Lisp_Object window)
       w = XWINDOW (window);
 
       if (!NILP (w->buffer))
-	BVAR (XBUFFER (w->buffer), display_time) = Fcurrent_time ();
+	BSET (XBUFFER (w->buffer), display_time, Fcurrent_time ());
 
       if (!NILP (w->vchild))
 	make_frame_visible_1 (w->vchild);
@@ -1713,8 +1719,10 @@ displayed in the terminal.  */)
   if (EQ (XFRAME (frame)->minibuffer_window, minibuf_window))
     {
       struct frame *sf = XFRAME (selected_frame);
-      Fset_window_buffer (sf->minibuffer_window,
-			  XWINDOW (minibuf_window)->buffer, Qnil);
+      /* Use set_window_buffer instead of Fset_window_buffer (see
+	 discussion of bug#11984, bug#12025, bug#12026).  */
+      set_window_buffer (sf->minibuffer_window,
+			 XWINDOW (minibuf_window)->buffer, 0, 0);
       minibuf_window = sf->minibuffer_window;
     }
 
@@ -1747,12 +1755,14 @@ If omitted, FRAME defaults to the currently selected frame.  */)
     Fhandle_switch_frame (next_frame (frame, Qt));
 #endif
 
-  /* Don't allow minibuf_window to remain on a deleted frame.  */
+  /* Don't allow minibuf_window to remain on an iconified frame.  */
   if (EQ (XFRAME (frame)->minibuffer_window, minibuf_window))
     {
       struct frame *sf = XFRAME (selected_frame);
-      Fset_window_buffer (sf->minibuffer_window,
-			  XWINDOW (minibuf_window)->buffer, Qnil);
+      /* Use set_window_buffer instead of Fset_window_buffer (see
+	 discussion of bug#11984, bug#12025, bug#12026).  */
+      set_window_buffer (sf->minibuffer_window,
+			 XWINDOW (minibuf_window)->buffer, 0, 0);
       minibuf_window = sf->minibuffer_window;
     }
 
@@ -4202,6 +4212,7 @@ syms_of_frame (void)
   DEFSYM (Qminibuffer, "minibuffer");
   DEFSYM (Qmodeline, "modeline");
   DEFSYM (Qonly, "only");
+  DEFSYM (Qnone, "none");
   DEFSYM (Qwidth, "width");
   DEFSYM (Qgeometry, "geometry");
   DEFSYM (Qicon_left, "icon-left");

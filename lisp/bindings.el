@@ -40,8 +40,7 @@ corresponding to the mode line clicked."
   (interactive "e")
   (save-selected-window
     (select-window (posn-window (event-start event)))
-    (toggle-read-only nil t)
-    (force-mode-line-update)))
+    (call-interactively 'toggle-read-only)))
 
 (defun mode-line-toggle-modified (event)
   "Toggle the buffer-modified flag from the mode-line."
@@ -793,7 +792,7 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key ctl-x-map "\C-o" 'delete-blank-lines)
 (define-key esc-map " " 'just-one-space)
 (define-key esc-map "z" 'zap-to-char)
-(define-key esc-map "=" 'count-words)
+(define-key esc-map "=" 'count-words-region)
 (define-key ctl-x-map "=" 'what-cursor-position)
 (define-key esc-map ":" 'eval-expression)
 ;; Define ESC ESC : like ESC : for people who type ESC ESC out of habit.

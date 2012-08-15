@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdalign.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <inttypes.h>
 #include <limits.h>
@@ -633,10 +634,7 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 #define CHECK_TYPE(ok, Qxxxp, x) \
   do { if (!(ok)) wrong_type_argument (Qxxxp, (x)); } while (0)
 
-/* Lisp fields are usually hidden from most code and accessed
-   via special macros.  Only select pieces of code, like the GC,
-   are allowed to use INTERNAL_FIELD directly.  Objects which
-   aren't using this convention should be fixed.  */
+/* Deprecated and will be removed soon.  */
 
 #define INTERNAL_FIELD(field) field ## _
 
@@ -644,24 +642,19 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 
 typedef struct interval *INTERVAL;
 
-/* Complain if object is not string or buffer type */
+/* Complain if object is not string or buffer type.  */
 #define CHECK_STRING_OR_BUFFER(x) \
   CHECK_TYPE (STRINGP (x) || BUFFERP (x), Qbuffer_or_string_p, x)
-
-/* Most code should use this macro to
-   access Lisp fields in struct Lisp_Cons.  */
-
-#define CVAR(cons, field) ((cons)->INTERNAL_FIELD (field))
 
 struct Lisp_Cons
   {
     /* Car of this cons cell.  */
-    Lisp_Object INTERNAL_FIELD (car);
+    Lisp_Object car;
 
     union
     {
       /* Cdr of this cons cell.  */
-      Lisp_Object INTERNAL_FIELD (cdr);
+      Lisp_Object cdr;
 
       /* Used to chain conses on a free list.  */
       struct Lisp_Cons *chain;
@@ -675,8 +668,8 @@ struct Lisp_Cons
    fields are not accessible as lvalues.  (What if we want to switch to
    a copying collector someday?  Cached cons cell field addresses may be
    invalidated at arbitrary points.)  */
-#define XCAR_AS_LVALUE(c) (CVAR (XCONS (c), car))
-#define XCDR_AS_LVALUE(c) (CVAR (XCONS (c), u.cdr))
+#define XCAR_AS_LVALUE(c) (XCONS (c)->car)
+#define XCDR_AS_LVALUE(c) (XCONS (c)->u.cdr)
 
 /* Use these from normal code.  */
 #define XCAR(c)	LISP_MAKE_RVALUE (XCAR_AS_LVALUE (c))
@@ -759,12 +752,6 @@ static ptrdiff_t const STRING_BYTES_BOUND =
   do { if (EQ (STR, empty_unibyte_string))  \
       (STR) = empty_multibyte_string;  \
     else XSTRING (STR)->size_byte = XSTRING (STR)->size; } while (0)
-
-/* Get text properties.  */
-#define STRING_INTERVALS(STR)  (XSTRING (STR)->intervals + 0)
-
-/* Set text properties.  */
-#define STRING_SET_INTERVALS(STR, INT) (XSTRING (STR)->intervals = (INT))
 
 /* In a string or vector, the sign bit of the `size' is the gc mark bit.  */
 
@@ -1067,11 +1054,6 @@ enum symbol_redirect
   SYMBOL_FORWARDED = 3
 };
 
-/* Most code should use this macro to access
-   Lisp fields in struct Lisp_Symbol.  */
-
-#define SVAR(sym, field) ((sym)->INTERNAL_FIELD (field))
-
 struct Lisp_Symbol
 {
   unsigned gcmarkbit : 1;
@@ -1096,25 +1078,23 @@ struct Lisp_Symbol
      special (with `defvar' etc), and shouldn't be lexically bound.  */
   unsigned declared_special : 1;
 
-  /* The symbol's name, as a Lisp string.
-     The name "xname" is used to intentionally break code referring to
-     the old field "name" of type pointer to struct Lisp_String.  */
-  Lisp_Object INTERNAL_FIELD (xname);
+  /* The symbol's name, as a Lisp string.  */
+  Lisp_Object name;
 
   /* Value of the symbol or Qunbound if unbound.  Which alternative of the
      union is used depends on the `redirect' field above.  */
   union {
-    Lisp_Object INTERNAL_FIELD (value);
+    Lisp_Object value;
     struct Lisp_Symbol *alias;
     struct Lisp_Buffer_Local_Value *blv;
     union Lisp_Fwd *fwd;
   } val;
 
   /* Function value of the symbol or Qunbound if not fboundp.  */
-  Lisp_Object INTERNAL_FIELD (function);
+  Lisp_Object function;
 
   /* The symbol's property list.  */
-  Lisp_Object INTERNAL_FIELD (plist);
+  Lisp_Object plist;
 
   /* Next symbol in obarray bucket, if the symbol is interned.  */
   struct Lisp_Symbol *next;
@@ -1122,43 +1102,42 @@ struct Lisp_Symbol
 
 /* Value is name of symbol.  */
 
-#define SYMBOL_VAL(sym)   \
-  (eassert ((sym)->redirect == SYMBOL_PLAINVAL),  SVAR (sym, val.value))
-#define SYMBOL_ALIAS(sym) \
+#define SYMBOL_VAL(sym)							\
+  (eassert ((sym)->redirect == SYMBOL_PLAINVAL),  sym->val.value)
+#define SYMBOL_ALIAS(sym)						\
   (eassert ((sym)->redirect == SYMBOL_VARALIAS),  (sym)->val.alias)
-#define SYMBOL_BLV(sym)   \
+#define SYMBOL_BLV(sym)							\
   (eassert ((sym)->redirect == SYMBOL_LOCALIZED), (sym)->val.blv)
-#define SYMBOL_FWD(sym)   \
+#define SYMBOL_FWD(sym)							\
   (eassert ((sym)->redirect == SYMBOL_FORWARDED), (sym)->val.fwd)
-#define SET_SYMBOL_VAL(sym, v)     \
-  (eassert ((sym)->redirect == SYMBOL_PLAINVAL),  SVAR (sym, val.value) = (v))
-#define SET_SYMBOL_ALIAS(sym, v)   \
+#define SET_SYMBOL_VAL(sym, v)						\
+  (eassert ((sym)->redirect == SYMBOL_PLAINVAL),  (sym)->val.value = (v))
+#define SET_SYMBOL_ALIAS(sym, v)					\
   (eassert ((sym)->redirect == SYMBOL_VARALIAS),  (sym)->val.alias = (v))
-#define SET_SYMBOL_BLV(sym, v)     \
+#define SET_SYMBOL_BLV(sym, v)						\
   (eassert ((sym)->redirect == SYMBOL_LOCALIZED), (sym)->val.blv = (v))
-#define SET_SYMBOL_FWD(sym, v) \
+#define SET_SYMBOL_FWD(sym, v)						\
   (eassert ((sym)->redirect == SYMBOL_FORWARDED), (sym)->val.fwd = (v))
 
-#define SYMBOL_NAME(sym)  \
-     LISP_MAKE_RVALUE (SVAR (XSYMBOL (sym), xname))
+#define SYMBOL_NAME(sym) XSYMBOL (sym)->name
 
 /* Value is non-zero if SYM is an interned symbol.  */
 
-#define SYMBOL_INTERNED_P(sym)  \
-     (XSYMBOL (sym)->interned != SYMBOL_UNINTERNED)
+#define SYMBOL_INTERNED_P(sym)				\
+  (XSYMBOL (sym)->interned != SYMBOL_UNINTERNED)
 
 /* Value is non-zero if SYM is interned in initial_obarray.  */
 
-#define SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P(sym) \
-     (XSYMBOL (sym)->interned == SYMBOL_INTERNED_IN_INITIAL_OBARRAY)
+#define SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P(sym)			\
+  (XSYMBOL (sym)->interned == SYMBOL_INTERNED_IN_INITIAL_OBARRAY)
 
 /* Value is non-zero if symbol is considered a constant, i.e. its
    value cannot be changed (there is an exception for keyword symbols,
    whose value can be set to the keyword symbol itself).  */
 
-#define SYMBOL_CONSTANT_P(sym)   XSYMBOL (sym)->constant
+#define SYMBOL_CONSTANT_P(sym) XSYMBOL (sym)->constant
 
-#define DEFSYM(sym, name)	\
+#define DEFSYM(sym, name)						\
   do { (sym) = intern_c_string ((name)); staticpro (&(sym)); } while (0)
 
 
@@ -1289,11 +1268,6 @@ static double const DEFAULT_REHASH_THRESHOLD = 0.8;
 
 static double const DEFAULT_REHASH_SIZE = 1.5;
 
-/* Most code should use this macro to access
-   Lisp fields in a different misc objects.  */
-
-#define MVAR(misc, field) ((misc)->INTERNAL_FIELD (field))
-
 /* These structures are used for various misc types.  */
 
 struct Lisp_Misc_Any		/* Supertype of all Misc types.  */
@@ -1363,9 +1337,9 @@ struct Lisp_Overlay
     unsigned gcmarkbit : 1;
     int spacer : 15;
     struct Lisp_Overlay *next;
-    Lisp_Object INTERNAL_FIELD (start);
-    Lisp_Object INTERNAL_FIELD (end);
-    Lisp_Object INTERNAL_FIELD (plist);
+    Lisp_Object start;
+    Lisp_Object end;
+    Lisp_Object plist;
   };
 
 /* Hold a C pointer for later use.
@@ -1421,7 +1395,7 @@ struct Lisp_Intfwd
 struct Lisp_Boolfwd
   {
     enum Lisp_Fwd_Type type;	/* = Lisp_Fwd_Bool */
-    int *boolvar;
+    bool *boolvar;
   };
 
 /* Forwarding pointer to a Lisp_Object variable.
@@ -1956,7 +1930,7 @@ enum maxargs
 
 extern void defvar_lisp (struct Lisp_Objfwd *, const char *, Lisp_Object *);
 extern void defvar_lisp_nopro (struct Lisp_Objfwd *, const char *, Lisp_Object *);
-extern void defvar_bool (struct Lisp_Boolfwd *, const char *, int *);
+extern void defvar_bool (struct Lisp_Boolfwd *, const char *, bool *);
 extern void defvar_int (struct Lisp_Intfwd *, const char *, EMACS_INT *);
 extern void defvar_kboard (struct Lisp_Kboard_Objfwd *, const char *, int);
 
@@ -2404,6 +2378,57 @@ LISP_INLINE void
 set_hash_index (struct Lisp_Hash_Table *h, ptrdiff_t idx, Lisp_Object val)
 {
   gc_aset (h->index, idx, val);
+}
+
+/* Use these functions to set Lisp_Object
+   or pointer slots of struct Lisp_Symbol.  */
+
+LISP_INLINE void
+set_symbol_name (Lisp_Object sym, Lisp_Object name)
+{
+  XSYMBOL (sym)->name = name;
+}
+
+LISP_INLINE void
+set_symbol_function (Lisp_Object sym, Lisp_Object function)
+{
+  XSYMBOL (sym)->function = function;
+}
+
+LISP_INLINE void
+set_symbol_plist (Lisp_Object sym, Lisp_Object plist)
+{
+  XSYMBOL (sym)->plist = plist;
+}
+
+LISP_INLINE void
+set_symbol_next (Lisp_Object sym, struct Lisp_Symbol *next)
+{
+  XSYMBOL (sym)->next = next;
+}
+
+/* Set overlay's property list.  */
+
+LISP_INLINE void
+set_overlay_plist (Lisp_Object overlay, Lisp_Object plist)
+{
+  XOVERLAY (overlay)->plist = plist;
+}
+
+/* Get text properties of S.  */
+
+LISP_INLINE INTERVAL
+string_get_intervals (Lisp_Object s)
+{
+  return XSTRING (s)->intervals;
+}
+
+/* Set text properties of S to I.  */
+
+LISP_INLINE void
+string_set_intervals (Lisp_Object s, INTERVAL i)
+{
+  XSTRING (s)->intervals = i;
 }
 
 /* Defined in data.c.  */
@@ -2928,7 +2953,9 @@ extern Lisp_Object internal_lisp_condition_case (Lisp_Object, Lisp_Object, Lisp_
 extern Lisp_Object internal_condition_case (Lisp_Object (*) (void), Lisp_Object, Lisp_Object (*) (Lisp_Object));
 extern Lisp_Object internal_condition_case_1 (Lisp_Object (*) (Lisp_Object), Lisp_Object, Lisp_Object, Lisp_Object (*) (Lisp_Object));
 extern Lisp_Object internal_condition_case_2 (Lisp_Object (*) (Lisp_Object, Lisp_Object), Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object (*) (Lisp_Object));
-extern Lisp_Object internal_condition_case_n (Lisp_Object (*) (ptrdiff_t, Lisp_Object *), ptrdiff_t, Lisp_Object *, Lisp_Object, Lisp_Object (*) (Lisp_Object));
+extern Lisp_Object internal_condition_case_n
+    (Lisp_Object (*) (ptrdiff_t, Lisp_Object *), ptrdiff_t, Lisp_Object *,
+     Lisp_Object, Lisp_Object (*) (Lisp_Object, ptrdiff_t, Lisp_Object *));
 extern void specbind (Lisp_Object, Lisp_Object);
 extern void record_unwind_protect (Lisp_Object (*) (Lisp_Object), Lisp_Object);
 extern Lisp_Object unbind_to (ptrdiff_t, Lisp_Object);
@@ -3102,7 +3129,7 @@ extern int indented_beyond_p (ptrdiff_t, ptrdiff_t, EMACS_INT);
 extern void syms_of_indent (void);
 
 /* Defined in frame.c.  */
-extern Lisp_Object Qonly;
+extern Lisp_Object Qonly, Qnone;
 extern Lisp_Object Qvisible;
 extern void store_frame_param (struct frame *, Lisp_Object, Lisp_Object);
 extern void store_in_alist (Lisp_Object *, Lisp_Object, Lisp_Object);
@@ -3391,23 +3418,6 @@ extern char *egetenv (const char *);
 
 /* Set up the name of the machine we're running on.  */
 extern void init_system_name (void);
-
-static char const DIRECTORY_SEP = '/';
-
-/* Use this to suppress gcc's warnings.  */
-#ifdef lint
-
-/* Use CODE only if lint checking is in effect.  */
-# define IF_LINT(Code) Code
-
-/* Assume that the expression COND is true.  This differs in intent
-   from 'assert', as it is a message from the programmer to the compiler.  */
-# define lint_assume(cond) ((cond) ? (void) 0 : abort ())
-
-#else
-# define IF_LINT(Code) /* empty */
-# define lint_assume(cond) ((void) (0 && (cond)))
-#endif
 
 /* We used to use `abs', but that clashes with system headers on some
    platforms, and using a name reserved by Standard C is a bad idea

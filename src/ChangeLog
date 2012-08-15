@@ -1,3 +1,310 @@
+2012-08-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Generalize and cleanup font subsystem checks.
+	* font.h (FONT_DEBUG, font_assert): Remove.
+	* font.c, fontset.c, w32font.c, xfont.c, xftfont.c: Change
+	font_assert to eassert.  Use eassert where appropriate.
+
+2012-08-15  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* gtkutil.c (xg_get_font): Use pango_units_to_double.
+
+2012-08-15  Chong Yidong  <cyd@gnu.org>
+
+	* gtkutil.c (xg_get_font): Rename from xg_get_font_name.  When
+	using the new font chooser, use gtk_font_chooser_get_font_desc to
+	extract the font descriptor instead of just the font name.  In
+	that case, return a font spec instead of a string.
+	(x_last_font_name): Move to this file from xfns.c.
+
+	* xfns.c (Fx_select_font): The return value can also be a font
+	spec.  Move x_last_font_name management to gtkutil.c.
+
+	* xfaces.c: Make font weight and style symbols non-static.
+
+2012-08-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (read_minibuf): Ignore caller's inhibit-read-only
+	(bug#12117).
+
+2012-08-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (Fgarbage_collect): Use plural form consistently.
+
+2012-08-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (command_loop_1): Reset ignore_mouse_drag_p flag each
+	iteration through the command loop.  Fixes a problem whereby mouse
+	movements are ignored until the first mouse click.
+
+2012-08-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use bool, not int, for Lisp booleans.
+	This is more natural, and on my platform (GCC 4.7.1 x86-64) it
+	makes Emacs a bit smaller and presumably a bit faster.
+	* lisp.h: Include <stdbool.h>.
+	(struct Lisp_Boolfwd, defvar_bool):
+	* lread.c (defvar_bool): Use bool, not int, for Lisp booleans.
+	* regex.c [!emacs]: Include <stdbool.h>.
+	(false, true): Remove; <stdbool.h> does this for us now.
+
+2012-08-14  Chong Yidong  <cyd@gnu.org>
+
+	* character.c (Fcharacterp): Doc fix (Bug#12076).
+
+	* data.c (Findirect_variable): Doc fix (Bug#11040).
+
+	* chartab.c (Fmap_char_table): Doc fix (Bug#12061).
+
+	* editfns.c (Fformat): Doc fix (Bug#12059).
+	(Fsave_current_buffer): Doc fix (Bug#11542).
+
+2012-08-14  Barry OReilly  <gundaetiapo@gmail.com>  (tiny change)
+
+	* keyboard.c (access_keymap_keyremap): Accept anonymous functions
+	(bug#12022).
+
+2012-08-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (make_frame_without_minibuffer, make_minibuffer_frame)
+	(delete_frame, Fmake_frame_invisible, Ficonify_frame):
+	* minibuf.c (choose_minibuf_frame, read_minibuf):
+	* w32fns.c (x_create_tip_frame):
+	* xfns.c (x_create_tip_frame): Call set_window_buffer instead of
+	Fset_window_buffer (Bug#11984, Bug#12025, Bug#12026).
+
+2012-08-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* intervals.c (offset_intervals): Remove obsolete comment.
+
+2012-08-14  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gtkutil.c (find_rtl_image, update_frame_tool_bar): Use NILP.
+
+2012-08-14  Gergely Risko  <gergely@risko.hu>
+
+	* coding.c (decode_coding): Record buffer modification before
+	disabling undo_list (Bug#11773).
+
+2012-08-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Revert and cleanup some recent overlay changes.
+	* buffer.h (enum overlay_type): Remove.
+	(buffer_get_overlays, buffer_set_overlays): Likewise.
+	(buffer_set_overlays_before, buffer_set_overlays_after):
+	New function.  Adjust users.
+	(unchain_both): Add eassert.
+
+2012-08-14  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* gtkutil.c (update_frame_tool_bar): Use EQ where appropriate.
+
+2012-08-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* gtkutil.c (xg_mark_data): Don't assume C99.
+
+2012-08-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_frame_tb_info): New struct.
+	(TB_INFO_KEY): New define.
+	(xg_free_frame_widgets): Free xg_frame_tb_info for frame if present.
+	(xg_mark_data): Mark Lisp_Objects in xg_frame_tb_info.
+	(xg_create_tool_bar): Allocate and initialize a xg_frame_tb_info
+	if not present.
+	(update_frame_tool_bar): Return early if data in xg_frame_tb_info
+	is up to date. Otherwise store new data.
+	(free_frame_tool_bar): Free xg_frame_tb_info if present.
+
+2012-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use KSET for write access to Lisp_Object members of struct kboard.
+	* keyboard.h (KSET): New macro.
+	* callint.c, category.c, frame.c, keyboard.c, keyboard.h, macros.c:
+	* msdos.c, nsfns.m, nsterm.m, term.c, w32fns.c, w32term.c, xfns.c:
+	* xterm.c: Adjust users.
+
+2012-08-13  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use BSET for write access to Lisp_Object members of struct buffer.
+	* buffer.h (BSET): New macro.
+	* buffer.c, casetab.c, cmds.c, coding.c, data.c, editfns.c:
+	* fileio.c, frame.c, indent.c, insdel.c, intervals.c, keymap.c:
+	* minibuf.c, print.c, process.c, syntax.c, undo.c, w32fns.c:
+	* window.c, xdisp.c, xfns.c: Adjust users.
+
+2012-08-11  BT Templeton  <bpt@hcoop.net>  (tiny change)
+
+	* lread.c (syms_of_lread): Initialize Vlexical_binding.
+
+2012-08-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (not_in_argv): New function.
+	(application:openFile,	application:openTempFile:):
+	(application:openFileWithoutUI:, application:openFiles:): Open file
+	if not_in_argv returns non-zero (bug#12171).
+
+	* gtkutil.c (gtk_font_chooser_dialog_new, GTK_FONT_CHOOSER)
+	(gtk_font_chooser_set_font, gtk_font_chooser_get_font):
+	Define for Gtk+ versions less than 3.2.
+	(xg_get_font_name): Use those functions/macros here.
+	Reported by Frans Oilinki <moilinki@gmail.com>.
+
+2012-08-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexmacosx.c (copy_data_segment): Copy initialized data in
+	statically linked libraries from input file rather than memory.
+
+	* unexmacosx.c (print_load_command_name): Add cases LC_MAIN,
+	LC_SOURCE_VERSION, and LC_DYLIB_CODE_SIGN_DRS.
+	(dump_it) [LC_DYLIB_CODE_SIGN_DRS]: Call copy_linkedit_data.
+
+2012-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* conf_post.h (IF_LINT, lint_assume): Move here from lisp.h.
+	* lisp.h (IF_LINT, lint_assume): Move to conf_post.h.
+
+2012-08-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Fix last change to allow compilation with low optimization levels.
+	* intervals.c (INTERVALS_INLINE): Define to EXTERN_INLINE.
+	Reported by Jan Djärv <jan.h.d@swipnet.se>.
+
+2012-08-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use common inline syntax in intervals.h.
+	* intervals.h (INTERVALS_INLINE): New macro.
+	Change all users from LISP_INLINE.
+
+2012-08-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Define Qnone once for all platforms.
+	* frame.c (Qnone): Define here.
+	(syms_of_frame): DEFSYM it.
+	* lisp.h (Qnone): New declaration.
+	* nsfns.m, nsterm.h, nsterm.m, w32fns.c, w32font.c:
+	* xfns.c: Remove duplication.  Adjust users.
+
+2012-08-10  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Remove unused macros from intervals.h.
+	* intervals.h (MERGE_INSERTIONS, DISPLAY_INVISIBLE_GLYPH): Remove.
+	* intervals.c: Adjust comment.
+
+2012-08-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c <w32_unicode_gui>: New static variable.
+	(globals_of_w32fns): Initialize it according to os_subtype.
+	(w32_init_class, w32_msg_pump, w32_wnd_proc): Use it instead of
+	testing os_subtype.
+
+2012-08-10  Joakim Hårsman  <joakim.harsman@gmail.com>  (tiny change)
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	Fix bug #10299 with Unicode characters sent by customized
+	keyboards created by MSKLC.
+	* w32fns.c (INIT_WINDOW_CLASS): New macro.
+	(w32_init_class): Use it to initialize the Emacs class with either
+	ANSI or Unicode API calls.
+	(w32_msg_pump): Call GetMessageW and DispatchMessageW on NT and
+	later.
+	(w32_wnd_proc): If the character code sent by WM_CHAR or
+	WM_SYSCHAR is above 255, post a WM_UNICHAR message, not the
+	original message.  Call DefWindowProcW on NT and later.
+
+2012-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (config_h): Fix conf_post.h out-of-tree build location.
+
+	* lisp.h (DIRECTORY_SEP): Let configure set it.
+
+2012-08-09  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Use TSET for write access to Lisp_Object slots of struct terminal.
+	* termhooks.h (TSET): New macro.
+	* coding.c, terminal.c, xselect.c: Adjust users.
+
+2012-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (safe_eval_handler): Remove prototype.  Receive args describing
+	the failing expression, include them in the error message.
+	* eval.c (internal_condition_case_n): Pass nargs and args to hfun.
+	* lisp.h (internal_condition_case_n): Update declaration.
+
+2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Inline functions to examine and change buffer overlays.
+	* buffer.c (unchain_both): New function.
+	* buffer.h (buffer_get_overlays, buffer_set_overlays):
+	(buffer_has_overlays): New function.
+	(enum overlay_type): New enum.
+	* alloc.c, buffer.c, editfns.c, fileio.c, indent.c:
+	* insdel.c, intervals.c, print.c, xdisp.c: Adjust users.
+
+2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Inline functions to examine and change buffer intervals.
+	* alloc.c (mark_interval_tree): Remove.
+	(MARK_INTERVAL_TREE): Simplify.
+	(UNMARK_BALANCE_INTERVALS): Remove.  Adjust users.
+	* intervals.c (buffer_balance_intervals): New function.
+	(graft_intervals_into_buffer): Adjust indentation.
+	(set_intervals_multibyte): Simplify.
+	* buffer.h (BUF_INTERVALS): Remove.
+	(buffer_get_intervals, buffer_set_intervals): New function.
+	* alloc.c, buffer.c, editfns.c, fileio.c, indent.c, insdel.c:
+	* intervals.c, textprop.c: Adjust users.
+
+2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Inline functions to examine and change string intervals.
+	* lisp.h (STRING_INTERVALS, STRING_SET_INTERVALS): Remove.
+	(string_get_intervals, string_set_intervals): New function.
+	* alloc.c, buffer.c, editfns.c, fns.c, insdel.c, intervals.c:
+	* lread.c, print.c, textprop.c: Adjust users.
+
+2012-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* lisp.mk (lisp): Remove language/persian.elc.
+
+2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Cleanup intervals.
+	* intervals.h (NULL_INTERVAL, DEFAULT_INTERVAL): Remove.
+	(NULL_INTERVAL_P): Likewise.  Adjust users.
+	(FRONT_STICKY_P, END_NONSTICKY_P, FRONT_NONSTICKY_P):
+	Adjust comment.  Move under #if 0.
+	* alloc.c, buffer.c, editfns.c, fns.c, insdel.c, intervals.c:
+	* print.c, syntax.c, textprop.c, xdisp.c: Adjust users.
+
+2012-08-08  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Check total length of intervals with eassert.
+	* intervals.h (CHECK_TOTAL_LENGTH): Remove.
+	* intervals.c: Change all users to eassert.
+
+2012-08-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (xframe, xwindow, nextcons, xcar, xcdr, xlist):
+	Rename fields to match removal of FGET and WGET and disuse of
+	INTERNAL_FIELD in Lisp_Cons.
+
+2012-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Revert and cleanup Lisp_Cons, Lisp_Misc and Lisp_Symbol things.
+	* lisp.h (struct Lisp_Symbol): Change xname to meaningful
+	name since all xname users are fixed long time ago.  Do not
+	use INTERNAL_FIELD.
+	(set_symbol_name, set_symbol_function, set_symbol_plist):
+	(set_symbol_next, set_overlay_plist): New function.
+	(struct Lisp_Cons): Do not use INTERNAL_FIELD.
+	(struct Lisp_Overlay): Likewise.
+	(CVAR, MVAR, SVAR): Remove.
+	* alloc.c, buffer.c, buffer.h, bytecode.c, cmds.c, data.c:
+	* doc.c, eval.c, fns.c, keyboard.c, lread.c, nsselect.m:
+	* xterm.c: Adjust users.
+	* .gdbinit: Change to use name field of struct Lisp_Symbol
+	where appropriate.
+
 2012-08-07  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Basic functions to set Lisp_Object and pointer slots of intervals.
@@ -5,8 +312,8 @@
 	(interval_set_left, interval_set_right, interval_set_plist):
 	(interval_copy_parent): New function.
 	(SET_INTERVAL_OBJECT, SET_INTERVAL_PARENT, INTERVAL_PTR_SIZE): Remove.
-	(RESET_INTERVAL, COPY_INTERVAL_CACHE, MERGE_INTERVAL_CACHE): Adjust
-	indentation.
+	(RESET_INTERVAL, COPY_INTERVAL_CACHE, MERGE_INTERVAL_CACHE):
+	Adjust indentation.
 	(INTERVAL_SIZE): Remove.  Adjust users.
 	* alloc.c, intervals.c, lread.c, textprop.c: Use new functions.
 
@@ -69,8 +376,8 @@
 
 2012-08-06  Eli Zaretskii  <eliz@gnu.org>
 
-	* w32menu.c (set_frame_menubar, initialize_frame_menubar): Don't
-	use FRAME_MENU_BAR_ITEMS as an lvalue.
+	* w32menu.c (set_frame_menubar, initialize_frame_menubar):
+	Don't use FRAME_MENU_BAR_ITEMS as an lvalue.
 
 2012-08-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -182,11 +489,11 @@
 	Fix startup warnings about ../site-lisp on MS-Windows.  (Bug#11959)
 	* w32.c (init_environment): Change the default values of many
 	environment variables in dflt_envvars[] to NULL, to avoid pushing
-	them into environment when they were not already defined.  Remove
-	the code that deletes site-lisp subdirectories from the default
+	them into environment when they were not already defined.
+	Remove the code that deletes site-lisp subdirectories from the default
 	value of EMACSLOADPATH, as it is no longer needed.
-	(check_windows_init_file): Now external, not static.  Use
-	Vload_path as is, without adding anything, as this function is now
+	(check_windows_init_file): Now external, not static.
+	Use Vload_path as is, without adding anything, as this function is now
 	called when Vload_path is already set up.
 
 	* w32.h (check_windows_init_file): Add prototype.
@@ -275,11 +582,11 @@
 	GetFileAttributes fails with network-related error codes.
 	(sys_rename): Diagnose renaming of a symlink when the user doesn't
 	have the required privileges.
-	(get_file_security_desc_by_name): Renamed from
+	(get_file_security_desc_by_name): Rename from
 	get_file_security_desc.
 	(stat_worker): New function, with most of the guts of 'stat', and
-	with addition of handling of symlinks and support for 'lstat'.  If
-	possible, get file's attributes and security information by
+	with addition of handling of symlinks and support for 'lstat'.
+	If possible, get file's attributes and security information by
 	handle, not by name.  Produce S_IFLNK bit for symlinks, when
 	called from 'lstat'.
 	(stat, lstat): New functions, call 'stat_worker'.
@@ -483,7 +790,7 @@
 
 	Generalize INTERNAL_FIELD between buffers, keyboards and frames.
 	* lisp.h (INTERNAL_FIELD): New macro.
-	* buffer.h (BUFFER_INTERNAL_FIELD): Removed.
+	* buffer.h (BUFFER_INTERNAL_FIELD): Remove.
 	(BVAR): Change to use INTERNAL_FIELD.
 	* keyboard.h (KBOARD_INTERNAL_FIELD): Likewise.
 	(KVAR): Change to use INTERNAL_FIELD.
@@ -538,8 +845,8 @@
 
 	* nsterm.m (ns_do_open_file): New variable.
 	(ns_term_init): Set ns_do_open_file to YES after run returns.
-	(openFile, openTempFile, openFileWithoutUI, openFiles): Open
-	files only if ns_do_open_file.
+	(openFile, openTempFile, openFileWithoutUI, openFiles):
+	Open files only if ns_do_open_file.
 
 2012-07-30  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -676,7 +983,7 @@
 
 2012-07-29  Eli Zaretskii  <eliz@gnu.org>
 
-	* w32heap.h (OS_9X): Renamed from OS_WINDOWS_95.
+	* w32heap.h (OS_9X): Rename from OS_WINDOWS_95.
 
 	* w32heap.c (cache_system_info):
 	* w32.c (sys_rename):
@@ -693,8 +1000,8 @@
 2012-07-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Cleanup statistics calculation in Fgarbage_collect.
-	* alloc.c (Fgarbage_collect): Rename t1 to meaningful start.  Fix
-	zombies percentage calculation.  Simplify elapsed time calculation.
+	* alloc.c (Fgarbage_collect): Rename t1 to meaningful start.
+	Fix zombies percentage calculation.  Simplify elapsed time calculation.
 
 2012-07-29  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -752,8 +1059,8 @@
 
 	Adjust GDB to reflect pvec_type changes (Bug#12036).
 	* .gdbinit (xvectype, xpr, xbacktrace): Adjust to reflect the
-	2012-07-04 changes to pseudovector representation.  Problem
-	reported by Eli Zaretskii in <http://bugs.gnu.org/12036#30>.
+	2012-07-04 changes to pseudovector representation.
+	Problem reported by Eli Zaretskii in <http://bugs.gnu.org/12036#30>.
 
 2012-07-27  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -1014,8 +1321,8 @@
 	for the reasons.
 
 	* w32menu.c (add_menu_item): Cast to ULONG_PTR when assigning
-	info.dwItemData.  Fixes crashes on 64-bit Windows.  Suggested by
-	Fabrice Popineau <fabrice.popineau@supelec.fr>.
+	info.dwItemData.  Fixes crashes on 64-bit Windows.
+	Suggested by Fabrice Popineau <fabrice.popineau@supelec.fr>.
 
 2012-07-21  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -1641,8 +1948,8 @@
 	* lisp.h (intern, intern_c_string): Redefine as static inline
 	wrappers for intern_1 and intern_c_string_1, respectively.
 	(intern_1, intern_c_string_1): Rename prototypes.
-	* lread.c (intern_1, intern_c_string_1, oblookup): Simplify
-	Vobarray checking.
+	* lread.c (intern_1, intern_c_string_1, oblookup):
+	Simplify Vobarray checking.
 	* font.c (font_intern_prop): Likewise.  Adjust comment.
 	* w32font.c (intern_font_name): Likewise.
 
@@ -1711,8 +2018,8 @@
 
 	Avoid calls to strlen in font processing functions.
 	* font.c (font_parse_name, font_parse_xlfd, font_parse_fcname)
-	(font_open_by_name): Change to use length argument.  Adjust
-	users accordingly.
+	(font_open_by_name): Change to use length argument.
+	Adjust users accordingly.
 	* font.h (font_open_by_name, font_parse_xlfd, font_unparse_xlfd):
 	Adjust prototypes.
 	* xfont.c (xfont_decode_coding_xlfd, font_unparse_xlfd):
@@ -1844,8 +2151,8 @@
 	srclen argument and return the length of result.  Adjust users
 	accordingly.
 	(directory_file_name): Fix comment.  Change to add srclen argument,
-	swap 1st and 2nd arguments to obey the common convention.  Adjust
-	users accordingly.
+	swap 1st and 2nd arguments to obey the common convention.
+	Adjust users accordingly.
 	* filelock.c (fill_in_lock_file_name): Avoid calls to strlen.
 
 2012-07-10  Glenn Morris  <rgm@gnu.org>
@@ -2009,8 +2316,8 @@
 	Support truncation and continuation glyphs on GUI frames, when
 	fringes are disabled.  (Bug#11832)
 	* xdisp.c (init_iterator): Get dimensions of truncation and
-	continuation glyphs even if on GUI frames.  Adjust
-	it->last_visible_x on GUI frames when the left or right fringes,
+	continuation glyphs even if on GUI frames.
+	Adjust it->last_visible_x on GUI frames when the left or right fringes,
 	or both, are absent.
 	(start_display, move_it_in_display_line_to): Handle the case of a
 	GUI frame without a fringe to display continuation or truncation
@@ -2460,8 +2767,8 @@
 
 	Fix block vector allocation code to allow VECTOR_BLOCK_SIZE
 	values which aren't power of 2.
-	* alloc.c (VECTOR_FREE_LIST_SIZE_MASK): New macro.  Verify
-	it's value and the value of VECTOR_BLOCK_SIZE.  Adjust users
+	* alloc.c (VECTOR_FREE_LIST_SIZE_MASK): New macro.
+	Verify it's value and the value of VECTOR_BLOCK_SIZE.  Adjust users
 	accordingly.
 
 2012-07-03  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -2515,8 +2822,8 @@
 	* alloc.c (mark_buffer): Simplify.  Remove prototype.
 	(mark_object): Add comment.  Reorganize marking of vector-like
 	objects.  Use CHECK_LIVE for all vector-like objects except buffers
-	and subroutines when GC_CHECK_MARKED_OBJECTS is defined.  Avoid
-	redundant calls to mark_vectorlike for bool vectors.
+	and subroutines when GC_CHECK_MARKED_OBJECTS is defined.
+	Avoid redundant calls to mark_vectorlike for bool vectors.
 
 2012-06-30  Glenn Morris  <rgm@gnu.org>
 
@@ -9960,7 +10267,7 @@
 
 	* Makefile.in (SETTINGS_LIBS): Fix typo.
 
-2011-07-01  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny patch)
+2011-07-01  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
 
 	* coding.c (Fencode_coding_string): Record the last coding system
 	used, as the function doc string says (bug#8738).
