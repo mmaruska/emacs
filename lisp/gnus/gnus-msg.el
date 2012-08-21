@@ -174,7 +174,7 @@ specifies a group to which resent messages will be Gcc'd.  If this is
 nil, Gcc will be done according to existing Gcc header(s), if any.
 If this is `no-gcc-self', resent messages will be Gcc'd to groups that
 existing Gcc header specifies, except for the current group."
-  :version "24.2"
+  :version "24.3"
   :group 'gnus-message
   :type '(choice (const none) (const t) string (const nil)
 		 (const no-gcc-self)))
@@ -1369,7 +1369,21 @@ For the \"inline\" alternatives, also see the variable
 	      (nnmail-fetch-field "to"))))
 	 current-prefix-arg))
   (let ((message-header-setup-hook (copy-sequence message-header-setup-hook))
-	(message-sent-hook (copy-sequence message-sent-hook)))
+	(message-sent-hook (copy-sequence message-sent-hook))
+	;; Honor posting-style for `name' and `address' in Resent-From header.
+	(styles (gnus-group-find-parameter gnus-newsgroup-name
+					   'posting-style t))
+	(user-full-name user-full-name)
+	(user-mail-address user-mail-address)
+	tem)
+    (dolist (style (if styles
+		       (append gnus-posting-styles (list (cons ".*" styles)))
+		     gnus-posting-styles))
+      (when (string-match (pop style) gnus-newsgroup-name)
+	(when (setq tem (cadr (assq 'name style)))
+	  (setq user-full-name tem))
+	(when (setq tem (cadr (assq 'address style)))
+	  (setq user-mail-address tem))))
     ;; `gnus-summary-resend-message-insert-gcc' must run last.
     (add-hook 'message-header-setup-hook
 	      'gnus-summary-resend-message-insert-gcc t)
