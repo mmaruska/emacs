@@ -1,4 +1,4 @@
-From a411d41c09f217dc8eca04ab6b33519de0652f74 Mon Sep 17 00:00:00 2001
+From 48725e7979ec03225e8ededf87d1ac7042ae034f Mon Sep 17 00:00:00 2001
 From: Romain Francoise <rfrancoise@debian.org>
 Date: Thu, 24 Feb 2011 23:26:08 +0100
 Subject: [PATCH 05/10] (describe-copying) uses /usr/share/common-licenses/GPL
@@ -14,7 +14,7 @@ Signed-off-by: Julien Danjou <julien@danjou.info>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/lisp/help.el b/lisp/help.el
-index c02b058..fb4a6e9 100644
+index 19cb811..19ad093 100644
 --- a/lisp/help.el
 +++ b/lisp/help.el
 @@ -294,7 +294,8 @@ If that doesn't give a function, return nil."
