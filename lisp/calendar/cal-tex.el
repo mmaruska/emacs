@@ -268,6 +268,7 @@ Optional string ARGS are included as options for the article document class."
                     "")))
   (if (stringp cal-tex-preamble-extra)
       (insert cal-tex-preamble-extra "\n"))
+  ;; FIXME boxwidth and boxheight unused?
   (insert "\\hbadness 20000
 \\hfuzz=1000pt
 \\vbadness 20000
@@ -370,27 +371,34 @@ landscape mode with three rows of four months each."
 \\footskip 0.125in
 ")))
 
-(defun cal-tex-leftday (height)
-  "Insert LaTeX code for leftday function."
-  (insert "\\long\\def\\leftday#1#2#3#4#5{%
+(defun cal-tex-longday (funcname height)
+  "Insert LaTeX code for a long day function."
+  (insert "\\long\\def\\" funcname "#1#2#3#4#5{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
      \\vbox to " height "{%
-          \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\noindent {\\normalsize \\bf #2} \\small #1 \\hfill #5}%
-          \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize \\em #4}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}\n"))
+       \\vspace*{2pt}%
+       \\hbox to \\textwidth{"
+     (if (string-equal funcname "leftday")
+         "\\noindent {\\normalsize \\bf #2} \\small #1 \\hfill #5}%\n"
+       "\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%\n")
+     "       \\hbox to \\textwidth{\\vbox {\\"
+     (if (string-equal funcname "leftday") "noindent" "raggedleft")
+     " \\footnotesize \\em #4}}%
+       \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}\n"))
 
-(defun cal-tex-rightday (height)
-  "Insert LaTeX code for rightday function."
-  (insert "\\long\\def\\rightday#1#2#3#4#5{%
+(defun cal-tex-shortday (funcname)
+  "Insert LaTeX code for a short day function."
+  (insert "\\long\\def\\" funcname "#1#2#3{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
-     \\vbox to " height "{%
+     \\vbox {%
           \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%
-          \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em #4}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}\n"))
+          \\hbox to \\textwidth{\\hfill \\small #3 \\hfill}%
+          \\hbox to \\textwidth{\\vbox {\\"
+          (if (string-equal funcname "rightday") "raggedleft" "noindent")
+          " \\em #2}}%
+          \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize #1}}}}}\n"))
 
 ;;;###cal-autoload
 (defun cal-tex-cursor-filofax-year (&optional n event)
@@ -1046,16 +1054,8 @@ shown are hard-coded to 8-12, 13-17."
      (cal-tex-e-framebox)
      (cal-tex-hspace "1cm")))
 
-;;;###cal-autoload
-(defun cal-tex-cursor-week-at-a-glance (&optional n event)
-  "One-week-at-a-glance full page calendar for week indicated by cursor.
-Optional prefix argument N specifies number of weeks (default 1),
-starting on Mondays.  The calendar shows holiday and diary entries
-if `cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil.
-It does not show hours of the day.  Optional EVENT indicates a buffer
-position to use instead of point."
-  (interactive (list (prefix-numeric-value current-prefix-arg)
-                     last-nonmenu-event))
+(defun cal-tex-weekly-common (n event &optional filofax)
+  "Common code for weekly calendars."
   (or n (setq n 1))
   (let* ((date (calendar-gregorian-from-absolute
                 (calendar-dayname-on-or-before
@@ -1071,8 +1071,17 @@ position to use instead of point."
                        (holiday-in-range d1 d2)))
          (diary-list (if cal-tex-diary
                          (cal-tex-list-diary-entries d1 d2))))
-    (cal-tex-preamble "twoside,12pt")
-    (insert "\\textwidth 7in
+    (if filofax
+        (progn
+          (cal-tex-preamble "twoside")
+          (cal-tex-filofax-paper)
+          (insert cal-tex-righthead)
+          (cal-tex-longday "rightday" "1.85in")
+          (cal-tex-longday "weekend" "0.8in")
+          (insert cal-tex-lefthead)
+          (cal-tex-longday "leftday" "1.85in"))
+      (cal-tex-preamble "twoside,12pt")
+      (insert "\\textwidth 7in
 \\textheight 10.5in
 \\oddsidemargin 0in
 \\evensidemargin 0in
@@ -1081,22 +1090,19 @@ position to use instead of point."
 \\headsep 0.125in
 \\footskip .125in
 ")
-    (insert cal-tex-righthead)
-    (cal-tex-rightday "2.75in")
-    ;; FIXME this is just (cal-tex-rightday "1.8in").
-    (insert "\\long\\def\\weekend#1#2#3#4#5{%
-   \\rule{\\textwidth}{0.3pt}\\\\%
-   \\hbox to \\textwidth{%
-     \\vbox to 1.8in{%
-          \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%
-          \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em #4}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
-")
-    (insert cal-tex-lefthead)
-    (cal-tex-leftday "2.75in")
+      (insert cal-tex-righthead)
+      (cal-tex-longday "rightday" "2.75in")
+      (cal-tex-longday "weekend" "1.8in")
+      (insert cal-tex-lefthead)
+      (cal-tex-longday "leftday" "2.75in"))
     (cal-tex-b-document)
     (cal-tex-cmd "\\pagestyle" "empty")
+    ;; Let's assume this is something to with twopage documents.
+    ;; It has the downside that we start with a blank page.
+    ;; It doesn't make obvious sense when oddside and evenside margins
+    ;; are the same (non-filofax), but consider the left and right
+    ;; versions of various functions as applicable to even and odd pages.
+    (cal-tex-newpage)
     (dotimes (i n)
       (insert "\\lefthead")
       (cal-tex-arg
@@ -1128,34 +1134,35 @@ position to use instead of point."
         (insert "%\n")
         (setq date (cal-tex-incr-date date)))
       (insert "\\noindent\\rule{\\textwidth}{0.3pt}\\\\%\n")
-      (cal-tex-nl)
-      (insert (cal-tex-mini-calendar
-               (calendar-extract-month (cal-tex-previous-month date))
-               (calendar-extract-year (cal-tex-previous-month date))
-               "lastmonth" "1.1in" "1in"))
-      (insert (cal-tex-mini-calendar
-               (calendar-extract-month date)
-               (calendar-extract-year date)
-               "thismonth" "1.1in" "1in"))
-      (insert (cal-tex-mini-calendar
-               (calendar-extract-month (cal-tex-next-month date))
-               (calendar-extract-year (cal-tex-next-month date))
-               "nextmonth" "1.1in" "1in"))
-      (insert "\\hbox to \\textwidth{")
-      (cal-tex-hfill)
-      (insert "\\lastmonth")
-      (cal-tex-hfill)
-      (insert "\\thismonth")
-      (cal-tex-hfill)
-      (insert "\\nextmonth")
-      (cal-tex-hfill)
-      (insert "}")
+      (unless filofax
+        (cal-tex-nl)
+        (insert (cal-tex-mini-calendar
+                 (calendar-extract-month (cal-tex-previous-month date))
+                 (calendar-extract-year (cal-tex-previous-month date))
+                 "lastmonth" "1.1in" "1in"))
+        (insert (cal-tex-mini-calendar
+                 (calendar-extract-month date)
+                 (calendar-extract-year date)
+                 "thismonth" "1.1in" "1in"))
+        (insert (cal-tex-mini-calendar
+                 (calendar-extract-month (cal-tex-next-month date))
+                 (calendar-extract-year (cal-tex-next-month date))
+                 "nextmonth" "1.1in" "1in"))
+        (insert "\\hbox to \\textwidth{")
+        (cal-tex-hfill)
+        (insert "\\lastmonth")
+        (cal-tex-hfill)
+        (insert "\\thismonth")
+        (cal-tex-hfill)
+        (insert "\\nextmonth")
+        (cal-tex-hfill)
+        (insert "}"))
       (cal-tex-newpage)
       (insert "\\righthead")
       (cal-tex-arg
        (let ((d (cal-tex-incr-date date 3)))
          (if (= (calendar-extract-month date)
-                 (calendar-extract-month d))
+                (calendar-extract-month d))
              (format "%s %s"
                      (cal-tex-month-name (calendar-extract-month date))
                      (calendar-extract-year date))
@@ -1196,6 +1203,18 @@ position to use instead of point."
     (run-hooks 'cal-tex-hook)))
 
 ;;;###cal-autoload
+(defun cal-tex-cursor-week-at-a-glance (&optional n event)
+  "One-week-at-a-glance full page calendar for week indicated by cursor.
+Optional prefix argument N specifies number of weeks (default 1),
+starting on Mondays.  The calendar shows holiday and diary entries
+if `cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil.
+It does not show hours of the day.  Optional EVENT indicates a buffer
+position to use instead of point."
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
+  (cal-tex-weekly-common n event))
+
+;;;###cal-autoload
 (defun cal-tex-cursor-filofax-2week (&optional n event)
   "Two-weeks-at-a-glance Filofax style calendar for week cursor is in.
 Optional prefix argument N specifies number of weeks (default 1).
@@ -1222,9 +1241,9 @@ Optional EVENT indicates a buffer position to use instead of point."
     (cal-tex-preamble "twoside")
     (cal-tex-filofax-paper)
     (insert cal-tex-righthead)
-    (cal-tex-rightday "0.7in")
+    (cal-tex-longday "rightday" "0.7in")
     (insert cal-tex-lefthead)
-    (cal-tex-leftday "0.7in")
+    (cal-tex-longday "leftday" "0.7in")
     (cal-tex-b-document)
     (cal-tex-cmd "\\pagestyle" "empty")
     (dotimes (i n)
@@ -1276,114 +1295,7 @@ if `cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil.
 Optional EVENT indicates a buffer position to use instead of point."
   (interactive (list (prefix-numeric-value current-prefix-arg)
                      last-nonmenu-event))
-  (or n (setq n 1))
-  (let* ((date (calendar-gregorian-from-absolute
-                (calendar-dayname-on-or-before
-                 1
-                 (calendar-absolute-from-gregorian
-                  (calendar-cursor-to-date t event)))))
-         (month (calendar-extract-month date))
-         (year (calendar-extract-year date))
-         (day (calendar-extract-day date))
-         (d1 (calendar-absolute-from-gregorian date))
-         (d2 (+ (* 7 n) d1))
-         (holidays (if cal-tex-holidays
-                       (holiday-in-range d1 d2)))
-         (diary-list (if cal-tex-diary
-                         (cal-tex-list-diary-entries d1 d2))))
-    (cal-tex-preamble "twoside")
-    (cal-tex-filofax-paper)
-    (insert cal-tex-righthead)
-    (cal-tex-rightday "1.85in")
-    ;; FIXME this is just (cal-tex-rightday "0.8in").
-    (insert "\\long\\def\\weekend#1#2#3#4#5{%
-   \\rule{\\textwidth}{0.3pt}\\\\%
-   \\hbox to \\textwidth{%
-     \\vbox to .8in{%
-          \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\small #5 \\hfill #1 {\\normalsize \\bf #2}}%
-          \\hbox to \\textwidth{\\vbox {\\raggedleft \\footnotesize \\em #4}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #3}}}}\\\\}
-")
-    (insert cal-tex-lefthead)
-    (cal-tex-leftday "1.85in")
-    (cal-tex-b-document)
-    (cal-tex-cmd "\\pagestyle" "empty")
-    (dotimes (i n)
-      (insert "\\lefthead")
-      (cal-tex-arg
-       (let ((d (cal-tex-incr-date date 2)))
-         (if (= (calendar-extract-month date)
-                (calendar-extract-month d))
-             (format "%s %s"
-                     (cal-tex-month-name (calendar-extract-month date))
-                     (calendar-extract-year date))
-           (if (= (calendar-extract-year date)
-                  (calendar-extract-year d))
-               (format "%s---%s %s"
-                       (cal-tex-month-name (calendar-extract-month date))
-                       (cal-tex-month-name (calendar-extract-month d))
-                       (calendar-extract-year date))
-             (format "%s %s---%s %s"
-                     (cal-tex-month-name (calendar-extract-month date))
-                     (calendar-extract-year date)
-                     (cal-tex-month-name (calendar-extract-month d))
-                     (calendar-extract-year d))))))
-      (insert "%\n")
-      (dotimes (_jdummy 3)
-        (insert "\\leftday")
-        (cal-tex-arg (cal-tex-LaTeXify-string (calendar-day-name date)))
-        (cal-tex-arg (number-to-string (calendar-extract-day date)))
-        (cal-tex-arg (cal-tex-latexify-list diary-list date))
-        (cal-tex-arg (cal-tex-latexify-list holidays date))
-        (cal-tex-arg (eval cal-tex-daily-string))
-        (insert "%\n")
-        (setq date (cal-tex-incr-date date)))
-      (insert "\\noindent\\rule{\\textwidth}{0.3pt}\\\\%\n")
-      (cal-tex-newpage)
-      (insert "\\righthead")
-      (cal-tex-arg
-       (let ((d (cal-tex-incr-date date 3)))
-         (if (= (calendar-extract-month date)
-                 (calendar-extract-month d))
-             (format "%s %s"
-                     (cal-tex-month-name (calendar-extract-month date))
-                     (calendar-extract-year date))
-           (if (= (calendar-extract-year date)
-                  (calendar-extract-year d))
-               (format "%s---%s %s"
-                       (cal-tex-month-name (calendar-extract-month date))
-                       (cal-tex-month-name (calendar-extract-month d))
-                       (calendar-extract-year date))
-             (format "%s %s---%s %s"
-                     (cal-tex-month-name (calendar-extract-month date))
-                     (calendar-extract-year date)
-                     (cal-tex-month-name (calendar-extract-month d))
-                     (calendar-extract-year d))))))
-      (insert "%\n")
-      (dotimes (_jdummy 2)
-        (insert "\\rightday")
-        (cal-tex-arg (cal-tex-LaTeXify-string (calendar-day-name date)))
-        (cal-tex-arg (number-to-string (calendar-extract-day date)))
-        (cal-tex-arg (cal-tex-latexify-list diary-list date))
-        (cal-tex-arg (cal-tex-latexify-list holidays date))
-        (cal-tex-arg (eval cal-tex-daily-string))
-        (insert "%\n")
-        (setq date (cal-tex-incr-date date)))
-      (dotimes (_jdummy 2)
-        (insert "\\weekend")
-        (cal-tex-arg (cal-tex-LaTeXify-string (calendar-day-name date)))
-        (cal-tex-arg (number-to-string (calendar-extract-day date)))
-        (cal-tex-arg (cal-tex-latexify-list diary-list date))
-        (cal-tex-arg (cal-tex-latexify-list holidays date))
-        (cal-tex-arg (eval cal-tex-daily-string))
-        (insert "%\n")
-        (setq date (cal-tex-incr-date date)))
-      (unless (= i (1- n))
-        (run-hooks 'cal-tex-week-hook)
-        (cal-tex-newpage)))
-    (cal-tex-end-document)
-    (run-hooks 'cal-tex-hook)))
+   (cal-tex-weekly-common n event t))
 
 ;;;###cal-autoload
 (defun cal-tex-cursor-filofax-daily (&optional n event)
@@ -1413,37 +1325,10 @@ Optional EVENT indicates a buffer position to use instead of point."
     (cal-tex-preamble "twoside")
     (cal-tex-filofax-paper)
     (insert cal-tex-righthead)
-    ;; Not quite cal-tex-rightday.
-    (insert "\\long\\def\\rightday#1#2#3{%
-   \\rule{\\textwidth}{0.3pt}\\\\%
-   \\hbox to \\textwidth{%
-     \\vbox {%
-          \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\hfill \\small #3 \\hfill}%
-          \\hbox to \\textwidth{\\vbox {\\raggedleft \\em #2}}%
-          \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize #1}}}}}
-")
-    ;; FIXME this is just \rightday from above.
-    (insert "\\long\\def\\weekend#1#2#3{%
-   \\rule{\\textwidth}{0.3pt}\\\\%
-   \\hbox to \\textwidth{%
-     \\vbox {%
-          \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\hfill \\small #3 \\hfill}%
-          \\hbox to \\textwidth{\\vbox {\\noindent \\em #2}}%
-          \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize #1}}}}}
-")
+    (cal-tex-shortday "rightday")
+    (cal-tex-shortday "weekend")
     (insert cal-tex-lefthead)
-    ;; Not quite cal-tex-leftday.
-    (insert "\\long\\def\\leftday#1#2#3{%
-   \\rule{\\textwidth}{0.3pt}\\\\%
-   \\hbox to \\textwidth{%
-     \\vbox {%
-          \\vspace*{2pt}%
-          \\hbox to \\textwidth{\\hfill \\small #3 \\hfill}%
-          \\hbox to \\textwidth{\\vbox {\\noindent \\em #2}}%
-          \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize #1}}}}}
-")
+    (cal-tex-shortday "leftday")
     (insert "\\newbox\\LineBox
 \\setbox\\LineBox=\\hbox to\\textwidth{%
 \\vrule height.2in width0pt\\leaders\\hrule\\hfill}
