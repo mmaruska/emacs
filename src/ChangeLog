@@ -1,3 +1,117 @@
+2012-08-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* keyboard.c (Fposn_at_x_y): Do not allow internal window as
+	argument.
+
+2012-08-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* atimer.c, atimer.h (turn_on_atimers): Use bool for boolean.
+	* atimer.h: Include <stdbool.h>.
+
+2012-08-22  Dan Nicolaescu  <dann@gnu.org>
+
+	* frame.h (FRAME_W32_P, FRAME_MSDOS_P, FRAME_NS_P): Change to
+	compile time tests instead of run time tests on systems that do
+	not use them.
+	(FRAME_MAC_P): Remove leftover from deleted code.
+	* frame.c (syms_of_frame): Remove leftover from deleted code.
+
+2012-08-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (insertText:): Don't clear modifiers if code is space.
+
+2012-08-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fontset.c (FONTSET_ADD): Return void, not Lisp_Object.
+	Otherwise, the compiler complains about (A?B:C) where B is void
+	and C is Lisp_Object.  This fixes an incompatibility with Sun C	5.12.
+	(fontset_add): Return void, for FONTSET_ADD.
+
+2012-08-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c: Use bool for booleans.
+	(gc_in_progress, abort_on_gc)
+	(setjmp_tested_p) [!GC_SAVE_REGISTERS_ON_STACK && !GC_SETJMP_WORKS]:
+	(dont_register_blocks) [GC_MALLOC_CHECK]:
+	(suppress_checking) [ENABLE_CHECKING]: Now bool, not int.
+	(check_string_bytes, make_specified_string, memory_full)
+	(live_string_p, live_cons_p, live_symbol_p, live_float_p)
+	(live_misc_p, live_vector_p, live_buffer_p, mark_maybe_object)
+	(mark_stack, valid_pointer_p, make_pure_string)
+	(Fgarbage_collect, survives_gc_p, gc_sweep):
+	Use bool for booleans, instead of int.
+	(test_setjmp) [!GC_SAVE_REGISTERS_ON_STACK && !GC_SETJMP_WORKS]:
+	Remove unused local.
+	* alloc.c (PURE_POINTER_P):
+	* lisp.h (STRING_MULTIBYTE): Document that it returns a boolean.
+	* editfns.c (Fformat):
+	* fileio.c (Fexpand_file_name, Fsubstitute_in_file_name)
+	(Fdo_auto_save):
+	* fns.c (sweep_weak_table):
+	* lisp.h (suppress_checking, push_message, survives_gc_p)
+	(make_pure_string, gc_in_progress, abort_on_gc):
+	* lread.c (readchar, read1):
+	* print.c (Fprin1_to_string):
+	* xdisp.c (push_message):
+	Use bool for booleans affected directly or indirectly by
+	alloc.c's changes.
+
+	Make recently-introduced setters macros.
+	* fontset.c (set_fontset_id, set_fontset_name, set_fontset_ascii)
+	(set_fontset_base, set_fontset_frame, set_fontset_nofont_face)
+	(set_fontset_default, set_fontset_fallback): Rename from their
+	upper-case counterparts, and make them functions rather than macros.
+	This is more consistent with the other recently-introduced setters.
+	These don't need to be inline, since they're local.
+
+2012-08-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (fd_handler:): Alloc and release a NSAutoreleasePool in
+	the loop (Bug#12247).
+
+2012-08-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (vcopy): Use memcpy rather than our own loop.
+	This fixes a performance regression introduced by the recent
+	addition of vcopy.  This means 'vcopy' will need to be modified
+	for a copying collector, but that's OK.  Also, tighten the
+	checking in the assertion.
+
+2012-08-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32uniscribe.c (uniscribe_shape): Fix producing gstring
+	components for RTL text (Bug#11860).  Adjust X-OFFSET of each
+	non-base glyph for the width of the base character, according to
+	what x_draw_composite_glyph_string_foreground expects.  Generate
+	WADJUST value according to composition_gstring_width's
+	expectations, to produce correct width of the composed character.
+	Reverse the sign of the DU offset produced by ScriptPlace.
+
+2012-08-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dbusbind.c (xd_remove_watch): Do not assume C99 comments.
+
+2012-08-21  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	Avoid direct writes to contents member of struct Lisp_Vector.
+	* lisp.h (vcopy): New function to copy data into vector.
+	* dispnew.c (Fframe_or_buffer_changed_p): Use AREF and ASET.
+	* fns.c (Ffillarray): Use ASET.
+	* keyboard.c (timer_check_2): Use AREF and ASET.
+	(append_tool_bar_item, Frecent_keys): Use vcopy.
+	* lread.c (read_vector): Use ASET.
+	* msdos.c (Frecent_doskeys): Use vcopy.
+	* xface.c (Finternal_copy_lisp_face): Use vcopy.
+	(Finternal_merge_in_global_face): Use ASET and vcopy.
+	* xfont.c (xfont_list_pattern): Likewise.
+
+2012-08-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fwindow_point): For the selected window always return
+	the position of its buffer's point.
+	(Fset_window_point): For the selected window always go in its
+	buffer to the specified position.
+
 2012-08-21  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Setter macros for fontsets.

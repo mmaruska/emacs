@@ -1,4 +1,102 @@
+2012-08-22  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-fontify-node): Hide the suffix of the
+	Info file name in the header line.  (Bug#12187)
+
+2012-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-tex.el (cal-tex-weekly-common):
+	Restore leading blank page.
+
+2012-08-22  Le Wang  <l26wang@gmail.com>  (tiny change)
+
+	* misc.el (forward-to-word, backward-to-word): Activate or extend
+	the region under `shift-select-mode'.  (Bug#12231)
+
+2012-08-22  Bastien Guerry  <bzg@gnu.org>
+
+	* progmodes/executable.el (executable-prefix): Set to "#!" instead
+	of "#! ".  http://www.in-ulm.de/~mascheck/various/shebang/#details
+	gives details on why the space is never needed.
+
+2012-08-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (walk-window-tree, window-with-parameter): New
+	optional argument MINIBUF to control whether these functions
+	should run on the minibuffer window.
+	(window-at-side-list): Don't operate on minibuffer window.
+	(window-in-direction): Simplify and rewrite doc-string.
+	(window--size-ignore): Rename to window--size-ignore-p.  Update
+	callers.
+	(display-buffer-in-atom-window, window--major-non-side-window)
+	(window--major-side-window, display-buffer-in-major-side-window)
+	(delete-side-window, display-buffer-in-side-window): New
+	functions.
+	(window--side-check, window-deletable-p, delete-window)
+	(delete-other-windows, split-window): Handle side windows and
+	atomic windows appropriately.
+	(window--display-buffer): Call display-buffer-record-window also
+	when the window buffer did not change.
+
+2012-08-22  Christopher Schmidt  <christopher@ch.ristopher.com>
+
+	* help-fns.el (help-fns--key-bindings):
+	Abbreviate non-symbol remap targets.  (Bug#12174)
+
+2012-08-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* dired.el (dired-mark-remembered): Don't clobber point.
+	(Bug#11795)
+
+2012-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/bug-reference.el (bug-reference): New custom group.
+	(bug-reference-bug-regexp): Make it a defcustom.
+
+2012-08-22  Daiki Ueno  <ueno@unixuser.org>
+
+	* progmodes/js.el (js-indent-level, js-expr-indent-offset)
+	(js-paren-indent-offset, js-square-indent-offset)
+	(js-curly-indent-offset): Add :safe (Bug#12257).
+
+2012-08-22  Edward O'Connor  <hober0@gmail.com>
+
+	* json.el (json-key-format): Add error properties.
+	(json-encode-key): New function.
+	(json-encode-hash-table, json-encode-alist, json-encode-plist):
+	Use json-encode-key.
+
+2012-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-tex.el (cal-tex-longday): New function, replacing...
+	(cal-tex-leftday, cal-tex-rightday): Remove functions.
+	(cal-tex-weekly-common, cal-tex-cursor-filofax-2week):
+	Update for above change.
+
+2012-08-21  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* cus-face.el (custom-face-attributes): Fix customize type for the
+	:underline attribute.  (Bug#11805)
+
+2012-08-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-point-1, set-window-point-1): Remove.
+	(window-in-direction, record-window-buffer)
+	(set-window-buffer-start-and-point, split-window-below)
+	(window--state-get-1, display-buffer-record-window): Replace
+	calls to window-point-1 and set-window-point-1 by calls to
+	window-point and set-window-point respectively.
+
 2012-08-21  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-tex.el (cal-tex-weekly-common): New function.
+	(cal-tex-cursor-week-at-a-glance, cal-tex-cursor-filofax-week):
+	Use it.
+
+	* calendar/cal-tex.el (cal-tex-rightday): Add optional funcname arg.
+	(cal-tex-shortday): New function.
+	(cal-tex-cursor-week-at-a-glance, cal-tex-cursor-filofax-week)
+	(cal-tex-cursor-filofax-daily): Use the above.
 
 	* calendar/cal-tex.el (cal-tex-leftday, cal-tex-rightday):
 	New functions.
@@ -323,7 +421,7 @@
 
 2012-08-13  Bastien Guerry  <bzg@gnu.org>
 
-	* window.el (special-display-popup-frame): Small docstring
+	* window.el (special-display-popup-frame): Minor docstring
 	enhancement.  (Bug#12172)
 
 2012-08-13  Andreas Schwab  <schwab@linux-m68k.org>

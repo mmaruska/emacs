@@ -2139,12 +2139,8 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
   register ptrdiff_t size, idx;
 
   if (VECTORP (array))
-    {
-      register Lisp_Object *p = XVECTOR (array)->contents;
-      size = ASIZE (array);
-      for (idx = 0; idx < size; idx++)
-	p[idx] = item;
-    }
+    for (idx = 0, size = ASIZE (array); idx < size; idx++)
+      ASET (array, idx, item);
   else if (CHAR_TABLE_P (array))
     {
       int i;
@@ -3971,8 +3967,8 @@ sweep_weak_table (struct Lisp_Hash_Table *h, int remove_entries_p)
       for (idx = HASH_INDEX (h, bucket); !NILP (idx); idx = next)
 	{
 	  ptrdiff_t i = XFASTINT (idx);
-	  int key_known_to_survive_p = survives_gc_p (HASH_KEY (h, i));
-	  int value_known_to_survive_p = survives_gc_p (HASH_VALUE (h, i));
+	  bool key_known_to_survive_p = survives_gc_p (HASH_KEY (h, i));
+	  bool value_known_to_survive_p = survives_gc_p (HASH_VALUE (h, i));
 	  int remove_p;
 
 	  if (EQ (h->weak, Qkey))
