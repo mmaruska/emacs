@@ -544,11 +544,10 @@ thinking of using it for any other purpose, it is quite likely that
 you're making a mistake.  Think: what do you want to do when the
 command is called from a keyboard macro?
 
-This function is meant for implementing advice and other
-function-modifying features.  Instead of using this, it is sometimes
-cleaner to give your function an extra optional argument whose
-`interactive' spec specifies non-nil unconditionally (\"p\" is a good
-way to do this), or via (not (or executing-kbd-macro noninteractive)).  */)
+Instead of using this function, it is sometimes cleaner to give your
+function an extra optional argument whose `interactive' spec specifies
+non-nil unconditionally (\"p\" is a good way to do this), or via
+\(not (or executing-kbd-macro noninteractive)).  */)
   (Lisp_Object kind)
 {
   return ((INTERACTIVE || !EQ (kind, intern ("interactive")))
@@ -2722,33 +2721,9 @@ DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
        doc: /* Non-nil if OBJECT is a function.  */)
      (Lisp_Object object)
 {
-  if (SYMBOLP (object) && !NILP (Ffboundp (object)))
-    {
-      object = Findirect_function (object, Qt);
-
-      if (CONSP (object) && EQ (XCAR (object), Qautoload))
-	{
-	  /* Autoloaded symbols are functions, except if they load
-	     macros or keymaps.  */
-	  int i;
-	  for (i = 0; i < 4 && CONSP (object); i++)
-	    object = XCDR (object);
-
-	  return (CONSP (object) && !NILP (XCAR (object))) ? Qnil : Qt;
-	}
-    }
-
-  if (SUBRP (object))
-    return (XSUBR (object)->max_args != UNEVALLED) ? Qt : Qnil;
-  else if (COMPILEDP (object))
+  if (FUNCTIONP (object))
     return Qt;
-  else if (CONSP (object))
-    {
-      Lisp_Object car = XCAR (object);
-      return (EQ (car, Qlambda) || EQ (car, Qclosure)) ? Qt : Qnil;
-    }
-  else
-    return Qnil;
+  return Qnil;
 }
 
 DEFUN ("funcall", Ffuncall, Sfuncall, 1, MANY, 0,
