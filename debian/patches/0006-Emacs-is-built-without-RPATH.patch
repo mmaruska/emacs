@@ -1,4 +1,4 @@
-From 28f20e037da77a88849cc789168017a58596e7dd Mon Sep 17 00:00:00 2001
+From ba542098b1f4212162ade04d5c757fba8250ef5d Mon Sep 17 00:00:00 2001
 From: Romain Francoise <rfrancoise@debian.org>
 Date: Thu, 24 Feb 2011 23:26:42 +0100
 Subject: [PATCH 06/10] Emacs is built without RPATH.
@@ -12,10 +12,10 @@ Signed-off-by: Julien Danjou <julien@danjou.info>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/autogen/configure b/autogen/configure
-index 7a94dcb..6dde059 100755
+index 487f8de..9df8bff 100755
 --- a/autogen/configure
 +++ b/autogen/configure
-@@ -9297,7 +9297,7 @@ LD_SWITCH_X_SITE_RPATH=
+@@ -9352,7 +9352,7 @@ LD_SWITCH_X_SITE_RPATH=
  if test "${x_libraries}" != NONE; then
    if test -n "${x_libraries}"; then
      LD_SWITCH_X_SITE=-L`echo ${x_libraries} | sed -e "s/:/ -L/g"`
