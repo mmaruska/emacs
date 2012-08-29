@@ -4369,12 +4369,11 @@ of the window used."
 	  (function :tag "function"))
   :group 'windows)
 
+;; Eventually, we want to turn this into a defvar; instead of
+;; customizing this, the user should use a `pop-up-frame-parameters'
+;; alist entry in `display-buffer-base-action'.
 (defcustom pop-up-frame-alist nil
   "Alist of parameters for automatically generated new frames.
-You can set this in your init file; for example,
-
-  (setq pop-up-frame-alist '((width . 80) (height . 20)))
-
 If non-nil, the value you specify here is used by the default
 `pop-up-frame-function' for the creation of new frames.
 
@@ -4461,8 +4460,7 @@ See also `special-display-regexps'."
 			(repeat :tag "Arguments" (sexp)))))
   :group 'windows
   :group 'frames)
-
-;;;###autoload
+(make-obsolete-variable 'special-display-buffer-names 'display-buffer-alist "24.3")
 (put 'special-display-buffer-names 'risky-local-variable t)
 
 (defcustom special-display-regexps nil
@@ -4529,6 +4527,8 @@ See also `special-display-buffer-names'."
 			(repeat :tag "Arguments" (sexp)))))
   :group 'windows
   :group 'frames)
+(make-obsolete-variable 'special-display-regexps 'display-buffer-alist "24.3")
+(put 'special-display-regexps 'risky-local-variable t)
 
 (defun special-display-p (buffer-name)
   "Return non-nil if a buffer named BUFFER-NAME gets a special frame.
@@ -4570,6 +4570,7 @@ These supersede the values given in `default-frame-alist'."
 			 (symbol :tag "Parameter")
 			 (sexp :tag "Value")))
   :group 'frames)
+(make-obsolete-variable 'special-display-frame-alist 'display-buffer-alist "24.3")
 
 (defun special-display-popup-frame (buffer &optional args)
   "Pop up a frame displaying BUFFER and return its window.
@@ -4636,6 +4637,7 @@ with corresponding arguments to set up the quit-restore parameter
 of the window used."
   :type 'function
   :group 'frames)
+(make-obsolete-variable 'special-display-function 'display-buffer-alist "24.3")
 
 (defcustom same-window-buffer-names nil
   "List of names of buffers that should appear in the \"same\" window.
@@ -4708,6 +4710,7 @@ that frame."
   :type 'boolean
   :version "21.1"
   :group 'windows)
+(make-obsolete-variable 'display-buffer-reuse-frames 'display-buffer-alist "24.3")
 
 (defcustom pop-up-windows t
   "Non-nil means `display-buffer' should make a new window."
@@ -4911,23 +4914,19 @@ Do this only if these windows are vertically adjacent to each
 other, `even-window-heights' is non-nil, and the selected window
 is higher than WINDOW."
   (when (and even-window-heights
-	     (not (eq window (selected-window)))
-	     ;; Don't resize minibuffer windows.
-	     (not (window-minibuffer-p (selected-window)))
-	     (> (window-height (selected-window)) (window-height window))
-	     (eq (window-frame window) (window-frame (selected-window)))
-	     (let ((sel-edges (window-edges (selected-window)))
-		   (win-edges (window-edges window)))
-	       (and (= (nth 0 sel-edges) (nth 0 win-edges))
-		    (= (nth 2 sel-edges) (nth 2 win-edges))
-		    (or (= (nth 1 sel-edges) (nth 3 win-edges))
-			(= (nth 3 sel-edges) (nth 1 win-edges))))))
-    (let ((window-min-height 1))
-      ;; Don't throw an error if we can't even window heights for
-      ;; whatever reason.
-      (condition-case nil
-	  (enlarge-window (/ (- (window-height window) (window-height)) 2))
-	(error nil)))))
+	     ;; Even iff WINDOW forms a vertical combination with the
+	     ;; selected window, and WINDOW's height exceeds that of the
+	     ;; selected window, see also bug#11880.
+	     (window-combined-p window)
+	     (= (window-child-count (window-parent window)) 2)
+	     (eq (window-parent) (window-parent window))
+	     (> (window-total-height) (window-total-height window)))
+    ;; Don't throw an error if we can't even window heights for
+    ;; whatever reason.
+    (condition-case nil
+	(enlarge-window
+	 (/ (- (window-total-height window) (window-total-height)) 2))
+      (error nil))))
 
 (defun window--display-buffer (buffer window type &optional dedicated)
   "Display BUFFER in WINDOW and make its frame visible.
@@ -5112,6 +5111,10 @@ Recognized alist entries include:
                       window that already displays the buffer.
                       See `display-buffer-reuse-window'.
 
+ `pop-up-frame-parameters' -- Value specifies an alist of frame
+                              parameters to give a new frame, if
+                              one is created.
+
 The ACTION argument to `display-buffer' can also have a non-nil
 and non-list value.  This means to display the buffer in a window
 other than the selected one, even if it is already displayed in
@@ -5254,9 +5257,15 @@ This works by calling `pop-up-frame-function'.  If successful,
 return the window used; otherwise return nil.
 
 If ALIST has a non-nil `inhibit-switch-frame' entry, avoid
-raising the new frame."
-  (let ((fun pop-up-frame-function)
-	frame window)
+raising the new frame.
+
+If ALIST has a non-nil `pop-up-frame-parameters' entry, the
+corresponding value is an alist of frame parameters to give the
+new frame."
+  (let* ((params (cdr (assq 'pop-up-frame-parameters alist)))
+	 (pop-up-frame-alist (append params pop-up-frame-alist))
+	 (fun pop-up-frame-function)
+	 frame window)
     (when (and fun
 	       (setq frame (funcall fun))
 	       (setq window (frame-selected-window frame)))
@@ -5334,8 +5343,9 @@ that frame."
 		  window))
 	      (get-largest-window 0 not-this-window))))
     (when (window-live-p window)
-      (window--even-window-heights window)
-      (prog1 (window--display-buffer buffer window 'reuse)
+      (prog1
+	  (window--display-buffer buffer window 'reuse)
+	(window--even-window-heights window)
 	(unless (cdr (assq 'inhibit-switch-frame alist))
 	  (window--maybe-raise-frame (window-frame window)))))))
 

@@ -54,14 +54,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
-Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_valid_p;
+Lisp_Object Qwindowp, Qwindow_live_p;
+static Lisp_Object Qwindow_valid_p;
 static Lisp_Object Qwindow_configuration_p, Qrecord_window_buffer;
 static Lisp_Object Qwindow_deletable_p, Qdelete_window, Qdisplay_buffer;
 static Lisp_Object Qreplace_buffer_in_windows, Qget_mru_window;
 static Lisp_Object Qwindow_resize_root_window, Qwindow_resize_root_window_vertically;
 static Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
 static Lisp_Object Qsafe, Qabove, Qbelow;
-static Lisp_Object Qauto_buffer_name, Qclone_of;
+static Lisp_Object Qclone_of;
 
 static int displayed_window_lines (struct window *);
 static int count_windows (struct window *);
@@ -268,7 +269,7 @@ decode_any_window (register Lisp_Object window)
   return w;
 }
 
-struct window *
+static struct window *
 decode_valid_window (register Lisp_Object window)
 {
   struct window *w;
@@ -1968,6 +1969,9 @@ unshow_buffer (register struct window *w)
      is actually stored in that buffer, and the window's pointm isn't used.
      So don't clobber point in that buffer.  */
   if (! EQ (buf, XWINDOW (selected_window)->buffer)
+      /* Don't clobber point in current buffer either (this could be
+	 useful in connection with bug#12208).
+      && XBUFFER (buf) != current_buffer  */
       /* This line helps to fix Horsley's testbug.el bug.  */
       && !(WINDOWP (BVAR (b, last_selected_window))
 	   && w != XWINDOW (BVAR (b, last_selected_window))
@@ -3097,7 +3101,7 @@ run_window_configuration_change_hook (struct frame *f)
   /* Use the right buffer.  Matters when running the local hooks.  */
   if (current_buffer != XBUFFER (Fwindow_buffer (Qnil)))
     {
-      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+      record_unwind_current_buffer ();
       Fset_buffer (Fwindow_buffer (Qnil));
     }
 
@@ -3134,7 +3138,7 @@ run_window_configuration_change_hook (struct frame *f)
 DEFUN ("run-window-configuration-change-hook", Frun_window_configuration_change_hook,
        Srun_window_configuration_change_hook, 1, 1, 0,
        doc: /* Run `window-configuration-change-hook' for FRAME.  */)
-     (Lisp_Object frame)
+  (Lisp_Object frame)
 {
   CHECK_LIVE_FRAME (frame);
   run_window_configuration_change_hook (XFRAME (frame));
@@ -3201,7 +3205,7 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer, int run_hooks_p, int 
      because that might itself be a local variable.  */
   if (window_initialized)
     {
-      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+      record_unwind_current_buffer ();
       Fset_buffer (buffer);
     }
 
@@ -5536,7 +5540,6 @@ the return value is nil.  Otherwise the value is t.  */)
   struct Lisp_Vector *saved_windows;
   Lisp_Object new_current_buffer;
   Lisp_Object frame;
-  Lisp_Object auto_buffer_name;
   FRAME_PTR f;
   ptrdiff_t old_point = -1;
 
@@ -5611,6 +5614,21 @@ the return value is nil.  Otherwise the value is t.  */)
       int previous_frame_cols =  FRAME_COLS  (f);
       int previous_frame_menu_bar_lines = FRAME_MENU_BAR_LINES (f);
       int previous_frame_tool_bar_lines = FRAME_TOOL_BAR_LINES (f);
+
+      /* Don't do this within the main loop below: This may call Lisp
+	 code and is thus potentially unsafe while input is blocked.  */
+      for (k = 0; k < saved_windows->header.size; k++)
+	{
+	  p = SAVED_WINDOW_N (saved_windows, k);
+	  window = p->window;
+	  w = XWINDOW (window);
+	  if (!NILP (w->buffer)
+	      && !EQ (w->buffer, p->buffer)
+	      && !NILP (BVAR (XBUFFER (p->buffer), name)))
+	    /* If a window we restore gets another buffer, record the
+	       window's old buffer.  */
+	    call1 (Qrecord_window_buffer, window);
+	}
 
       /* The mouse highlighting code could get screwed up
 	 if it runs during this.  */
@@ -5790,18 +5808,6 @@ the return value is nil.  Otherwise the value is t.  */)
 		    BUF_PT_BYTE (XBUFFER (w->buffer)));
 	       w->start_at_line_beg = 1;
 	     }
-	   else if (STRINGP (auto_buffer_name =
-			     Fwindow_parameter (window, Qauto_buffer_name))
-		    && SCHARS (auto_buffer_name) != 0
-		    && (wset_buffer (w, Fget_buffer_create (auto_buffer_name)),
-			!NILP (w->buffer)))
-	    {
-	      set_marker_restricted (w->start,
-				     make_number (0), w->buffer);
-	      set_marker_restricted (w->pointm,
-				     make_number (0), w->buffer);
-	      w->start_at_line_beg = 1;
-	    }
 	  else
 	    /* Window has no live buffer, get one.  */
 	    {
@@ -5899,7 +5905,13 @@ the return value is nil.  Otherwise the value is t.  */)
     }
 
   if (!NILP (new_current_buffer))
-    Fset_buffer (new_current_buffer);
+    {
+      Fset_buffer (new_current_buffer);
+      /* If the new current buffer doesn't appear in the selected
+	 window, go to its old point (see bug#12208).  */
+      if (!EQ (XWINDOW (data->current_window)->buffer, new_current_buffer))
+	Fgoto_char (make_number (old_point));
+    }
 
   Vminibuf_scroll_window = data->minibuf_scroll_window;
   minibuf_selected_window = data->minibuf_selected_window;
@@ -6701,7 +6713,6 @@ syms_of_window (void)
   DEFSYM (Qtemp_buffer_show_hook, "temp-buffer-show-hook");
   DEFSYM (Qabove, "above");
   DEFSYM (Qbelow, "below");
-  DEFSYM (Qauto_buffer_name, "auto-buffer-name");
   DEFSYM (Qclone_of, "clone-of");
 
   staticpro (&Vwindow_list);

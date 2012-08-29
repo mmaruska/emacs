@@ -1,3 +1,125 @@
+2012-08-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* eshell/esh-ext.el (eshell-external-command): Do not examine
+	remote shell scripts.  See
+	<https://bugs.launchpad.net/ubuntu/+source/emacs23/+bug/1035790>.
+
+	* net/tramp-sh.el (tramp-remote-path): Add "/sbin" and
+	"/usr/local/sbin".
+
+2012-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-lib.el (buffer-string): Fix setter macro (bug#12293).
+
+2012-08-28  Leo Liu  <sdl.web@gmail.com>
+
+	* progmodes/sh-script.el (sh-dynamic-complete-functions): Adapt to
+	completion-at-point.  (Bug#12220)
+
+	* skeleton.el (skeleton-untabify): Change to nil (bug#12223).
+
+	* progmodes/sh-script.el (sh-indent-comment): Change to t (bug#12267).
+
+2012-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (safe-local-eval-forms): Fix before-save-hook entry to
+	be buffer-local; add delete-trailing-whitespace (bug#12259).
+
+2012-08-28  Jeremy Moore  <jmoore@ieee.org>  (tiny change)
+
+	* progmodes/hideif.el (hif-compress-define-list):
+	Fix typo.  (Bug#11951)
+
+2012-08-28  Dan Nicolaescu  <dann@gnu.org>
+
+	* progmodes/hideshow.el (hs-block-end-regexp): Restore lost
+	buffer local setting.
+
+	* net/rcirc.el (rcirc-split-message): Fix for buffer-local
+	rcirc-encode-coding-system.
+
+2012-08-28  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-split-message): New function.
+	(rcirc-send-message): Use it.  (Bug#12051)
+
+2012-08-28  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-fontify-node): Hide empty lines at the end of
+	the node.  (Bug#12272)
+
+2012-08-27  Drew Adams  <drew.adams@oracle.com>
+
+	* dired.el (dired-pop-to-buffer): Make window start at beginning
+	of buffer (Bug#12281).
+
+2012-08-26  Chong Yidong  <cyd@gnu.org>
+
+	* window.el (special-display-regexps, special-display-frame-alist)
+	(special-display-buffer-names, special-display-function)
+	(display-buffer-reuse-frames): Mark as obsolete.
+
+	* progmodes/compile.el: Don't use display-buffer-reuse-frames.
+
+	* help.el (help-print-return-message): Don't treat
+	display-buffer-reuse-frames specially.
+
+2012-08-26  Chong Yidong  <cyd@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb-display-buffer-other-frame-action):
+	New variable, replacing gdb-frame-parameters.
+	(gdb-frame-io-buffer, gdb-frame-breakpoints-buffer)
+	(gdb-frame-threads-buffer, gdb-frame-memory-buffer)
+	(gdb-frame-disassembly-buffer, gdb-frame-stack-buffer)
+	(gdb-frame-locals-buffer, gdb-frame-registers-buffer): Use it.
+	(def-gdb-frame-for-buffer): Macro deleted.  It is easier to define
+	the functions directly with gdb-display-buffer-other-frame-action.
+	(gdb-display-breakpoints-buffer, gdb-display-threads-buffer)
+	(gdb-display-memory-buffer, gdb-display-disassembly-buffer)
+	(gdb-display-stack-buffer, gdb-display-locals-buffer)
+	(gdb-display-registers-buffer): Define directly.
+	(def-gdb-display-buffer): Macro deleted.
+	(gdb-display-buffer): Remove second and third args, callers don't
+	use them.  Defer to the default display-buffer behavior, apart
+	from making windows dedicated.
+	(gdb-setup-windows): Don't call display-buffer unnecessarily.
+
+	* progmodes/gud.el (gud-display-line): Just use display-buffer.
+
+	* window.el (display-buffer-pop-up-frame): Handle a
+	pop-up-frame-parameters alist entry.
+	(display-buffer): Document it.
+
+2012-08-26  Chong Yidong  <cyd@gnu.org>
+
+	* isearch.el (search-whitespace-regexp): Make string and nil
+	values apply to both ordinary and regexp search.  Allow a cons
+	cell value to distinguish between the two.
+	(isearch-whitespace-regexp, isearch-search-forward)
+	(isearch-search-backward): New functions.
+	(isearch-occur, isearch-search-fun-default, isearch-search)
+	(isearch-lazy-highlight-new-loop): Use them.
+	(isearch-forward, isearch-forward-regexp): Doc fix.
+
+2012-08-26  Chong Yidong  <cyd@gnu.org>
+
+	* faces.el (help-argument-name): Always inherit from italic
+	(Bug#12213).
+
+2012-08-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--even-window-heights): Even heights when
+	WINDOW and the selected window form a vertical combination.
+	(display-buffer-use-some-window): Provide that window used gets
+	sized back by quit-window.  (Bug#11880) and (Bug#12091)
+
+2012-08-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix file time stamp problem with bzr and CVS (Bug#12001).
+	* vc/vc-cvs.el (vc-cvs-parse-entry): Ignore subsecond information
+	in the file's time stamp, since the version control system loses
+	that information.
+
 2012-08-22  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-fontify-node): Hide the suffix of the
@@ -21,17 +143,17 @@
 
 2012-08-22  Martin Rudalics  <rudalics@gmx.at>
 
-	* window.el (walk-window-tree, window-with-parameter): New
-	optional argument MINIBUF to control whether these functions
+	* window.el (walk-window-tree, window-with-parameter):
+	New optional argument MINIBUF to control whether these functions
 	should run on the minibuffer window.
 	(window-at-side-list): Don't operate on minibuffer window.
 	(window-in-direction): Simplify and rewrite doc-string.
-	(window--size-ignore): Rename to window--size-ignore-p.  Update
-	callers.
+	(window--size-ignore): Rename to window--size-ignore-p.
+	Update callers.
 	(display-buffer-in-atom-window, window--major-non-side-window)
 	(window--major-side-window, display-buffer-in-major-side-window)
-	(delete-side-window, display-buffer-in-side-window): New
-	functions.
+	(delete-side-window, display-buffer-in-side-window):
+	New functions.
 	(window--side-check, window-deletable-p, delete-window)
 	(delete-other-windows, split-window): Handle side windows and
 	atomic windows appropriately.
@@ -83,8 +205,8 @@
 	* window.el (window-point-1, set-window-point-1): Remove.
 	(window-in-direction, record-window-buffer)
 	(set-window-buffer-start-and-point, split-window-below)
-	(window--state-get-1, display-buffer-record-window): Replace
-	calls to window-point-1 and set-window-point-1 by calls to
+	(window--state-get-1, display-buffer-record-window):
+	Replace calls to window-point-1 and set-window-point-1 by calls to
 	window-point and set-window-point respectively.
 
 2012-08-21  Glenn Morris  <rgm@gnu.org>
@@ -202,8 +324,8 @@
 	(yank-excluded-properties): Add font-lock-face and category.
 	(yank): Doc fix.
 
-	* subr.el (remove-yank-excluded-properties): Obey
-	yank-handled-properties.  The special handling of font-lock-face
+	* subr.el (remove-yank-excluded-properties):
+	Obey yank-handled-properties.  The special handling of font-lock-face
 	and category is now done this way, instead of being hard-coded.
 	(insert-for-yank-1): Remove font-lock-face handling.
 	(yank-handle-font-lock-face-property)
@@ -217,8 +339,8 @@
 
 2012-08-17  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-sh.el (tramp-sh-handle-start-file-process): Eliminate
-	superfluous prompt.  (Bug#12203)
+	* net/tramp-sh.el (tramp-sh-handle-start-file-process):
+	Eliminate superfluous prompt.  (Bug#12203)
 
 2012-08-17  Chong Yidong  <cyd@gnu.org>
 
@@ -245,8 +367,8 @@
 	(next-buffer, previous-buffer, split-window, balance-windows-2)
 	(set-window-text-height, window-buffer-height)
 	(fit-window-to-buffer, shrink-window-if-larger-than-buffer)
-	(truncated-partial-width-window-p): Minor code adjustments.  In
-	doc-strings state whether the argument window has to denote a
+	(truncated-partial-width-window-p): Minor code adjustments.
+	In doc-strings state whether the argument window has to denote a
 	live, valid or any window.
 
 2012-08-16  Phil Sainty  <psainty@orcon.net.nz>  (tiny change)
@@ -489,6 +611,7 @@
 	* files.el (hack-local-variables-filter): If an eval: form is not
 	known to be safe, and enable-local-variables is :safe, then ignore
 	the form totally, as is done for non-eval forms.  (Bug#12155)
+	This is CVE-2012-3479.
 
 2012-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
