@@ -1,4 +1,4 @@
-From 70152785b2ba8c037256097bf7ba96a3e5d7f815 Mon Sep 17 00:00:00 2001
+From e3ec3e5b007ad89931fd0e1bf93dfdd1497ac7b9 Mon Sep 17 00:00:00 2001
 From: Romain Francoise <rfrancoise@debian.org>
 Date: Thu, 24 Feb 2011 23:26:08 +0100
 Subject: [PATCH 05/10] (describe-copying) uses /usr/share/common-licenses/GPL
@@ -14,10 +14,10 @@ Signed-off-by: Julien Danjou <julien@danjou.info>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/lisp/help.el b/lisp/help.el
-index 19db7c2..8e3596f 100644
+index cacbf18..e085cb8 100644
 --- a/lisp/help.el
 +++ b/lisp/help.el
-@@ -290,7 +290,8 @@ If that doesn't give a function, return nil."
+@@ -291,7 +291,8 @@ If that doesn't give a function, return nil."
  (defun describe-copying ()
    "Display info on how you may redistribute copies of GNU Emacs."
    (interactive)
