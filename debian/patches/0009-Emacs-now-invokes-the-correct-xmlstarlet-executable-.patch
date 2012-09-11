@@ -1,4 +1,4 @@
-From fe85e925949be2837542eef3c775ceff26d5929c Mon Sep 17 00:00:00 2001
+From 824f8152a7fac9d6acff3cac5f65e1b8801c322e Mon Sep 17 00:00:00 2001
 From: Romain Francoise <rfrancoise@debian.org>
 Date: Thu, 24 Feb 2011 23:28:27 +0100
 Subject: [PATCH 09/10] Emacs now invokes the correct xmlstarlet executable on
