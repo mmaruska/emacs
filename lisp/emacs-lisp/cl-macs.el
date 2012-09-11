@@ -393,9 +393,14 @@ its argument list allows full Common Lisp conventions."
       (mapcar (lambda (x)
                 (cond
                  ((symbolp x)
-                  (if (eq ?\& (aref (symbol-name x) 0))
-                      (setq state x)
-                    (make-symbol (upcase (symbol-name x)))))
+                  (let ((first (aref (symbol-name x) 0)))
+                    (if (eq ?\& first)
+                        (setq state x)
+                      ;; Strip a leading underscore, since it only
+                      ;; means that this argument is unused.
+                      (make-symbol (upcase (if (eq ?_ first)
+                                               (substring (symbol-name x) 1)
+                                             (symbol-name x)))))))
                  ((not (consp x)) x)
                  ((memq state '(nil &rest)) (cl--make-usage-args x))
                  (t      ;(VAR INITFORM SVAR) or ((KEYWORD VAR) INITFORM SVAR).
@@ -479,7 +484,13 @@ its argument list allows full Common Lisp conventions."
 	  (let ((arg (pop args)))
 	    (or (consp arg) (setq arg (list arg)))
 	    (let* ((karg (if (consp (car arg)) (caar arg)
-			   (intern (format ":%s" (car arg)))))
+                           (let ((name (symbol-name (car arg))))
+                             ;; Strip a leading underscore, since it only
+                             ;; means that this argument is unused, but
+                             ;; shouldn't affect the key's name (bug#12367).
+                             (if (eq ?_ (aref name 0))
+                                 (setq name (substring name 1)))
+                             (intern (format ":%s" name)))))
 		   (varg (if (consp (car arg)) (cl-cadar arg) (car arg)))
 		   (def (if (cdr arg) (cadr arg)
 			  (or (car cl--bind-defs) (cadr (assq varg cl--bind-defs)))))
@@ -1452,8 +1463,15 @@ Valid clauses are:
 	  cl--loop-accum-var))))
 
 (defun cl--loop-build-ands (clauses)
+  "Return various representations of (and . CLAUSES).
+CLAUSES is a list of Elisp expressions, where clauses of the form
+\(progn E1 E2 E3 .. t) are the focus of particular optimizations.
+The return value has shape (COND BODY COMBO)
+such that COMBO is equivalent to (and . CLAUSES)."
   (let ((ands nil)
 	(body nil))
+    ;; Look through `clauses', trying to optimize (progn ,@A t) (progn ,@B) ,@C
+    ;; into (progn ,@A ,@B) ,@C.
     (while clauses
       (if (and (eq (car-safe (car clauses)) 'progn)
 	       (eq (car (last (car clauses))) t))
@@ -1464,6 +1482,7 @@ Valid clauses are:
 					     (cl-cdadr clauses)
 					   (list (cadr clauses))))
 				  (cddr clauses)))
+            ;; A final (progn ,@A t) is moved outside of the `and'.
 	    (setq body (cdr (butlast (pop clauses)))))
 	(push (pop clauses) ands)))
     (setq ands (or (nreverse ands) (list t)))

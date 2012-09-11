@@ -26,7 +26,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <limits.h>		/* For CHAR_BIT.  */
 #include <setjmp.h>
 
-#include <signal.h>
+#ifdef ENABLE_CHECKING
+#include <signal.h>		/* For SIGABRT. */
+#endif
 
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
@@ -42,7 +44,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "frame.h"
 #include "blockinput.h"
-#include "syssignal.h"
 #include "termhooks.h"		/* For struct terminal.  */
 #include <setjmp.h>
 #include <verify.h>
@@ -278,6 +279,7 @@ static void gc_sweep (void);
 static Lisp_Object make_pure_vector (ptrdiff_t);
 static void mark_glyph_matrix (struct glyph_matrix *);
 static void mark_face_cache (struct face_cache *);
+static void mark_buffer (struct buffer *);
 
 #if !defined REL_ALLOC || defined SYSTEM_MALLOC
 static void refill_memory_reserve (void);
@@ -3281,7 +3283,10 @@ allocate_buffer (void)
 
   XSETPVECTYPESIZE (b, PVEC_BUFFER, (offsetof (struct buffer, own_text)
 				     - header_size) / word_size);
-  /* Note that the fields of B are not initialized.  */
+  /* Put B on the chain of all buffers including killed ones.  */
+  b->header.next.buffer = all_buffers;
+  all_buffers = b;
+  /* Note that the rest fields of B are not initialized.  */
   return b;
 }
 
@@ -3677,7 +3682,7 @@ build_marker (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t bytepos)
   struct Lisp_Marker *m;
 
   /* No dead buffers here.  */
-  eassert (!NILP (BVAR (buf, name)));
+  eassert (BUFFER_LIVE_P (buf));
 
   /* Every character is at least one byte.  */
   eassert (charpos <= bytepos);
@@ -5473,6 +5478,9 @@ See Info node `(elisp)Garbage Collection'.  */)
 
   /* Mark all the special slots that serve as the roots of accessibility.  */
 
+  mark_buffer (&buffer_defaults);
+  mark_buffer (&buffer_local_symbols);
+
   for (i = 0; i < staticidx; i++)
     mark_object (*staticvec[i]);
 
@@ -5944,9 +5952,7 @@ mark_object (Lisp_Object arg)
 
 #ifdef GC_CHECK_MARKED_OBJECTS
 	m = mem_find (po);
-	if (m == MEM_NIL && !SUBRP (obj)
-	    && po != &buffer_defaults
-	    && po != &buffer_local_symbols)
+	if (m == MEM_NIL && !SUBRP (obj))
 	  emacs_abort ();
 #endif /* GC_CHECK_MARKED_OBJECTS */
 
@@ -5963,15 +5969,14 @@ mark_object (Lisp_Object arg)
 	  {
 	  case PVEC_BUFFER:
 #ifdef GC_CHECK_MARKED_OBJECTS
-	    if (po != &buffer_defaults && po != &buffer_local_symbols)
-	      {
-		struct buffer *b;
-		FOR_EACH_BUFFER (b)
-		  if (b == po)
-		    break;
-		if (b == NULL)
-		  emacs_abort ();
-	      }
+	    {
+	      struct buffer *b;
+	      FOR_EACH_BUFFER (b)
+		if (b == po)
+		  break;
+	      if (b == NULL)
+		emacs_abort ();
+	    }
 #endif /* GC_CHECK_MARKED_OBJECTS */
 	    mark_buffer ((struct buffer *) ptr);
 	    break;
@@ -5996,10 +6001,8 @@ mark_object (Lisp_Object arg)
 	    break;
 
 	  case PVEC_FRAME:
-	    {
-	      mark_vectorlike (ptr);
-	      mark_face_cache (((struct frame *) ptr)->face_cache);
-	    }
+	    mark_vectorlike (ptr);
+	    mark_face_cache (((struct frame *) ptr)->face_cache);
 	    break;
 
 	  case PVEC_WINDOW:

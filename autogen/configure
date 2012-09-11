@@ -8887,38 +8887,6 @@ $as_echo "#define HAVE_SPEED_T 1" >>confdefs.h
 
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for struct exception" >&5
-$as_echo_n "checking for struct exception... " >&6; }
-if test "${emacs_cv_struct_exception+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <math.h>
-int
-main ()
-{
-static struct exception x; x.arg1 = x.arg2 = x.retval; x.name = ""; x.type = 1;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  emacs_cv_struct_exception=yes
-else
-  emacs_cv_struct_exception=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_struct_exception" >&5
-$as_echo "$emacs_cv_struct_exception" >&6; }
-HAVE_EXCEPTION=$emacs_cv_struct_exception
-if test $emacs_cv_struct_exception != yes || test $opsys = darwin; then
-
-$as_echo "#define NO_MATHERR 1" >>confdefs.h
-
-fi
-
 
 
 
@@ -12958,8 +12926,8 @@ $as_echo "#define HAVE_H_ERRNO 1" >>confdefs.h
 
 fi
 
-# fmod, logb, and frexp are found in -lm on most systems.
-# On HPUX 9.01, -lm does not contain logb, so check for sqrt.
+# sqrt and other floating-point functions such as fmod and frexp
+# are found in -lm on most systems.
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sqrt in -lm" >&5
 $as_echo_n "checking for sqrt in -lm... " >&6; }
 if test "${ac_cv_lib_m_sqrt+set}" = set; then :
@@ -13209,7 +13177,7 @@ esac
 
 for ac_func in gethostname \
 closedir getrusage get_current_dir_name \
-lrand48 logb frexp fmod cbrt setsid \
+lrand48 setsid \
 fpathconf select euidaccess getpagesize setlocale \
 utimes getrlimit setrlimit setpgid getcwd shutdown getaddrinfo \
 __fpending strsignal setitimer \
@@ -14858,10 +14826,6 @@ $as_echo "#define AMPERSAND_FULL_NAME 1" >>confdefs.h
 $as_echo "#define CLASH_DETECTION 1" >>confdefs.h
 
 
-
-
-
-
 ## Note: PTYs are broken on darwin <6.  Use at your own risk.
 
 $as_echo "#define HAVE_PTYS 1" >>confdefs.h
@@ -15039,7 +15003,7 @@ case $opsys in
   cygwin )
     $as_echo "#define PTY_ITERATION int i; for (i = 0; i < 1; i++)" >>confdefs.h
 
-        $as_echo "#define PTY_OPEN  do { int dummy; SIGMASKTYPE mask; mask = sigblock (sigmask (SIGCHLD)); if (-1 == openpty (&fd, &dummy, pty_name, 0, 0)) fd = -1; sigsetmask (mask); if (fd >= 0) emacs_close (dummy); } while (0)" >>confdefs.h
+        $as_echo "#define PTY_OPEN  do { int dummy; sigset_t blocked, procmask; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, &procmask); if (-1 == openpty (&fd, &dummy, pty_name, 0, 0)) fd = -1; pthread_sigmask (SIG_SETMASK, &procmask, 0); if (fd >= 0) emacs_close (dummy); } while (0)" >>confdefs.h
 
     $as_echo "#define PTY_NAME_SPRINTF /**/" >>confdefs.h
 
@@ -15072,7 +15036,7 @@ $as_echo "#define UNIX98_PTYS 1" >>confdefs.h
 
       $as_echo "#define PTY_ITERATION int i; for (i = 0; i < 1; i++)" >>confdefs.h
 
-                  $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptyname; sigblock (sigmask (SIGCHLD)); if (grantpt (fd) == -1 || unlockpt (fd) == -1 || !(ptyname = ptsname(fd))) { sigunblock (sigmask (SIGCHLD)); close (fd); return -1; } snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); sigunblock (sigmask (SIGCHLD)); }" >>confdefs.h
+                  $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptyname = 0; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); if (grantpt (fd) != -1 && unlockpt (fd) != -1) ptyname = ptsname(fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (!ptyname) { close (fd); return -1; } snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
 
             if test "x$ac_cv_func_posix_openpt" = xyes; then
         $as_echo "#define PTY_OPEN fd = posix_openpt (O_RDWR | O_NOCTTY)" >>confdefs.h
@@ -15117,12 +15081,12 @@ $as_echo "#define UNIX98_PTYS 1" >>confdefs.h
     ;;
 
   sol2* )
-                            $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptsname (int), *ptyname; sigblock (sigmask (SIGCLD)); if (grantpt (fd) == -1) { emacs_close (fd); return -1; } sigunblock (sigmask (SIGCLD)); if (unlockpt (fd) == -1) { emacs_close (fd); return -1; } if (!(ptyname = ptsname (fd))) { emacs_close (fd); return -1; } snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
+                $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1 || unlockpt (fd) == -1 || !(ptyname = ptsname (fd))) { emacs_close (fd); return -1; } snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
 
     ;;
 
   unixware )
-        $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptsname (int), *ptyname; sigblock(sigmask(SIGCLD)); if (grantpt(fd) == -1) fatal(\"could not grant slave pty\"); sigunblock(sigmask(SIGCLD)); if (unlockpt(fd) == -1) fatal(\"could not unlock slave pty\"); if (!(ptyname = ptsname(fd))) fatal (\"could not enable slave pty\"); snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
+        $as_echo "#define PTY_TTY_NAME_SPRINTF { char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1) fatal(\"could not grant slave pty\"); if (unlockpt(fd) == -1) fatal(\"could not unlock slave pty\"); if (!(ptyname = ptsname(fd))) fatal (\"could not enable slave pty\"); snprintf (pty_name, sizeof pty_name, \"%s\", ptyname); }" >>confdefs.h
 
     ;;
 esac
@@ -15526,12 +15490,6 @@ case $opsys in
   hpux* | sol2* )
 
 $as_echo "#define XOS_NEEDS_TIME_H 1" >>confdefs.h
-
-    ;;
-
-  netbsd | openbsd )
-
-$as_echo "#define SIGNAL_H_AHB 1" >>confdefs.h
 
     ;;
 esac
