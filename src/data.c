@@ -19,7 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-#include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
 
@@ -37,17 +36,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 
 #include <float.h>
-/* If IEEE_FLOATING_POINT isn't defined, default it from FLT_*.  */
-#ifndef IEEE_FLOATING_POINT
 #if (FLT_RADIX == 2 && FLT_MANT_DIG == 24 \
      && FLT_MIN_EXP == -125 && FLT_MAX_EXP == 128)
 #define IEEE_FLOATING_POINT 1
 #else
 #define IEEE_FLOATING_POINT 0
 #endif
-#endif
-
-#include <math.h>
 
 Lisp_Object Qnil, Qt, Qquote, Qlambda, Qunbound;
 static Lisp_Object Qsubr;
@@ -77,8 +71,8 @@ Lisp_Object Qchar_table_p, Qvector_or_char_table_p;
 Lisp_Object Qcdr;
 static Lisp_Object Qad_advice_info, Qad_activate_internal;
 
-Lisp_Object Qrange_error, Qdomain_error, Qsingularity_error;
-Lisp_Object Qoverflow_error, Qunderflow_error;
+static Lisp_Object Qdomain_error, Qsingularity_error, Qunderflow_error;
+Lisp_Object Qrange_error, Qoverflow_error;
 
 Lisp_Object Qfloatp;
 Lisp_Object Qnumberp, Qnumber_or_marker_p;
@@ -1883,12 +1877,12 @@ BUFFER defaults to the current buffer.  */)
 
 DEFUN ("local-variable-if-set-p", Flocal_variable_if_set_p, Slocal_variable_if_set_p,
        1, 2, 0,
-       doc: /* Non-nil if VARIABLE will be local in buffer BUFFER when set there.
-More precisely, this means that setting the variable \(with `set' or`setq'),
-while it does not have a `let'-style binding that was made in BUFFER,
-will produce a buffer local binding.  See Info node
-`(elisp)Creating Buffer-Local'.
-BUFFER defaults to the current buffer.  */)
+       doc: /* Non-nil if VARIABLE is local in buffer BUFFER when set there.
+BUFFER defaults to the current buffer.
+
+More precisely, return non-nil if either VARIABLE already has a local
+value in BUFFER, or if VARIABLE is automatically buffer-local (see
+`make-variable-buffer-local').  */)
   (register Lisp_Object variable, Lisp_Object buffer)
 {
   struct Lisp_Symbol *sym;
@@ -2738,28 +2732,6 @@ Both must be integers or markers.  */)
   return val;
 }
 
-#ifndef HAVE_FMOD
-double
-fmod (double f1, double f2)
-{
-  double r = f1;
-
-  if (f2 < 0.0)
-    f2 = -f2;
-
-  /* If the magnitude of the result exceeds that of the divisor, or
-     the sign of the result does not agree with that of the dividend,
-     iterate with the reduced value.  This does not yield a
-     particularly accurate result, but at least it will be in the
-     range promised by fmod.  */
-  do
-    r -= f2 * floor (r / f2);
-  while (f2 <= (r < 0 ? -r : r) || ((r < 0) != (f1 < 0) && ! isnan (r)));
-
-  return r;
-}
-#endif /* ! HAVE_FMOD */
-
 DEFUN ("mod", Fmod, Smod, 2, 2, 0,
        doc: /* Return X modulo Y.
 The result falls between zero (inclusive) and Y (exclusive).
@@ -3207,21 +3179,23 @@ syms_of_data (void)
   XSYMBOL (intern_c_string ("most-negative-fixnum"))->constant = 1;
 }
 
-#ifndef FORWARD_SIGNAL_TO_MAIN_THREAD
-_Noreturn
-#endif
-static void
-arith_error (int signo)
+static _Noreturn void
+handle_arith_signal (int sig)
 {
-  sigsetmask (SIGEMPTYMASK);
-
-  SIGNAL_THREAD_CHECK (signo);
+  pthread_sigmask (SIG_SETMASK, &empty_mask, 0);
   xsignal0 (Qarith_error);
+}
+
+static void
+deliver_arith_signal (int sig)
+{
+  handle_on_main_thread (sig, handle_arith_signal);
 }
 
 void
 init_data (void)
 {
+  struct sigaction action;
   /* Don't do this if just dumping out.
      We don't want to call `signal' in this case
      so that we don't have trouble with dumping
@@ -3230,5 +3204,6 @@ init_data (void)
   if (!initialized)
     return;
 #endif /* CANNOT_DUMP */
-  signal (SIGFPE, arith_error);
+  emacs_sigaction_init (&action, deliver_arith_signal);
+  sigaction (SIGFPE, &action, 0);
 }

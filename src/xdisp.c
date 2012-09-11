@@ -364,7 +364,7 @@ static Lisp_Object Qslice;
 Lisp_Object Qcenter;
 static Lisp_Object Qmargin, Qpointer;
 static Lisp_Object Qline_height;
-Lisp_Object Qinhibit_debug_on_message;
+static Lisp_Object Qinhibit_debug_on_message;
 
 /* These setters are used only in this file, so they can be private.  */
 static inline void
@@ -3667,7 +3667,7 @@ handle_fontified_prop (struct it *it)
       	}
       /* There isn't much we can reasonably do to protect against
       	 misbehaving fontification, but here's a fig leaf.  */
-      else if (!NILP (BVAR (obuf, name)))
+      else if (BUFFER_LIVE_P (obuf))
       	set_buffer_internal_1 (obuf);
 
       /* The fontification code may have added/removed text.
@@ -9910,7 +9910,7 @@ ensure_echo_area_buffers (void)
 
   for (i = 0; i < 2; ++i)
     if (!BUFFERP (echo_buffer[i])
-	|| NILP (BVAR (XBUFFER (echo_buffer[i]), name)))
+	|| !BUFFER_LIVE_P (XBUFFER (echo_buffer[i])))
       {
 	char name[30];
 	Lisp_Object old_buffer;
@@ -23050,7 +23050,8 @@ right_overwritten (struct glyph_string *s)
     {
       int x = 0, i;
       struct glyph *glyphs = s->row->glyphs[s->area];
-      int first = (s->first_glyph - glyphs) + (s->cmp ? 1 : s->nchars);
+      int first = (s->first_glyph - glyphs
+		   + (s->first_glyph->type == COMPOSITE_GLYPH ? 1 : s->nchars));
       int end = s->row->used[s->area];
 
       for (i = first; i < end && s->right_overhang > x; ++i)
@@ -23073,7 +23074,8 @@ right_overwriting (struct glyph_string *s)
   int i, k, x;
   int end = s->row->used[s->area];
   struct glyph *glyphs = s->row->glyphs[s->area];
-  int first = (s->first_glyph - glyphs) + (s->cmp ? 1 : s->nchars);
+  int first = (s->first_glyph - glyphs
+	       + (s->first_glyph->type == COMPOSITE_GLYPH ? 1 : s->nchars));
 
   k = -1;
   x = 0;

@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define DISPEXTERN_INLINE EXTERN_INLINE
 
-#include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
 #include <unistd.h>
@@ -3952,6 +3951,11 @@ update_window_line (struct window *w, int vpos, bool *mouse_face_overwritten_p)
 	{
 	  changed_p = 1;
 	  update_marginal_area (w, LEFT_MARGIN_AREA, vpos);
+	  /* Setting this flag will ensure the vertical border, if
+	     any, between this window and the one on its left will be
+	     redrawn.  This is necessary because updating the left
+	     margin area can potentially draw over the border.  */
+	  current_row->redraw_fringe_bitmaps_p = 1;
 	}
 
       /* Update the display of the text area.  */
@@ -5552,17 +5556,17 @@ marginal_area_string (struct window *w, enum window_part part,
 
 #ifdef SIGWINCH
 
+static void deliver_window_change_signal (int);
+
 static void
-window_change_signal (int signalnum) /* If we don't have an argument, */
-                   		/* some compilers complain in signal calls.  */
+handle_window_change_signal (int sig)
 {
   int width, height;
-  int old_errno = errno;
-
   struct tty_display_info *tty;
 
-  signal (SIGWINCH, window_change_signal);
-  SIGNAL_THREAD_CHECK (signalnum);
+  struct sigaction action;
+  emacs_sigaction_init (&action, deliver_window_change_signal);
+  sigaction (SIGWINCH, &action, 0);
 
   /* The frame size change obviously applies to a single
      termcap-controlled terminal, but we can't decide which.
@@ -5591,8 +5595,12 @@ window_change_signal (int signalnum) /* If we don't have an argument, */
           change_frame_size (XFRAME (frame), height, width, 0, 1, 0);
     }
   }
+}
 
-  errno = old_errno;
+static void
+deliver_window_change_signal (int sig)
+{
+  handle_on_main_thread (sig, handle_window_change_signal);
 }
 #endif /* SIGWINCH */
 
@@ -5604,7 +5612,7 @@ window_change_signal (int signalnum) /* If we don't have an argument, */
 void
 do_pending_window_change (bool safe)
 {
-  /* If window_change_signal should have run before, run it now.  */
+  /* If window change signal handler should have run before, run it now.  */
   if (redisplaying_p && !safe)
     return;
 
@@ -6173,7 +6181,11 @@ init_display (void)
 #ifndef CANNOT_DUMP
   if (initialized)
 #endif /* CANNOT_DUMP */
-    signal (SIGWINCH, window_change_signal);
+    {
+      struct sigaction action;
+      emacs_sigaction_init (&action, deliver_window_change_signal);
+      sigaction (SIGWINCH, &action, 0);
+    }
 #endif /* SIGWINCH */
 
   /* If running as a daemon, no need to initialize any frames/terminal. */
