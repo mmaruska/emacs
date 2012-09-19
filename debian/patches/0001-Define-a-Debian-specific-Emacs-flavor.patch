@@ -1,4 +1,4 @@
-From c1c54a5982e2a11a7e196db9f274100b4ed47d72 Mon Sep 17 00:00:00 2001
+From 7efc31e81b9e72f9873addb26337918a90b883cb Mon Sep 17 00:00:00 2001
 From: Rob Browning <rlb@defaultvalue.org>
 Date: Thu, 24 Feb 2011 23:21:33 +0100
 Subject: [PATCH 01/10] Define a Debian-specific Emacs flavor
@@ -9,10 +9,10 @@ Signed-off-by: Julien Danjou <julien@danjou.info>
  1 file changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/lisp/startup.el b/lisp/startup.el
-index 348e653..66c6f5b 100644
+index 243c962..649d489 100644
 --- a/lisp/startup.el
 +++ b/lisp/startup.el
-@@ -384,6 +384,10 @@ from being initialized."
+@@ -389,6 +389,10 @@ from being initialized."
  
  (defvar normal-top-level-add-subdirs-inode-list nil)
  
@@ -23,7 +23,7 @@ index 348e653..66c6f5b 100644
  (defvar no-blinking-cursor nil)
  
  (defvar default-frame-background-mode)
-@@ -973,7 +977,13 @@ Amongst another things, it parses the command-line arguments."
+@@ -978,7 +982,13 @@ Amongst another things, it parses the command-line arguments."
      ;; should check init-file-user instead, since that is already set.
      ;; See cus-edit.el for an example.
      (if site-run-file

@@ -1,4 +1,4 @@
-From 0fc636b50f7cc003cd7212c7041ebb35acdd93dd Mon Sep 17 00:00:00 2001
+From 8c2ff6b59c38d01f78372c1e4110ebccb819233d Mon Sep 17 00:00:00 2001
 From: Rob Browning <rlb@defaultvalue.org>
 Date: Thu, 24 Feb 2011 23:27:14 +0100
 Subject: [PATCH 07/10] (emacs-version) has been modified to indicate Debian
@@ -10,7 +10,7 @@ Signed-off-by: Julien Danjou <julien@danjou.info>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/lisp/version.el b/lisp/version.el
-index e63c51d..ed6815b 100644
+index 1fb3828..6bc04fd 100644
 --- a/lisp/version.el
 +++ b/lisp/version.el
 @@ -56,8 +56,8 @@ to the system configuration; look at `system-configuration' instead."
