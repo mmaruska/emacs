@@ -31,7 +31,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <config.h>
 
 #include <math.h>
-#include <setjmp.h>
 #include <c-strcase.h>
 
 #include "lisp.h"
@@ -871,16 +870,6 @@ x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 }
 
 
-/* Xism; we stub out (we do implement this in ns-win.el) */
-int
-XParseGeometry (char *string, int *x, int *y,
-                unsigned int *width, unsigned int *height)
-{
-  message1 ("Warning: XParseGeometry not supported under NS.\n");
-  return 0;
-}
-
-
 /* TODO: move to nsterm? */
 int
 ns_lisp_to_cursor_type (Lisp_Object arg)
@@ -1400,6 +1389,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   UNGCPRO;
 
+  if (window_prompting & USPosition)
+    x_set_offset (f, f->left_pos, f->top_pos, 1);
+
   /* Make sure windows on this frame appear in calls to next-window
      and similar functions.  */
   Vwindow_list = Qnil;
@@ -1796,19 +1788,6 @@ terminate Emacs if we can't open the connection.
         error ("OpenStep on %s not responding.\n",
                SSDATA (display));
     }
-
-  /* Register our external input/output types, used for determining
-     applicable services and also drag/drop eligibility. */
-  ns_send_types = [[NSArray arrayWithObjects: NSStringPboardType, nil] retain];
-  ns_return_types = [[NSArray arrayWithObjects: NSStringPboardType, nil]
-                      retain];
-  ns_drag_types = [[NSArray arrayWithObjects:
-                            NSStringPboardType,
-                            NSTabularTextPboardType,
-                            NSFilenamesPboardType,
-                            NSURLPboardType,
-                            NSColorPboardType,
-                            NSFontPboardType, nil] retain];
 
   return Qnil;
 }

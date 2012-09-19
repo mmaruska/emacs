@@ -54,9 +54,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the number of bits in type 'wint_t'. */
 #undef BITSIZEOF_WINT_T
 
-/* Define if FIONREAD should not be used. */
-#undef BROKEN_FIONREAD
-
 /* Define if getwd should not be used. */
 #undef BROKEN_GETWD
 
@@ -65,21 +62,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define on FreeBSD to work around an issue when reading from a PTY. */
 #undef BROKEN_PTY_READ_AFTER_EAGAIN
-
-/* Define if SA_RESTART should only be used in batch mode. */
-#undef BROKEN_SA_RESTART
-
-/* Define if SIGAIO should not be used. */
-#undef BROKEN_SIGAIO
-
-/* Define if SIGIO should not be used. */
-#undef BROKEN_SIGIO
-
-/* Define if SIGPOLL should not be used. */
-#undef BROKEN_SIGPOLL
-
-/* Define if SIGPTY should not be used. */
-#undef BROKEN_SIGPTY
 
 /* Define if the system is compatible with BSD 4.2. */
 #undef BSD4_2
@@ -100,6 +82,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    instantly when you try to modify a file that someone else has modified in
    his/her Emacs. */
 #undef CLASH_DETECTION
+
+/* Short copyright string for this version of Emacs. */
+#define COPYRIGHT "Copyright (C) 2012 Free Software Foundation, Inc."
 
 /* Define to one of '_getb67', 'GETB67', 'getb67' for Cray-2 and Cray-YMP
    systems. This function is required for 'alloca.c' support on those systems.
@@ -251,9 +236,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if strtold conforms to C99. */
 #undef HAVE_C99_STRTOLD
-
-/* Define to 1 if you have the `cbrt' function. */
-#undef HAVE_CBRT
 
 /* Define to 1 if you have the `cfmakeraw' function. */
 #undef HAVE_CFMAKERAW
@@ -647,9 +629,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `localtime_r' function. */
 #undef HAVE_LOCALTIME_R
 
-/* Define to 1 if you have the `logb' function. */
-#define HAVE_LOGB 1
-
 /* Define to 1 if you support file names longer than 14 characters. */
 #define HAVE_LONG_FILE_NAMES 1
 
@@ -820,6 +799,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if 'wint_t' is a signed integer type. */
 #undef HAVE_SIGNED_WINT_T
+
+/* Define to 1 if sigsetjmp and siglongjmp work. The value of this symbol is
+   irrelevant if HAVE__SETJMP is defined. */
+#undef HAVE_SIGSETJMP
 
 /* Define to 1 if the system has the type `sigset_t'. */
 #undef HAVE_SIGSET_T
@@ -1105,6 +1088,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `_ftime' function. */
 #undef HAVE__FTIME
 
+/* Define to 1 if _setjmp and _longjmp work. */
+#define HAVE__SETJMP 1
+
 /* Define to 1 if you have the `__builtin_unwind_init' function. */
 #undef HAVE___BUILTIN_UNWIND_INIT
 
@@ -1181,9 +1167,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 #undef NO_MINUS_C_MINUS_O
-
-/* Define if termio.h should not be included. */
-#undef NO_TERMIO
 
 /* Minimum value of NSIG. */
 #undef NSIG_MINIMUM
@@ -1322,9 +1305,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 on System V Release 4. */
 #undef SVR4
 
-/* Process async input synchronously. */
-#undef SYNC_INPUT
-
 /* Define to use system malloc. */
 #undef SYSTEM_MALLOC
 
@@ -1368,6 +1348,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if the system has Unix98 PTYs. */
 #undef UNIX98_PTYS
+
+/* Define to 1 if FIONREAD is usable. */
+#define USABLE_FIONREAD 1
+
+/* Define to 1 if SIGIO is usable. */
+#undef USABLE_SIGIO
 
 /* How to get a user's full name. */
 #define USER_FULL_NAME pw->pw_gecos
@@ -1528,14 +1514,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to compiler's equivalent of C99 restrict keyword in array
    declarations. Define as empty for no equivalent. */
 #undef __restrict_arr
-
-/* Define to longjmp if _setjmp and _longjmp do not work. Because longjmp may
-   alter signal masks, callers of _longjmp should not assume that it leaves
-   signal masks alone. */
-#undef _longjmp
-
-/* Define to setjmp if _setjmp and _longjmp do not work. See _longjmp. */
-#undef _setjmp
 
 /* Some platforms that do not use configure define this to include extra
    configuration information. */

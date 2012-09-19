@@ -204,7 +204,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>              /* This needs to be before termchar.h */
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "character.h"
@@ -661,7 +660,7 @@ x_create_gc (struct frame *f,
 	     XGCValues *xgcv)
 {
   GC gc = xmalloc (sizeof *gc);
-  memcpy (gc, xgcv, sizeof (XGCValues));
+  *gc = *xgcv;
   return gc;
 }
 

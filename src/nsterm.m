@@ -35,7 +35,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <time.h>
 #include <signal.h>
 #include <unistd.h>
-#include <setjmp.h>
 
 #include <c-ctype.h>
 #include <c-strcase.h>
@@ -628,7 +627,7 @@ ns_update_begin (struct frame *f)
 {
   NSView *view = FRAME_NS_VIEW (f);
   NSRect r = [view frame];
-  NSBezierPath *bp = [NSBezierPath bezierPath];
+  NSBezierPath *bp;
   NSTRACE (ns_update_begin);
 
   ns_update_auto_hide_menu_bar ();
@@ -640,8 +639,9 @@ ns_update_begin (struct frame *f)
      is for the minibuffer.  But the display engine may draw more because
      we have set the frame as garbaged.  So reset clip path to the whole
      view.  */
-  [bp appendBezierPathWithRect: r];
+  bp = [[NSBezierPath bezierPathWithRect: r] retain];
   [bp setClip];
+  [bp release];
 
 #ifdef NS_IMPL_GNUSTEP
   uRect = NSMakeRect (0, 0, 0, 0);
@@ -3355,16 +3355,12 @@ ns_read_socket (struct terminal *terminal, int expected,
   if (interrupt_input_blocked)
     {
       interrupt_input_pending = 1;
-#ifdef SYNC_INPUT
       pending_signals = 1;
-#endif
       return -1;
     }
 
   interrupt_input_pending = 0;
-#ifdef SYNC_INPUT
   pending_signals = pending_atimers;
-#endif
 
   BLOCK_INPUT;
   n_emacs_events_pending = 0;
@@ -3726,8 +3722,8 @@ ns_judge_scroll_bars (struct frame *f)
       removed = YES;
     }
 
-  if (removed) 
-    [eview updateFrameSize];
+  if (removed)
+    [eview updateFrameSize: NO];
 }
 
 
@@ -3977,33 +3973,34 @@ ns_term_init (Lisp_Object display_name)
   static int ns_initialized = 0;
   Lisp_Object tmp;
 
+  if (ns_initialized) return x_display_list;
+  ns_initialized = 1;
+
   NSTRACE (ns_term_init);
+
+  [outerpool release];
+  outerpool = [[NSAutoreleasePool alloc] init];
 
   /* count object allocs (About, click icon); on OS X use ObjectAlloc tool */
   /*GSDebugAllocationActive (YES); */
   BLOCK_INPUT;
-  handling_signal = 0;
 
-  if (!ns_initialized)
+  baud_rate = 38400;
+  Fset_input_interrupt_mode (Qnil);
+
+  if (selfds[0] == -1)
     {
-      baud_rate = 38400;
-      Fset_input_interrupt_mode (Qnil);
-
-      if (selfds[0] == -1)
+      if (pipe (selfds) == -1)
         {
-          if (pipe (selfds) == -1)
-            {
-              fprintf (stderr, "Failed to create pipe: %s\n",
-                       emacs_strerror (errno));
-              emacs_abort ();
-            }
-
-          fcntl (selfds[0], F_SETFL, O_NONBLOCK|fcntl (selfds[0], F_GETFL));
-          FD_ZERO (&select_readfds);
-          FD_ZERO (&select_writefds);
-          pthread_mutex_init (&select_mutex, NULL);
+          fprintf (stderr, "Failed to create pipe: %s\n",
+                   emacs_strerror (errno));
+          emacs_abort ();
         }
-      ns_initialized = 1;
+
+      fcntl (selfds[0], F_SETFL, O_NONBLOCK|fcntl (selfds[0], F_GETFL));
+      FD_ZERO (&select_readfds);
+      FD_ZERO (&select_writefds);
+      pthread_mutex_init (&select_mutex, NULL);
     }
 
   ns_pending_files = [[NSMutableArray alloc] init];
@@ -4194,6 +4191,20 @@ ns_term_init (Lisp_Object display_name)
   }
 #endif /* MAC OS X menu setup */
 
+  /* Register our external input/output types, used for determining
+     applicable services and also drag/drop eligibility. */
+  ns_send_types = [[NSArray arrayWithObjects: NSStringPboardType, nil] retain];
+  ns_return_types = [[NSArray arrayWithObjects: NSStringPboardType, nil]
+                      retain];
+  ns_drag_types = [[NSArray arrayWithObjects:
+                            NSStringPboardType,
+                            NSTabularTextPboardType,
+                            NSFilenamesPboardType,
+                            NSURLPboardType,
+                            NSColorPboardType,
+                            NSFontPboardType, nil] retain];
+
+  
   [NSApp run];
   ns_do_open_file = YES;
   return dpyinfo;
@@ -5362,7 +5373,7 @@ not_in_argv (NSString *arg)
   return NO;
 }
 
-- (void) updateFrameSize
+- (void) updateFrameSize: (BOOL) delay;
 {
   NSWindow *window = [self window];
   NSRect wr = [window frame];
@@ -5400,7 +5411,7 @@ not_in_argv (NSString *arg)
       NSView *view = FRAME_NS_VIEW (emacsframe);
       FRAME_PIXEL_WIDTH (emacsframe) = neww;
       FRAME_PIXEL_HEIGHT (emacsframe) = newh;
-      change_frame_size (emacsframe, rows, cols, 0, 0, 1);
+      change_frame_size (emacsframe, rows, cols, 0, delay, 0);
       SET_FRAME_GARBAGED (emacsframe);
       cancel_mouse_face (emacsframe);
       [view setFrame: NSMakeRect (0, 0, neww, newh)];
@@ -5503,7 +5514,7 @@ not_in_argv (NSString *arg)
         x_set_window_size (emacsframe, 0, cols, rows);
       else
         {
-          [self updateFrameSize];
+          [self updateFrameSize: YES];
         }
     }
 #endif
@@ -6223,7 +6234,7 @@ not_in_argv (NSString *arg)
       NSRect r = [super constrainFrameRect:frameRect toScreen:screen];
       return r;
     }
-  
+
   if (f->output_data.ns->dont_constrain
       || ns_menu_bar_should_be_hidden ())
     return frameRect;
