@@ -23,7 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define WINDOW_INLINE EXTERN_INLINE
 
 #include <stdio.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "character.h"
@@ -176,11 +175,6 @@ wset_new_total (struct window *w, Lisp_Object val)
   w->new_total = val;
 }
 static inline void
-wset_next_buffers (struct window *w, Lisp_Object val)
-{
-  w->next_buffers = val;
-}
-static inline void
 wset_normal_cols (struct window *w, Lisp_Object val)
 {
   w->normal_cols = val;
@@ -199,11 +193,6 @@ static inline void
 wset_pointm (struct window *w, Lisp_Object val)
 {
   w->pointm = val;
-}
-static inline void
-wset_prev_buffers (struct window *w, Lisp_Object val)
-{
-  w->prev_buffers = val;
 }
 static inline void
 wset_right_fringe_width (struct window *w, Lisp_Object val)
@@ -1866,23 +1855,23 @@ return value is a list of elements of the form (PARAMETER . VALUE).  */)
 DEFUN ("window-parameter", Fwindow_parameter, Swindow_parameter,
        2, 2, 0,
        doc:  /* Return WINDOW's value for PARAMETER.
-WINDOW must be a valid window and defaults to the selected one.  */)
+WINDOW can be any window and defaults to the selected one.  */)
   (Lisp_Object window, Lisp_Object parameter)
 {
   Lisp_Object result;
 
-  result = Fassq (parameter, decode_valid_window (window)->window_parameters);
+  result = Fassq (parameter, decode_any_window (window)->window_parameters);
   return CDR_SAFE (result);
 }
 
 DEFUN ("set-window-parameter", Fset_window_parameter,
        Sset_window_parameter, 3, 3, 0,
        doc: /* Set WINDOW's value of PARAMETER to VALUE.
-WINDOW must be a valid window and defaults to the selected one.
+WINDOW can be any window and defaults to the selected one.
 Return VALUE.  */)
   (Lisp_Object window, Lisp_Object parameter, Lisp_Object value)
 {
-  register struct window *w = decode_valid_window (window);
+  register struct window *w = decode_any_window (window);
   Lisp_Object old_alist_elt;
 
   old_alist_elt = Fassq (parameter, w->window_parameters);

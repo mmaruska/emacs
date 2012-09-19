@@ -28,7 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/file.h>
-#include <setjmp.h>
 
 /* must include CRT headers *before* config.h */
 #include <config.h>
@@ -1428,6 +1427,9 @@ sys_kill (int pid, int sig)
   HANDLE proc_hand;
   int need_to_free = 0;
   int rc = 0;
+
+  if (pid == getpid () && sig == SIGABRT)
+    emacs_abort ();
 
   /* Only handle signals that will result in the process dying */
   if (sig != SIGINT && sig != SIGKILL && sig != SIGQUIT && sig != SIGHUP)

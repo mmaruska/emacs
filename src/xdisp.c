@@ -273,7 +273,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <limits.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "keyboard.h"
@@ -364,7 +363,6 @@ static Lisp_Object Qslice;
 Lisp_Object Qcenter;
 static Lisp_Object Qmargin, Qpointer;
 static Lisp_Object Qline_height;
-static Lisp_Object Qinhibit_debug_on_message;
 
 /* These setters are used only in this file, so they can be private.  */
 static inline void
@@ -9292,12 +9290,6 @@ add_to_log (const char *format, Lisp_Object arg1, Lisp_Object arg2)
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   USE_SAFE_ALLOCA;
 
-  /* Do nothing if called asynchronously.  Inserting text into
-     a buffer may call after-change-functions and alike and
-     that would means running Lisp asynchronously.  */
-  if (handling_signal)
-    return;
-
   fmt = msg = Qnil;
   GCPRO4 (fmt, msg, arg1, arg2);
 
@@ -10590,8 +10582,6 @@ static void
 set_message (const char *s, Lisp_Object string,
 	     ptrdiff_t nbytes, int multibyte_p)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
-
   message_enable_multibyte
     = ((s && multibyte_p)
        || (STRINGP (string) && STRING_MULTIBYTE (string)));
@@ -10601,14 +10591,9 @@ set_message (const char *s, Lisp_Object string,
   message_buf_print = 0;
   help_echo_showing_p = 0;
 
-  if (NILP (Vinhibit_debug_on_message) && STRINGP (Vdebug_on_message)
+  if (STRINGP (Vdebug_on_message)
       && fast_string_match (Vdebug_on_message, string) >= 0)
-    {
-      specbind (Qinhibit_debug_on_message, Qt);
-      call_debugger (list2 (Qerror, string));
-    }
-
-  unbind_to (count, Qnil);
+    call_debugger (list2 (Qerror, string));
 }
 
 
@@ -12800,7 +12785,7 @@ overlay_arrow_at_row (struct it *it, struct glyph_row *row)
 		    return make_number (fringe_bitmap);
 		}
 #endif
-	      return make_number (-1); /* Use default arrow bitmap */
+	      return make_number (-1); /* Use default arrow bitmap.  */
 	    }
 	  return overlay_arrow_string_or_property (var);
 	}
@@ -21047,8 +21032,7 @@ are the selected window and the WINDOW's buffer).  */)
     : EQ (face, Qtool_bar) ? TOOL_BAR_FACE_ID
     : DEFAULT_FACE_ID;
 
-  if (XBUFFER (buffer) != current_buffer)
-    old_buffer = current_buffer;
+  old_buffer = current_buffer;
 
   /* Save things including mode_line_proptrans_alist,
      and set that to nil so that we don't alter the outer value.  */
@@ -21059,8 +21043,7 @@ are the selected window and the WINDOW's buffer).  */)
   mode_line_proptrans_alist = Qnil;
 
   Fselect_window (window, Qt);
-  if (old_buffer)
-    set_buffer_internal_1 (XBUFFER (buffer));
+  set_buffer_internal_1 (XBUFFER (buffer));
 
   init_iterator (&it, w, -1, -1, NULL, face_id);
 
@@ -29316,11 +29299,6 @@ Its value should be an ASCII acronym string, `hex-code', `empty-box', or
   DEFVAR_LISP ("debug-on-message", Vdebug_on_message,
 	       doc: /* If non-nil, debug if a message matching this regexp is displayed.  */);
   Vdebug_on_message = Qnil;
-
-  DEFVAR_LISP ("inhibit-debug-on-message", Vinhibit_debug_on_message,
-	       doc: /* If non-nil, inhibit `debug-on-message' from entering the debugger.  */);
-  Vinhibit_debug_on_message = Qnil;
-  DEFSYM(Qinhibit_debug_on_message, "inhibit-debug-on-message");
 }
 
 

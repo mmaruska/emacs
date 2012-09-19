@@ -128,17 +128,12 @@ AC_ARG_WITH([mailhost],[AS_HELP_STRING([--with-mailhost=HOSTNAME],
 
 OPTION_DEFAULT_ON([sound],[don't compile with sound support])
 
-OPTION_DEFAULT_ON([sync-input],[process async input synchronously])
-if test "$with_sync_input" = yes; then
-   AC_DEFINE(SYNC_INPUT, 1, [Process async input synchronously.])
-fi
-
 dnl FIXME currently it is not the last.
 dnl This should be the last --with option, because --with-x is
 dnl added later on when we find the path of X, and it's best to
 dnl keep them together visually.
 AC_ARG_WITH([x-toolkit],[AS_HELP_STRING([--with-x-toolkit=KIT],
- [use an X toolkit (KIT one of: yes or gtk, gtk3, lucid or athena, motif, no)])],
+ [use an X toolkit (KIT one of: yes or gtk, gtk2, gtk3, lucid or athena, motif, no)])],
 [	  case "${withval}" in
 	    y | ye | yes )	val=gtk ;;
 	    n | no )		val=no  ;;
@@ -146,11 +141,13 @@ AC_ARG_WITH([x-toolkit],[AS_HELP_STRING([--with-x-toolkit=KIT],
 	    a | at | ath | athe | athen | athena )	val=athena ;;
 	    m | mo | mot | moti | motif )	val=motif ;;
 	    g | gt | gtk  )	val=gtk ;;
+	    gtk2  )	val=gtk2 ;;
 	    gtk3  )	val=gtk3 ;;
 	    * )
 AC_MSG_ERROR([`--with-x-toolkit=$withval' is invalid;
-this option's value should be `yes', `no', `lucid', `athena', `motif', `gtk' or
-`gtk3'.  `yes' and `gtk' are synonyms. `athena' and `lucid' are synonyms.])
+this option's value should be `yes', `no', `lucid', `athena', `motif', `gtk',
+`gtk2' or `gtk3'.  `yes' and `gtk' are synonyms.
+`athena' and `lucid' are synonyms.])
 	    ;;
 	  esac
 	  with_x_toolkit=$val
@@ -1187,9 +1184,10 @@ AC_DEFUN([PKG_CHECK_MODULES], [
             $1_CFLAGS=""
             $1_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
-            ## do set a variable so people can do so.
-            $1_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$2"`
-            ifelse([$4], ,echo $$1_PKG_ERRORS,)
+	    ## do set a variable so people can do so.  Do it in a subshell
+	    ## to capture any diagnostics in invoking pkg-config.
+	    $1_PKG_ERRORS=`($PKG_CONFIG --print-errors "$2") 2>&1`
+	    ifelse([$4], ,echo "$$1_PKG_ERRORS",)
         fi
 
         AC_SUBST($1_CFLAGS)
@@ -1458,13 +1456,13 @@ if test "${with_ns}" != no; then
      ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=${ns_appdir}/Contents/MacOS
      ns_appresdir=${ns_appdir}/Contents/Resources
-     ns_appsrc=${srcdir}/nextstep/Cocoa/Emacs.base
+     ns_appsrc=Cocoa/Emacs.base
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
      ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=${ns_appdir}
      ns_appresdir=${ns_appdir}/Resources
-     ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
+     ns_appsrc=GNUstep/Emacs.base
      dnl FIXME sourcing this several times in subshells seems inefficient.
      GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_LIBRARIES)"
@@ -1518,7 +1516,6 @@ AC_SUBST(TEMACS_LDFLAGS2)
 
 INSTALL_ARCH_INDEP_EXTRA=install-etc
 ns_self_contained=no
-ns_frag=/dev/null
 NS_OBJ=
 NS_OBJC_OBJ=
 if test "${HAVE_NS}" = yes; then
@@ -1545,7 +1542,6 @@ if test "${HAVE_NS}" = yes; then
      leimdir="\${ns_appresdir}/leim"
      INSTALL_ARCH_INDEP_EXTRA=
   fi
-  ns_frag=$srcdir/src/ns.mk
   NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o"
 fi
 CFLAGS="$tmp_CFLAGS"
@@ -1555,7 +1551,6 @@ AC_SUBST(ns_self_contained)
 AC_SUBST(NS_OBJ)
 AC_SUBST(NS_OBJC_OBJ)
 AC_SUBST(LIB_STANDARD)
-AC_SUBST_FILE(ns_frag)
 
 ## $window_system is now set to the window system we will
 ## ultimately use.
@@ -1578,6 +1573,9 @@ case "${window_system}" in
 dnl Don't set this for GTK.  A lot of tests below assumes Xt when
 dnl USE_X_TOOLKIT is set.
             USE_X_TOOLKIT=none ;;
+      gtk2 ) with_gtk2=yes
+             term_header=gtkutil.h
+             USE_X_TOOLKIT=none ;;
       gtk3 ) with_gtk3=yes
              term_header=gtkutil.h
              USE_X_TOOLKIT=none ;;
@@ -1900,34 +1898,42 @@ fi
 
 HAVE_GTK=no
 GTK_OBJ=
-if test "${with_gtk3}" = "yes"; then
+check_gtk2=no
+gtk3_pkg_errors=
+if test "${with_gtk3}" = "yes" || test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
   GLIB_REQUIRED=2.28
   GTK_REQUIRED=3.0
   GTK_MODULES="gtk+-3.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
   dnl Checks for libraries.
   PKG_CHECK_MODULES(GTK, $GTK_MODULES, pkg_check_gtk=yes, pkg_check_gtk=no)
-  if test "$pkg_check_gtk" = "no" && test "$USE_X_TOOLKIT" != "maybe"; then
+  if test "$pkg_check_gtk" = "no" && test "$with_gtk3" = "yes"; then
      AC_MSG_ERROR($GTK_PKG_ERRORS)
   fi
-  AC_DEFINE(HAVE_GTK3, 1, [Define to 1 if using GTK 3 or later.])
-  GTK_OBJ=emacsgtkfixed.o
-  term_header=gtkutil.h
+  if test "$pkg_check_gtk" = "yes"; then
+     AC_DEFINE(HAVE_GTK3, 1, [Define to 1 if using GTK 3 or later.])
+     GTK_OBJ=emacsgtkfixed.o
+     term_header=gtkutil.h
+     USE_GTK_TOOLKIT="GTK3"
+  else
+     check_gtk2=yes
+     gtk3_pkg_errors="$GTK_PKG_ERRORS "
+  fi
 fi
 
-if test "$pkg_check_gtk" != "yes"; then
-  HAVE_GTK=no
-if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
+if test "${with_gtk2}" = "yes" || test "$check_gtk2" = "yes"; then
   GLIB_REQUIRED=2.10
   GTK_REQUIRED=2.10
   GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
   dnl Checks for libraries.
   PKG_CHECK_MODULES(GTK, $GTK_MODULES, pkg_check_gtk=yes, pkg_check_gtk=no)
-  if test "$pkg_check_gtk" = "no" && test "$USE_X_TOOLKIT" != "maybe"; then
-     AC_MSG_ERROR($GTK_PKG_ERRORS)
+  if test "$pkg_check_gtk" = "no" &&
+     { test "$with_gtk" = yes || test "$with_gtk2" = "yes"; }
+  then
+    AC_MSG_ERROR($gtk3_pkg_errors$GTK_PKG_ERRORS)
   fi
-fi
+  test "$pkg_check_gtk" = "yes" && USE_GTK_TOOLKIT="GTK2"
 fi
 
 if test x"$pkg_check_gtk" = xyes; then
@@ -2098,7 +2104,6 @@ HAVE_XAW3D=no
 LUCID_LIBW=
 if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
   if test "$with_xaw3d" != no; then
-    AC_MSG_CHECKING(for xaw3d)
     AC_CACHE_VAL(emacs_cv_xaw3d,
     [AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <X11/Intrinsic.h>
@@ -2111,6 +2116,7 @@ if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
     emacs_cv_xaw3d=no
   fi
   if test $emacs_cv_xaw3d = yes; then
+    AC_MSG_CHECKING(for xaw3d)
     AC_MSG_RESULT([yes; using Lucid toolkit])
     USE_X_TOOLKIT=LUCID
     HAVE_XAW3D=yes
@@ -2118,6 +2124,7 @@ if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
     AC_DEFINE(HAVE_XAW3D, 1,
               [Define to 1 if you have the Xaw3d library (-lXaw3d).])
   else
+    AC_MSG_CHECKING(for xaw3d)
     AC_MSG_RESULT(no)
     AC_MSG_CHECKING(for libXaw)
     AC_CACHE_VAL(emacs_cv_xaw,
@@ -3150,6 +3157,14 @@ else
   AC_MSG_RESULT(no)
 fi
 
+dnl Check for a Solaris 2.4 vfork bug that Autoconf misses (through 2.69).
+dnl This can be removed once we assume Autoconf 2.70.
+case $canonical in
+  *-solaris2.4 | *-solaris2.4.*)
+    dnl Disable the Autoconf-generated vfork test.
+    : ${ac_cv_func_vfork_works=no};;
+esac
+
 AC_FUNC_FORK
 
 AC_CHECK_FUNCS(snprintf)
@@ -3260,10 +3275,6 @@ esac
 
 
 case $opsys in
-  darwin | gnu | hpux* | *bsd )
-    AC_DEFINE(NO_TERMIO, 1, [Define if termio.h should not be included.])
-    ;;
-
   irix6-5 | sol2* | unixware )
     dnl Some SVr4s don't define NSIG in sys/signal.h for ANSI environments;
     dnl instead, there's a system variable _sys_nsig.  Unfortunately, we
@@ -3273,26 +3284,16 @@ case $opsys in
     ;;
 esac
 
+emacs_broken_SIGIO=no
 
 case $opsys in
   dnl SIGIO exists, but the feature doesn't work in the way Emacs needs.
   dnl See eg <http://article.gmane.org/gmane.os.openbsd.ports/46831>.
   hpux* | irix6-5 | openbsd | sol2* | unixware )
-    AC_DEFINE(BROKEN_SIGIO, 1, [Define if SIGIO should not be used.])
+    emacs_broken_SIGIO=yes
     ;;
 
   aix4-2)
-    dnl BUILD 9008 - FIONREAD problem still exists in X-Windows.
-    AC_DEFINE(BROKEN_FIONREAD, 1, [Define if FIONREAD should not be used.])
-    dnl As we define BROKEN_FIONREAD, SIGIO will be undefined in systty.h.
-    dnl But, on AIX, SIGAIO, SIGPTY, and SIGPOLL are defined as SIGIO,
-    dnl which causes compilation error at init_signals in sysdep.c.
-    dnl So, we define these macros so that syssignal.h detects them
-    dnl and undefine SIGAIO, SIGPTY and SIGPOLL.
-    AC_DEFINE(BROKEN_SIGAIO, 1, [Define if SIGAIO should not be used.])
-    AC_DEFINE(BROKEN_SIGPOLL,1, [Define if SIGPOLL should not be used.])
-    AC_DEFINE(BROKEN_SIGPTY, 1, [Define if SIGPTY should not be used.])
-
     dnl On AIX Emacs uses the gmalloc.c malloc implementation.  But given
     dnl the way this system works, libc functions that return malloced
     dnl memory use the libc malloc implementation. Calling xfree or
@@ -3368,7 +3369,7 @@ dnl The choice is controlled by the variable interrupt_input.
 dnl
 dnl Define INTERRUPT_INPUT to make interrupt_input = 1 the default (use SIGIO)
 dnl
-dnl Emacs uses the presence or absence of the SIGIO and BROKEN_SIGIO macros
+dnl Emacs uses the presence of the USABLE_SIGIO macro
 dnl to indicate whether or not signal-driven I/O is possible.  It uses
 dnl INTERRUPT_INPUT to decide whether to use it by default.
 dnl
@@ -3775,13 +3776,24 @@ AC_CACHE_CHECK([for _setjmp], [emacs_cv_func__setjmp],
 	   _longjmp (j, 1);]])],
      [emacs_cv_func__setjmp=yes],
      [emacs_cv_func__setjmp=no])])
-if test $emacs_cv_func__setjmp = no; then
-  AC_DEFINE([_setjmp], [setjmp],
-    [Define to setjmp if _setjmp and _longjmp do not work.  See _longjmp.])
-  AC_DEFINE([_longjmp], [longjmp],
-    [Define to longjmp if _setjmp and _longjmp do not work.
-     Because longjmp may alter signal masks, callers of _longjmp
-     should not assume that it leaves signal masks alone.])
+if test $emacs_cv_func__setjmp = yes; then
+  AC_DEFINE([HAVE__SETJMP], 1, [Define to 1 if _setjmp and _longjmp work.])
+else
+  AC_CACHE_CHECK([for sigsetjmp], [emacs_cv_func_sigsetjmp],
+    [AC_LINK_IFELSE(
+       [AC_LANG_PROGRAM(
+	 [[#include <setjmp.h>
+	 ]],
+	 [[sigjmp_buf j;
+	   if (! sigsetjmp (j, 1))
+	     siglongjmp (j, 1);]])],
+       [emacs_cv_func_sigsetjmp=yes],
+       [emacs_cv_func_sigsetjmp=no])])
+  if test $emacs_cv_func_sigsetjmp = yes; then
+    AC_DEFINE([HAVE_SIGSETJMP], 1,
+      [Define to 1 if sigsetjmp and siglongjmp work.
+       The value of this symbol is irrelevant if HAVE__SETJMP is defined.])
+  fi
 fi
 
 case $opsys in
@@ -3889,6 +3901,46 @@ case $opsys in
     ;;
 esac
 
+AC_CACHE_CHECK([for usable FIONREAD], [emacs_cv_usable_FIONREAD],
+  [case $opsys in
+     aix4-2)
+       dnl BUILD 9008 - FIONREAD problem still exists in X-Windows.
+       emacs_cv_usable_FIONREAD=no
+       ;;
+
+     *)
+       AC_COMPILE_IFELSE(
+	 [AC_LANG_PROGRAM([[#include <sys/types.h>
+			    #include <sys/ioctl.h>
+			    #ifdef USG5_4
+			    # include <sys/filio.h>
+			    #endif
+			  ]],
+			  [[int foo = ioctl (0, FIONREAD, &foo);]])],
+	 [emacs_cv_usable_FIONREAD=yes],
+	 [emacs_cv_usable_FIONREAD=no])
+       ;;
+   esac])
+if test $emacs_cv_usable_FIONREAD = yes; then
+  AC_DEFINE([USABLE_FIONREAD], [1], [Define to 1 if FIONREAD is usable.])
+
+  if test $emacs_broken_SIGIO = no; then
+    AC_CACHE_CHECK([for usable SIGIO], [emacs_cv_usable_SIGIO],
+      [AC_COMPILE_IFELSE(
+	 [AC_LANG_PROGRAM([[#include <fcntl.h>
+			    #include <signal.h>
+			  ]],
+			  [[int foo = SIGIO | F_SETFL | FASYNC;]])],
+	 [emacs_cv_usable_SIGIO=yes],
+	 [emacs_cv_usable_SIGIO=no])],
+      [emacs_cv_usable_SIGIO=yes],
+      [emacs_cv_usable_SIGIO=no])
+    if test $emacs_cv_usable_SIGIO = yes; then
+      AC_DEFINE([USABLE_SIGIO], [1], [Define to 1 if SIGIO is usable.])
+    fi
+  fi
+fi
+
 
 case $opsys in
   dnl Emacs supplies its own malloc, but glib (part of Gtk+) calls
@@ -3902,11 +3954,6 @@ case $opsys in
     ;;
 
   hpux11)
-    dnl See comments in sysdep.c:sys_signal.
-    dnl SA_RESTART resets the timeout of `select' on hpux11.
-    dnl Defining BROKEN_SA_RESTART is not the same as undef'ing SA_RESTART.
-    AC_DEFINE(BROKEN_SA_RESTART, 1, [Define if SA_RESTART should only
-      be used in batch mode.])
     dnl It works to open the pty's tty in the parent (Emacs), then
     dnl close and reopen it in the child.
     AC_DEFINE(USG_SUBTTY_WORKS, 1, [Define for USG systems where it
@@ -3940,6 +3987,11 @@ if test "x$GCC" = xyes \
 fi
 
 version=$PACKAGE_VERSION
+
+copyright="Copyright (C) 2012 Free Software Foundation, Inc."
+AC_DEFINE_UNQUOTED(COPYRIGHT, ["$copyright"],
+  [Short copyright string for this version of Emacs.])
+AC_SUBST(copyright)
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
@@ -4346,11 +4398,7 @@ End:
 #### It makes printing result more understandable as using GTK sets
 #### toolkit_scroll_bars to yes by default.
 if test "${HAVE_GTK}" = "yes"; then
-  if test "${with_gtk3}" = "yes"; then
-    USE_X_TOOLKIT=GTK3
-  else
-    USE_X_TOOLKIT=GTK
-  fi
+  USE_X_TOOLKIT="$USE_GTK_TOOLKIT"
 fi
 
 echo "
@@ -4438,6 +4486,16 @@ fi
 test "${exec_prefix}" != NONE &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`]
 
+if test "$HAVE_NS" = "yes"; then
+  if test "$NS_IMPL_GNUSTEP" = yes; then
+    AC_CONFIG_FILES([nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist:nextstep/templates/Info-gnustep.plist.in \
+      nextstep/GNUstep/Emacs.base/Resources/Emacs.desktop:nextstep/templates/Emacs.desktop.in])
+  else
+    AC_CONFIG_FILES([nextstep/Cocoa/Emacs.base/Contents/Info.plist:nextstep/templates/Info.plist.in \
+      nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings:nextstep/templates/InfoPlist.strings.in])
+  fi
+fi
+
 dnl Obviously there is duplication here wrt $SUBDIR_MAKEFILES.
 dnl You _can_ use that variable in AC_CONFIG_FILES, so long as any directory
 dnl using automake (ie lib/) is explicitly listed and not "hidden" in a variable
@@ -4446,12 +4504,12 @@ dnl This will work, but you get a config.status that is not quite right
 dnl (see http://lists.gnu.org/archive/html/bug-autoconf/2008-08/msg00028.html).
 dnl That doesn't have any obvious consequences for Emacs, but on the whole
 dnl it seems better to just live with the duplication.
-SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile"
+SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile nextstep/Makefile"
 
 AC_CONFIG_FILES([Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile \
        doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile \
        doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile \
-       leim/Makefile])
+       leim/Makefile nextstep/Makefile])
 
 dnl test/ is not present in release tarfiles.
 opt_makefile=test/automated/Makefile

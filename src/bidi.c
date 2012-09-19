@@ -56,7 +56,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <setjmp.h>
 
 #include "lisp.h"
 #include "character.h"
@@ -612,7 +611,7 @@ bidi_push_it (struct bidi_it *bidi_it)
   /* Save the current iterator state in its entirety after the last
      used cache slot.  */
   bidi_cache_ensure_space (bidi_cache_idx);
-  memcpy (&bidi_cache[bidi_cache_idx++], bidi_it, sizeof (struct bidi_it));
+  bidi_cache[bidi_cache_idx++] = *bidi_it;
 
   /* Push the current cache start onto the stack.  */
   eassert (bidi_cache_sp < IT_STACK_SIZE);
@@ -636,7 +635,7 @@ bidi_pop_it (struct bidi_it *bidi_it)
   bidi_cache_idx = bidi_cache_start - 1;
 
   /* Restore the bidi iterator state saved in the cache.  */
-  memcpy (bidi_it, &bidi_cache[bidi_cache_idx], sizeof (struct bidi_it));
+  *bidi_it = bidi_cache[bidi_cache_idx];
 
   /* Pop the previous cache start from the stack.  */
   if (bidi_cache_sp <= 0)
