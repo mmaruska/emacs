@@ -51,8 +51,6 @@ into this list; they also should call `dired-log' to log the errors.")
 (defconst dired-star-subst-regexp "\\(^\\|[ \t]\\)\\*\\([ \t]\\|$\\)")
 (defconst dired-quark-subst-regexp "\\(^\\|[ \t]\\)\\?\\([ \t]\\|$\\)")
 
-(declare-function diff-latest-backup-file "diff" (fn)) ; actually belongs into files.el
-
 ;;;###autoload
 (defun dired-diff (file &optional switches)
   "Compare file at point with file FILE using `diff'.
@@ -248,7 +246,7 @@ List has a form of (file-name full-file-name (attribute-list))."
   ;; ARG describes which files to use, as in `dired-get-marked-files'.
   (let* ((files (dired-get-marked-files t arg))
 	 ;; The source of default file attributes is the file at point.
-	 (default-file (dired-get-filename t))
+	 (default-file (dired-get-filename t t))
 	 (default (when default-file
 		    (cond ((eq op-symbol 'touch)
 			   (format-time-string
@@ -300,7 +298,7 @@ into the minibuffer."
   (interactive "P")
   (let* ((files (dired-get-marked-files t arg))
 	 ;; The source of default file attributes is the file at point.
-	 (default-file (dired-get-filename t))
+	 (default-file (dired-get-filename t t))
 	 (modestr (when default-file
 		    (nth 8 (file-attributes default-file))))
 	 (default
