@@ -2034,7 +2034,7 @@ extern ptrdiff_t specpdl_size;
 struct backtrace
 {
   struct backtrace *next;
-  Lisp_Object *function;
+  Lisp_Object function;
   Lisp_Object *args;	/* Points to vector of args.  */
   ptrdiff_t nargs;	/* Length of vector.  */
   /* Nonzero means call value of debugger when done with this operation.  */
@@ -2131,7 +2131,7 @@ extern char *stack_bottom;
    a request to exit Emacs when it is safe to do.  */
 
 extern void process_pending_signals (void);
-extern int volatile pending_signals;
+extern bool volatile pending_signals;
 
 extern void process_quit_flag (void);
 #define QUIT						\
