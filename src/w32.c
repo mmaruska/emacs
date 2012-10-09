@@ -31,13 +31,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/file.h>
 #include <sys/time.h>
 #include <sys/utime.h>
-#include <mbstring.h>	/* for _mbspbrk */
 #include <math.h>
 #include <time.h>
 
 /* must include CRT headers *before* config.h */
 
 #include <config.h>
+#include <mbstring.h>	/* for _mbspbrk */
 
 #undef access
 #undef chdir
@@ -173,6 +173,7 @@ typedef struct _REPARSE_DATA_BUFFER {
 
 #include "w32.h"
 #include "ndir.h"
+#include "w32common.h"
 #include "w32heap.h"
 #include "systime.h"
 #include "dispextern.h"		/* for xstrcasecmp */
@@ -866,23 +867,6 @@ create_symbolic_link (LPTSTR lpSymlinkFilename,
   return retval;
 }
 
-/* Equivalent of strerror for W32 error codes.  */
-char *
-w32_strerror (int error_no)
-{
-  static char buf[500];
-
-  if (error_no == 0)
-    error_no = GetLastError ();
-
-  buf[0] = '\0';
-  if (!FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM, NULL,
-		      error_no,
-		      0, /* choose most suitable language */
-		      buf, sizeof (buf), NULL))
-    sprintf (buf, "w32 error %u", error_no);
-  return buf;
-}
 
 /* Return 1 if P is a valid pointer to an object of size SIZE.  Return
    0 if P is NOT a valid pointer.  Return -1 if we cannot validate P.
@@ -3952,9 +3936,13 @@ utime (const char *name, struct utimbuf *times)
     }
 
   /* Need write access to set times.  */
-  fh = CreateFile (name, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE,
-		   0, OPEN_EXISTING, 0, NULL);
-  if (fh)
+  fh = CreateFile (name, FILE_WRITE_ATTRIBUTES,
+		   /* If NAME specifies a directory, FILE_SHARE_DELETE
+		      allows other processes to delete files inside it,
+		      while we have the directory open.  */
+		   FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+		   0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+  if (fh != INVALID_HANDLE_VALUE)
     {
       convert_from_time_t (times->actime, &atime);
       convert_from_time_t (times->modtime, &mtime);

@@ -313,7 +313,7 @@ static Lisp_Object Qmouse_fixup_help_message;
 /* Symbols to denote kinds of events.  */
 static Lisp_Object Qfunction_key;
 Lisp_Object Qmouse_click;
-#if defined (WINDOWSNT)
+#ifdef HAVE_NTGUI
 Lisp_Object Qlanguage_change;
 #endif
 static Lisp_Object Qdrag_n_drop;
@@ -2283,11 +2283,10 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
 	   Lisp_Object prev_event,
 	   int *used_mouse_menu, EMACS_TIME *end_time)
 {
-  volatile Lisp_Object c;
+  Lisp_Object c;
   ptrdiff_t jmpcount;
   sys_jmp_buf local_getcjmp;
   sys_jmp_buf save_jump;
-  volatile int key_already_recorded = 0;
   Lisp_Object tem, save;
   volatile Lisp_Object previous_echo_area_message;
   volatile Lisp_Object also_record;
@@ -2519,10 +2518,7 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
         return c;               /* wrong_kboard_jmpbuf */
 
       if (! NILP (c))
-	{
-	  key_already_recorded = 1;
-	  goto non_reread_1;
-	}
+	goto exit;
     }
 
   /* Make a longjmp point for quits to use, but don't alter getcjmp just yet.
@@ -2850,12 +2846,10 @@ read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
       goto wrong_kboard;
     }
 
- non_reread_1:
-
   /* Buffer switch events are only for internal wakeups
      so don't show them to the user.
      Also, don't record a key if we already did.  */
-  if (BUFFERP (c) || key_already_recorded)
+  if (BUFFERP (c))
     goto exit;
 
   /* Process special events within read_char
@@ -3772,8 +3766,8 @@ kbd_buffer_get_event (KBOARD **kbp,
 #ifdef subprocesses
   if (kbd_on_hold_p () && kbd_buffer_nr_stored () < KBD_BUFFER_SIZE/4)
     {
-      /* Start reading input again, we have processed enough so we can
-         accept new events again.  */
+      /* Start reading input again because we have processed enough to
+         be able to accept new events again.  */
       unhold_keyboard_input ();
       start_polling ();
     }
@@ -3953,7 +3947,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 	    x_activate_menubar (XFRAME (event->frame_or_window));
 	}
 #endif
-#if defined (WINDOWSNT)
+#ifdef HAVE_NTGUI
       else if (event->kind == LANGUAGE_CHANGE_EVENT)
 	{
 	  /* Make an event (language-change (FRAME CODEPAGE LANGUAGE-ID)).  */
@@ -5423,7 +5417,7 @@ make_lispy_event (struct input_event *event)
 				  (sizeof (lispy_function_keys)
 				   / sizeof (lispy_function_keys[0])));
 
-#ifdef WINDOWSNT
+#ifdef HAVE_NTGUI
     case MULTIMEDIA_KEY_EVENT:
       if (event->code < (sizeof (lispy_multimedia_keys)
                          / sizeof (lispy_multimedia_keys[0]))
@@ -11400,7 +11394,7 @@ syms_of_keyboard (void)
   DEFSYM (Qconfig_changed_event, "config-changed-event");
   DEFSYM (Qmenu_enable, "menu-enable");
 
-#if defined (WINDOWSNT)
+#ifdef HAVE_NTGUI
   DEFSYM (Qlanguage_change, "language-change");
 #endif
 
