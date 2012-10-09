@@ -1,4 +1,4 @@
-From 8bc0097676f0b61dcf8a6b233b6eb0389afe63e3 Mon Sep 17 00:00:00 2001
+From e32e743253c6bc7caca4142407400843bbb288be Mon Sep 17 00:00:00 2001
 From: Romain Francoise <rfrancoise@debian.org>
 Date: Thu, 24 Feb 2011 23:23:26 +0100
 Subject: [PATCH 03/10] M-x report-emacs-bug includes the package version

@@ -1,4 +1,4 @@
-From 2c059582a686d7d02c0c5eca8662dfba6f923871 Mon Sep 17 00:00:00 2001
+From 86b2b476f689d48c3a6d540dd633d80bf2d90826 Mon Sep 17 00:00:00 2001
 From: Romain Francoise <rfrancoise@debian.org>
 Date: Thu, 24 Feb 2011 23:28:27 +0100
 Subject: [PATCH 09/10] Emacs now invokes the correct xmlstarlet executable on
@@ -13,10 +13,10 @@ Signed-off-by: Julien Danjou <julien@danjou.info>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/lisp/progmodes/flymake.el b/lisp/progmodes/flymake.el
-index 10d5fdf..6032da4 100644
+index 26d4a39..f7d5768 100644
 --- a/lisp/progmodes/flymake.el
 +++ b/lisp/progmodes/flymake.el
-@@ -1811,7 +1811,7 @@ Use CREATE-TEMP-F for creating temp copy."
+@@ -1814,7 +1814,7 @@ Use CREATE-TEMP-F for creating temp copy."
  
  ;;;; xml-specific init-cleanup routines
  (defun flymake-xml-init ()
