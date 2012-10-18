@@ -735,7 +735,7 @@ $(BLD)/dispnew.$(O) : \
 	$(SRC)/disptab.h \
 	$(SRC)/indent.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termopts.h \
+	$(SRC)/w32.h \
 	$(NT_INC)/unistd.h \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
@@ -833,7 +833,9 @@ $(BLD)/fileio.$(O) : \
 	$(SRC)/fileio.c \
 	$(SRC)/blockinput.h \
 	$(SRC)/commands.h \
+	$(SRC)/w32.h \
 	$(NT_INC)/pwd.h \
+	$(NT_INC)/sys/file.h \
 	$(NT_INC)/sys/stat.h \
 	$(NT_INC)/unistd.h \
 	$(BUFFER_H) \
@@ -1015,7 +1017,6 @@ $(BLD)/indent.$(O) : \
 	$(SRC)/indent.h \
 	$(SRC)/region-cache.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termopts.h \
 	$(BUFFER_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
@@ -1174,6 +1175,7 @@ $(BLD)/w32.$(O) : \
 	$(SRC)/w32.h \
 	$(SRC)/w32common.h \
 	$(SRC)/w32heap.h \
+	$(SRC)/w32select.h \
 	$(NT_INC)/pwd.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/sys/time.h \
@@ -1412,7 +1414,6 @@ $(BLD)/term.$(O) : \
 	$(SRC)/disptab.h \
 	$(SRC)/keymap.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termopts.h \
 	$(SRC)/tparam.h \
 	$(NT_INC)/sys/file.h \
 	$(NT_INC)/sys/time.h \
@@ -1430,6 +1431,7 @@ $(BLD)/term.$(O) : \
 	$(SYSSIGNAL_H) \
 	$(SYSTTY_H) \
 	$(TERMHOOKS_H) \
+	$(W32TERM_H) \
 	$(WINDOW_H)
 
 $(BLD)/terminal.$(O) : \
@@ -1470,13 +1472,16 @@ $(BLD)/undo.$(O) : \
 $(BLD)/unexw32.$(O) : \
 	$(SRC)/unexw32.c \
 	$(SRC)/unexec.h \
+	$(SRC)/w32.h \
 	$(SRC)/w32common.h \
 	$(SRC)/w32heap.h \
+	$(LISP_H) \
 	$(CONFIG_H)
 
 $(BLD)/vm-limit.$(O) : \
 	$(SRC)/vm-limit.c \
 	$(SRC)/mem-limits.h \
+	$(SRC)/w32heap.h \
 	$(NT_INC)/unistd.h \
 	$(CONFIG_H) \
 	$(LISP_H)
@@ -1635,6 +1640,7 @@ $(BLD)/w32select.$(O) : \
 	$(CHARSET_H) \
 	$(CODING_H) \
 	$(CONFIG_H) \
+	$(KEYBOARD_H) \
 	$(LISP_H) \
 	$(W32TERM_H)
 

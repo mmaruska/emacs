@@ -1,9 +1,135 @@
+2012-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/gv.el (cond): Same fix as before for `if'.
+
+2012-10-18  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-sort-toggle): Some ls implementations only allow
+	a single option string.  (Bug#12666)
+
+	* minibuffer.el (completion-cycle-threshold): Doc fix.
+
+2012-10-17  Kenichi Handa  <handa@gnu.org>
+
+	* international/mule.el (set-keyboard-coding-system):
+	Recover input meta mode when the new coding system doesn not use 8-bit.
+	Supply TERMINAL arg to set-input-meta-mode.
+
+2012-10-17  Michael Heerdegen <michael_heerdegen@web.de>  (tiny change)
+
+	* wdired.el (wdired-old-marks): New variable.
+	(wdired-change-to-wdired-mode): Locally set wdired-old-marks.
+	(wdired-do-renames): Move point with renamed file and don't lose
+	mark status (Bug#11795).
+
+2012-10-16  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (query-replace-help): Mention multi-buffer replacement
+	keys in the Help message.  (Bug#12655)
+
+2012-10-15  Chong Yidong  <cyd@gnu.org>
+
+	* emacs-lisp/byte-run.el (defsubst): Doc fix.
+
+2012-10-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.el (display-buffer): Doc fix.
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Adjust the msft regexp to the output of Studio 2010, and move msft
+	before edg-1.  See the discussion on emacs-devel,
+	http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00579.html,
+	for the details.
+
+2012-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio.el (eieio-oset-default, eieio-oset, oset-default)
+	(oset): Move uses of object-class-fast macro after its definition.
+
+	* emacs-lisp/gv.el (if): Don't use closures in non-lexical-binding code.
+
+2012-10-13  Chong Yidong  <cyd@gnu.org>
+
+	* textmodes/ispell.el (ispell-pdict-save): If flyspell-mode is
+	enabled, re-enable it (Bug#11963).
+
+2012-10-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/debug.el (debug): When debugger-will-be-back is
+	non-nil, restore window configuration (Bug#12623).
+
+2012-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-fns.el (describe-variable, describe-function-1):
+	* help-mode.el (help-make-xrefs): Remove error handler, made unneeded.
+
+	* emacs-lisp/eieio.el (lisp-imenu-generic-expression): Fix typo.
+
+2012-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailsum.el (rmail-header-summary):
+	Fix 2010-11-26 test for multiline Subject: field.  (Bug#12625)
+
+2012-10-12  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* progmodes/python.el (python-mode-map):
+	Replace subtitute-key-definition with proper command remapping.
+	(python-nav--up-list): Fix behavior for blocks on the same level.
+
+2012-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-fns.el (describe-function-1): Handle autoloads w/o docstrings.
+
+	* emacs-lisp/bytecomp.el (byte-compile-eval): Adjust to long-ago
+	changes to the format of load-history.
+
+	* international/mule-cmds.el (read-char-by-name): Move let-binding of
+	completion-ignore-case in case that var is buffer-local (bug#12615).
+
+2012-10-11  Kenichi Handa  <handa@gnu.org>
+
+	* international/eucjp-ms.el: Re-generated.
+
+2012-10-10  Kenichi Handa  <handa@gnu.org>
+
+	* select.el (xselect--encode-string): If a coding is specified for
+	selection, and that is compatible with COMPOUND_TEXT, use it.
+
+2012-10-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (switch-to-buffer-preserve-window-point): New option.
+	(switch-to-buffer):
+	Obey `switch-to-buffer-preserve-window-point' (Bug#4041).
+
+2012-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-start-skip, comment-end-skip, comment-end):
+	Don't document nil as a useful value (bug#12583).
+
+2012-10-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-debug-message):
+	Remove "tramp-with-progress-reporter" from regexp of ignored functions.
+	(with-tramp-progress-reporter): Rename from
+	`tramp-with-progress-reporter'.
+	(with-tramp-file-property, with-tramp-connection-property):
+	Move from tramp-cache.el, rename from `with-file-property' and
+	`with-connection-property', respectively.
+
+	* net/tramp-cache.el: Remove `with-file-property' and
+	`with-connection-property'.
+
+	* net/tramp.el:
+	* net/tramp-gvfs.el:
+	* net/tramp-sh.el:
+	* net/tramp-smb.el: Adapt callees.
+
+	* net/trampver.el: Update release number.
+
 2012-10-09  Glenn Morris  <rgm@gnu.org>
 
 	* w32-fns.el (set-message-beep):
 	* term/w32-win.el (set-message-beep): Update declarations.
-
-	* newcomment.el (comment-normalize-vars): Doc fix (presumably).
 
 2012-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -502,9 +628,9 @@
 	* emacs-lisp/eieio-base.el (eieio-persistent-read): New input args
 	specifying the expected class, and whether subclassing is allowed.
 	(eieio-persistent-convert-list-to-object):
-        (eieio-persistent-validate/fix-slot-value)
-        (eieio-persistent-slot-type-is-class-p): New functions.
-        (eieio-named::slot-missing): Doc fix.
+	(eieio-persistent-validate/fix-slot-value)
+	(eieio-persistent-slot-type-is-class-p): New functions.
+	(eieio-named::slot-missing): Doc fix.
 
 	* emacs-lisp/eieio-datadebug.el (data-debug/eieio-insert-slots):
 	Stop using unused publd variable.
@@ -1947,7 +2073,7 @@
 
 	* ses.el (ses-widen):
 	* simple.el (count-words--buffer-message):
-	* net/browse-url.el (browse-url-of-buffer): Use it
+	* net/browse-url.el (browse-url-of-buffer): Use it.
 
 	* simple.el (count-words-region): Don't signal an error if there
 	is a non-nil prefix arg and the mark is not set.
@@ -16229,7 +16355,7 @@
 2011-06-22  Leo Liu  <sdl.web@gmail.com>
 
 	* minibuffer.el (completing-read-function)
-	(completing-read-default): Move from minibuf.c
+	(completing-read-default): Move from minibuf.c.
 
 2011-06-22  Richard Stallman  <rms@gnu.org>
 
@@ -18086,7 +18212,7 @@
 	Remove unnecessary and incorrect declarations.
 
 	* emacs-lisp/check-declare.el (check-declare-scan):
-	Handle byte-compile-initial-macro-environment in bytecomp.el
+	Handle byte-compile-initial-macro-environment in bytecomp.el.
 
 2011-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 

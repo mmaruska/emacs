@@ -2333,7 +2333,9 @@ w32_name_of_message (UINT msg)
 }
 #endif /* EMACSDEBUG */
 
-/* Here's an overview of how Emacs input works on MS-Windows.
+/* Here's an overview of how Emacs input works in GUI sessions on
+   MS-Windows.  (For description of non-GUI input, see the commentary
+   before w32_console_read_socket in w32inevt.c.)
 
    System messages are read and processed by w32_msg_pump below.  This
    function runs in a separate thread.  It handles a small number of
@@ -2422,7 +2424,7 @@ w32_msg_pump (deferred_msg * msg_buf)
                  thread-safe.  The next line is okay because the cons
                  cell is never made into garbage and is not relocated by
                  GC.  */
-	      XSETCAR ((Lisp_Object) ((EMACS_INT) msg.lParam), Qnil);
+	      XSETCAR (XIL ((EMACS_INT) msg.lParam), Qnil);
 	      if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0))
 		emacs_abort ();
 	      break;
@@ -2430,7 +2432,7 @@ w32_msg_pump (deferred_msg * msg_buf)
 	      {
 		int vk_code = (int) msg.wParam;
 		int cur_state = (GetKeyState (vk_code) & 1);
-		Lisp_Object new_state = (Lisp_Object) ((EMACS_INT) msg.lParam);
+		Lisp_Object new_state = XIL ((EMACS_INT) msg.lParam);
 
 		/* NB: This code must be thread-safe.  It is safe to
                    call NILP because symbols are not relocated by GC,
@@ -6983,8 +6985,10 @@ w32_strerror (int error_no)
   return buf;
 }
 
-/* For convenience when debugging.  */
-int
+/* For convenience when debugging.  (You cannot call GetLastError
+   directly from GDB: it will crash, because it uses the __stdcall
+   calling convention, not the _cdecl convention assumed by GDB.)  */
+DWORD
 w32_last_error (void)
 {
   return GetLastError ();
