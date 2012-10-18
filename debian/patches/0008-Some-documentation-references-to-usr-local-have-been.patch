@@ -1,4 +1,4 @@
-From d6bb2dc8f44a46acb7f0dc76d5c4d8295293170e Mon Sep 17 00:00:00 2001
+From 3a424a975809ae7f0fa19d30fb7b3d79d4442bf8 Mon Sep 17 00:00:00 2001
 From: Romain Francoise <rfrancoise@debian.org>
 Date: Thu, 24 Feb 2011 23:27:40 +0100
 Subject: [PATCH 08/10] Some documentation references to /usr/local have been
