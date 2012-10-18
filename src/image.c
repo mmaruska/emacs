@@ -2140,12 +2140,11 @@ x_find_image_file (Lisp_Object file)
 static unsigned char *
 slurp_file (char *file, ptrdiff_t *size)
 {
-  FILE *fp = NULL;
+  FILE *fp = fopen (file, "rb");
   unsigned char *buf = NULL;
   struct stat st;
 
-  if (stat (file, &st) == 0
-      && (fp = fopen (file, "rb")) != NULL
+  if (fp && fstat (fileno (fp), &st) == 0
       && 0 <= st.st_size && st.st_size <= min (PTRDIFF_MAX, SIZE_MAX)
       && (buf = xmalloc (st.st_size),
 	  fread (buf, 1, st.st_size, fp) == st.st_size))
@@ -5004,45 +5003,6 @@ pbm_scan_number (unsigned char **s, unsigned char *end)
 }
 
 
-#ifdef HAVE_NTGUI
-#if 0  /* Unused. ++kfs  */
-
-/* Read FILE into memory.  Value is a pointer to a buffer allocated
-   with xmalloc holding FILE's contents.  Value is null if an error
-   occurred.  *SIZE is set to the size of the file.  */
-
-static char *
-pbm_read_file (Lisp_Object file, int *size)
-{
-  FILE *fp = NULL;
-  char *buf = NULL;
-  struct stat st;
-
-  if (stat (SDATA (file), &st) == 0
-      && (fp = fopen (SDATA (file), "rb")) != NULL
-      && 0 <= st.st_size && st.st_size <= min (PTRDIFF_MAX, SIZE_MAX)
-      && (buf = xmalloc (st.st_size),
-	  fread (buf, 1, st.st_size, fp) == st.st_size))
-    {
-      *size = st.st_size;
-      fclose (fp);
-    }
-  else
-    {
-      if (fp)
-	fclose (fp);
-      if (buf)
-	{
-	  xfree (buf);
-	  buf = NULL;
-	}
-    }
-
-  return buf;
-}
-#endif
-#endif /* HAVE_NTGUI */
-
 /* Load PBM image IMG for use on frame F.  */
 
 static bool
@@ -6617,7 +6577,7 @@ static const struct image_keyword tiff_format[TIFF_LAST] =
   {":index",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0}
 };
 
-#ifdef HAVE_NTGUI
+#if defined HAVE_NTGUI && defined WINDOWSNT
 static bool init_tiff_functions (void);
 #else
 #define init_tiff_functions NULL
@@ -7569,7 +7529,7 @@ static struct image_keyword imagemagick_format[IMAGEMAGICK_LAST] =
     {":crop",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
   };
 
-#ifdef HAVE_NTGUI
+#if defined HAVE_NTGUI && defined WINDOWSNT
 static bool init_imagemagick_functions (void);
 #else
 #define init_imagemagick_functions NULL
@@ -8123,7 +8083,7 @@ static const struct image_keyword svg_format[SVG_LAST] =
   {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
-#ifdef HAVE_NTGUI
+#if defined HAVE_NTGUI && defined WINDOWSNT
 static bool init_svg_functions (void);
 #else
 #define init_svg_functions NULL
