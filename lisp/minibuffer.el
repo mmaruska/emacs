@@ -871,6 +871,7 @@ completion candidates than this number."
 
 (defvar completion-all-sorted-completions nil)
 (make-variable-buffer-local 'completion-all-sorted-completions)
+(defvar-local completion--all-sorted-completions-location nil)
 (defvar completion-cycling nil)
 
 (defvar completion-fail-discreetly nil
@@ -1048,14 +1049,19 @@ scroll the window of possible completions."
 
 (defun completion--cache-all-sorted-completions (comps)
   (add-hook 'after-change-functions
-               'completion--flush-all-sorted-completions nil t)
+            'completion--flush-all-sorted-completions nil t)
+  (setq completion--all-sorted-completions-location
+        (cons (copy-marker (field-beginning)) (copy-marker (field-end))))
   (setq completion-all-sorted-completions comps))
 
-(defun completion--flush-all-sorted-completions (&rest _ignore)
-  (remove-hook 'after-change-functions
-               'completion--flush-all-sorted-completions t)
-  (setq completion-cycling nil)
-  (setq completion-all-sorted-completions nil))
+(defun completion--flush-all-sorted-completions (&optional start end _len)
+  (unless (and start end
+               (or (> start (cdr completion--all-sorted-completions-location))
+                   (< end (car completion--all-sorted-completions-location))))
+    (remove-hook 'after-change-functions
+                 'completion--flush-all-sorted-completions t)
+    (setq completion-cycling nil)
+    (setq completion-all-sorted-completions nil)))
 
 (defun completion--metadata (string base md-at-point table pred)
   ;; Like completion-metadata, but for the specific case of getting the
@@ -1108,7 +1114,7 @@ Repeated uses step through the possible completions."
   ;; FIXME: Need to deal with the extra-size issue here as well.
   ;; FIXME: ~/src/emacs/t<M-TAB>/lisp/minibuffer.el completes to
   ;; ~/src/emacs/trunk/ and throws away lisp/minibuffer.el.
-  (let* ((start (field-beginning))
+  (let* ((start (copy-marker (field-beginning)))
          (end (field-end))
          ;; (md (completion--field-metadata start))
          (all (completion-all-sorted-completions))
@@ -1134,7 +1140,23 @@ Repeated uses step through the possible completions."
       ;; through the previous possible completions.
       (let ((last (last all)))
         (setcdr last (cons (car all) (cdr last)))
-        (completion--cache-all-sorted-completions (cdr all)))))))
+        (completion--cache-all-sorted-completions (cdr all)))
+      ;; Make sure repeated uses cycle, even though completion--done might
+      ;; have added a space or something that moved us outside of the field.
+      ;; (bug#12221).
+      (let* ((table minibuffer-completion-table)
+             (pred minibuffer-completion-predicate)
+             (extra-prop completion-extra-properties)
+             (cmd
+              (lambda () "Cycle through the possible completions."
+                (interactive)
+                (let ((completion-extra-properties extra-prop))
+                  (completion-in-region start (point) table pred)))))
+        (set-temporary-overlay-map
+         (let ((map (make-sparse-keymap)))
+           (define-key map [remap completion-at-point] cmd)
+           (define-key map (vector last-command-event) cmd)
+           map)))))))
 
 (defvar minibuffer-confirm-exit-commands
   '(completion-at-point minibuffer-complete
@@ -1557,7 +1579,6 @@ variables.")
   (let* ((exit-fun (plist-get completion-extra-properties :exit-function))
          (pre-msg (and exit-fun (current-message))))
     (cl-assert (memq finished '(exact sole finished unknown)))
-    ;; FIXME: exit-fun should receive `finished' as a parameter.
     (when exit-fun
       (when (eq finished 'unknown)
         (setq finished
@@ -1743,7 +1764,10 @@ exit."
       (when completion-in-region-mode-predicate
         (completion-in-region-mode 1)
         (setq completion-in-region--data
-	      (list (current-buffer) start end collection)))
+	      (list (if (markerp start) start (copy-marker start))
+                    (copy-marker end) collection)))
+      ;; FIXME: `minibuffer-complete' should call `completion-in-region' rather
+      ;; than the other way around!
       (unwind-protect
           (call-interactively 'minibuffer-complete)
         (delete-overlay ol)))))
@@ -1767,12 +1791,12 @@ exit."
   (or unread-command-events ;Don't pop down the completions in the middle of
                             ;mouse-drag-region/mouse-set-point.
       (and completion-in-region--data
-           (and (eq (car completion-in-region--data)
+           (and (eq (marker-buffer (nth 0 completion-in-region--data))
                     (current-buffer))
-                (>= (point) (nth 1 completion-in-region--data))
+                (>= (point) (nth 0 completion-in-region--data))
                 (<= (point)
                     (save-excursion
-                      (goto-char (nth 2 completion-in-region--data))
+                      (goto-char (nth 1 completion-in-region--data))
                       (line-end-position)))
 		(funcall completion-in-region-mode--predicate)))
       (completion-in-region-mode -1)))
@@ -1877,17 +1901,19 @@ The completion method is determined by `completion-at-point-functions'."
   (let ((res (run-hook-wrapped 'completion-at-point-functions
                                #'completion--capf-wrapper 'all)))
     (pcase res
-     (`(,_ . ,(and (pred functionp) f)) (funcall f))
-     (`(,hookfun . (,start ,end ,collection . ,plist))
-      (let* ((completion-extra-properties plist)
-             (completion-in-region-mode-predicate
-              (lambda ()
-                ;; We're still in the same completion field.
-                (eq (car-safe (funcall hookfun)) start))))
-        (completion-in-region start end collection
-                              (plist-get plist :predicate))))
-     ;; Maybe completion already happened and the function returned t.
-     (_ (cdr res)))))
+      (`(,_ . ,(and (pred functionp) f)) (funcall f))
+      (`(,hookfun . (,start ,end ,collection . ,plist))
+       (unless (markerp start) (setq start (copy-marker start)))
+       (let* ((completion-extra-properties plist)
+              (completion-in-region-mode-predicate
+               (lambda ()
+                 ;; We're still in the same completion field.
+                 (let ((newstart (car-safe (funcall hookfun))))
+                   (and newstart (= newstart start))))))
+         (completion-in-region start end collection
+                               (plist-get plist :predicate))))
+      ;; Maybe completion already happened and the function returned t.
+      (_ (cdr res)))))
 
 (defun completion-help-at-point ()
   "Display the completions on the text around point.
@@ -1899,32 +1925,34 @@ The completion method is determined by `completion-at-point-functions'."
     (pcase res
       (`(,_ . ,(and (pred functionp) f))
        (message "Don't know how to show completions for %S" f))
-     (`(,hookfun . (,start ,end ,collection . ,plist))
-      (let* ((minibuffer-completion-table collection)
-             (minibuffer-completion-predicate (plist-get plist :predicate))
-             (completion-extra-properties plist)
-             (completion-in-region-mode-predicate
-              (lambda ()
-                ;; We're still in the same completion field.
-                (eq (car-safe (funcall hookfun)) start)))
-             (ol (make-overlay start end nil nil t)))
-        ;; FIXME: We should somehow (ab)use completion-in-region-function or
-        ;; introduce a corresponding hook (plus another for word-completion,
-        ;; and another for force-completion, maybe?).
-        (overlay-put ol 'field 'completion)
-	(overlay-put ol 'priority 100)
-        (completion-in-region-mode 1)
-        (setq completion-in-region--data
-	      (list (current-buffer) start end collection))
-        (unwind-protect
-            (call-interactively 'minibuffer-completion-help)
-          (delete-overlay ol))))
-     (`(,hookfun . ,_)
-      ;; The hook function already performed completion :-(
-      ;; Not much we can do at this point.
-      (message "%s already performed completion!" hookfun)
-      nil)
-     (_ (message "Nothing to complete at point")))))
+      (`(,hookfun . (,start ,end ,collection . ,plist))
+       (unless (markerp start) (setq start (copy-marker start)))
+       (let* ((minibuffer-completion-table collection)
+              (minibuffer-completion-predicate (plist-get plist :predicate))
+              (completion-extra-properties plist)
+              (completion-in-region-mode-predicate
+               (lambda ()
+                 ;; We're still in the same completion field.
+                 (let ((newstart (car-safe (funcall hookfun))))
+                   (and newstart (= newstart start)))))
+              (ol (make-overlay start end nil nil t)))
+         ;; FIXME: We should somehow (ab)use completion-in-region-function or
+         ;; introduce a corresponding hook (plus another for word-completion,
+         ;; and another for force-completion, maybe?).
+         (overlay-put ol 'field 'completion)
+         (overlay-put ol 'priority 100)
+         (completion-in-region-mode 1)
+         (setq completion-in-region--data
+               (list start (copy-marker end) collection))
+         (unwind-protect
+             (call-interactively 'minibuffer-completion-help)
+           (delete-overlay ol))))
+      (`(,hookfun . ,_)
+       ;; The hook function already performed completion :-(
+       ;; Not much we can do at this point.
+       (message "%s already performed completion!" hookfun)
+       nil)
+      (_ (message "Nothing to complete at point")))))
 
 ;;; Key bindings.
 
