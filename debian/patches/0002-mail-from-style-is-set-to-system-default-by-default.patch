@@ -1,4 +1,4 @@
-From dacb31a1098b5008a027470a65bc512f62328e8d Mon Sep 17 00:00:00 2001
+From 0f9b203e584e600a9ea03c04ecd86232f7b8511c Mon Sep 17 00:00:00 2001
 From: Romain Francoise <rfrancoise@debian.org>
 Date: Thu, 24 Feb 2011 23:22:49 +0100
 Subject: [PATCH 02/10] `mail-from-style' is set to 'system-default by default
@@ -9,7 +9,7 @@ Signed-off-by: Julien Danjou <julien@danjou.info>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/lisp/mail/sendmail.el b/lisp/mail/sendmail.el
-index 331754f..15a177f 100644
+index afa13fe..564624c 100644
 --- a/lisp/mail/sendmail.el
 +++ b/lisp/mail/sendmail.el
 @@ -55,7 +55,7 @@

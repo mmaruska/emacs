@@ -1,4 +1,4 @@
-From 06002f8d7c4f39317e133258783950eb48c00dc7 Mon Sep 17 00:00:00 2001
+From 627271ef76dc58b5a72bc91d4f51df38139a4f9f Mon Sep 17 00:00:00 2001
 From: Julien Danjou <julien@danjou.info>
 Date: Tue, 6 Dec 2011 09:47:43 +0100
 Subject: [PATCH 10/10] Set org-ditaa-jar-path correctly
