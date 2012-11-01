@@ -3556,7 +3556,12 @@ the buffer of WINDOW.  The following values are handled:
 	 quad entry)
     (cond
      ((and (not prev-buffer)
-	   (memq (nth 1 quit-restore) '(window frame))
+	   (or (eq (nth 1 quit-restore) 'frame)
+	       (and (eq (nth 1 quit-restore) 'window)
+		    ;; If the window has been created on an existing
+		    ;; frame and ended up as the sole window on that
+		    ;; frame, do not delete it (Bug#12764).
+		    (not (eq window (frame-root-window window)))))
 	   (eq (nth 3 quit-restore) buffer)
 	   ;; Delete WINDOW if possible.
 	   (window--delete window nil (eq bury-or-kill 'kill)))
@@ -5413,6 +5418,22 @@ Recognized alist entries include:
  `pop-up-frame-parameters' -- Value specifies an alist of frame
                               parameters to give a new frame, if
                               one is created.
+
+ `window-height' -- Value specifies either an integer (the number
+    of lines of a new window), a floating point number (the
+    fraction of a new window with respect to the height of the
+    frame's root window) or a function to be called with one
+    argument - a new window.  The function is supposed to adjust
+    the height of the window; its return value is ignored.
+    Suitable functions are `shrink-window-if-larger-than-buffer'
+    and `fit-window-to-buffer'.
+
+ `window-width' -- Value specifies either an integer (the number
+    of columns of a new window), a floating point number (the
+    fraction of a new window with respect to the width of the
+    frame's root window) or a function to be called with one
+    argument - a new window.  The function is supposed to adjust
+    the width of the window; its return value is ignored.
 
 The ACTION argument to `display-buffer' can also have a non-nil
 and non-list value.  This means to display the buffer in a window
