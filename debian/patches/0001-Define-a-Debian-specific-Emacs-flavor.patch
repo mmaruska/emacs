@@ -1,4 +1,4 @@
-From 702bd4bf80a6868b9d7481cbf7fcf32fd65ba48a Mon Sep 17 00:00:00 2001
+From 1cd4de2db9e8cd434fedb21742bff7b6072e9944 Mon Sep 17 00:00:00 2001
 From: Rob Browning <rlb@defaultvalue.org>
 Date: Thu, 24 Feb 2011 23:21:33 +0100
 Subject: [PATCH 01/10] Define a Debian-specific Emacs flavor
@@ -9,7 +9,7 @@ Signed-off-by: Julien Danjou <julien@danjou.info>
  1 file changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/lisp/startup.el b/lisp/startup.el
-index 56281a6..be7a4a1 100644
+index 2e8b6b7..bd65c89 100644
 --- a/lisp/startup.el
 +++ b/lisp/startup.el
 @@ -392,6 +392,10 @@ from being initialized."
