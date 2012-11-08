@@ -1,4 +1,4 @@
-From 1cd4de2db9e8cd434fedb21742bff7b6072e9944 Mon Sep 17 00:00:00 2001
+From 65a862d686b65a5469d28d90b866175d21e48e50 Mon Sep 17 00:00:00 2001
 From: Rob Browning <rlb@defaultvalue.org>
 Date: Thu, 24 Feb 2011 23:21:33 +0100
 Subject: [PATCH 01/10] Define a Debian-specific Emacs flavor

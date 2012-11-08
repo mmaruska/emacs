@@ -1,4 +1,4 @@
-From f12037b2f8090db5857f238ccd38385b14dfed06 Mon Sep 17 00:00:00 2001
+From f391e4fc51c6934ee114c06b0936d99c50f3a891 Mon Sep 17 00:00:00 2001
 From: Romain Francoise <rfrancoise@debian.org>
 Date: Thu, 24 Feb 2011 23:26:08 +0100
 Subject: [PATCH 05/10] (describe-copying) uses /usr/share/common-licenses/GPL
