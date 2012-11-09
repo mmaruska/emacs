@@ -1,3 +1,82 @@
+2012-11-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfont.m (ns_descriptor_to_entity): Qcondesed and Qexpanded has
+	been removed, so remove them here also.
+
+2012-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc.c (Fdocumentation): Handle new property
+	dynamic-docstring-function to replace the old ad-advice-info.
+
+2012-11-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fns.c (Qeql, hashtest_eq): Now static.
+
+2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (XHASH): Redefine to be imperfect and fit in a Lisp int.
+	* fns.c (hashfn_eq, hashfn_eql, sxhash):
+	* profiler.c (hashfn_profiler): Don't use XUINT on non-integers.
+	* buffer.c (compare_overlays): Use XLI rather than XHASH.
+
+2012-11-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use same hash function for hashfn_profiler as for hash_string etc.
+	* fns.c (SXHASH_COMBINE): Remove.  All uses replaced by sxhash_combine.
+	* lisp.h (sxhash_combine): New inline function, with the contents
+	of the old SXHASH_COMBINE.
+	* profiler.c (hashfn_profiler): Use it, instead of having a
+	special hash function containing a comparison that always yields 1.
+
+2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xfaces.c (Qultra_light, Qreverse_oblique, Qreverse_italic)
+	(Qultra_condensed, Qextra_condensed, Qcondensed, Qsemi_condensed)
+	(Qsemi_expanded, Qextra_expanded, Qexpanded, Qultra_expanded):
+	Remove unused vars.
+
+2012-11-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* image.c (xpm_make_color_table_h): Fix compiler error because
+	make_hash_table changed.
+
+2012-11-08  Thomas Kappler <tkappler@gmail.com> (tiny change)
+
+	* nsfont.m (ns_findfonts): Handle empty matchingDescs (Bug#11541).
+
+2012-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use ad-hoc comparison function for the profiler's hash-tables.
+	* profiler.c (Qprofiler_backtrace_equal, hashtest_profiler): New vars.
+	(make_log): Use them.
+	(handle_profiler_signal): Don't inhibit quit any longer since we don't
+	call Fequal any more.
+	(Ffunction_equal): New function.
+	(cmpfn_profiler, hashfn_profiler): New functions.
+	(syms_of_profiler): Initialize them.
+	* lisp.h (struct hash_table_test): New struct.
+	(struct Lisp_Hash_Table): Use it.
+	* alloc.c (mark_object): Mark hash_table_test fields of hash tables.
+	* fns.c (make_hash_table): Take a struct to describe the test.
+	(cmpfn_eql, cmpfn_equal, cmpfn_user_defined, hashfn_eq, hashfn_eql)
+	(hashfn_equal, hashfn_user_defined): Adjust to new calling convention.
+	(hash_lookup, hash_remove_from_table): Move assertion checking of
+	hashfn result here.  Check hash-equality before calling cmpfn.
+	(Fmake_hash_table): Adjust call to make_hash_table.
+	(hashtest_eq, hashtest_eql, hashtest_equal): New structs.
+	(syms_of_fns): Initialize them.
+	* emacs.c (main): Move syms_of_fns earlier.
+	* xterm.c (syms_of_xterm):
+	* category.c (hash_get_category_set): Adjust call to make_hash_table.
+	* print.c (print_object): Adjust to new hash-table struct.
+	* composite.c (composition_gstring_put_cache): Adjust to new hashfn.
+
+2012-11-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (modifier_set): Fix handling of Scroll Lock when the
+	value of w32-scroll-lock-modifier is neither nil nor one of the
+	known key modifiers.  (Bug#12806)
+
 2012-11-08  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Shrink struct vectorlike_header to the only size field.
@@ -183,8 +262,8 @@
 
 	Remove EMACS_OUTQSIZE+sleep hack.
 	* dispnew.c (update_frame_1): Remove hack for terminals slower
-	than 2400 bps, which throttled Emacs by having it sleep.  This
-	code hasn't worked since at least 2007, when the multi-tty stuff
+	than 2400 bps, which throttled Emacs by having it sleep.
+	This code hasn't worked since at least 2007, when the multi-tty stuff
 	was added, and anyway those old terminals are long dead.
 	* systty.h (EMACS_OUTQSIZE): Remove; unused.  The macro isn't used even
 	without the dispnew.c change, as dispnew.c doesn't include systty.h.
@@ -223,8 +302,8 @@
 	waitpid only on subprocesses that Emacs itself creates.
 	* process.c (create_process, record_child_status_change):
 	Don't use special value -1 in pid field, as the caller now must
-	know the pid rather than having the callee infer it.  The
-	inference was sometimes incorrect anyway, due to another race.
+	know the pid rather than having the callee infer it.
+	The inference was sometimes incorrect anyway, due to another race.
 	(create_process): Set new 'alive' member if child is created.
 	(process_status_retrieved): New function.
 	(record_child_status_change): Use it.
@@ -385,8 +464,8 @@
 
 2012-10-29  Daniel Colascione  <dancol@dancol.org>
 
-	* cygw32.h, cygw32.c (Qutf_16le, from_unicode, to_unicode): In
-	preparation for fixing bug#12739, move these functions from
+	* cygw32.h, cygw32.c (Qutf_16le, from_unicode, to_unicode):
+	In preparation for fixing bug#12739, move these functions from
 	here...
 
 	* coding.h, coding.c: ... to here, and compile them only when

@@ -438,7 +438,7 @@ enum More_Lisp_Bits
     /* To calculate the memory footprint of the pseudovector, it's useful
        to store the size of non-Lisp area in word_size units here.  */
     PSEUDOVECTOR_REST_BITS = 12,
-    PSEUDOVECTOR_REST_MASK = (((1 << PSEUDOVECTOR_REST_BITS) - 1) 
+    PSEUDOVECTOR_REST_MASK = (((1 << PSEUDOVECTOR_REST_BITS) - 1)
 			      << PSEUDOVECTOR_SIZE_BITS),
 
     /* Used to extract pseudovector subtype information.  */
@@ -453,9 +453,6 @@ enum More_Lisp_Bits
 /* These macros extract various sorts of values from a Lisp_Object.
  For example, if tem is a Lisp_Object whose type is Lisp_Cons,
  XCONS (tem) is the struct Lisp_Cons * pointing to the memory for that cons.  */
-
-/* Return a perfect hash of the Lisp_Object representation.  */
-#define XHASH(a) XLI (a)
 
 #if USE_LSB_TAG
 
@@ -509,6 +506,11 @@ static EMACS_INT const VALMASK
 
 #endif /* not USE_LSB_TAG */
 
+/* Return a (Lisp-integer sized) hash of the Lisp_Object value.  Happens to be
+   like XUINT right now, but XUINT should only be applied to objects we know
+   are integers.  */
+#define XHASH(a) XUINT (a)
+
 /* For integers known to be positive, XFASTINT sometimes provides
    faster retrieval and XSETFASTINT provides faster storage.
    If not, fallback on the non-accelerated path.  */
@@ -524,7 +526,7 @@ static EMACS_INT const VALMASK
 # define XUNTAG(a, type) XPNTR (a)
 #endif
 
-#define EQ(x, y) (XHASH (x) == XHASH (y))
+#define EQ(x, y) (XLI (x) == XLI (y))
 
 /* Largest and smallest representable fixnum values.  These are the C
    values.  They are macros for use in static initializers.  */
@@ -1159,13 +1161,28 @@ struct Lisp_Symbol
 
 /* The structure of a Lisp hash table.  */
 
+struct hash_table_test
+{
+  /* Name of the function used to compare keys.  */
+  Lisp_Object name;
+
+  /* User-supplied hash function, or nil.  */
+  Lisp_Object user_hash_function;
+
+  /* User-supplied key comparison function, or nil.  */
+  Lisp_Object user_cmp_function;
+
+  /* C function to compare two keys.  */
+  bool (*cmpfn) (struct hash_table_test *t, Lisp_Object, Lisp_Object);
+
+  /* C function to compute hash code.  */
+  EMACS_UINT (*hashfn) (struct hash_table_test *t, Lisp_Object);
+};
+
 struct Lisp_Hash_Table
 {
   /* This is for Lisp; the hash table code does not refer to it.  */
   struct vectorlike_header header;
-
-  /* Function used to compare keys.  */
-  Lisp_Object test;
 
   /* Nil if table is non-weak.  Otherwise a symbol describing the
      weakness of the table.  */
@@ -1197,12 +1214,6 @@ struct Lisp_Hash_Table
      hash table size to reduce collisions.  */
   Lisp_Object index;
 
-  /* User-supplied hash function, or nil.  */
-  Lisp_Object user_hash_function;
-
-  /* User-supplied key comparison function, or nil.  */
-  Lisp_Object user_cmp_function;
-
   /* Only the fields above are traced normally by the GC.  The ones below
      `count' are special and are either ignored by the GC or traced in
      a special way (e.g. because of weakness).  */
@@ -1215,17 +1226,12 @@ struct Lisp_Hash_Table
      This is gc_marked specially if the table is weak.  */
   Lisp_Object key_and_value;
 
+  /* The comparison and hash functions.  */
+  struct hash_table_test test;
+
   /* Next weak hash table if this is a weak hash table.  The head
      of the list is in weak_hash_tables.  */
   struct Lisp_Hash_Table *next_weak;
-
-  /* C function to compare two keys.  */
-  bool (*cmpfn) (struct Lisp_Hash_Table *,
-		 Lisp_Object, EMACS_UINT,
-		 Lisp_Object, EMACS_UINT);
-
-  /* C function to compute hash code.  */
-  EMACS_UINT (*hashfn) (struct Lisp_Hash_Table *, Lisp_Object);
 };
 
 
@@ -1279,6 +1285,15 @@ static double const DEFAULT_REHASH_THRESHOLD = 0.8;
 /* Default factor by which to increase the size of a hash table.  */
 
 static double const DEFAULT_REHASH_SIZE = 1.5;
+
+/* Combine two integers X and Y for hashing.  The result might not fit
+   into a Lisp integer.  */
+
+LISP_INLINE EMACS_UINT
+sxhash_combine (EMACS_UINT x, EMACS_UINT y)
+{
+  return (x << 4) + (x >> (BITS_PER_EMACS_INT - 4)) + y;
+}
 
 /* These structures are used for various misc types.  */
 
@@ -2704,15 +2719,15 @@ extern Lisp_Object larger_vector (Lisp_Object, ptrdiff_t, ptrdiff_t);
 extern void sweep_weak_hash_tables (void);
 extern Lisp_Object Qcursor_in_echo_area;
 extern Lisp_Object Qstring_lessp;
-extern Lisp_Object QCsize, QCtest, QCweakness, Qequal, Qeq, Qeql;
+extern Lisp_Object QCsize, QCtest, QCweakness, Qequal, Qeq;
 EMACS_UINT hash_string (char const *, ptrdiff_t);
 EMACS_UINT sxhash (Lisp_Object, int);
-Lisp_Object make_hash_table (Lisp_Object, Lisp_Object, Lisp_Object,
-                             Lisp_Object, Lisp_Object, Lisp_Object,
-                             Lisp_Object);
+Lisp_Object make_hash_table (struct hash_table_test, Lisp_Object, Lisp_Object,
+                             Lisp_Object, Lisp_Object);
 ptrdiff_t hash_lookup (struct Lisp_Hash_Table *, Lisp_Object, EMACS_UINT *);
 ptrdiff_t hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 		    EMACS_UINT);
+extern struct hash_table_test hashtest_eql, hashtest_equal;
 
 extern Lisp_Object substring_both (Lisp_Object, ptrdiff_t, ptrdiff_t,
 				   ptrdiff_t, ptrdiff_t);
