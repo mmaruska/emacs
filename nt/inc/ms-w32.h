@@ -145,8 +145,6 @@ extern char *getenv ();
 #endif
 
 /* Calls that are emulated or shadowed.  */
-#undef access
-#define access  sys_access
 #undef chdir
 #define chdir   sys_chdir
 #undef chmod

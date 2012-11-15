@@ -195,11 +195,6 @@ value of last one, or nil if there are none.
   (declare (indent 1) (debug t))
   (cons 'if (cons cond (cons nil body))))
 
-(if (null (featurep 'cl))
-    (progn
-  ;; If we reload subr.el after having loaded CL, be careful not to
-  ;; overwrite CL's extended definition of `dolist', `dotimes', `declare'.
-
 (defmacro dolist (spec &rest body)
   "Loop over a list.
 Evaluate BODY with VAR bound to each car from LIST, in turn.
@@ -222,9 +217,7 @@ Then evaluate RESULT to get return value, default nil.
              (let ((,(car spec) (car ,temp)))
                ,@body
                (setq ,temp (cdr ,temp))))
-           ,@(if (cdr (cdr spec))
-                 ;; FIXME: This let often leads to "unused var" warnings.
-                 `((let ((,(car spec) nil)) ,@(cdr (cdr spec))))))
+           ,@(cdr (cdr spec)))
       `(let ((,temp ,(nth 1 spec))
              ,(car spec))
          (while ,temp
@@ -281,7 +274,6 @@ The possible values of SPECS are specified by
 `defun-declarations-alist' and `macro-declarations-alist'."
   ;; FIXME: edebug spec should pay attention to defun-declarations-alist.
   nil)
-))
 
 (defmacro ignore-errors (&rest body)
   "Execute BODY; if an error occurs, return nil.
@@ -2810,6 +2802,12 @@ Otherwise, return nil."
   "Return t if OBJECT is one of the two canonical boolean values: t or nil.
 Otherwise, return nil."
   (and (memq object '(nil t)) t))
+
+(defun special-form-p (object)
+  "Non-nil if and only if OBJECT is a special form."
+  (if (and (symbolp object) (fboundp object))
+      (setq object (indirect-function object)))
+  (and (subrp object) (eq (cdr (subr-arity object)) 'unevalled)))
 
 (defun field-at-pos (pos)
   "Return the field at position POS, taking stickiness etc into account."
