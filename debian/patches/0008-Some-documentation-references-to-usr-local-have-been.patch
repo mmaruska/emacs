@@ -1,4 +1,4 @@
-From 8711f04df43cfb4dde0ab54aec36c8caeed86dfd Mon Sep 17 00:00:00 2001
+From 48b81c8ae99c2da50db4d12d1cc8773dd8e1599b Mon Sep 17 00:00:00 2001
 From: Romain Francoise <rfrancoise@debian.org>
 Date: Thu, 24 Feb 2011 23:27:40 +0100
 Subject: [PATCH 08/10] Some documentation references to /usr/local have been
@@ -6,7 +6,7 @@ Subject: [PATCH 08/10] Some documentation references to /usr/local have been
 
 Signed-off-by: Julien Danjou <julien@danjou.info>
 ---
- doc/man/emacs.1 |   14 +++++++-------
+ doc/man/emacs.1 | 14 +++++++-------
  1 file changed, 7 insertions(+), 7 deletions(-)
 
 diff --git a/doc/man/emacs.1 b/doc/man/emacs.1
@@ -59,5 +59,5 @@ index 46bda02..3ab1cde 100644
  .
  .SH UNRESTRICTIONS
 -- 
-1.7.10.4
+1.8.0
 

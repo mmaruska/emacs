@@ -1,10 +1,10 @@
-From ea8d986ed2e44cee6e113bd943199729ccf3b11b Mon Sep 17 00:00:00 2001
+From e59f58833cc71fc334c1af0f994c0cb207f89cdb Mon Sep 17 00:00:00 2001
 From: Julien Danjou <julien@danjou.info>
 Date: Fri, 25 Feb 2011 12:54:05 +0100
 Subject: [PATCH 04/10] Debian-related items were added to the Help menu
 
 ---
- lisp/menu-bar.el |   33 +++++++++++++++++++++++++++++++++
+ lisp/menu-bar.el | 33 +++++++++++++++++++++++++++++++++
  1 file changed, 33 insertions(+)
 
 diff --git a/lisp/menu-bar.el b/lisp/menu-bar.el
@@ -59,5 +59,5 @@ index 88e59ef..ebf9a56 100644
        menu-bar-separator)
      (bindings--define-key menu [emacs-psychotherapist]
 -- 
-1.7.10.4
+1.8.0
 

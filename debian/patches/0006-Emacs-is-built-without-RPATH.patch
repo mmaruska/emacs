@@ -1,4 +1,4 @@
-From 878b80f431dde01106db6777b65aa45f99a9d8eb Mon Sep 17 00:00:00 2001
+From b61da43c589325c6fc2549c8c763aad832fc7199 Mon Sep 17 00:00:00 2001
 From: Romain Francoise <rfrancoise@debian.org>
 Date: Thu, 24 Feb 2011 23:26:42 +0100
 Subject: [PATCH 06/10] Emacs is built without RPATH.
@@ -8,14 +8,14 @@ case, it's redundant with system-wide library paths).
 
 Signed-off-by: Julien Danjou <julien@danjou.info>
 ---
- autogen/configure |    2 +-
+ autogen/configure | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/autogen/configure b/autogen/configure
-index 159a91b..777cc68 100755
+index e44b44a..10fa5b7 100755
 --- a/autogen/configure
 +++ b/autogen/configure
-@@ -9396,7 +9396,7 @@ LD_SWITCH_X_SITE_RPATH=
+@@ -9428,7 +9428,7 @@ LD_SWITCH_X_SITE_RPATH=
  if test "${x_libraries}" != NONE; then
    if test -n "${x_libraries}"; then
      LD_SWITCH_X_SITE=-L`echo ${x_libraries} | sed -e "s/:/ -L/g"`
@@ -25,5 +25,5 @@ index 159a91b..777cc68 100755
    x_default_search_path=""
    x_search_path=${x_libraries}
 -- 
-1.7.10.4
+1.8.0
 

@@ -1,11 +1,11 @@
-From 5a86de2b755b7ef5e201dbe12f948d222c0e1065 Mon Sep 17 00:00:00 2001
+From b0caa0d23d3b9e5bc398051af3f72b87636cfc72 Mon Sep 17 00:00:00 2001
 From: Romain Francoise <rfrancoise@debian.org>
 Date: Thu, 24 Feb 2011 23:22:49 +0100
 Subject: [PATCH 02/10] `mail-from-style' is set to 'system-default by default
 
 Signed-off-by: Julien Danjou <julien@danjou.info>
 ---
- lisp/mail/sendmail.el |    2 +-
+ lisp/mail/sendmail.el | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/lisp/mail/sendmail.el b/lisp/mail/sendmail.el
@@ -22,5 +22,5 @@ index afa13fe..564624c 100644
  
  If `nil', they contain just the return address like:
 -- 
-1.7.10.4
+1.8.0
 

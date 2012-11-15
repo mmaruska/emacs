@@ -1,18 +1,18 @@
-From d8a4871c2081661d359d3ad5209a62765c40fc56 Mon Sep 17 00:00:00 2001
+From 310fe8ce3658bc7d1b5e6e43c9b39169b8ce52b8 Mon Sep 17 00:00:00 2001
 From: Romain Francoise <rfrancoise@debian.org>
 Date: Thu, 24 Feb 2011 23:23:26 +0100
 Subject: [PATCH 03/10] M-x report-emacs-bug includes the package version
 
 Signed-off-by: Julien Danjou <julien@danjou.info>
 ---
- lisp/mail/emacsbug.el |    5 +++++
+ lisp/mail/emacsbug.el | 5 +++++
  1 file changed, 5 insertions(+)
 
 diff --git a/lisp/mail/emacsbug.el b/lisp/mail/emacsbug.el
-index 0066847..cf5889b 100644
+index 1d9d098..51e1f74 100644
 --- a/lisp/mail/emacsbug.el
 +++ b/lisp/mail/emacsbug.el
-@@ -241,6 +241,11 @@ usually do not have translators for other languages.\n\n")))
+@@ -237,6 +237,11 @@ usually do not have translators for other languages.\n\n")))
      (insert "\n\nIn " (emacs-version) "\n")
      (if (stringp emacs-bzr-version)
  	(insert "Bzr revision: " emacs-bzr-version "\n"))
@@ -25,5 +25,5 @@ index 0066847..cf5889b 100644
  	(condition-case nil
              ;; This is used not only for X11 but also W32 and others.
 -- 
-1.7.10.4
+1.8.0
 
