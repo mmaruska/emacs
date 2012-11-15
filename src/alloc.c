@@ -2611,16 +2611,21 @@ verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
 
 #define VINDEX(nbytes) (((nbytes) - VBLOCK_BYTES_MIN) / roundup_size)
 
-/* When V is on the free list, first word after header is used as a pointer
-   to next vector on the free list.  It might be done in a better way with:
-
-   (*(struct Lisp_Vector **)&(v->contents[0]))
-
-   but this breaks GCC's strict-aliasing rules (which looks more relaxed
-   for char and void pointers).  */
-
-#define NEXT_IN_FREE_LIST(v)				\
-  (*(struct Lisp_Vector **)((char *) v + header_size))
+/* Get and set the next field in block-allocated vectorlike objects on
+   the free list.  Doing it this way respects C's aliasing rules.
+   We could instead make 'contents' a union, but that would mean
+   changes everywhere that the code uses 'contents'.  */
+static struct Lisp_Vector *
+next_in_free_list (struct Lisp_Vector *v)
+{
+  intptr_t i = XLI (v->contents[0]);
+  return (struct Lisp_Vector *) i;
+}
+static void
+set_next_in_free_list (struct Lisp_Vector *v, struct Lisp_Vector *next)
+{
+  v->contents[0] = XIL ((intptr_t) next);
+}
 
 /* Common shortcut to setup vector on a free list.  */
 
@@ -2631,7 +2636,7 @@ verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
     eassert ((nbytes) % roundup_size == 0);		\
     (tmp) = VINDEX (nbytes);				\
     eassert ((tmp) < VECTOR_MAX_FREE_LIST_INDEX);	\
-    NEXT_IN_FREE_LIST (v) = vector_free_lists[tmp];	\
+    set_next_in_free_list (v, vector_free_lists[tmp]);	\
     vector_free_lists[tmp] = (v);			\
     total_free_vector_slots += (nbytes) / word_size;	\
   } while (0)
@@ -2728,7 +2733,7 @@ allocate_vector_from_block (size_t nbytes)
   if (vector_free_lists[index])
     {
       vector = vector_free_lists[index];
-      vector_free_lists[index] = NEXT_IN_FREE_LIST (vector);
+      vector_free_lists[index] = next_in_free_list (vector);
       total_free_vector_slots -= nbytes / word_size;
       return vector;
     }
@@ -2742,7 +2747,7 @@ allocate_vector_from_block (size_t nbytes)
       {
 	/* This vector is larger than requested.  */
 	vector = vector_free_lists[index];
-	vector_free_lists[index] = NEXT_IN_FREE_LIST (vector);
+	vector_free_lists[index] = next_in_free_list (vector);
 	total_free_vector_slots -= nbytes / word_size;
 
 	/* Excess bytes are used for the smaller vector,

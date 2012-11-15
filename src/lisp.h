@@ -1694,6 +1694,8 @@ typedef struct {
 #define MARKERP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Marker)
 #define SAVE_VALUEP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Save_Value)
 
+#define AUTOLOADP(x) (CONSP (x) && EQ (Qautoload, XCAR (x)))
+
 #define INTFWDP(x) (XFWDTYPE (x) == Lisp_Fwd_Int)
 #define BOOLFWDP(x) (XFWDTYPE (x) == Lisp_Fwd_Bool)
 #define OBJFWDP(x) (XFWDTYPE (x) == Lisp_Fwd_Obj)
@@ -3200,6 +3202,8 @@ extern Lisp_Object close_file_unwind (Lisp_Object);
 extern Lisp_Object restore_point_unwind (Lisp_Object);
 extern _Noreturn void report_file_error (const char *, Lisp_Object);
 extern void internal_delete_file (Lisp_Object);
+extern bool file_directory_p (const char *);
+extern bool file_accessible_directory_p (const char *);
 extern void syms_of_fileio (void);
 extern Lisp_Object make_temp_name (Lisp_Object, bool);
 extern Lisp_Object Qdelete_file;
