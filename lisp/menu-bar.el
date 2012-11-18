@@ -2009,17 +2009,17 @@ key, a click, or a menu-item"))
       `(menu-item "Search Documentation" ,menu-bar-search-documentation-menu))
     (bindings--define-key menu [sep2]
       menu-bar-separator)
-    (bindings--define-key menu [debian-emacs-changelog]
-      `(menu-item "Debian ChangeLog" ,debian-emacs-changelog
-                  :help "Display the Debian changelog"))
-    (bindings--define-key menu [debian-emacs-news]
-      `(menu-item "Debian News" ,debian-emacs-news
-                  :help "Display the NEWS.Debian file"))
-    (bindings--define-key menu [debian-emacs-readme]
-      `(menu-item "Debian README" ,debian-emacs-readme
-                  :help "Display the README.Debian file"))
-    (bindings--define-key menu [sep1]
-      menu-bar-separator)
+    ;; (bindings--define-key menu [debian-emacs-changelog]
+    ;;   `(menu-item "Debian ChangeLog" ,debian-emacs-changelog
+    ;;               :help "Display the Debian changelog"))
+    ;; (bindings--define-key menu [debian-emacs-news]
+    ;;   `(menu-item "Debian News" ,debian-emacs-news
+    ;;               :help "Display the NEWS.Debian file"))
+    ;; (bindings--define-key menu [debian-emacs-readme]
+    ;;   `(menu-item "Debian README" ,debian-emacs-readme
+    ;;               :help "Display the README.Debian file"))
+    ;; (bindings--define-key menu [sep1]
+    ;;   menu-bar-separator)
 
     (bindings--define-key menu [emacs-psychotherapist]
       '(menu-item "Emacs Psychotherapist" doctor
