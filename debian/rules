@@ -400,7 +400,7 @@ src/lucid-emacs: bootstrap
 	$(call emacs_build,${emacs_lucid_confflags},lucid-emacs)
 
 src/xlib-emacs: bootstrap
-	$(call emacs_build,${emacs_lucid_confflags},xlib-emacs)
+	$(call emacs_build,${emacs_xlib_confflags},xlib-emacs)
 
 debian-clean: debian/control
 	dh_testdir
