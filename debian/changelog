@@ -1,3 +1,40 @@
+emacs-snapshot (2:20121115-1maruska2) release; urgency=low
+
+  [ Michael Olson ]
+  * Info-default-directory-list includes /usr/share/info/emacs-snapshot
+
+  [ Rob Browning ]
+  * Define a Debian-specific Emacs flavor
+
+  [ Romain Francoise ]
+  * `mail-from-style' is set to 'system-default by default
+  * M-x report-emacs-bug includes the package version
+
+  [ Julien Danjou ]
+  * Debian-related items were added to the Help menu
+
+  [ Michal Maruska ]
+  * give-up: disable the debian extension to menu.
+
+  [ Romain Francoise ]
+  * (describe-copying) uses /usr/share/common-licenses/GPL
+  * Emacs is built without RPATH.
+
+  [ Rob Browning ]
+  * (emacs-version) has been modified to indicate Debian modifications
+
+  [ Romain Francoise ]
+  * Some documentation references to /usr/local have been changed to /usr
+  * Emacs now invokes the correct xmlstarlet executable on Debian systems.
+
+  [ Julien Danjou ]
+  * Set org-ditaa-jar-path correctly
+
+  [ Michal Maruska ]
+  * Revert "Info-default-directory-list includes /usr/share/info/emacs-snapshot"
+
+ -- Michal Maruska <mmaruska@gmail.com>  Mon, 19 Nov 2012 03:12:55 +0100
+
 emacs-snapshot (2:20121115-1maruska) release; urgency=low
 
   * Avoid XSetWindowBackground & CWBackPixel: When creating X window & when setting (frame) background.
