@@ -95,6 +95,7 @@ static Lisp_Object Qwindow_id;
 #ifdef HAVE_X_WINDOWS
 static Lisp_Object Qouter_window_id;
 #endif
+Lisp_Object Qwindow_group;
 Lisp_Object Qparent_id;
 Lisp_Object Qtitle, Qname;
 static Lisp_Object Qexplicit_name;
@@ -2557,6 +2558,7 @@ static const struct frame_parm_table frame_parms[] =
   {"alpha",			&Qalpha},
   {"sticky",			&Qsticky},
   {"tool-bar-position",		&Qtool_bar_position},
+  {"window-group",              &Qwindow_group}, /* Hint for Window Manager  */
 };
 
 #ifdef HAVE_NTGUI
@@ -4214,6 +4216,9 @@ syms_of_frame (void)
 
   DEFSYM (Qterminal, "terminal");
   DEFSYM (Qterminal_live_p, "terminal-live-p");
+
+  Qwindow_group = intern_c_string ("window-group");
+  staticpro (&Qwindow_group);
 
 #ifdef HAVE_NS
   DEFSYM (Qns_parse_geometry, "ns-parse-geometry");
