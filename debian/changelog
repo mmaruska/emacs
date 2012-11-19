@@ -1,3 +1,35 @@
+emacs-snapshot (2:20121115-1maruska) release; urgency=low
+
+  * Avoid XSetWindowBackground & CWBackPixel: When creating X window & when setting (frame) background.
+  * explicit bg: draw non-buffer part of frame
+  * x_clear_area: (clear -> fill)
+  * On Expose, we have to explicitely redraw where BG color ... the empty buffer area
+  * redraw top row
+  * clear_current_matrices ONLY when not resized
+  * Scroll-bar: set the bg-pixmap to None
+  * scrollbar: Explicitely Fill the bg. Also the thin border of the scrollbar.
+  * avoid XClearWindow during x_clear_frame.
+  * On resize don't set the _frame_ dirty (not necessary to redraw whole frame).
+  * set as Garbaged on redraw-frame (why?)
+  * MapNotify: set SET_FRAME_GARBAGED even if ....
+  * ConfigureNotify: avoid SET_FRAME_GARBAGED, and also change_frame_size ???
+  * undo
+  * fix: FRAME_FOREGROUND_PIX
+  * WM_CLIENT_MACHINE
+  * fix a comment
+  * Don't auto-raise: ignore Enter/Leave Notify.
+  * auto: generate the debian/control
+  * new property: window-group (X windows)
+  * Ignore notification of Focus change, received due to Pointer. I admit I don't know what Implicit (vs. explicit) focus means.
+  * emacs-snapshot-xlib package: Configured to use plain Xlib, and thus give the antiflicker patch a chance to show off!
+  * ediff: Set the window-id to group the X windows.
+  * bugfix
+  * dropping part: conflicts with C-g inside minibuffer.
+  * tracing  the auto-raise
+  * fix error in debian rules for Xlib
+
+ -- Michal Maruska <mmaruska@gmail.com>  Mon, 19 Nov 2012 01:24:16 +0100
+
 emacs-snapshot (2:20121115-1) unstable; urgency=low
 
   * New snapshot
