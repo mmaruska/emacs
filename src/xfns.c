@@ -826,7 +826,9 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       block_input ();
       XSetBackground (dpy, x->normal_gc, bg);
       XSetForeground (dpy, x->reverse_gc, bg);
+#if 0      /* mmc: */
       XSetWindowBackground (dpy, FRAME_X_WINDOW (f), bg);
+#endif
       XSetForeground (dpy, x->cursor_gc, bg);
 
 #ifdef USE_GTK
@@ -1385,14 +1387,15 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
       int width = FRAME_PIXEL_WIDTH (f);
       int y = (FRAME_MENU_BAR_LINES (f) + nlines) * FRAME_LINE_HEIGHT (f);
 
+#if 0
       /* height can be zero here. */
       if (height > 0 && width > 0)
 	{
           block_input ();
-          x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-                        0, y, width, height, False);
+          /* x_fill_frame_area_bg (f, 0, y, width, height); */
           unblock_input ();
         }
+#endif
 
       if (WINDOWP (f->tool_bar_window))
 	clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
@@ -2684,14 +2687,18 @@ x_window (struct frame *f)
   XSetWindowAttributes attributes;
   unsigned long attribute_mask;
 
+#if 0
   attributes.background_pixel = FRAME_BACKGROUND_PIXEL (f);
+#else
+  attributes.background_pixmap = None;
+#endif
   attributes.border_pixel = f->output_data.x->border_pixel;
   attributes.bit_gravity = StaticGravity;
   attributes.backing_store = NotUseful;
   attributes.save_under = True;
   attributes.event_mask = STANDARD_EVENT_SET;
   attributes.colormap = FRAME_X_COLORMAP (f);
-  attribute_mask = (CWBackPixel | CWBorderPixel | CWBitGravity | CWEventMask
+  attribute_mask = (CWBackPixmap | CWBorderPixel | CWBitGravity | CWEventMask
 		    | CWColormap);
 
   block_input ();

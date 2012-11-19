@@ -10772,7 +10772,11 @@ clear_garbaged_frames (void)
 		  redraw_frame (f);
 		  f->force_flush_display_p = 1;
 		}
-	      clear_current_matrices (f);
+              else
+                {
+                  /* mmc: Fredraw_frame calls this already! unless when no glyphs.  */
+                  clear_current_matrices (f);
+                };
 	      changed_count++;
 	      f->garbaged = 0;
 	      f->resized_p = 0;
@@ -28240,11 +28244,79 @@ expose_area (struct window *w, struct glyph_row *row, XRectangle *r,
 	  ++last;
 	}
 
-      /* Repaint.  */
-      if (last > first)
+      /* Repaint.  */    /* mmc: what does it mean? */
+      if (last > first) {
+#if DEBUG
+        fprintf(stderr, "%s: mmc  repaint?\n", __FUNCTION__);
+#endif
 	draw_glyphs (w, first_x - start_x, row, area,
 		     first - row->glyphs[area], last - row->glyphs[area],
 		     DRAW_NORMAL_TEXT, 0);
+    }
+
+#if 0
+      else
+#endif
+
+        /* mmc: So this is my code/idea entirely! */
+
+        if ( 1 /*(x < r->x + r->width) */
+            && (area == TEXT_AREA))
+        {
+          /* intersect the 2 rectangles:
+           *    | exposed & redrawn
+           *    | rectangle      |
+           *----+----------------+-----+
+           *  G |   matrix row   |     |  glyph_row!
+           *----+----------------+-----+
+           *    | redrawn        |
+           *    | Rectangle      |
+           *    +----------------+
+           */
+          /* fill_area (x, r->x) */
+
+          /* fixme: what's the window coordinate? */
+          XRectangle glyph_row; /* the gap after the last glyph: */
+          XRectangle missing_background;
+          glyph_row.x = x;  /* row->x + row->pixel_width; */
+          glyph_row.y = row->y;
+          glyph_row.width = (window_box_left_offset (w, area+1) - glyph_row.x);
+          glyph_row.height = row->phys_height;
+
+          /* i don't understand  */
+          if (glyph_row.height <row->visible_height)
+            glyph_row.height = row->visible_height;
+          /* row->descent + row->phys_ascent /*row->ascent*/;
+#if 0
+          fprintf(stderr, "%s: mmc wants to repaint empty area: window is at %d,%d\n", __FUNCTION__,
+                  WINDOW_LEFT_EDGE_X(w), WINDOW_TOP_EDGE_LINE(w));
+
+
+          fprintf(stderr, "the glyph row is %dx%d @ %d,%d.  visible height: %d, extra_line_spacing %d\n",
+                  glyph_row.width, glyph_row.height,
+                  glyph_row.x, glyph_row.y,
+                  row->visible_height,
+                  row->extra_line_spacing);
+#endif
+          /* mmc: This is for the space after glyphs, which is still in the
+                  exposed rectangle. */
+          if (x_intersect_rectangles (r, &glyph_row, &missing_background))
+            {
+              struct frame *f = XFRAME (WINDOW_FRAME (w));
+#if 0
+              fprintf(stderr, "%s: mmc   missing background\n", __FUNCTION__);
+#endif
+              XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                              f->output_data.x->reverse_gc, /* normal_gc */
+                              missing_background.x + WINDOW_LEFT_EDGE_X(w),
+                              missing_background.y + WINDOW_TOP_EDGE_Y(w),
+                              missing_background.width,
+                              missing_background.height + row->extra_line_spacing);
+            }
+#if 0
+          fprintf(stderr, "%s: no need to repaint: last x=%d, rx=%d\n", __FUNCTION__, x, r->x);
+#endif
+        }
     }
 }
 
@@ -28624,8 +28696,20 @@ expose_frame (struct frame *f, int x, int y, int w, int h)
   mouse_face_overwritten_p = expose_window_tree (XWINDOW (f->root_window), &r);
 
   if (WINDOWP (f->tool_bar_window))
+    {
     mouse_face_overwritten_p
       |= expose_window (XWINDOW (f->tool_bar_window), &r);
+      {
+        /* mmc: the above code leaked 1 pixel high strip ! */
+        struct window *w = XWINDOW(f->tool_bar_window);
+        FRAME_RIF (f)->clear_frame_area(f,
+                                        WINDOW_LEFT_EDGE_X(w),
+                                        WINDOW_BOTTOM_EDGE_Y(w) - 1, /* WINDOW_TOP_EDGE_Y */
+                                        /* +  */
+                                        FRAME_PIXEL_WIDTH(f),
+                                        1);
+      }
+    }
 
 #ifdef HAVE_X_WINDOWS
 #ifndef MSDOS
@@ -28633,6 +28717,62 @@ expose_frame (struct frame *f, int x, int y, int w, int h)
   if (WINDOWP (f->menu_bar_window))
     mouse_face_overwritten_p
       |= expose_window (XWINDOW (f->menu_bar_window), &r);
+
+  /* mmc: along the emacs window borders, there are areas not handled by the window drawing.
+   * Here i take care for when they are exposed. */
+  /* mmc: only 3 of them? */
+  {
+    XRectangle border;
+    XRectangle intersection;
+    border.x = 0;
+    border.y = 0;
+    border.width = FRAME_INTERNAL_BORDER_WIDTH(f);
+    border.height = FRAME_PIXEL_HEIGHT(f);
+
+    if (x_intersect_rectangles(&border, &r, &intersection))
+      FRAME_RIF (f)->clear_frame_area(f,
+                                      intersection.x,
+                                      intersection.y,
+                                      intersection.width,
+                                      intersection.height);
+    /* 0,0, FRAME_INTERNAL_BORDER_WIDTH(f),FRAME_PIXEL_HEIGHT(f));*/
+  }
+
+  {
+    XRectangle border;
+    XRectangle intersection;
+    border.x = 0;
+    border.y = 0;
+    border.width = FRAME_PIXEL_WIDTH(f);
+    border.height = FRAME_INTERNAL_BORDER_WIDTH(f);
+
+    if (x_intersect_rectangles(&border, &r, &intersection))
+      FRAME_RIF (f)->clear_frame_area(f,
+                            intersection.x,
+                            intersection.y,
+                            intersection.width,
+                            intersection.height);
+    /* 0,0, FRAME_INTERNAL_BORDER_WIDTH(f),FRAME_PIXEL_HEIGHT(f));*/
+  }
+
+  {
+    XRectangle border;
+    XRectangle intersection;
+    border.x = 0;
+    border.y = FRAME_PIXEL_HEIGHT(f) - FRAME_INTERNAL_BORDER_WIDTH(f);
+    border.width = FRAME_PIXEL_WIDTH(f);
+    border.height = FRAME_INTERNAL_BORDER_WIDTH(f);
+
+    if (x_intersect_rectangles(&border, &r, &intersection))
+      FRAME_RIF (f)->clear_frame_area(f,
+                            intersection.x,
+                            intersection.y,
+                            intersection.width,
+                            intersection.height);
+    /* 0,0, FRAME_INTERNAL_BORDER_WIDTH(f),FRAME_PIXEL_HEIGHT(f));*/
+  }
+
+
 #endif /* not USE_X_TOOLKIT */
 #endif
 #endif

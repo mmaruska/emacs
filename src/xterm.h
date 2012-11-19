@@ -972,6 +972,10 @@ extern void x_clear_area (Display *, Window, int, int, int, int, int);
 extern void x_mouse_leave (struct x_display_info *);
 #endif
 
+
+/* mmc: btw. x_clear_frame_area is redirected to this. */
+extern void x_fill_frame_area_bg (struct frame *f, int,int,int,int);
+
 #ifdef USE_X_TOOLKIT
 extern int x_dispatch_event (XEvent *, Display *);
 #endif
