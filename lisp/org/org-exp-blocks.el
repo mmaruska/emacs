@@ -242,18 +242,8 @@ which defaults to the value of `org-export-blocks-witheld'."
 
 ;;--------------------------------------------------------------------------------
 ;; ditaa: create images from ASCII art using the ditaa utility
-(defcustom org-ditaa-jar-path (expand-file-name
-			       "ditaa.jar"
-			       (file-name-as-directory
-				(expand-file-name
-				 "scripts"
-				 (file-name-as-directory
-				  (expand-file-name
-				   "../contrib"
-				   (file-name-directory (org-find-library-dir "org")))))))
-  "Path to the ditaa jar executable."
-  :group 'org-babel
-  :type 'string)
+(defvar org-ditaa-jar-path "/usr/share/ditaa/ditaa.jar"
+  "Path to the ditaa jar executable.")
 
 (defvar org-export-current-backend) ; dynamically bound in org-exp.el
 (defun org-export-blocks-format-ditaa (body &rest headers)
