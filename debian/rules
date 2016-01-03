@@ -124,7 +124,8 @@ else
   CFLAGS += -O2
 endif
 
-LDFLAGS   := -g -Wl,--as-needed -znocombreloc
+# :=
+LDFLAGS   += -g -Wl,--as-needed -znocombreloc
 
 INSTALL = install
 
