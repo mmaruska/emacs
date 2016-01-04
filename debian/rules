@@ -157,37 +157,38 @@ local_lpath_install := $(EMACS_COMMON)/$(subst :,:$(EMACS_COMMON)/,${local_lpath
 PERSISTENT_AUTOGEN_FILES := debian/control debian/copyright
 
 NONPERSISTENT_AUTOGEN_FILES := \
-  debian/bug-presubj \
-  debian/bug-script \
-  debian/bug-control \
-  debian/emacs.xpm \
-  debian/emacsclient-${bin_name}.desktop \
-  debian/${bin_name}.menu \
-  debian/${bin_name}.preinst \
-  debian/${bin_name}.postinst \
-  debian/${bin_name}.prerm \
-  debian/${bin_name}.overrides.lintian \
-  debian/${bin_name}.desktop \
-  debian/${bin_name}-nox.preinst \
-  debian/${bin_name}-nox.postinst \
-  debian/${bin_name}-nox.prerm \
-  debian/${bin_name}-nox.overrides.lintian \
-  debian/${bin_name}-lucid.preinst \
-  debian/${bin_name}-lucid.postinst \
-  debian/${bin_name}-lucid.prerm \
-  debian/${bin_name}-lucid.overrides.lintian \
-  debian/${bin_name}-xlib.preinst \
-  debian/${bin_name}-xlib.postinst \
-  debian/${bin_name}-xlib.prerm \
-  debian/${bin_name}-xlib.overrides.lintian \
-  debian/${bin_name}-common.postinst \
-  debian/${bin_name}-common.prerm \
-  debian/${bin_name}-common.overrides.lintian \
-  debian/${bin_name}-common.menu \
-  debian/${bin_name}-bin-common.postinst \
-  debian/${bin_name}-bin-common.preinst \
-  debian/${bin_name}-bin-common.prerm \
-  debian/${bin_name}-bin-common.overrides.lintian
+
+  # debian/bug-presubj \
+  # debian/bug-script \
+  # debian/bug-control \
+  # debian/emacs.xpm \
+  # debian/emacsclient-${bin_name}.desktop \
+  # debian/${bin_name}.menu \
+  # debian/${bin_name}.preinst \
+  # debian/${bin_name}.postinst \
+  # debian/${bin_name}.prerm \
+  # debian/${bin_name}.overrides.lintian \
+  # debian/${bin_name}.desktop \
+  # debian/${bin_name}-nox.preinst \
+  # debian/${bin_name}-nox.postinst \
+  # debian/${bin_name}-nox.prerm \
+  # debian/${bin_name}-nox.overrides.lintian \
+  # debian/${bin_name}-lucid.preinst \
+  # debian/${bin_name}-lucid.postinst \
+  # debian/${bin_name}-lucid.prerm \
+  # debian/${bin_name}-lucid.overrides.lintian \
+  # debian/${bin_name}-xlib.preinst \
+  # debian/${bin_name}-xlib.postinst \
+  # debian/${bin_name}-xlib.prerm \
+  # debian/${bin_name}-xlib.overrides.lintian \
+  # debian/${bin_name}-common.postinst \
+  # debian/${bin_name}-common.prerm \
+  # debian/${bin_name}-common.overrides.lintian \
+  # debian/${bin_name}-common.menu \
+  # debian/${bin_name}-bin-common.postinst \
+  # debian/${bin_name}-bin-common.preinst \
+  # debian/${bin_name}-bin-common.prerm \
+  # debian/${bin_name}-bin-common.overrides.lintian
 
 DEBPKGFILES := ${PERSISTENT_AUTOGEN_FILES} ${NONPERSISTENT_AUTOGEN_FILES}
 
@@ -317,13 +318,13 @@ endef
 
 define inst_desktop
 	# Install desktop entry
-	$(INSTALL) -D -m 0644 debian/${2}.desktop \
+	- $(INSTALL) -D -m 0644 debian/${2}.desktop \
 		${1}/usr/share/applications/${2}.desktop
 endef
 
 define inst_overrides
 	# Install overrides
-	$(INSTALL) -D -m 0644 debian/${3}.overrides.${1} \
+	- $(INSTALL) -D -m 0644 debian/${3}.overrides.${1} \
 		${2}/usr/share/${1}/overrides/${3}
 endef
 
@@ -483,7 +484,7 @@ override_dh_install-indep:
 	done
 	# Install XPM icon (for the menu file), and create symlink in
 	# the icons directory
-	cp debian/emacs.xpm \
+	- cp debian/emacs.xpm \
 		$(EMACS_COMMON)/usr/share/emacs/${runtime_ver}/etc/emacs.xpm
 	dh_link -p${bin_name}-common \
 		usr/share/emacs/${runtime_ver}/etc/emacs.xpm \
