@@ -154,7 +154,8 @@ local_lpath := ${local_lpath}:/usr/share/emacs/site-lisp
 local_lpath_install := $(EMACS_COMMON)/$(subst :,:$(EMACS_COMMON)/,${local_lpath})
 
 # These files must always exist, i.e. can't ever be cleaned.
-PERSISTENT_AUTOGEN_FILES := debian/control debian/copyright
+PERSISTENT_AUTOGEN_FILES := debian/control
+# debian/copyright
 
 NONPERSISTENT_AUTOGEN_FILES := \
 
