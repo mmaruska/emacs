@@ -505,11 +505,11 @@ override_dh_install-indep:
 	done; fi
 
 	# Install changelogs -- remove this for stable Emacs releases
-	$(INSTALL) -D -p -m 0644 ChangeLog $(EMACS_COMMON)/usr/share/doc/${bin_name}-common/changelogs/changelog
+	- $(INSTALL) -D -p -m 0644 ChangeLog $(EMACS_COMMON)/usr/share/doc/${bin_name}-common/changelogs/changelog
 	for d in src lisp{,/gnus,/url,/mh-e} lwlib lib-src leim \
 		doc/{lispintro,lispref,misc,man,emacs}; do \
-		$(INSTALL) -p -m 0644 $$d/ChangeLog \
-		$(EMACS_COMMON)/usr/share/doc/${bin_name}-common/changelogs/`echo $$d|sed 's@/@.@'`.changelog ; \
+		$(INSTALL) -p -m 0644 $$d/ChangeLog  \
+		$(EMACS_COMMON)/usr/share/doc/${bin_name}-common/changelogs/`echo $$d|sed 's@/@.@'`.changelog || : ; \
 	done
 
 	dh_link -p${bin_name}-common \
