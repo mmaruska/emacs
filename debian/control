@@ -40,9 +40,9 @@ Pre-Depends: dpkg (>= 1.15.6)
 Recommends: imagemagick
 Depends: emacsen-common (>= 1.4.10), install-info, ${misc:Depends}
 Suggests: emacs-snapshot-el
-Conflicts: emacs-snapshot (<< 1:20060120-2),
-           emacs-snapshot-gtk (<< 1:20060120-2),
-           emacs-snapshot-nox (<< 1:20060120-2)
+Conflicts: emacs-snapshot (<< 25.1),
+           emacs-snapshot-gtk (<< 25.1),
+           emacs-snapshot-nox (<< 25.1)
 Description: The GNU Emacs editor's common infrastructure
  GNU Emacs is the extensible self-documenting text editor.
  This package contains the infrastructure common between emacs-snapshot
@@ -53,9 +53,9 @@ Architecture: any
 Pre-Depends: dpkg (>= 1.15.6)
 Depends: emacs-snapshot-common (= ${source:Version}), ${shlibs:Depends},
          ${misc:Depends}
-Conflicts: emacs-snapshot (<< 1:20060120-2),
-           emacs-snapshot-gtk (<< 1:20060120-2),
-           emacs-snapshot-nox (<< 1:20060120-2)
+Conflicts: emacs-snapshot (<< 25.1),
+           emacs-snapshot-gtk (<< 25.1),
+           emacs-snapshot-nox (<< 25.1)
 Description: The GNU Emacs editor's shared, architecture dependent files
  GNU Emacs is the extensible self-documenting text editor.
  This package contains the architecture dependent infrastructure

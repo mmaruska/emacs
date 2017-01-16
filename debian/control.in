@@ -40,9 +40,9 @@ Pre-Depends: dpkg (>= 1.15.6)
 Recommends: imagemagick
 Depends: emacsen-common (>= 1.4.10), install-info, ${misc:Depends}
 Suggests: @BIN_NAME@-el
-Conflicts: @BIN_NAME@ (<< 1:20060120-2),
-           @BIN_NAME@-gtk (<< 1:20060120-2),
-           @BIN_NAME@-nox (<< 1:20060120-2)
+Conflicts: @BIN_NAME@ (<< 25.1),
+           @BIN_NAME@-gtk (<< 25.1),
+           @BIN_NAME@-nox (<< 25.1)
 Description: The GNU Emacs editor's common infrastructure
  GNU Emacs is the extensible self-documenting text editor.
  This package contains the infrastructure common between @BIN_NAME@
@@ -53,9 +53,9 @@ Architecture: any
 Pre-Depends: dpkg (>= 1.15.6)
 Depends: @BIN_NAME@-common (= ${source:Version}), ${shlibs:Depends},
          ${misc:Depends}
-Conflicts: @BIN_NAME@ (<< 1:20060120-2),
-           @BIN_NAME@-gtk (<< 1:20060120-2),
-           @BIN_NAME@-nox (<< 1:20060120-2)
+Conflicts: @BIN_NAME@ (<< 25.1),
+           @BIN_NAME@-gtk (<< 25.1),
+           @BIN_NAME@-nox (<< 25.1)
 Description: The GNU Emacs editor's shared, architecture dependent files
  GNU Emacs is the extensible self-documenting text editor.
  This package contains the architecture dependent infrastructure
