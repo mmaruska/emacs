@@ -1026,7 +1026,7 @@ x_set_window_group(struct frame *f, Lisp_Object new_value, Lisp_Object old_value
 
   CHECK_NUMBER (new_value);
   f->output_data.x->wm_hints.flags |= WindowGroupHint;
-  f->output_data.x->wm_hints.window_group = XINT (new_value);
+  f->output_data.x->wm_hints.window_group = XFIXNUM (new_value);
   /* FRAME_X_DISPLAY_INFO(f)->client_leader_window */
 
   block_input ();
@@ -1056,7 +1056,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
   if (1) /* (FRAME_X_DISPLAY_INFO(f)->client_leader_window != 0)*/
     {
       f->output_data.x->wm_hints.flags |= WindowGroupHint;
-      f->output_data.x->wm_hints.window_group = XINT (id); /* FRAME_X_DISPLAY_INFO(f)->client_leader_window */
+      f->output_data.x->wm_hints.window_group = XFIXNUM (id); /* FRAME_X_DISPLAY_INFO(f)->client_leader_window */
     }
   XSetWMHints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 	       &f->output_data.x->wm_hints);
@@ -1079,7 +1079,7 @@ of existing window. */)
   CHECK_LIVE_FRAME (frame);
 
   f = XFRAME (frame);
-  return make_number (f->output_data.x->wm_hints.window_group);
+  return make_fixed_natnum (f->output_data.x->wm_hints.window_group);
 }
 
 
