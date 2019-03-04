@@ -553,11 +553,11 @@ override_dh_install-arch:
 
 	# Move common binary to emacs-bin-common
 	$(INSTALL) -d $(EMACS_BIN_COMMON)/usr
-	mv $(EMACS_COMMON)/usr/bin $(EMACS_BIN_COMMON)/usr
+	-mv $(EMACS_COMMON)/usr/bin $(EMACS_BIN_COMMON)/usr
 	rm -f $(EMACS_BIN_COMMON)/usr/bin/{emacs,emacs-*}
-	mv $(EMACS_COMMON)/usr/lib $(EMACS_BIN_COMMON)/usr
-	chown root.mail $(EMACS_BIN_COMMON)/${movemail_bin}
-	chmod g+s $(EMACS_BIN_COMMON)/${movemail_bin}
+	-mv $(EMACS_COMMON)/usr/lib $(EMACS_BIN_COMMON)/usr
+	-chown root.mail $(EMACS_BIN_COMMON)/${movemail_bin}
+	-chmod g+s $(EMACS_BIN_COMMON)/${movemail_bin}
 
 	# Set alternatives
 	(alternatives=`ls $(EMACS_BIN_COMMON)/usr/bin | xargs` && \
