@@ -7000,7 +7000,8 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
       if (width > 0 && height > 0)
 	{
 	  block_input ();
-          x_clear_area (f, left, top, width, height);
+
+	  x_fill_frame_area_bg (f, left, top, width, height);
 	  unblock_input ();
 	}
 
