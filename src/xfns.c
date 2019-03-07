@@ -1580,7 +1580,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 	  y = FRAME_TOP_MARGIN_HEIGHT (f);
 
 	  block_input ();
-	  x_clear_area (f, 0, y, width, height);
+	  x_fill_frame_area_bg (f, 0, y, width, height);
 	  unblock_input ();
 	}
 
@@ -1590,7 +1590,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 	  height = nlines * FRAME_LINE_HEIGHT (f) - y;
 
 	  block_input ();
-	  x_clear_area (f, 0, y, width, height);
+	  x_fill_frame_area_bg (f, 0, y, width, height);
 	  unblock_input ();
 	}
 
