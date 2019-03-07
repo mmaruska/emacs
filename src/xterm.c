@@ -753,7 +753,7 @@ x_clear_window (struct frame *f)
   x_end_cr_clip (f);
 #else
   if (FRAME_X_DOUBLE_BUFFERED_P (f))
-    x_clear_area (f, 0, 0, FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
+    x_fill_frame_area_bg(f, 0, 0, FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
   else
     XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
 #endif
@@ -1325,10 +1325,10 @@ x_clear_under_internal_border (struct frame *f)
 	}
       else
 	{
-	  x_clear_area (f, 0, 0, border, height);
-	  x_clear_area (f, 0, margin, width, border);
-	  x_clear_area (f, width - border, 0, border, height);
-	  x_clear_area (f, 0, height - border, width, border);
+	  x_fill_frame_area_bg (f, 0, 0, border, height);
+	  x_fill_frame_area_bg (f, 0, margin, width, border);
+	  x_fill_frame_area_bg (f, width - border, 0, border, height);
+	  x_fill_frame_area_bg (f, 0, height - border, width, border);
 	}
 
       unblock_input ();
@@ -1390,8 +1390,8 @@ x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 	  }
 	else
 	  {
-	    x_clear_area (f, 0, y, width, height);
-	    x_clear_area (f, FRAME_PIXEL_WIDTH (f) - width, y, width, height);
+	    x_fill_frame_area_bg(f, 0, y, width, height);
+	    x_fill_frame_area_bg(f, FRAME_PIXEL_WIDTH (f) - width, y, width, height);
 	  }
 	unblock_input ();
       }
@@ -2829,8 +2829,8 @@ x_draw_relief_rect (struct frame *f,
       if (width == 1)
         XDrawLine (dpy, drawable, gc, left_x, top_y + 1, left_x, bottom_y);
 
-      x_clear_area(f, left_x, top_y, 1, 1);
-      x_clear_area(f, left_x, bottom_y, 1, 1);
+      x_fill_frame_area_bg(f, left_x, top_y, 1, 1);
+      x_fill_frame_area_bg(f, left_x, bottom_y, 1, 1);
 
       for (i = (width > 1 ? 1 : 0); i < width; ++i)
         XDrawLine (dpy, drawable, gc,
@@ -2873,8 +2873,8 @@ x_draw_relief_rect (struct frame *f,
   /* Right.  */
   if (right_p)
     {
-      x_clear_area(f, right_x, top_y, 1, 1);
-      x_clear_area(f, right_x, bottom_y, 1, 1);
+      x_fill_frame_area_bg(f, right_x, top_y, 1, 1);
+      x_fill_frame_area_bg(f, right_x, bottom_y, 1, 1);
       for (i = 0; i < width; ++i)
         XDrawLine (dpy, drawable, gc,
 		   right_x - i, top_y + (i + 1) * top_p,
@@ -3978,6 +3978,8 @@ x_clear_area (struct frame *f, int x, int y, int width, int height)
   cairo_fill (cr);
   x_end_cr_clip (f);
 #else
+  exit(0);
+
   if (FRAME_X_DOUBLE_BUFFERED_P (f))
     XFillRectangle (FRAME_X_DISPLAY (f),
 		    FRAME_X_DRAWABLE (f),
@@ -3985,7 +3987,7 @@ x_clear_area (struct frame *f, int x, int y, int width, int height)
 		    x, y, width, height);
   else
     x_clear_area1 (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-                   x, y, width, height, False);
+		   x, y, width, height, False);
 #endif
 }
 
@@ -6634,7 +6636,7 @@ x_scroll_bar_create (struct window *w, int top, int left,
        for the case that a window has been split horizontally.  In
        this case, no clear_frame is generated to reduce flickering.  */
     if (width > 0 && window_box_height (w) > 0)
-      x_clear_area (f, left, top, width, window_box_height (w));
+      x_fill_frame_area_bg(f, left, top, width, window_box_height (w));
 
     window = XCreateWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			    /* Position and size of scroll bar.  */
@@ -6980,7 +6982,7 @@ XTset_horizontal_scroll_bar (struct window *w, int portion, int whole, int posit
 
 	  /* Clear also part between window_width and
 	     WINDOW_PIXEL_WIDTH.  */
-	  x_clear_area (f, left, top, pixel_width, height);
+	  x_fill_frame_area_bg (f, left, top, pixel_width, height);
 	  unblock_input ();
 	}
 
@@ -7032,7 +7034,7 @@ XTset_horizontal_scroll_bar (struct window *w, int portion, int whole, int posit
 	int area_height = WINDOW_CONFIG_SCROLL_BAR_HEIGHT (w);
 	int rest = area_height - height;
 	if (rest > 0 && width > 0)
-	  x_clear_area (f, left, top, width, rest);
+	  x_fill_frame_area_bg (f, left, top, width, rest);
       }
 
       /* Move/size the scroll bar window.  */
@@ -9471,7 +9473,7 @@ x_define_frame_cursor (struct frame *f, Cursor cursor)
 static void
 x_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 {
-  x_clear_area (f, x, y, width, height);
+  x_fill_frame_area_bg(f,x, y, width, height);
 }
 
 
