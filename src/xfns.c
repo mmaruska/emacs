@@ -2870,6 +2870,7 @@ x_mark_frame_dirty (struct frame *f)
 static void
 set_up_x_back_buffer (struct frame *f)
 {
+  return;
 #ifdef HAVE_XDBE
   block_input ();
   if (FRAME_X_WINDOW (f) && !FRAME_X_DOUBLE_BUFFERED_P (f))
