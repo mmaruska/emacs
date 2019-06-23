@@ -33634,7 +33634,7 @@ expose_area (struct window *w, struct glyph_row *row, const Emacs_Rectangle *r,
       /* row->descent + row->phys_ascent /*row->ascent*/;
       /* mmc: This is for the space after glyphs, which is still in the
 	 exposed rectangle. */
-      if (x_intersect_rectangles (r, &glyph_row, &missing_background))
+      if (gui_intersect_rectangles (r, &glyph_row, &missing_background))
 	{
 	  struct frame *f = XFRAME (WINDOW_FRAME (w));
 	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -34130,7 +34130,7 @@ expose_frame (struct frame *f, int x, int y, int w, int h)
     border.width = FRAME_INTERNAL_BORDER_WIDTH(f);
     border.height = FRAME_PIXEL_HEIGHT(f);
 
-    if (x_intersect_rectangles(&border, &r, &intersection))
+    if (gui_intersect_rectangles(&border, &r, &intersection))
       FRAME_RIF (f)->clear_frame_area(f,
 				      intersection.x,
 				      intersection.y,
@@ -34146,7 +34146,7 @@ expose_frame (struct frame *f, int x, int y, int w, int h)
     border.width = FRAME_PIXEL_WIDTH(f);
     border.height = FRAME_INTERNAL_BORDER_WIDTH(f);
 
-    if (x_intersect_rectangles(&border, &r, &intersection))
+    if (gui_intersect_rectangles(&border, &r, &intersection))
       FRAME_RIF (f)->clear_frame_area(f,
 			    intersection.x,
 			    intersection.y,
@@ -34162,7 +34162,7 @@ expose_frame (struct frame *f, int x, int y, int w, int h)
     border.width = FRAME_PIXEL_WIDTH(f);
     border.height = FRAME_INTERNAL_BORDER_WIDTH(f);
 
-    if (x_intersect_rectangles(&border, &r, &intersection))
+    if (gui_intersect_rectangles(&border, &r, &intersection))
       FRAME_RIF (f)->clear_frame_area(f,
 			    intersection.x,
 			    intersection.y,
