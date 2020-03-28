@@ -1,5 +1,63 @@
-emacs-snapshot (25~maruska1) UNRELEASED; urgency=medium
+emacs-snapshot (27.0.90-maruska) unstable; urgency=medium
 
+  [ Michal Maruska ]
   * debian/changelog
 
- -- Michal Maruska <mmaruska@gmail.com>  Sun, 03 Jan 2016 19:33:23 +0100
+  [ Rob Browning ]
+  * Define a Debian-specific Emacs flavor
+
+  [ Romain Francoise ]
+  * M-x report-emacs-bug includes the package version
+
+  [ Julien Danjou ]
+  * Debian-related items were added to the Help menu
+
+  [ Michal Maruska ]
+  * give-up: disable the debian extension to menu.
+  * (describe-copying) uses /usr/share/common-licenses/GPL
+  * prepare to set WM_CLIENT_MACHINE property on Emacs windows -- not set yet.
+
+  [ Rob Browning ]
+  * (emacs-version) has been modified to indicate Debian modifications
+
+  [ Michal Maruska ]
+  * Make _new_ frame visible and garbaged?
+
+  [ Romain Francoise ]
+  * Some documentation references to /usr/local have been changed to /usr
+
+  [ Michal Maruska ]
+  * new property: window-group (X windows)
+  * ediff: Set the window-id to group the X windows.
+  * fix build-depends.
+  * Use the new un-boxing functions.
+  * I need LDFLAGS from cmdline, for now
+  * cut away debian niceties
+  * debian
+  * fix control.in !!!
+  * drop requirement for debian/copyright file
+  * mangle info  conditionally.
+  * Don't fail on missing (upstream) Changelog
+  * debian Provide emacs, not only emacsen.
+  * update build dependencies
+  * bugfix
+  * fix conflict relation
+  * dropping part: conflicts with C-g inside minibuffer.
+  * debian: don't fail b/c movemail_bin is no more built.
+  * On expose, invoke clear_frame_area to draw non-buffer part of frame.
+  * x_fill_frame_area_bg: new function to fill with reverse_gc part of a frame.
+  * Convert x_clear_area calls (apart from gtk/Cairo) to x_fill_frame_area_bg.
+  * more clear -> x_fill_frame_area_bg
+  * On Expose fill with BG color part of lines after the glyphs segment
+  * Finally avoid XSetWindowBackground/CWBackPixel:
+  * Scroll-bar: set the bg-pixmap to None
+  * scrollbar: Explicitely Fill the bg. Also the thin border of the scrollbar.
+  * avoid XClearWindow during x_clear_frame -- only causes flickering
+  * set as Garbaged on redraw-frame (why?)
+  * Don't auto-raise: ignore Enter/Leave Notify.
+  * disable set_up_x_back_buffer()
+  * Ignore notification of Focus change, received due to Pointer.
+  * tracing  the auto-raise
+  * convert x_intersect_rectangles to gui_intersect_rectangles
+
+ --  <mmaruska@gmail.com>  Sat, 28 Mar 2020 13:14:28 +0100
