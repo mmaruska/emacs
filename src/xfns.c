@@ -1020,6 +1020,68 @@ xg_set_icon_from_xpm_data (struct frame *f, const char **data)
 }
 #endif /* USE_GTK */
 
+static void
+x_set_window_group(struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
+{
+
+  CHECK_NUMBER (new_value);
+  f->output_data.x->wm_hints.flags |= WindowGroupHint;
+  f->output_data.x->wm_hints.window_group = XFIXNUM (new_value);
+  /* FRAME_X_DISPLAY_INFO(f)->client_leader_window */
+
+  block_input ();
+  XSetWMHints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+	       &f->output_data.x->wm_hints);
+  unblock_input ();
+}
+
+
+DEFUN ("set-frame-group", Fset_frame_group_leader, Sset_frame_group_leader,
+       1, 2, 0,
+       doc: /* Tell the X Window Manager that frame FRAME is in the group Group.
+Group is usually a window id of another X window.
+If omitted, FRAME defaults to the currently selected frame.  */)
+     (Lisp_Object frame, Lisp_Object id)
+{
+  struct frame *f;
+  if (NILP (frame))
+    frame = selected_frame;
+
+  CHECK_LIVE_FRAME (frame);
+
+  CHECK_NUMBER (id);
+
+  block_input ();
+  f = XFRAME (frame);
+  if (1) /* (FRAME_X_DISPLAY_INFO(f)->client_leader_window != 0)*/
+    {
+      f->output_data.x->wm_hints.flags |= WindowGroupHint;
+      f->output_data.x->wm_hints.window_group = XFIXNUM (id); /* FRAME_X_DISPLAY_INFO(f)->client_leader_window */
+    }
+  XSetWMHints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+	       &f->output_data.x->wm_hints);
+
+  unblock_input ();
+  return Qnil;
+}
+
+
+DEFUN ("frame-group", Fframe_group_leader, Sframe_group_leader,
+       1, 1, 0,
+       doc: /* return the group of the frame FRAME.
+Group is a hint for the Window manager, and it is usually a window ID
+of existing window. */)
+        (Lisp_Object frame)
+{
+  struct frame *f;
+  if (NILP (frame))
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame);
+
+  f = XFRAME (frame);
+  return make_fixed_natnum (f->output_data.x->wm_hints.window_group);
+}
+
 
 /* Functions called only from `gui_set_frame_parameters'
    to set individual parameters.
@@ -1082,7 +1144,9 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       block_input ();
       XSetBackground (dpy, x->normal_gc, bg);
       XSetForeground (dpy, x->reverse_gc, bg);
+#if 0      /* mmc: */
       XSetWindowBackground (dpy, FRAME_X_WINDOW (f), bg);
+#endif
       XSetForeground (dpy, x->cursor_gc, bg);
 
 #ifdef USE_GTK
@@ -1580,7 +1644,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 	  y = FRAME_TOP_MARGIN_HEIGHT (f);
 
 	  block_input ();
-	  x_clear_area (f, 0, y, width, height);
+	  x_fill_frame_area_bg (f, 0, y, width, height);
 	  unblock_input ();
 	}
 
@@ -1590,7 +1654,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 	  height = nlines * FRAME_LINE_HEIGHT (f) - y;
 
 	  block_input ();
-	  x_clear_area (f, 0, y, width, height);
+	  x_fill_frame_area_bg (f, 0, y, width, height);
 	  unblock_input ();
 	}
 
@@ -2308,6 +2372,12 @@ hack_wm_protocols (struct frame *f, Widget widget)
 		       XA_ATOM, 32, PropModeAppend,
 		       (unsigned char *) props, count);
   }
+#if 0
+  /* mmc:    So this is not used!  it's in #ifdef USE_X_TOOLKIT, but search below*/
+  XChangeProperty (dpy, w, FRAME_X_DISPLAY_INFO (f)->Xatom_wm_client_machine,
+		       XA_ATOM, 8, PropModeReplace, /* mmc: ?? */
+		       (unsigned char *) "linux11", 1);
+#endif
   unblock_input ();
 }
 #endif
@@ -2868,6 +2938,7 @@ x_mark_frame_dirty (struct frame *f)
 static void
 set_up_x_back_buffer (struct frame *f)
 {
+  return;
 #ifdef HAVE_XDBE
   block_input ();
   if (FRAME_X_WINDOW (f) && !FRAME_X_DOUBLE_BUFFERED_P (f))
@@ -3229,7 +3300,11 @@ x_window (struct frame *f)
   XSetWindowAttributes attributes;
   unsigned long attribute_mask;
 
+#if 0
   attributes.background_pixel = FRAME_BACKGROUND_PIXEL (f);
+#else
+  attributes.background_pixmap = None;
+#endif
   attributes.border_pixel = f->output_data.x->border_pixel;
   attributes.bit_gravity = StaticGravity;
   attributes.backing_store = NotUseful;
@@ -3237,7 +3312,7 @@ x_window (struct frame *f)
   attributes.event_mask = STANDARD_EVENT_SET;
   attributes.colormap = FRAME_X_COLORMAP (f);
   attributes.override_redirect = FRAME_OVERRIDE_REDIRECT (f);
-  attribute_mask = (CWBackPixel | CWBorderPixel | CWBitGravity | CWEventMask
+  attribute_mask = (CWBorderPixel | CWBitGravity | CWEventMask
 		    | CWOverrideRedirect | CWColormap);
 
   block_input ();
@@ -3334,6 +3409,13 @@ x_window (struct frame *f)
 		 f->output_data.x->current_cursor
                  = f->output_data.x->text_cursor);
 
+#if 0
+  /* mmc: */
+  XChangeProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                   FRAME_X_DISPLAY_INFO (f)->Xatom_wm_client_machine,
+                   XA_STRING, 8, PropModeReplace, /* mmc: ?? */
+                   (unsigned char *) "linux11", strlen("linux11"));
+#endif
   unblock_input ();
 
   if (FRAME_X_WINDOW (f) == 0)
@@ -7795,6 +7877,7 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_z_group,
   x_set_override_redirect,
   gui_set_no_special_glyphs,
+  x_set_window_group,
 };
 
 void

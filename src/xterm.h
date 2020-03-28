@@ -309,6 +309,7 @@ struct x_display_info
   Atom Xatom_wm_configure_denied; /* When our config request is denied */
   Atom Xatom_wm_window_moved;     /* When the WM moves us.  */
   Atom Xatom_wm_client_leader;    /* Id of client leader window.  */
+  Atom Xatom_wm_client_machine;    /* hostname of where emacs process runs.  */
 
   /* EditRes protocol */
   Atom Xatom_editres;
@@ -1103,6 +1104,8 @@ extern void x_clear_area (struct frame *f, int, int, int, int);
 #if !defined USE_X_TOOLKIT && !defined USE_GTK
 extern void x_mouse_leave (struct x_display_info *);
 #endif
+
+extern void x_fill_frame_area_bg (struct frame *f, int,int,int,int);
 
 #if defined USE_X_TOOLKIT || defined USE_MOTIF
 extern int x_dispatch_event (XEvent *, Display *);

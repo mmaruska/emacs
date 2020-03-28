@@ -871,7 +871,7 @@ x_clear_window (struct frame *f)
   x_end_cr_clip (f);
 #else
   if (FRAME_X_DOUBLE_BUFFERED_P (f))
-    x_clear_area (f, 0, 0, FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
+    x_fill_frame_area_bg(f, 0, 0, FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
   else
     XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
 #endif
@@ -1319,10 +1319,10 @@ x_clear_under_internal_border (struct frame *f)
 	}
       else
 	{
-	  x_clear_area (f, 0, 0, border, height);
-	  x_clear_area (f, 0, margin, width, border);
-	  x_clear_area (f, width - border, 0, border, height);
-	  x_clear_area (f, 0, height - border, width, border);
+	  x_fill_frame_area_bg (f, 0, 0, border, height);
+	  x_fill_frame_area_bg (f, 0, margin, width, border);
+	  x_fill_frame_area_bg (f, width - border, 0, border, height);
+	  x_fill_frame_area_bg (f, 0, height - border, width, border);
 	}
 
       unblock_input ();
@@ -1384,8 +1384,8 @@ x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 	  }
 	else
 	  {
-	    x_clear_area (f, 0, y, width, height);
-	    x_clear_area (f, FRAME_PIXEL_WIDTH (f) - width, y, width, height);
+	    x_fill_frame_area_bg(f, 0, y, width, height);
+	    x_fill_frame_area_bg(f, FRAME_PIXEL_WIDTH (f) - width, y, width, height);
 	  }
 	unblock_input ();
       }
@@ -2882,8 +2882,8 @@ x_draw_relief_rect (struct frame *f,
       if (width == 1)
         XDrawLine (dpy, drawable, gc, left_x, top_y + 1, left_x, bottom_y);
 
-      x_clear_area(f, left_x, top_y, 1, 1);
-      x_clear_area(f, left_x, bottom_y, 1, 1);
+      x_fill_frame_area_bg(f, left_x, top_y, 1, 1);
+      x_fill_frame_area_bg(f, left_x, bottom_y, 1, 1);
 
       for (i = (width > 1 ? 1 : 0); i < width; ++i)
         XDrawLine (dpy, drawable, gc,
@@ -2926,8 +2926,8 @@ x_draw_relief_rect (struct frame *f,
   /* Right.  */
   if (right_p)
     {
-      x_clear_area(f, right_x, top_y, 1, 1);
-      x_clear_area(f, right_x, bottom_y, 1, 1);
+      x_fill_frame_area_bg(f, right_x, top_y, 1, 1);
+      x_fill_frame_area_bg(f, right_x, bottom_y, 1, 1);
       for (i = 0; i < width; ++i)
         XDrawLine (dpy, drawable, gc,
 		   right_x - i, top_y + (i + 1) * top_p,
@@ -4075,6 +4075,8 @@ x_clear_area (struct frame *f, int x, int y, int width, int height)
   cairo_fill (cr);
   x_end_cr_clip (f);
 #else
+  exit(0);
+
   if (FRAME_X_DOUBLE_BUFFERED_P (f))
     XFillRectangle (FRAME_X_DISPLAY (f),
 		    FRAME_X_DRAWABLE (f),
@@ -4082,10 +4084,23 @@ x_clear_area (struct frame *f, int x, int y, int width, int height)
 		    x, y, width, height);
   else
     x_clear_area1 (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-                   x, y, width, height, False);
+		   x, y, width, height, False);
 #endif
 }
 
+void
+x_fill_frame_area_bg (struct frame *f, int x, int y, int width, int height)
+{
+  eassert (width > 0 && height > 0);
+  if (f && (f->output_data.x) && f->output_data.x->reverse_gc)
+    XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		    f->output_data.x->reverse_gc, x, y, width, height);
+  else {
+    fprintf(stderr, "%s: no frame given, or the frame does "
+	    "not have reverse_gc -> XClearArea cannot be emulated\n",
+	    __FUNCTION__);
+  }
+}
 
 /* Clear an entire frame.  */
 
@@ -4099,7 +4114,10 @@ x_clear_frame (struct frame *f)
   block_input ();
 
   font_drop_xrender_surfaces (f);
-  x_clear_window (f);
+  /* The following calls have been commented out because they do not
+     seem to accomplish anything, apart from causing flickering during
+     window resize.  */
+  /*   x_clear_window (f); */
 
   /* We have to clear the scroll bars.  If we have changed colors or
      something like that, then they should be notified.  */
@@ -4780,7 +4798,8 @@ x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
           = focus_frame ? focus_frame->output_data.x->focus_state : 0;
 
         if (event->xcrossing.detail != NotifyInferior
-            && event->xcrossing.focus
+            && event->xcrossing.focus /* The window is the focused one! */
+            && focus_frame
             && ! (focus_state & FOCUS_EXPLICIT))
           x_focus_changed ((event->type == EnterNotify ? FocusIn : FocusOut),
 			   FOCUS_IMPLICIT,
@@ -4800,10 +4819,23 @@ x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
       if (event->xfocus.mode == NotifyGrab ||
           event->xfocus.mode == NotifyUngrab)
         return;
-      x_focus_changed (event->type,
+      /* NotifyPointer means the mouse is over an emacs X window
+       * while the focus is changed. That
+       * does NOT indicate we intended to Focus to the emacs frame!
+       * Example: Mouse is (incidentally) over the Ediff control panel,
+       * while we change "workspace"
+       */
+      if (event->xfocus.detail != NotifyPointer)
+        x_focus_changed (event->type,
 		       (event->xfocus.detail == NotifyPointer ?
 			FOCUS_IMPLICIT : FOCUS_EXPLICIT),
 		       dpyinfo, frame, bufp);
+      else {
+#ifdef DEBUG_EVENTS
+        fprintf(stderr, "%s: NotifyPointer -- skipping x_focus_changed !\n",
+                __FUNCTION__);
+#endif
+      }
       break;
 
     case ClientMessage:
@@ -6745,19 +6777,20 @@ x_scroll_bar_create (struct window *w, int top, int left,
     a.background_pixel = f->output_data.x->scroll_bar_background_pixel;
     if (a.background_pixel == -1)
       a.background_pixel = FRAME_BACKGROUND_PIXEL (f);
+    a.background_pixmap = None;
 
     a.event_mask = (ButtonPressMask | ButtonReleaseMask
 		    | ButtonMotionMask | PointerMotionHintMask
 		    | ExposureMask);
     a.cursor = FRAME_DISPLAY_INFO (f)->vertical_scroll_bar_cursor;
 
-    mask = (CWBackPixel | CWEventMask | CWCursor);
+    mask = (CWBackPixmap | CWEventMask | CWCursor);
 
     /* Clear the area of W that will serve as a scroll bar.  This is
        for the case that a window has been split horizontally.  In
        this case, no clear_frame is generated to reduce flickering.  */
     if (width > 0 && window_box_height (w) > 0)
-      x_clear_area (f, left, top, width, window_box_height (w));
+      x_fill_frame_area_bg(f, left, top, width, window_box_height (w));
 
     window = XCreateWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			    /* Position and size of scroll bar.  */
@@ -6890,18 +6923,16 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end,
        that many pixels tall.  */
     end += VERTICAL_SCROLL_BAR_MIN_HANDLE;
 
-    /* Draw the empty space above the handle.  Note that we can't clear
-       zero-height areas; that means "clear to end of window."  */
-    if ((inside_width > 0) && (start > 0))
-      x_clear_area1 (FRAME_X_DISPLAY (f), w,
-		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
-		    VERTICAL_SCROLL_BAR_TOP_BORDER,
-		    inside_width, start, False);
+    /* mmc: I changed the order:
+     * First draw the colored handle, and then the
+     * top & bottom parts (using the other color). */
 
     /* Change to proper foreground color if one is specified.  */
-    if (f->output_data.x->scroll_bar_foreground_pixel != -1)
-      XSetForeground (FRAME_X_DISPLAY (f), gc,
-		      f->output_data.x->scroll_bar_foreground_pixel);
+    XSetForeground (FRAME_X_DISPLAY (f), gc,
+                    (f->output_data.x->scroll_bar_foreground_pixel != -1)?
+                    f->output_data.x->scroll_bar_foreground_pixel:
+                    WhitePixel(FRAME_X_DISPLAY (f),  DefaultScreen(FRAME_X_DISPLAY (f)))
+      );
 
     /* Draw the handle itself.  */
     XFillRectangle (FRAME_X_DISPLAY (f), w, gc,
@@ -6915,13 +6946,49 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end,
       XSetForeground (FRAME_X_DISPLAY (f), gc,
 		      FRAME_FOREGROUND_PIXEL (f));
 
+    /* Draw the empty space above the handle.  Note that we can't clear
+       zero-height areas; that means "clear to end of window."  */
+    if (0 < start){
+
+      XFillRectangle(FRAME_X_DISPLAY (f), w,
+                     gc,
+                     VERTICAL_SCROLL_BAR_LEFT_BORDER,
+                     VERTICAL_SCROLL_BAR_TOP_BORDER,
+                     inside_width, start);
+    }
+
     /* Draw the empty space below the handle.  Note that we can't
        clear zero-height areas; that means "clear to end of window." */
     if ((inside_width > 0) && (end < inside_height))
-      x_clear_area1 (FRAME_X_DISPLAY (f), w,
+      {
+        XFillRectangle(FRAME_X_DISPLAY (f), w,
+                       gc,
+                       VERTICAL_SCROLL_BAR_LEFT_BORDER,
+                       VERTICAL_SCROLL_BAR_TOP_BORDER + end,
+                       inside_width, inside_height - end);
+      }
+
+    /* The borders of the scrollbar  */
+    XSetForeground (FRAME_X_DISPLAY (f), gc,
+                    FRAME_BACKGROUND_PIXEL(f));
+
+    XFillRectangle (FRAME_X_DISPLAY (f), w, f->output_data.x->reverse_gc,
+		    /* x, y, width, height */
+		    0, 0,
 		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
-		    VERTICAL_SCROLL_BAR_TOP_BORDER + end,
-		    inside_width, inside_height - end, False);
+                    inside_height);
+
+    XFillRectangle (FRAME_X_DISPLAY (f), w, gc,
+		    /* x, y, width, height */
+		    VERTICAL_SCROLL_BAR_LEFT_BORDER + inside_width,
+                    0,
+                    VERTICAL_SCROLL_BAR_LEFT_BORDER + 10, /* I suppose it's symetric */
+                    inside_height);
+
+    /* Restore the foreground color of the GC if we changed it above.  */
+    if (f->output_data.x->scroll_bar_foreground_pixel != -1)
+      XSetForeground (FRAME_X_DISPLAY (f), gc,
+		      FRAME_FOREGROUND_PIXEL(f));
   }
 
   unblock_input ();
@@ -6985,7 +7052,8 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
       if (width > 0 && height > 0)
 	{
 	  block_input ();
-          x_clear_area (f, left, top, width, height);
+
+	  x_fill_frame_area_bg (f, left, top, width, height);
 	  unblock_input ();
 	}
 
@@ -7103,7 +7171,7 @@ XTset_horizontal_scroll_bar (struct window *w, int portion, int whole, int posit
 
 	  /* Clear also part between window_width and
 	     WINDOW_PIXEL_WIDTH.  */
-	  x_clear_area (f, left, top, pixel_width, height);
+	  x_fill_frame_area_bg (f, left, top, pixel_width, height);
 	  unblock_input ();
 	}
 
@@ -7155,7 +7223,7 @@ XTset_horizontal_scroll_bar (struct window *w, int portion, int whole, int posit
 	int area_height = WINDOW_CONFIG_SCROLL_BAR_HEIGHT (w);
 	int rest = area_height - height;
 	if (rest > 0 && width > 0)
-	  x_clear_area (f, left, top, width, rest);
+	  x_fill_frame_area_bg (f, left, top, width, rest);
       }
 
       /* Move/size the scroll bar window.  */
@@ -9649,7 +9717,7 @@ x_define_frame_cursor (struct frame *f, Emacs_Cursor cursor)
 static void
 x_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 {
-  x_clear_area (f, x, y, width, height);
+  x_fill_frame_area_bg(f,x, y, width, height);
 }
 
 
@@ -13065,6 +13133,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       ATOM_REFS_INIT ("WM_CONFIGURE_DENIED", Xatom_wm_configure_denied)
       ATOM_REFS_INIT ("WM_MOVED", Xatom_wm_window_moved)
       ATOM_REFS_INIT ("WM_CLIENT_LEADER", Xatom_wm_client_leader)
+      ATOM_REFS_INIT ("WM_CLIENT_MACHINE", Xatom_wm_client_machine)
       ATOM_REFS_INIT ("Editres", Xatom_editres)
       ATOM_REFS_INIT ("CLIPBOARD", Xatom_CLIPBOARD)
       ATOM_REFS_INIT ("TIMESTAMP", Xatom_TIMESTAMP)

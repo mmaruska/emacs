@@ -1164,6 +1164,7 @@ make_terminal_frame (struct terminal *terminal)
 
   SET_FRAME_VISIBLE (f, 1);
 
+  f->visible = 1;		/* SET_FRAME_VISIBLE will set frame_garbaged global aggregator. */
   f->terminal = terminal;
   f->terminal->reference_count++;
 #ifdef MSDOS
@@ -3776,6 +3777,7 @@ static const struct frame_parm_table frame_parms[] =
   {"ns-appearance",		SYMBOL_INDEX (Qns_appearance)},
   {"ns-transparent-titlebar",	SYMBOL_INDEX (Qns_transparent_titlebar)},
 #endif
+  {"window-group",              SYMBOL_INDEX (Qwindow_group)}, /* Hint for Window Manager  */
 };
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -5887,6 +5889,7 @@ syms_of_frame (void)
   DEFSYM (Qouter_window_id, "outer-window-id");
 #endif
   DEFSYM (Qparent_id, "parent-id");
+  DEFSYM (Qwindow_group, "window-group");
   DEFSYM (Qx, "x");
   DEFSYM (Qw32, "w32");
   DEFSYM (Qpc, "pc");
